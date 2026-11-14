@@ -80,9 +80,6 @@ export function routeColor(itineraryId: string): string {
  * colours. The SET does: a different set of trips can resolve clashes differently. So compute this
  * once for everything you show and pass the same map to the map (RouteMap's `routeColors`) and to
  * the result cards. Don't recompute it for a filtered subset.
- *
- * `fixed` holds saved trips' colours (SavedItinerary.color): a listed trip found there gets exactly
- * that colour, and every colour in it counts as taken, even for saved trips not on screen.
  */
 export function assignRouteColors(
   itineraryIds: readonly string[],
