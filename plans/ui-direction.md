@@ -16,14 +16,11 @@ Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature note
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress** by the UI team.
-- **Owner:** @Rad1ee @DMFriends
-- **Up for grabs?** Owned by the UI team. Not a step-by-step plan.
+- **Status:** Living reference. The screen plans 020–027 are where UI work is specified; when this doc and a plan disagree, the plan wins.
+- **Design feedback:** @Cattn (2026-11-14; @Rad1ee is inactive). Builders: @DMFriends (mobile screens), @KrakenTheJaken (map).
+- **Up for grabs?** Not a step-by-step plan.
 
-**Open questions** (answer by number in a comment on #16):
-
-1. @Rad1ee: anything you'd change in the layout DMFriends chose (map as home, mode slider, chat side panel on web)?
-2. @Rad1ee @DMFriends: is the slice format in `plans/ui-slices.md` useful? (See the comment below for what it is.)
+**Open questions:** none. The layout (map as home, mode slider, chat sheet on mobile, side panel on web) is settled; the slice format was replaced by plans 020–027.
 
 <!-- help:end -->
 

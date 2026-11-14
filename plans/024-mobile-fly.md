@@ -27,7 +27,7 @@
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on flight prices.
 
-**Open questions** — **@DMFriends answers these.** Reply as `024-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design); @DMFriends may propose answers.** Reply as `024-Q1: ...`. Use the proposed defaults until answered.
 
 - 024-Q1: empty state until the data has a flight, rather than painted sample cards? *(proposed: yes)*
 - 024-Q2: show a rail-only result in this list, labeled from `routeName`? *(proposed: yes)*

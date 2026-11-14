@@ -23,9 +23,9 @@
 - **Owner:** @KrakenTheJaken (maps)
 - **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work.
 - **Waiting on:** nothing for the pure layer and web demo. Plan 029 (@Cattn) provides the live events.
-- **Order for Kraken:** 009 DOM map → 027 web results → this plan (web renderer only; mobile gets it through the DOM map).
+- **Order for Kraken:** 009 DOM map (MVP) → this plan (web renderer only; Android gets it through the DOM map) → 025 Settings → 027 web results if still open.
 
-**Open questions** (answer by number in a comment on #56) — **@KrakenTheJaken answers these; @Rad1ee reviews the look.**
+**Open questions** (answer by number in a comment on #56) — **@KrakenTheJaken answers these; @Cattn reviews the look.**
 
 - 030-Q1: total time to draw all routes once they arrive? *(proposed: about 1.2 s; each route takes 600 ms, starting 150 ms apart)*
 - 030-Q2: while searching, show a moving dashed line from origin to destination? *(proposed: yes; it disappears when real routes start drawing)*

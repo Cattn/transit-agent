@@ -22,12 +22,12 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
-- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Owner:** @Rad1ee if active; otherwise up for grabs. **Web is low priority (@Cattn, 2026-11-14): Android is the MVP target**, so this is Full app work, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
-- **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. **This is the first MVP screen** (see `plans/README.md`).
+- **Up for grabs?** Yes. Comment "taking this" on the issue first.
+- **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. Not on the MVP path any more; the MVP check runs on Android (plan 035).
 
-**Open questions** — **@Rad1ee answers these.** Reply as `026-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design).** Reply as `026-Q1: ...`. Use the proposed defaults until answered.
 
 - 026-Q1: two panels, as drawn, rather than one combined side panel? *(proposed: yes)*
 - 026-Q2: settings button does not navigate yet? *(proposed: yes)*

@@ -16,7 +16,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Status:** PARTIAL. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`. Step 5 (saved trips keep their color) merged in [PR #65](https://github.com/Cattn/transit-agent/pull/65) as `b32424f`.
 - **Remaining:** the DOM renderer for mobile (steps 1–4), Android verification in Expo Go, and an integration handoff to the UI team.
 - **Ready to continue:** yes.
-- **Related owners:** @DMFriends owns shared colors (#25); @Rad1ee / @DMFriends own app screens (#16, #39, #42).
+- **Related owners:** @DMFriends owns the mobile Results screen (#40) that mounts this map; @Cattn reviews design. Web screens (#42, #45) are low priority.
 - **Platforms:** web and Android. iOS is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end.
 
 ## Decision: mobile map via Expo DOM (@Cattn, 2026-11-14)
@@ -35,9 +35,9 @@ Mobile no longer gets a native MapLibre renderer (`@maplibre/maplibre-react-nati
 - **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package or a second renderer.
 - **Done:** pure map layer and web renderer (#35); saved trip colors (#65).
 - **Next:** the `'use dom'` map in `apps/mobile`, worker bundling, a touch-sized hit area in the web renderer, Android verification in Expo Go, then UI handoff.
-- **UI team:** mount the map in mobile (#39's `MapSlot`, #40) and web (#42); keep screen/navigation work in those plans.
+- **This is the MVP critical path:** Android has no map until this lands. Mount it in Home's `MapSlot` (#39, merged) so Results (#40) draws routes. Web (#42) is low priority.
 - **Web changes are mobile changes:** the web renderer is also the mobile one. Any change to `@transit/maps/web` shows up on Android too.
-- **Color work:** coordinate with @DMFriends on #25 rather than creating another palette.
+- **Color work:** use `assignRouteColors(ids, savedColors)` (on main); no new palette.
 - **Feedback:** answer the open decisions below on #13 using `P1` or `P2`.
 - **Coding-agent handoff:** “Read plan 009 and the current maps package. Implement only its remaining DOM-renderer work. Preserve the merged pure/web behavior and app-owned state. No new comments or tests; preserve existing logging. Report compatibility or contract blockers before expanding scope.”
 

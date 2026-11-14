@@ -13,7 +13,7 @@
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: plans/020-mobile-map-home.md. Plan 021's Filters chip should open this screen. You may stub that chip if 021 has not merged: Home gets a temporary "Filters" text button.
+- **Depends on**: plans/020-mobile-map-home.md (merged #60) and plan 023 (merged #67: chat chips call `onOpenFilters(field)`; open Filters on that field when one is passed). Plan 021's Filters chip should open this screen. You may stub that chip if 021 has not merged: Home gets a temporary "Filters" text button.
 - **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/46
@@ -21,13 +21,13 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Build with the defaults until a question is answered.
-- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Status:** **MVP, next up.** Build with the defaults until a question is answered.
+- **Owner:** @Cattn (reassigned 2026-11-14 from @Rad1ee, who is inactive. Cattn built the agent chat in plan 023, whose chips already call `onOpenFilters(field)`, and does plan 034 next to it.)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
+- **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on the server.
 
-**Open questions** — **@Rad1ee answers these.** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design).** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
 
 - 022-Q1: Android full sheet, as drawn? *(proposed: yes)*
 - 022-Q2: keep each screen's own strictness words? *(proposed: yes)*

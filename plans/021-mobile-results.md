@@ -22,13 +22,13 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The steps use the defaults below until a question is answered.
+- **Status:** **MVP, in progress: [PR #66](https://github.com/Cattn/transit-agent/pull/66)** (changes requested; rebase on #67 per Step 1's "Agent plan" note; filled or elevated mode control; Material error color for Tight). The route-color dot waits on @Cattn. The steps use the defaults below until a question is answered.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Map drawing stays with @KrakenTheJaken: plan 009 mounts its DOM map (`@transit/maps/web` in an Expo `'use dom'` component) in Home's `MapSlot`, and Expo Go keeps working. This plan only sets `selectedItineraryId`.
 
-**Open questions** — **@DMFriends answers these.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design); @DMFriends may propose answers.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
 - ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
 - 021-Q2: expand the selected card in the sheet? *(proposed: yes)*

@@ -1,4 +1,6 @@
-# UI slices (draft: format up for review on #16)
+# UI slices (superseded)
+
+> **Superseded (2026-11-14):** the screen plans 020–027 replaced these slices. Use the plans; this file is kept as the record of how the UI was first split.
 
 > **iOS is parked (@Cattn, 2026-11-14).** "Mobile" in these slices means Android until iOS comes back out of the backlog ([plans/README.md](README.md#backlog-deliberately-unplanned)). iOS design stays in [`ui-direction.md`](ui-direction.md), the Figma page `iOS — Liquid Glass`, and each mobile plan's "Backlog: iOS" section.
 
