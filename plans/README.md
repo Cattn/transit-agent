@@ -94,7 +94,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn (coding agent running) | P1 | L | 003, 004, 005 (all done) | CHANGES REQUESTED (PR #38 at `1f586f4`); existing worker fixing |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
-| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 (D8, D9) | IN PROGRESS (PR #35 open, changes requested — do not start a second copy) |
+| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 (D8, D9) | APPROVED (PR #35 at `082892f`), awaiting merge; native deferred |
 | 010 | [Bike + transit ("modeMix")](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | 🟢 up for grabs (later) | P2 | M | 007 | TODO |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003, 014 (D10, D11) | TODO |
 | 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (merged in #32; verified, `createMockApiClient` still exported) |
@@ -150,6 +150,8 @@ interpreted filters. The user gets route options drawn on the map and saves one.
 transit data (007) can land afterwards without any client changes.
 
 ## Dependency notes
+
+- **PR #35:** approved at `082892f` with 55 independent maps tests and final CI; still unmerged. Plan 017's allocator fix/re-review blocker is resolved, while merge and P4/palette decisions remain. Consumers reuse one full-trip-set color assignment via `RouteMap.routeColors` across filters/cards/map/picker. Native adapters preserve direction-adjusted offsets and selected dash layering; native/device validation remains open.
 
 - **002 before everything else.** It is the contract. Get the UI and maps teams to review
   `packages/shared/src/domain/*` before 003 starts.
