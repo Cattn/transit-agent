@@ -140,6 +140,8 @@ In `packages/maps/README.md`, add a short "Animating while the agent works" sect
 
 ### Step 5 (after plan 009's DOM map is on main): check on Android
 
+On mobile, the agent's plan reaches the map through Home's `currentPlan` (plan 023, #67); a real consumer should read it from there.
+
 No mobile code: the DOM map runs this web renderer, and `buildPreview` is plain JSON, so it crosses the DOM boundary as is. With a temporary consumer (not committed) passing the Step 3 script to the mobile `RouteMap`, check the draw-in in Expo Go on an Android phone. If it stutters on a mid-range Android device, fall back in the web renderer to drawing one whole leg at a time (no partial legs), and say so in the PR.
 
 **Verify**: in Expo Go on Android, the demo trip draws in. Record the device and result in the PR. iOS is in the backlog.

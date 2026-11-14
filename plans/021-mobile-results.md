@@ -109,6 +109,8 @@ When origin, destination, and time are all set, call `run(request)` from `usePla
 
 The home search field does not run this search. The Filters "Show routes" button (plan 022) and a completed draft do. If the draft is incomplete, Results shows "Add where and when" and does not call `planTrip`.
 
+**Agent plan (plan 023, merged in #67):** `HomeScreen` already holds `currentPlan`: the agent's plan, valid only while `state.draft` is the same object it was made for. When it is set, Results, the route colors and `MapSlot` use it instead of calling `planTrip` again. Keep one draft/apply path, including Home's `applyAgent` wrapper (an agent edit counts as "edited", so a late profile load can't overwrite it). Keep `ChatScreen` mounted outside the Filters/Fly RN `Modal`, with its props `draft`, `apply`, `onPlan(plan, draft)`, `onOpenFilters`, `onClose`.
+
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
 ### Step 2: Cards, freshness, near-misses
