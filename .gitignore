@@ -12,3 +12,6 @@ apps/mobile/ios/
 *.db
 *.db-*
 apps/server/data/
+.claude/worktrees/
+.review-worktrees/
+.worktrees/
