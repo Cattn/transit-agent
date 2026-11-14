@@ -159,7 +159,7 @@ Also: `arriveBy` 08:20 → `atRisk`; the same bus as `realtime` with `departAt` 
 
 ## Maintenance notes
 
-- Plan 008 imports `computeWatchStatus` in its server job. The 3 h `scheduled` threshold here is display-only; plan 008 will make watch horizons depend on mode (bus about 2 h, flights 5 h+, per #12). When those are settled, consider passing the horizon in instead of hard-coding 3 h. Change the rules here only, never in a second copy.
+- Plan 008 imports `computeWatchStatus` in its server job. The 3 h `scheduled` threshold here is display-only, not the monitoring start. Plan 008's newer [flight direction](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169) calls for checks 3, 2, and 1 days out, then a preference-dependent ramp within 24 h; exact cadence and preference behavior remain open. Bus/rail policies are separate. When policies are settled, consider passing the display horizon in rather than hard-coding 3 h. Change calculation rules here only, never in a second copy.
 - Product rule: **no invented probabilities.** States are deterministic. If historical delay data appears later, change the internals, not the output shape.
 
 ## Open questions for review
