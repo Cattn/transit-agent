@@ -22,15 +22,16 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Later.** Needs #21, #9 and #11. The pure leave-by logic moved to #21, which can start now.
+- **Status:** **Later:** real watch integration waits on #11. Storage (#9) and pure leave-by logic (#21) are merged; reuse them.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes, once its dependencies land.
-- **Waiting on:** #21, #9, #11
+- **Waiting on:** #11 for real realtime data; mode horizon/ramp details remain open.
 
 **Open questions** (answer by number in a comment on #12):
 
-1. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
-2. Start watching a trip 3 hours before departure. Longer for flights?
+**Decided:** automatically switch missed trips ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); do not require a confirmation tap.
+
+1. Confirm exact mode-specific horizons, the rail classification, and polling ramp. Bus ~2 h, flights 5 h+, and different rail horizons are direction only.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -53,7 +54,7 @@ min late".
 
 ## Current state
 
-- `SavedItinerary` in `packages/shared/src/domain/itinerary.ts` has `watch: boolean`, `leaveBy?:` ISO datetime, and `request: TripRequest`. It does **not** yet have `watchStatus` (that is plan 013, approved in PR #34, not on main).
+- `SavedItinerary` includes `watchStatus` from merged plan 013 (PR #34). Import the shared schema and calculation rather than duplicating them.
 - `SqliteItineraryStore.listWatched(nowIso, horizonIso)` in `apps/server/src/store/sqlite.ts` returns watched itineraries departing within the horizon. There is no `apps/server/src/watch/`.
 - `RouteProvider` in `apps/server/src/providers/types.ts` has `search` only. Legs carry `timeSource` and `delayMinutes`.
 - `preferences.lateTolerance: 'strict' | 'some' | 'flexible'`.
@@ -88,7 +89,7 @@ export function startWatchJob(deps, intervalSeconds): { stop(): void }
   - rail: depends on the kind of rail (light rail/subway like the Orange Line vs intercity like Amtrak). The contract has a single `rail` mode, so telling them apart needs a hint such as `agency`/`routeName`; how to do that is open.
   - **Exact numbers, the rail split and the ramp schedule are not decided yet** (008-Q3). Get them confirmed before implementing this step; until then the bus and flight figures above are provisional, and nothing here is final.
 - `listWatched(now, now + maxHorizon)`, then keep only itineraries whose own mode horizon covers them, and skip ones whose ramp says it's not time to check yet. For each itinerary, find the provider by `source.provider` and call `refresh` (catch errors per item). Compute the status and persist `watchStatus` and `leaveBy`.
-- When the state becomes `missed`, run `planTrip({ ...request, time: { type: 'departAt', at: now } })`. Store the top result's summary in the message ("Missed it — next: Bus 1 at 8:31"). Don't auto-replace the saved itinerary.
+- When the state becomes `missed`, run `planTrip({ ...request, time: { type: 'departAt', at: now } })` and **automatically switch** the watched trip to the highest-ranked valid result ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Persist the replacement itinerary/request and recomputed status together while preserving saved-trip identity, label, and watch setting; the store update must support this without exposing a new client preference. Show what changed in the status message. Do not require a tap. If no valid result exists, keep the missed trip and explain that no replacement is available; never auto-select a near-miss that violates requirements.
 - Never overlap cycles (skip a tick if the previous is still running). `timer.unref()`.
 - `index.ts`: start when `WATCH_ENABLED !== 'false'`, interval `WATCH_INTERVAL_SECONDS` (default 60). Stop on shutdown. `createServer()` without deps never starts it (tests stay hermetic).
 
@@ -98,7 +99,7 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 
 ### Step 6: Tests
 
-`runWatchCycle` with memory store + fixture provider + fake clock: status persisted; provider throwing for one itinerary doesn't stop others; `missed` triggers one `planTrip`; overlapping start is skipped.
+`runWatchCycle` with memory store + fixture provider + fake clock: status persisted; provider throwing for one itinerary doesn't stop others; `missed` triggers one `planTrip` and persists the valid automatic replacement; no valid result preserves the missed trip; overlapping start is skipped.
 
 **Verify**: `npm run check` → exit 0. Manual: `FIXTURE_DELAY_MINUTES=4 WATCH_INTERVAL_SECONDS=10 npm run dev:server`, save a fixture itinerary departing in ~30 min, wait 10 s, `GET /api/itineraries` → `watchStatus.message` mentions a 4 min delay.
 
@@ -121,5 +122,5 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 ## Open questions for review
 
 - ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
-- 008-Q2: Should "missed" auto-save the next-best trip as the new watched trip? Proposed: no — suggest it, the user taps to switch. **Still open:** the owner replied "Yes" on [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176), which doesn't say which of the two. Needs an explicit pick: switch automatically, or suggest and wait for a tap.
+- ~~008-Q2~~ **Decided (@Cattn, [roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)): automatically switch missed trips.** This supersedes the earlier ambiguous “Yes”; do not ask again about tap-to-confirm. Timing/ramp details remain 008-Q3.
 - 008-Q3 (**direction given, details open**, [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176)): the horizon depends on mode: bus about 2 h with ramping checks, flights 5 h+, rail depends on light rail vs intercity. **Still open:** exact horizons, how to tell light rail from intercity, and the ramp schedule.
