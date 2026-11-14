@@ -25,3 +25,4 @@ export * from './domain/itinerary.js';
 export * from './domain/api.js';
 export * from './domain/fixtures.js';
 export * from './client/api-client.js';
+export * from './client/device-id.js';
