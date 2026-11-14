@@ -109,6 +109,8 @@ Render the left panel and the map card from Current state. Use `itineraryFreshne
 
 The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook plan 026 uses. When `lastPlan` changes, show it in the left panel.
 
+**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. If `assignRouteColors` has no second argument yet (plan 009 step 5) or `color` is not in the save contract yet (plan 017 step 4), use the one-argument call, omit `color`, and say so in the PR. Use the same `savedColors` plan 026 builds, so a trip keeps its color from results to Tracked trips.
+
 **Verify**: `npm run lint` → exit 0
 
 ### Step 3: MVP check against the real server

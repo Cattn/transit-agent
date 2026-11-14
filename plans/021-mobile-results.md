@@ -61,7 +61,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
   - Header "3 routes" is the count of `plan.itineraries`, not a constant. Subtitle "Leave now · arrive by 9:00 AM" comes from the draft time.
   - "updated 20s ago" is `formatAge(source.fetchedAt, new Date())` from plan 016 (merged in #36). A scheduled itinerary still must not say Live.
   - Warning banner. The mock can return `warnings`. The frame's sample sentence is "Green Line realtime unavailable — showing timetable". Render `plan.warnings[0]` when present.
-  - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. A route-color swatch is a 8 pt circle using `routeColor(id)` if that export exists, otherwise omit the circle. Do not invent a palette in `packages/shared`.
+  - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. A route-color swatch is an 8 pt circle in the trip's color from the same map passed to `RouteMap.routeColors` (see Step 2). Do not invent a palette in `packages/shared`.
   - "Almost works" then a dimmed row. Sample: "Walk the whole way · 8:04 – 8:49" and "45 min walk — breaks your 15 min limit". Bind this to `plan.nearMisses` and `violations[0]`.
 - iOS vs Android:
 
@@ -90,7 +90,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 - `apps/mobile/src/screens/results/ResultsChrome.ios.tsx`
 - `apps/mobile/src/screens/results/ResultsChrome.android.tsx`
 - `apps/mobile/src/screens/results/ItineraryCard.tsx`
-- `apps/mobile/src/screens/home/HomeScreen.tsx` (only to present Results when a search has been run, and to pass `selectedItineraryId`)
+- `apps/mobile/src/screens/home/HomeScreen.tsx` (only to present Results when a search has been run, to pass `selectedItineraryId`, and to pass saved colors to the home map)
 
 **Out of scope:** `packages/shared/**`, `packages/maps/**`, `apps/mobile/src/platform/**`, `apps/web/**`, filters layout (plan 022), chat (plan 023), fly cards (plan 024).
 
@@ -115,6 +115,8 @@ The home search field does not run this search. The Filters "Show routes" button
 Render `itineraries` and `nearMisses` with the card fields above. Freshness text:
 
 Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
+
+**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. If `assignRouteColors` has no second argument yet (plan 009 step 5) or `color` is not in the save contract yet (plan 017 step 4), use the one-argument call, omit `color`, and say so in the PR. Apply the same `savedColors` to the home map from plan 020, so a saved trip has the same color on home and in Results.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -157,4 +159,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 See the help box at the top (021-Q*). It is the single list; answers are recorded there.
 
-Map behavior (overlap chooser, mode filtering, colors) is tracked once in plan 009 under "Open product decisions". For card swatches, compute `assignRouteColors` once over all results and reuse it for cards and map.
+Map behavior (overlap chooser, mode filtering) is tracked once in plan 009 under "Open product decisions". Colors are decided (017-Q2); see Step 2.

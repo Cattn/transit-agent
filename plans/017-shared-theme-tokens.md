@@ -1,4 +1,4 @@
-# Plan 017: Shared badge and mode colors (light + dark) in `@transit/shared`
+# Plan 017: Shared badge and mode colors (light + dark), and saved trips keep their route color
 
 > **Executor instructions**: Follow this plan step by step. Run every verification command and
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
@@ -10,8 +10,8 @@
 ## Status
 
 - **Priority**: P1
-- **Effort**: S
-- **Risk**: LOW (new pure module; nothing imports it yet)
+- **Effort**: S–M (Steps 1–3 S; Step 4 adds a contract field and a server column)
+- **Risk**: LOW (new pure module; one optional contract field and one additive migration)
 - **Depends on**: plan 016 (merged in #36; `Tone` and `Badge` come from it)
 - **Category**: direction (parallel work)
 - **Planned at**: commit `1e8328a`, 2026-11-14 (rescoped: route colors already ship in `@transit/maps`)
@@ -22,7 +22,8 @@
 
 - **Status:** 🔄 **Assigned to @DMFriends.** Rescoped 2026-11-14 so it is no longer blocked: this plan now ships only badge (tone) and mode colors. Route-line colors already exist in `@transit/maps` and apps import them from there.
 - **Owner:** @DMFriends
-- **Waiting on:** nothing for Steps 1–3. Moving the route palette into shared (Later, below) waits on question 1.
+- **Waiting on:** nothing for Steps 1–4. Moving the route palette into shared (Later, below) waits on question 1.
+- **Step 4 (added 2026-11-14, from 017-Q2):** saved trips store their route color so the same trip keeps one color everywhere. Contract + server store + mock client; the UI side is in plans 021, 026, 027 and the maps side in plan 009 step 5.
 
 **Open questions** (answer by number in a comment on #25):
 
@@ -40,6 +41,8 @@
 Every screen shows the same badges: "Live", "Scheduled (not live)", "Safe / Some risk / Tight", "Leave now". Plan 016 already returns each badge as `{ label, tone }`. Without shared colors for those tones, web and mobile will each pick their own greens and reds, and "Scheduled" may end up looking like a success. This plan adds one tested color table per tone and per travel mode, in light and dark, so both apps render badges identically.
 
 Route-line colors are **not** part of this plan anymore: `@transit/maps` already exports `PALETTE`, `routeColor`, and `assignRouteColors`, and card swatches should use `assignRouteColors` from there so they match the map.
+
+Step 4 is the storage half of 017-Q2: a trip's color today comes from `assignRouteColors` over whatever set is on screen, so the same trip can change color between the home map and a results list. Storing the color on the saved trip fixes that; plan 009 step 5 makes `assignRouteColors` honor stored colors.
 
 ## Current state
 
@@ -64,7 +67,8 @@ Route-line colors are **not** part of this plan anymore: `@transit/maps` already
 ## Scope
 
 **In scope (create):** `packages/shared/src/theme/contrast.ts`, `packages/shared/src/theme/colors.ts`, `packages/shared/src/theme/colors.test.ts`. **Modify:** `packages/shared/src/index.ts` (add `export * from './theme/colors.js'` and `'./theme/contrast.js'`).
-**Out of scope:** `packages/maps/**`, `apps/**`, route-line colors, fonts, spacing, icons.
+**In scope for Step 4 (modify):** `packages/shared/src/domain/itinerary.ts`, `packages/shared/src/domain/api.ts`, `packages/shared/src/client/mock/mock-client.ts` (+ cases in `mock-client.test.ts`), `apps/server/src/store/migrations.ts`, `apps/server/src/store/sqlite.ts`, `apps/server/src/store/memory.ts` (+ cases in `apps/server/src/routes/itineraries.test.ts`).
+**Out of scope:** `packages/maps/**` (plan 009 step 5), other `apps/**` files (UI plans 021, 026, 027), choosing colors on the server, fonts, spacing, icons.
 
 ## Git workflow
 
@@ -100,10 +104,23 @@ export const modeColors: Record<ColorScheme, Record<TravelMode, string>>; // chi
 
 **Verify**: `npm run test:unit -w @transit/shared` → all pass, ≥ 5 new tests.
 
+### Step 4: Saved trips keep their route color (017-Q2)
+
+Decision (@Cattn, [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429)): the same trip keeps one color wherever it appears, across screens and sessions. A trip is its itinerary `id` (providers derive it from the request and the option, and saves are keyed by it).
+
+- Contract: add `color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional()` to `SaveItineraryRequestSchema` (`api.ts`) and `SavedItinerarySchema` (`itinerary.ts`). Optional, so older saves and clients still parse.
+- Server: append a migration `ALTER TABLE saved_itineraries ADD COLUMN color TEXT` (never edit the first one). `sqlite.ts` writes `color` on save and reads it back. Re-saving an id that already has a color keeps the stored one (`color = COALESCE(saved_itineraries.color, excluded.color)` in the upsert). `memory.ts` behaves the same.
+- Mock client: `saveItinerary` stores and returns `color` the same way, so UI built on the mock sees it.
+- The server never picks a color and does not import `@transit/maps`. Clients send the color the trip was showing when the user saved it (see the UI plans).
+- Tests (existing files only): a saved color round-trips through list and a reload of the store; re-saving keeps the first color; an invalid color is rejected with 400; the mock client keeps the color.
+
+**Verify**: `npm run test:unit -w @transit/shared` and `npm run test:unit -w @transit/server` → all pass.
+
 ## Done criteria
 
 - [ ] `npm test` exits 0
 - [ ] `toneColors`, `modeColors`, `contrastRatio` are exported from `@transit/shared`
+- [ ] `SavedItinerary.color` is saved, listed, kept on re-save, and survives a server restart (sqlite)
 - [ ] Only files in Scope changed (`git status`)
 
 ## STOP conditions
@@ -114,5 +131,5 @@ export const modeColors: Record<ColorScheme, Record<TravelMode, string>>; // chi
 ## Maintenance notes
 
 - Apps map `Badge.tone` → `toneColors[scheme][tone]`. Do not add per-badge colors.
-- Per-trip route colors (017-Q2) need a stable color per trip across screens and sessions. That is new work for maps + saves, planned separately; until then `assignRouteColors` stays as is.
+- Per-trip route colors (017-Q2) are split three ways: storage here (Step 4), honoring stored colors in `assignRouteColors` (plan 009 step 5), and passing/saving them on screens (plans 021, 026, 027).
 - **Later (after question 1):** move `PALETTE` / `routeColor` / `assignRouteColors` into `packages/shared/src/theme/` keeping the exact colors and order, and have `@transit/maps` re-export them so no import breaks. That is a separate PR coordinated with @KrakenTheJaken.
