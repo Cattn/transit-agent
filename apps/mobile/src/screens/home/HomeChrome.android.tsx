@@ -169,7 +169,12 @@ export function HomeChrome(props: HomeChromeProps) {
           </Row>
           <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
             {MODE_OPTIONS.map((option) => (
-              <SegmentedButton key={option.group} selected={option.group === group} onClick={() => props.onGroupChange(option.group)}>
+              <SegmentedButton
+                key={option.group}
+                selected={option.group === group}
+                onClick={() => props.onGroupChange(option.group)}
+                colors={{ activeContainerColor: m.secondaryContainer, inactiveContainerColor: m.surfaceContainer }}
+              >
                 <SegmentedButton.Label>
                   <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
                     <Icon source={MODE_ICONS[option.group]} size={18} />
