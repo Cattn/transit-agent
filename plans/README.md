@@ -67,7 +67,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Android location/deep-link device checks remain (decision 3 below) |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Trip links removed (Cattn, 2026-11-14) |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | DONE (#67) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
@@ -85,8 +85,8 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 
 - **@Cattn, decisions blocking work now:**
   1. ~~#66 route-color dot~~ **Decided:** no dot; result cards match the Figma exactly, and colors are for saved trips.
-  2. **iOS in `npm run check`:** keep exporting the iOS bundle so iOS keeps working (recommended; iOS runs fine, it just gets no iOS-specific design), or drop it.
-  3. **018 Android location / deep-link checks:** retry in Expo Go first (recommended), or keep them as a dev-build step.
+  2. ~~iOS in `npm run check`~~ **Decided:** keep exporting the iOS bundle as it is now.
+  3. ~~018 Android location / deep-link checks~~ **Decided:** location works in Expo Go; trip links were unused and are removed.
 - **@Cattn, design (taken over from @Rad1ee):** 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 023-Q3 ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · the 030 look ([#56](https://github.com/Cattn/transit-agent/issues/56)) · 026/027 when someone picks web up.
 - **@Cattn, server:** 029-Q1–Q2 stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55)) · 008-Q3 watch cadence ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)).
 - **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 030-Q1–Q3 ([#56](https://github.com/Cattn/transit-agent/issues/56)).
