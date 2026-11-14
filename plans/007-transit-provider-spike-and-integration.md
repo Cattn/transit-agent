@@ -4,8 +4,8 @@
 > must be reviewed by the plan owner before steps 2+. Do not start step 2 until the owner records
 > the D2 decision in `plans/README.md`. Honor STOP conditions. Update the status row when done.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- apps/server/src/providers apps/server/src/planning`
-> Expected: plan 003's files exist. Read `providers/types.ts` — if `RouteProvider` differs from the excerpt below, STOP.
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/providers apps/server/src/planning`
+> Reconciled 2026-11-14: plan 003 is on this commit. If this prints anything, compare Current state before proceeding. Read `providers/types.ts` — if `RouteProvider` differs from the excerpt below, STOP.
 
 ## Status
 
@@ -15,7 +15,7 @@
 - **Depends on**: plans/003-planning-api-fixture-provider.md
 - **Category**: direction
 - **Blocked by decisions**: D1 (metro, default Boston), D2 (routing engine; decided by this spike)
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/11
 
 <!-- help:start -->
@@ -46,13 +46,17 @@ sources and implements them behind the existing `RouteProvider` interface. Clien
 
 ## Current state
 
-- `apps/server/src/providers/types.ts` (plan 003):
+- `apps/server/src/providers/types.ts` (plan 003), still the only provider interface on main:
   ```ts
-  export interface RouteProvider { readonly name: string; supports(request: TripRequest): boolean; search(request: TripRequest, signal?: AbortSignal): Promise<Itinerary[]>; }
+  export interface RouteProvider {
+    readonly name: string;
+    supports(request: TripRequest): boolean;
+    search(request: TripRequest, signal?: AbortSignal): Promise<Itinerary[]>;
+  }
   ```
-- `FixtureProvider` is the only provider; `createServer` defaults to `[new FixtureProvider()]`.
+- `FixtureProvider` is the only provider; `createServer` in `apps/server/src/app.ts` defaults to `[new FixtureProvider()]`.
 - Contract rules (from `packages/shared/src/domain/itinerary.ts`): coordinates are **[lng, lat]**; each leg has `timeSource: 'realtime' | 'scheduled' | 'estimated'`, optional `delayMinutes`, a LineString `geometry`, and `transferBufferMinutes` on legs after a transfer. Risk and violations are computed by `planTrip`, not by providers.
-- `apps/server/src/places/gazetteer.ts` (plan 006) is a static place list.
+- `apps/server/src/places/` does **not** exist. Plan 006 creates `gazetteer.ts`. Do not create that file in this plan.
 
 ## Step 1 (spike, ≤ 1 day): evaluate options and write `plans/research/007-provider-spike.md`
 
@@ -89,7 +93,7 @@ Driving needs no realtime. Use OTP's `CAR` mode if the chosen deployment support
 
 ### Step 5: Geocoder
 
-`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. The agent's `find_place` tool switches to the geocoder.
+`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. The agent's `find_place` tool switches to the geocoder. If `apps/server/src/places/gazetteer.ts` does not exist, do not create it (plan 006 owns that list). Ship the geocoder without that fallback and say so in the PR.
 
 ### Step 6: Return-trip check ("can I make it back?")
 
@@ -114,6 +118,7 @@ When `request.returnTime` is set, `planTrip` also asks the provider for the **la
 - The chosen provider's terms forbid showing its routes on a non-provider basemap (MapLibre) → report; affects D2/D8.
 - Graph build or hosting is infeasible on available machines → report; fall back to D2-C.
 - Realtime data isn't available for the metro → report (it undermines issue #2's core feature).
+- You are about to create `apps/server/src/places/gazetteer.ts`. Stop. That file belongs to plan 006.
 
 ## Maintenance notes
 

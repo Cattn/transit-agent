@@ -100,7 +100,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 013 | ["When do I leave" logic, pure + shared](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | DMFriends | P1 | S | 002 | APPROVED (PR #34), awaiting merge |
 | 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | DMFriends | P2 | S | 002 | APPROVED (PR #30), awaiting DMFriends' merge |
 | 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004, 012 | TODO |
-| 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | IN PROGRESS |
+| 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | APPROVED (PR #36), awaiting merge |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | 🟢 up for grabs; maps + UI review | P1 | S | 016, PR #35 | TODO |
 | 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | 🟢 up for grabs **now** (good fit: mobile) | P1 | M | — (015 optional) | TODO |
 | 019 | [Real flight prices: adapted Clovis (all flights)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | 🟢 up for grabs once 014 lands (strong model) | P2 | L | 014 (D10) | TODO |

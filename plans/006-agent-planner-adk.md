@@ -4,8 +4,8 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report — do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- apps/server package.json .nvmrc .github/workflows/ci.yml`
-> Expected: plans 003–005 landed. Read `apps/server/src/app.ts` and `apps/server/src/planning/plan-trip.ts` before starting.
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server package.json .nvmrc .github/workflows/ci.yml`
+> Reconciled 2026-11-14: plans 003–005 are already on this commit, so an empty diff is expected. If this prints anything, compare Current state before proceeding. Read `apps/server/src/app.ts` and `apps/server/src/planning/plan-trip.ts` before starting.
 
 ## Status
 
@@ -15,7 +15,7 @@
 - **Depends on**: plans/003, plans/004 (needs `TripDraftPatchSchema`); plan 005 optional (profile defaults)
 - **Category**: direction
 - **Decisions**: D3-A (ADK TypeScript + Gemini) and D5-A (request/response JSON) are decided. D5-B (SSE streaming) is a **planned later follow-up**: out of scope here, but don't design it out (see Maintenance notes).
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/10
 
 <!-- help:start -->
@@ -72,10 +72,10 @@ memory. Every number comes from a tool.
 
 ## Current state
 
-- `apps/server/src/planning/plan-trip.ts` — `planTrip(req, providers, signal)` → `PlanResponse` (plan 003).
-- `packages/shared` exports `TripDraftSchema`, `TripDraftPatchSchema`, `applyDraftPatch`, `toTripRequest`, `PlanResponseSchema` (plans 002/004).
-- `apps/server/.env.example` has no LLM key. `.gitignore` already ignores `.env`.
-- Root `package.json` `"engines": { "node": ">=22.13.0", "npm": ">=10" }`; `.nvmrc` = `24`; CI `actions/setup-node@v4` with `node-version: 24`.
+- `apps/server/src/planning/plan-trip.ts` — `planTrip(req, providers, signal?, logger?)` → `PlanResponse`. The fourth argument is optional (`PlanLogger`, default `console`). There is no `apps/server/src/agent/` directory.
+- `packages/shared/src/index.ts` exports `TripDraftSchema`, `TripDraftPatchSchema`, `applyDraftPatch`, `toTripRequest`, `PlanResponseSchema`, `createDeviceId`, and `createMockApiClient` (plans 002/004/012).
+- `apps/server/.env.example` has `HOST`, `PORT`, `CORS_ORIGIN`, `DATABASE_PATH` and no LLM key. `.gitignore` already ignores `.env`.
+- Root `package.json` `"engines": { "node": ">=22.13.0", "npm": ">=10" }`; `.nvmrc` = `24`; CI `actions/setup-node@v4` with `node-version: 24`. `createServer` in `apps/server/src/app.ts` defaults providers to `[new FixtureProvider()]`.
 - README rule: *"Client environment variables are public. Keep provider keys and secrets on the server."* `VITE_*` and `EXPO_PUBLIC_*` vars ship to users. The Gemini key must never use those prefixes.
 
 ## Scope

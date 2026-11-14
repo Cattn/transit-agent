@@ -4,7 +4,8 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report — do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- apps/server/src/store apps/server/src/providers packages/shared/src/domain/itinerary.ts`
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/store apps/server/src/providers packages/shared/src/domain/itinerary.ts`
+> Reconciled 2026-11-14: an empty diff is expected. If this prints anything, compare Current state before proceeding.
 > Expected: plans 005 and 007 landed. Confirm `SqliteItineraryStore.listWatched` exists; if not, STOP.
 
 ## Status
@@ -15,7 +16,7 @@
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/007 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
 - **Blocked by decisions**: D7 (client polling first; push later)
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
 <!-- help:start -->
@@ -52,9 +53,9 @@ min late".
 
 ## Current state
 
-- `SavedItinerary` (shared) has `watch: boolean`, `leaveBy?: string`, `request: TripRequest`.
-- `SqliteItineraryStore.listWatched(nowIso, horizonIso)` (plan 005) returns watched itineraries departing within the horizon.
-- `RouteProvider` (plan 003) has `search` only. Legs carry `timeSource` and `delayMinutes`.
+- `SavedItinerary` in `packages/shared/src/domain/itinerary.ts` has `watch: boolean`, `leaveBy?:` ISO datetime, and `request: TripRequest`. It does **not** yet have `watchStatus` (that is plan 013, approved in PR #34, not on main).
+- `SqliteItineraryStore.listWatched(nowIso, horizonIso)` in `apps/server/src/store/sqlite.ts` returns watched itineraries departing within the horizon. There is no `apps/server/src/watch/`.
+- `RouteProvider` in `apps/server/src/providers/types.ts` has `search` only. Legs carry `timeSource` and `delayMinutes`.
 - `preferences.lateTolerance: 'strict' | 'some' | 'flexible'`.
 
 ## Scope
