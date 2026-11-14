@@ -21,13 +21,13 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Research is up for grabs now.** Building waits for the research result.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. The first step is research only (about a day): compare routing options and write up a recommendation. Good fit for the maps person or anyone curious. (Decided: the routing server would run on Cattn's machine; sample routes stay the default for UI work.)
-- **Waiting on:** Research: nothing. Building: #7 and the research result.
+- **Status:** **Claimed by @Cattn** (self-assigned 2026-11-14). Research is not recorded complete; implementation still waits for the research result and D2 decision.
+- **Owner:** @Cattn
+- **Up for grabs?** No. Coordinate any contribution with @Cattn; do not start a competing research or implementation worker.
+- **Waiting on:** @Cattn's research recommendation and D2 decision before implementation; plan 003 / #7 is already merged.
 
 **How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **Contribute:** coordinate with @Cattn on #11 before starting related work; the issue is already claimed.
 - **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
   > Read `plans/007-transit-provider-spike-and-integration.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
 
