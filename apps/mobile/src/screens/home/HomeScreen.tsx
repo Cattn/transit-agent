@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Place, SavedItinerary, TravelProfile } from '@transit/shared';
 import { useApi, useNow, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { getCurrentPlace, useAppForeground } from '../../platform';
@@ -139,9 +140,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         onSheetLayout={setSheetHeight}
       />
       <Modal visible={sheet !== undefined} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
-        {sheet === 'chat' ? <ChatScreen onClose={closeSheet} /> : null}
-        {sheet === 'filters' ? <FiltersScreen onClose={closeSheet} /> : null}
-        {sheet === 'fly' ? <FlyScreen onClose={closeSheet} /> : null}
+        <SafeAreaProvider>
+          {sheet === 'chat' ? <ChatScreen onClose={closeSheet} /> : null}
+          {sheet === 'filters' ? <FiltersScreen onClose={closeSheet} /> : null}
+          {sheet === 'fly' ? <FlyScreen onClose={closeSheet} /> : null}
+        </SafeAreaProvider>
       </Modal>
     </View>
   );
