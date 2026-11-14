@@ -87,7 +87,7 @@ draft, UI-4 freshness is mandatory).
   - [ ] Card: label, big countdown ("Leave in 6 min"), `watchStatus.message`, state badge.
   - [ ] Countdown ticks between polls (via `useNow`); polling pauses in the background.
   - [ ] Shows whether the times are live (`usedRealtime`).
-  - [ ] `missed` state offers the next option ("switch").
+  - [ ] When plan 008 provides an automatic replacement after a missed trip, show the updated trip and explanation; no confirmation tap ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Until then, do not claim automatic switching is active.
   - [ ] Watch on/off toggle, rename, delete.
   - [ ] Saved trips are drawn on the map in their colors (`routeColor`).
 - **Unblocked by:** mock client (012) seeds two saved trips; countdowns need plan 013.
