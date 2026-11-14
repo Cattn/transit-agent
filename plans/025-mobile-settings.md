@@ -136,8 +136,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
-- 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*
-- 025-Q3: Theme writes System / Light / Dark? *(proposed: yes)*
-- 025-Q4: iOS comfort is a chevron row, Android is a slider? *(proposed: yes)*
-- 025-Q5: which groups should be cut first?
+See the help box at the top (025-Q*). It is the single list; answers are recorded there.

@@ -52,7 +52,7 @@ make it faster (see modeMix)."* Three distinct trip shapes matter:
 ## Current state
 
 - Contract has modes `bike` and `bikeshare`, `vehicles.ownsBike`, `constraints.maxBikeMinutes`, `preferences.activeTravel`, and `Place.kind: 'bikeDock'` (`packages/shared/src/domain/modes.ts`, `trip-draft.ts`, `places.ts`).
-- `apps/server/src/providers/fixture.ts` emits a `bike-rail` option (`OptionKey`). There is no `gbfs.ts` or `bike-rules.ts`. The real provider (007) has not landed. `apps/server/src/agent/tools.ts` does not exist yet (plan 006).
+- `apps/server/src/providers/fixture.ts` emits a `bike-rail` option (`OptionKey`). There is no `gbfs.ts` or `bike-rules.ts`. The real provider (007) has not landed. `apps/server/src/agent/tools.ts` exists (plan 006) and builds ADK `FunctionTool`s such as `find_place`; add the Step 6 tool next to them.
 
 ## Steps
 
@@ -95,7 +95,5 @@ Add `find_bike_docks({ near: string, need: 'bikes' | 'docks' })` to `agent/tools
 
 ## Open questions for review
 
-**Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** the Q8 “yes” approves **both bikeshare dock pins and “bike saves X min” summaries**. Specific dock styling/availability presentation was not specified.
-
-- ~~010-Q1~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** show bikeshare dock pins. Add a Point layer fed by a separate map prop; rendering stays with the maps team.
-- ~~010-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** use “bike saves X min” summaries derived from actual comparison results; never invent a saving.
+- ~~010-Q1~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** show bikeshare dock pins. Add a Point layer fed by a separate map prop; rendering stays with the maps team.
+- ~~010-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** use “bike saves X min” summaries derived from actual comparison results; never invent a saving.

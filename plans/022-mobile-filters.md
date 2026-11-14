@@ -66,7 +66,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
   - "Show routes" is the bottom button.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
-- Place search: From and To open a list. Use `searchPlaces` on the mock client, or `usePlaceSearch` if plan 015 exported it. Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, (plan 018, merged in #37; never at launch). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
+- Place search: From and To open a list. Use `usePlaceSearch` from `@transit/client-react`. (Against the real server this needs plan 028's `/api/places`.) Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, (plan 018, merged in #37; never at launch). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
 
 ## Commands you will need
 
@@ -115,7 +115,7 @@ Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS
 
 ### Step 4: Show routes
 
-"Show routes" closes Filters and asks Home to show Results (plan 021). If 021 has not merged, Home still unmounts Filters. Do not call the network. The mock client is enough.
+"Show routes" closes Filters and asks Home to show Results (plan 021). If 021 has not merged, Home still unmounts Filters. Do not call the client directly from Filters.
 
 ## Test plan
 
@@ -145,7 +145,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 022-Q1: iOS form sheet and Android full sheet, as drawn? *(proposed: yes)*
-- 022-Q2: keep each screen's own strictness words? *(proposed: yes)*
-- 022-Q3: place search stays inside this sheet? *(proposed: yes)*
-- 022-Q4: which controls should change before a first build?
+See the help box at the top (022-Q*). It is the single list; answers are recorded there.

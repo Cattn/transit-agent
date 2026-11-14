@@ -79,7 +79,7 @@ Each `Itinerary` row: `summary`, depart → arrive, duration, `cost.totalUsd` (s
 ## Map (UI-5) — owned by maps teammate, mounted by UI
 
 - Mount `RouteMap` from `@transit/maps/web` or `/native` (plan 009). Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the mode slider), `styleUrl`, and `padding` (so routes aren't hidden under panels).
-- **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser. *(Pending: [PR #35](https://github.com/Cattn/transit-agent/pull/35) proposes moving this chooser into the map itself. See plan 009 proposal P1. Keep the app-side chooser until that's decided.)*
+- **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser. *(The merged web map has its own overlap chooser and still reports `candidates`. Who owns the chooser is plan 009 decision P1.)*
 - Web: map fills the screen with a ~400 px side panel (filters, results, and the permanent chat). Mobile: full-screen map with a bottom sheet (peek = summary, half = results, full = filters).
 - Until plan 009 lands, render a placeholder list using `sampleItinerary` from `@transit/shared`.
 
@@ -118,10 +118,6 @@ Use them instead of writing the same logic in each app.
 (Resolved on #6: risk is two separate controls; users can choose the time zone; default modes explained above. Resolved on #16: map is home, mode slider instead of tabs, permanent chat side panel on web.)
 
 
-## Map consumer handoff (PR #35 re-review, 2026-11-14)
+## Map consumer notes
 
-PR #35 is approved at `082892f` but unmerged; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
-
-When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; merge and product acceptance still apply.
-
-Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.
+The web map is merged (`@transit/maps/web`, PR #35); the native map is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4, style 009-Q5) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.

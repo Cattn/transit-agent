@@ -56,7 +56,7 @@ sources and implements them behind the existing `RouteProvider` interface. Clien
   ```
 - `FixtureProvider` is the only provider; `createServer` in `apps/server/src/app.ts` defaults to `[new FixtureProvider()]`.
 - Contract rules (from `packages/shared/src/domain/itinerary.ts`): coordinates are **[lng, lat]**; each leg has `timeSource: 'realtime' | 'scheduled' | 'estimated'`, optional `delayMinutes`, a LineString `geometry`, and `transferBufferMinutes` on legs after a transfer. Risk and violations are computed by `planTrip`, not by providers.
-- `apps/server/src/places/` does **not** exist. Plan 006 creates `gazetteer.ts`. Do not create that file in this plan.
+- `apps/server/src/places/gazetteer.ts` exists (plan 006): a ~30-entry Boston/Northeast list behind `searchPlaces(query)`, used by the agent's `find_place` tool. Plan 028 serves it as `GET /api/places`. Keep it as the geocoder fallback.
 
 ## Step 1 (spike, ≤ 1 day): evaluate options and write `plans/research/007-provider-spike.md`
 
@@ -93,7 +93,7 @@ Driving needs no realtime. Use OTP's `CAR` mode if the chosen deployment support
 
 ### Step 5: Geocoder
 
-`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. The agent's `find_place` tool switches to the geocoder. If `apps/server/src/places/gazetteer.ts` does not exist, do not create it (plan 006 owns that list). Ship the geocoder without that fallback and say so in the PR.
+`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. If plan 028 has landed, replace that route's body instead of adding a second route. The agent's `find_place` tool switches to the geocoder.
 
 ### Step 6: Return-trip check ("can I make it back?")
 
@@ -118,7 +118,6 @@ When `request.returnTime` is set, `planTrip` also asks the provider for the **la
 - The chosen provider's terms forbid showing its routes on a non-provider basemap (MapLibre) → report; affects D2/D8.
 - Graph build or hosting is infeasible on available machines → report; fall back to D2-C.
 - Realtime data isn't available for the metro → report (it undermines issue #2's core feature).
-- You are about to create `apps/server/src/places/gazetteer.ts`. Stop. That file belongs to plan 006.
 
 ## Maintenance notes
 

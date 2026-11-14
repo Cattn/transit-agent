@@ -88,7 +88,7 @@ Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to t
 
 ### Step 1: List
 
-When the mode group is `fly` and `toTripRequest(draft)` is `ok`, call `planTrip` on the mock client (or `usePlanTrip` if it exists). Render itineraries that contain a `flight` leg with the field order in Current state. Render a rail itinerary with no flight leg in the same list. If neither exists, show the empty sentence from question 1. Do not paste the Logan card.
+When the mode group is `fly` and `toTripRequest(draft)` is `ok`, call `run(request)` from `usePlanTrip()` (`@transit/client-react`). Render itineraries that contain a `flight` leg with the field order in Current state. Render a rail itinerary with no flight leg in the same list. If neither exists, show the empty sentence from question 1. Do not paste the Logan card.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -124,7 +124,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 024-Q1: empty state until the data has a flight, rather than painted sample cards? *(proposed: yes)*
-- 024-Q2: show a rail-only result in this list, labeled from `routeName`? *(proposed: yes)*
-- 024-Q3: use component `2006:733` as field order only? *(proposed: yes)*
-- 024-Q4: what should wait for a later Figma pass?
+See the help box at the top (024-Q*). It is the single list; answers are recorded there.

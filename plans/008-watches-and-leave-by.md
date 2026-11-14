@@ -85,9 +85,9 @@ export function startWatchJob(deps, intervalSeconds): { stop(): void }
 ```
 - **Watch horizon depends on mode** (owner direction on [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176)). Put it in one config table, `watch/horizons.ts`, keyed by the itinerary's anchor leg mode (the first scheduled leg, same as plan 013):
   - bus: about **2 h**, with checks that **ramp up** (less often far from departure, more often close to it);
-  - flight: **checks at 3, 2, and 1 days before departure**, then gradually ramp up within the final 24 h ([newer owner direction](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)). Within 24 h, monitoring may be consistent/continuous or every few hours depending on user preference. These describe desired stages and intensity, **not finalized polling intervals**. Reconcile the earlier “5 h or more” guidance as superseded by this broader flight-monitoring direction, not a second fixed start horizon.
+  - flight: checks **3, 2, and 1 days** before departure, then a ramp within the last 24 h; inside 24 h, continuous or every few hours by user preference ([owner direction](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)). These are stages, not polling intervals.
   - rail: depends on the kind of rail (light rail/subway like the Orange Line vs intercity like Amtrak). The contract has a single `rail` mode, so telling them apart needs a hint such as `agency`/`routeName`; how to do that is open.
-  - **Exact cadence/ramp, rail classification, and how the user's monitoring preference is selected/stored/applied remain open** (008-Q3). Clarify implementation-critical details before building this step. Do not invent a “continuous” interval or add a preference field without a contract decision; flight-specific stages do not change bus/rail behavior.
+  - **Open (008-Q3):** exact intervals, rail classification, and where the monitoring preference is stored. Ask before building this step; do not invent an interval or a contract field.
 - `listWatched(now, now + maxHorizon)` must cover the flight pre-departure stages as well as each other mode's horizon. Keep only itineraries due under their own mode/stage/preference policy, and skip ones not yet due. A wider flight lookup window does not mean checking every flight on every job tick. For each itinerary, find the provider by `source.provider` and call `refresh` (catch errors per item). Compute the status and persist `watchStatus` and `leaveBy`.
 - When the state becomes `missed`, run `planTrip({ ...request, time: { type: 'departAt', at: now } })` and **automatically switch** the watched trip to the highest-ranked valid result ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Persist the replacement itinerary/request and recomputed status together while preserving saved-trip identity, label, and watch setting; the store update must support this without exposing a new client preference. Show what changed in the status message. Do not require a tap. If no valid result exists, keep the missed trip and explain that no replacement is available; never auto-select a near-miss that violates requirements.
 - Never overlap cycles (skip a tick if the previous is still running). `timer.unref()`.
@@ -107,7 +107,7 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 
 - [ ] `npm run check` exits 0
 - [ ] Manual delay check passes
-- [ ] `leave-by.ts` has ≥ 8 table cases
+- [ ] `runWatchCycle` tests from Step 6 exist and pass
 
 ## STOP conditions
 
@@ -122,5 +122,5 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 ## Open questions for review
 
 - ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
-- ~~008-Q2~~ **Decided (@Cattn, [roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)): automatically switch missed trips.** This supersedes the earlier ambiguous “Yes”; do not ask again about tap-to-confirm. Timing/ramp details remain 008-Q3.
-- 008-Q3 (**owner direction recorded; implementation details open**, [earlier mode guidance](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176), [flight update](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)): flight checks at 3, 2, and 1 days before departure, ramping within 24 h; intensity may be consistent/continuous or every few hours per user preference. This replaces treating “5 h+” as the flight start horizon. Exact cadence/ramp, preference selection/persistence, rail classification and bus/rail timings remain open. Do not transfer the flight stages to other modes or treat “continuous” as a chosen polling interval.
+- ~~008-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** automatically switch missed trips; no confirmation tap.
+- 008-Q3 (open, @Cattn): exact check intervals per mode, how to tell subway from intercity rail, and where the user's monitoring preference lives. Direction so far is in Step 4.

@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **Approved:** PR #36 passed review; waiting to be merged.
+- **Status:** ✅ **Done.** Merged in #36. Kept as a record; do not re-execute.
 - **Owner:** @DMFriends
 
 <!-- help:end -->

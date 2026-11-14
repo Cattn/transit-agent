@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Approved, awaiting merge:** [PR #37](https://github.com/Cattn/transit-agent/pull/37) at `f04e96c56ab095d4c368004dc895bca1af4cc564` by @DMFriends.
+- **Status:** ✅ **Done.** Merged in #37. Remaining: UI screens call these helpers (plan 020) and Android/iOS device checks of location and deep links.
 - **Owner:** @DMFriends
 
 **Open questions** (answer by number in a comment on #26):
@@ -163,7 +163,7 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 ### Review and remaining integration (2026-11-14)
 
-- PR #37 is approved at `f04e96c56ab095d4c368004dc895bca1af4cc564`; CI passed, but it remains unmerged. Do not mark plan 018 done or its dependency merged.
+- Merged in #37. Device verification (rebuilt dev client: LAN API fallback, location prompt on tap, deep links) is still outstanding on Android and iOS.
 - Primary reviewer passed 30 mobile tests, mobile typecheck, and Android/iOS Hermes exports with the entire platform barrel imported into a temporary entry point using locked dependencies. Helper bundle coverage is verified; real-device behavior is not.
 - UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, tap-only location, and incoming trip links. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
 - PR #37's local `DeviceIdStorage` already matches plan 015: `get(): Promise<string | null>`, `set(id: string): Promise<void>`. Keep that shape; once 015 lands, import its exported type when wiring the consumer. No worker contract adjustment is needed.

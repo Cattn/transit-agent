@@ -5,7 +5,7 @@
 > next step. If a STOP condition occurs, stop and report. When done, update
 > this plan's row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat bd41542..HEAD -- apps/web`
+> **Drift check (run first)**: `git diff --stat 1e8328a..HEAD -- apps/web packages/maps/src/web packages/client-react/src`
 > The web page in Figma has two frames, not the six mobile ones. If a third web frame appears, do not invent a plan for it here. Add a question on this issue and wait for this file to be updated.
 
 ## Status
@@ -13,9 +13,9 @@
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: LOW
-- **Depends on**: none to start. Uses plans 012 and 004, both on main. Mounts `@transit/maps/web` only if the app already depends on it (plan 009).
+- **Depends on**: none. Uses merged plans 004, 012, 013, 015 (`@transit/client-react`), 016, and the merged web map from 009 (`@transit/maps/web`).
 - **Category**: implementation (first-pass UI)
-- **Planned at**: commit `bd41542`, 2026-11-14
+- **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `1e8328a` (hooks and web map are merged; mount the real map)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/42
 
 <!-- help:start -->
@@ -24,7 +24,7 @@
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
 - **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
 - **Up for grabs?** Yes, for UI. Map drawing stays with @KrakenTheJaken.
-- **Waiting on:** Nothing. A missing map package means a placeholder, not a blocker.
+- **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. **This is the first MVP screen** (see `plans/README.md`).
 
 **Open questions** — @Rad1ee @DMFriends: reply as `026-Q1: ...`. Use the proposed defaults until answered.
 
@@ -53,7 +53,16 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 ## Current state
 
 - `apps/web/src/App.tsx` renders `sections` from `@transit/shared` as "Coming soon" cards and calls `createApiClient(import.meta.env.VITE_API_URL ?? '')`. Replace the cards. Keep using the page's own CSS. `apps/web/src/styles.css` is plain CSS. Do not add Tailwind.
-- `apps/web/package.json` has React 19 and Vite. No router, no map package. Scripts include `typecheck` (`tsc --noEmit`).
+- `apps/web/package.json` depends on `@transit/shared`, `@transit/client-react`, React 19.3, and Vite. No router, no map package yet. Scripts include `typecheck` (`tsc --noEmit`). `vite.config.ts` proxies `/api` to `http://localhost:3001`, so an empty `VITE_API_URL` means "same origin through the proxy".
+- `@transit/client-react` (merged in #47) exports `ApiProvider`, `useTripDraft`, `usePlanTrip`, `useSavedItineraries`, `useAgentChat`, `usePlaceSearch`, `useDeviceId`, `useNow`. Use them; do not call the client directly where a hook exists.
+- `@transit/maps/web` exports `RouteMap`; `@transit/maps` exports `assignRouteColors`. Setup, quoted from `packages/maps/README.md`: the app needs `maplibre-gl` and `react-map-gl` as dependencies, and once at startup:
+  ```ts
+  import 'maplibre-gl/dist/maplibre-gl.css';
+  import { setWorkerUrl } from 'maplibre-gl';
+  import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+  setWorkerUrl(workerUrl);
+  ```
+  `packages/maps/demo/App.tsx` is a complete working example of `RouteMap` + `assignRouteColors` + cards. Copy its pattern. The style URL is `https://tiles.openfreemap.org/styles/positron` (no key).
 - Frames: `Web · 01 Home` (`2026:36`) and `Web · Dark · 01 Home` (`2028:688`). Both are 1440×900. Dark is the same layout.
 - Left panel "Side panel · 400" (`2026:190`), 400×868, inset 16:
   - "Transit Agent", a notifications icon, a settings icon.
@@ -68,8 +77,8 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
   - The three suggestion chips in question 4.
   - Composer placeholder "Ask about a trip…". Mic does nothing (same proposal as 020-Q3). Send calls `sendAgentMessage` with the current `TripDraft`.
 - Map chips above the map: "Commute" and "Gym" selected in the sample, plus "Weekend: Seaport" and "Live vehicles". Follow question 3.
-- Map controls: zoom +/−, and two FABs. Zoom calls the map if `RouteMap` exposes it. If the placeholder is showing, the buttons are visible and inert. One FAB is location. There is no web location helper. The tap does nothing until a web location plan exists. Do not add a geolocation call in this plan.
-- Saved routes drawn on the frame are "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", pins Office and Gym. The app does not draw them. Pass saved itineraries, `selectedItineraryId`, `onRouteSelect`, `visibleModes`, and padding `{ top: 16, right: 420, bottom: 16, left: 432 }` so the panels are not covered. `styleUrl` is the OpenFreeMap URL plan 009 documents. Do not read a secret. If `@transit/maps` is not a dependency, a `div` with `aria-label="Map"`. Do not add the dependency.
+- Map controls: zoom +/−, and two FABs. Zoom calls the map if `RouteMap` exposes it. One FAB is location. There is no web location helper. The tap does nothing until a web location plan exists. Do not add a geolocation call in this plan.
+- Saved routes drawn on the frame are "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", pins Office and Gym. The app does not draw them. Pass saved itineraries, `selectedItineraryId`, `onRouteSelect`, `visibleModes`, and padding `{ top: 16, right: 420, bottom: 16, left: 432 }` so the panels are not covered. `styleUrl` is the OpenFreeMap URL above. Compute `assignRouteColors` once over every itinerary on screen and pass the same map to `RouteMap.routeColors` and to the card swatches.
 
 ## Commands you will need
 
@@ -81,7 +90,9 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 ## Scope
 
 **In scope:**
-- `apps/web/src/App.tsx`
+- `apps/web/src/App.tsx`, `apps/web/src/main.tsx` (MapLibre setup only)
+- `apps/web/package.json` and `package-lock.json` (add `@transit/maps`, `maplibre-gl`, `react-map-gl` only)
+- `apps/web/.env.example` (add `VITE_API_MODE=mock`)
 - `apps/web/src/styles.css`
 - `apps/web/src/home/Home.tsx`
 - `apps/web/src/home/TripPanel.tsx`
@@ -89,7 +100,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 - `apps/web/src/data/client.ts`
 - `apps/web/src/theme/appearance.ts`
 
-**Out of scope:** `apps/mobile/**`, `packages/shared/**`, `packages/maps/**`, `apps/server/**`, a settings page, a filters page, Tailwind.
+**Out of scope:** `apps/mobile/**`, `packages/**` (use what is exported; ask on #13 if the map needs a change), `apps/server/**`, a settings page, a filters page, Tailwind.
 
 ## Git workflow
 
@@ -99,9 +110,9 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 
 ## Steps
 
-### Step 1: One mock client and one draft
+### Step 1: One client (mock or server) and one draft
 
-`src/data/client.ts` holds one `createMockApiClient({ latencyMs: 0 })`. The draft is `initialDraftState()` plus `applyDraftPatch`, or `useTripDraft` if `@transit/client-react` exists. Do not create that package (plan 015 is in progress).
+`src/data/client.ts` exports one client. When `import.meta.env.VITE_API_MODE === 'server'`, use `createApiClient(import.meta.env.VITE_API_URL ?? '', { deviceId })`, where `deviceId` is read from `localStorage` key `transit-agent.deviceId` or created with `createDeviceId()` and stored there. Otherwise use `createMockApiClient({ latencyMs: 0 })`. Mock is the default, so nobody needs a server to build UI. Wrap the app in `ApiProvider`. The draft comes from `useTripDraft()`.
 
 `src/theme/appearance.ts` reads `prefers-color-scheme` and sets a `data-theme` attribute on `document.documentElement`. Light and dark CSS variables live in `styles.css`. No third theme. A settings toggle can come later, when a web settings frame exists.
 
@@ -113,11 +124,11 @@ Build the two panels from Current state. The agent empty state hides once `messa
 
 **Verify**: `npm run typecheck -w @transit/web` → exit 0
 
-### Step 3: Map slot
+### Step 3: Map
 
-Mount `RouteMap` from `@transit/maps/web` only when the dependency exists. Otherwise the labeled placeholder. Padding is the inset above.
+`npm install -w @transit/web @transit/maps maplibre-gl react-map-gl`. Add the MapLibre setup to `main.tsx`. Mount `RouteMap` from `@transit/maps/web` filling the page behind the panels, with the props and padding in Current state. Saved itineraries come from `useSavedItineraries({ enabled: true })`.
 
-**Verify**: `npm run lint` → exit 0
+**Verify**: `npm run lint` → exit 0, then `npm run build:web` → exit 0. Manual: `npm run dev:web`, open http://localhost:5173, the two mock saved trips are drawn on the map.
 
 ## Test plan
 
@@ -128,14 +139,17 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [ ] `npm run typecheck -w @transit/web` exits 0
 - [ ] `npm run lint` exits 0
 - [ ] `App.tsx` no longer renders "Coming soon"
+- [ ] `npm run build:web` exits 0
 - [ ] The agent panel is in the document on first paint, not behind a button
+- [ ] With `VITE_API_MODE` unset, the page works with no server running
 - [ ] No sample row mentions "2 tickets"
 - [ ] No files outside Scope are modified
 
 ## STOP conditions
 
 - You are about to add a `/settings` or `/filters` route. Those frames do not exist. Ask on the issue instead.
-- You are about to add `@transit/maps` or Tailwind.
+- You are about to add Tailwind, a router, or a second map library.
+- `RouteMap` cannot render without a change in `packages/maps`. Report it on #13.
 - `createMockApiClient` or `applyDraftPatch` is not exported.
 - Page `Web — Desktop` no longer has `Web · 01 Home`. Stop so this plan can be rewritten.
 
@@ -149,8 +163,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 026-Q1: two panels, as drawn, rather than one combined side panel? *(proposed: yes)*
-- 026-Q2: settings button does not navigate yet? *(proposed: yes)*
-- 026-Q3: drop the sample recent rows, "2 tickets", "Weekend: Seaport", and "Live vehicles"? *(proposed: yes)*
-- 026-Q4: the three suggestion strings are the ones to send? *(proposed: yes, until the frame changes)*
-- 026-Q5: what should change before a first web build?
+See the help box at the top (026-Q1 to 026-Q5). It is the single list; answers are recorded there.

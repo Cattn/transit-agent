@@ -19,7 +19,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **Approved:** PR #30 passed review; @DMFriends can merge it.
+- **Status:** ✅ **Done.** Merged in #30. Kept as a record; do not re-execute.
 - **Owner:** @DMFriends
 
 <!-- help:end -->

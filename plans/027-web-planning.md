@@ -15,7 +15,7 @@
 - **Risk**: LOW
 - **Depends on**: plans/026-web-map-home.md
 - **Category**: implementation (first-pass UI)
-- **Planned at**: commit `bd41542`, 2026-11-14
+- **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `1e8328a` (use the merged hooks; this plan closes the MVP loop)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/45
 
 <!-- help:start -->
@@ -24,7 +24,7 @@
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
 - **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
 - **Up for grabs?** Yes, once 026 is on the branch you are using.
-- **Waiting on:** The web home shell.
+- **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
 **Open questions** — @Rad1ee @DMFriends: reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
@@ -99,7 +99,7 @@ After a search, the left panel becomes the result list and the agent stays put. 
 
 ### Step 1: Search
 
-When origin, destination, and time are set, call `planTrip` on the mock client. Keep only the latest response. An incomplete draft leaves the home list up and does not call `planTrip`.
+When origin, destination, and time are set, call `run(request)` from `usePlanTrip()` (plan 015). Build `request` with `toTripRequest(draft)`; when it is not `ok`, leave the home list up and do not search. The hook already keeps only the latest response. Use the client from plan 026's `src/data/client.ts`; do not create a second one.
 
 **Verify**: `npm run typecheck -w @transit/web` → exit 0
 
@@ -107,9 +107,19 @@ When origin, destination, and time are set, call `planTrip` on the mock client. 
 
 Render the left panel and the map card from Current state. Use `itineraryFreshness`, `legFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
-The agent thread uses the same send path as plan 026.
+The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook plan 026 uses. When `lastPlan` changes, show it in the left panel.
 
 **Verify**: `npm run lint` → exit 0
+
+### Step 3: MVP check against the real server
+
+This is the MVP milestone: type a request, see editable filters, see routes on the map, save one.
+
+1. `npm run dev:server` (fixture routes; the agent needs `GEMINI_API_KEY` on that machine, or use Cattn's server via `VITE_API_URL`).
+2. `VITE_API_MODE=server npm run dev:web`, open http://localhost:5173.
+3. Type "Get me from MIT to South Station by 9 tomorrow" in the agent panel.
+
+**Verify**: filter chips update with the agent provenance chip, ≥ 1 route is drawn on the map and listed on the left, "Save & watch" adds the trip to Tracked trips, and a page reload still shows it. Record the result (or the failing step) in the PR. If the server has no Gemini key, record that and run steps 1–2 with a typed From/To instead.
 
 ## Test plan
 
@@ -121,6 +131,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [ ] `npm run lint` exits 0
 - [ ] A scheduled itinerary does not render "Live"
 - [ ] "All filters" does not navigate to a new route
+- [ ] Step 3's real-server check is recorded in the PR
 - [ ] No files outside Scope are modified
 
 ## STOP conditions
@@ -138,8 +149,4 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
-- ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
-- 027-Q3: Share copies the summary and does nothing else? *(proposed: yes)*
-- 027-Q4: quick replies come from the agent response, and "Yes, watch it" saves with `watch: true`? *(proposed: yes)*
-- 027-Q5: what in this frame should change first?
+See the help box at the top (027-Q1 to 027-Q5). It is the single list; answers are recorded there.

@@ -131,10 +131,6 @@ draft, UI-4 freshness is mandatory).
 Is this format useful, or would you rather have (a) full step-by-step plans like the server ones,
 or (b) nothing this detailed (just `ui-direction.md`)? Change, merge or split any slice.
 
-## Map consumer handoff (PR #35 re-review, 2026-11-14)
+## Map consumer notes
 
-PR #35 is approved at `082892f` but unmerged; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
-
-When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; merge and product acceptance still apply.
-
-Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.
+The web map is merged (`@transit/maps/web`, PR #35); the native map is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4, style 009-Q5) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.

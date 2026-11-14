@@ -1,127 +1,114 @@
-# Plan 017: Shared colors so the map line and the result card match
+# Plan 017: Shared badge and mode colors (light + dark) in `@transit/shared`
 
 > **Executor instructions**: Follow this plan step by step. Run every verification command and
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages/shared/src packages/maps`
-> Reconciled 2026-11-14: `packages/maps` merged in PR #35 at `619fc44`. If this diff shows `packages/maps/src/colors.ts` on your branch, read it and **reuse its colors** in Step 2 instead of inventing new ones. The allocator fix/re-review passed at `082892f`; P4 acceptance is still required before moving the allocator.
+> **Drift check (run first)**: `git diff --stat 1e8328a..HEAD -- packages/shared/src packages/maps/src/colors.ts`
+> If this prints anything, compare Current state with the live code. If `packages/shared/src/theme/` already exists, STOP.
 
 ## Status
 
 - **Priority**: P1
 - **Effort**: S
-- **Risk**: LOW (new pure module; plan 009 switches to it)
-- **Depends on**: plans/016-display-formatters.md (merged in #36; import `Tone` from `@transit/shared`, do not redefine it).
+- **Risk**: LOW (new pure module; nothing imports it yet)
+- **Depends on**: plan 016 (merged in #36; `Tone` and `Badge` come from it)
 - **Category**: direction (parallel work)
-- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; PR #35 is now merged; palette/P4 decisions remain open)
-- **Co-owners**: maps (@KrakenTheJaken) and UI (@Rad1ee @DMFriends) review the palette.
-- **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **PR #35 is merged.** Once palette sharing is confirmed, move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted. Its order-stability fix passed re-review at `082892f`; that review blocker is resolved.
+- **Planned at**: commit `1e8328a`, 2026-11-14 (rescoped: route colors already ship in `@transit/maps`)
+- **Issue**: https://github.com/Cattn/transit-agent/issues/25
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **Assigned to @DMFriends.** PR #35 is merged; palette sharing and P4 still need answers before moving the allocator. The allocator fix/re-review passed at `082892f`; P4 acceptance remains required.
+- **Status:** 🔄 **Assigned to @DMFriends.** Rescoped 2026-11-14 so it is no longer blocked: this plan now ships only badge (tone) and mode colors. Route-line colors already exist in `@transit/maps` and apps import them from there.
 - **Owner:** @DMFriends
-- **Waiting on:** Palette-sharing and P4 decisions (PR #35 merged at `619fc44`; allocator fix/re-review resolved at `082892f`). Plan 016 formatters are merged in #36
+- **Waiting on:** nothing for Steps 1–3. Moving the route palette into shared (Later, below) waits on questions 1 and 2.
 
 **Open questions** (answer by number in a comment on #25):
 
-1. @KrakenTheJaken: OK to move the route color palette out of the maps package into shared, so result cards and map lines use the same colors?
-2. Colors: unique per screen vs stable per trip (plan 009 proposal P4, discussed on #13)
-3. Dark + light with a Settings toggle (@DMFriends' direction): @Cattn / @Rad1ee, confirm it's in UI scope now?
+1. @KrakenTheJaken: should the route palette eventually move from `@transit/maps` into shared? Until then, apps import `assignRouteColors` from `@transit/maps`, which is fine.
+2. Route colors: unique per screen (current `assignRouteColors`) vs a permanent color per saved trip (plan 009 decision P4).
+3. @Cattn / @Rad1ee: confirm dark + light with a Settings toggle is in UI scope now (@DMFriends' direction). This plan defines both schemes either way.
 
 <!-- help:end -->
 
 ## Why this matters
 
-The map draws each route in its own color (plan 009: "a different color per route", same color
-every time for a saved trip). The results list and trip cards must show the **same** color next
-to the same route, or users can't tell which card is which line. Today that palette is planned
-inside `packages/maps`, which the apps' list components shouldn't import just for colors. Also,
-"live" vs "scheduled", risk levels and leave-now states need consistent colors on web, mobile
-and the map.
+Every screen shows the same badges: "Live", "Scheduled (not live)", "Safe / Some risk / Tight", "Leave now". Plan 016 already returns each badge as `{ label, tone }`. Without shared colors for those tones, web and mobile will each pick their own greens and reds, and "Scheduled" may end up looking like a success. This plan adds one tested color table per tone and per travel mode, in light and dark, so both apps render badges identically.
 
-This plan puts the colors (data only, no CSS, no React) in `@transit/shared`, where the map and
-both apps can import them.
+Route-line colors are **not** part of this plan anymore: `@transit/maps` already exports `PALETTE`, `routeColor`, and `assignRouteColors`, and card swatches should use `assignRouteColors` from there so they match the map.
 
 ## Current state
 
-- `plans/009-maps-package-contract.md` Step 3 specifies `packages/maps/src/colors.ts`: `routeColor(itineraryId)` → one of 8 colors chosen by a stable string hash; legible on a light basemap; `selectedWidth` / `dimmedOpacity` constants. After this plan, 009 imports `routeColor` from shared instead.
-- `apps/mobile/app.json`: `"userInterfaceStyle": "light"` (still true at `9ccf722`). Web has no dark mode yet. Plan for both anyway (tokens have `light` and `dark` values). `packages/shared/src/theme/` does not exist.
-- `packages/shared` must stay framework-free and Hermes-safe.
-- Basemap (D8) is decided: **OpenFreeMap**. Set `mapBasemapReference.light` to the land/background color of the OpenFreeMap style the maps team uses (ask @KrakenTheJaken which style), instead of the placeholder value in Step 2.
+- `packages/shared/src/format/format.ts` (plan 016):
+  ```ts
+  export type Tone = 'neutral' | 'info' | 'ok' | 'warn' | 'danger';
+  export interface Badge { label: string; tone: Tone }
+  ```
+  Freshness already maps to tones: realtime → `ok` (or `warn` when late), scheduled and estimated → `neutral`. Risk: low `ok`, medium `warn`, high `danger`.
+- `packages/maps/src/colors.ts` exports `PALETTE` (8 route colors, Tailwind 600/700 shades), `routeColor(id)`, `assignRouteColors(ids)`. Do not copy or move them in this plan.
+- `travelModes` and `TravelMode` come from `packages/shared/src/domain/modes.ts`.
+- `packages/shared` must stay framework-free (no React, no CSS) and Hermes-safe.
+- Test pattern: `packages/shared/src/format/format.test.ts` (Vitest, `describe`/`it`).
 
 ## Commands you will need
 
 | Purpose | Command | Expected |
 |---|---|---|
 | Shared tests | `npm run test:unit -w @transit/shared` | all pass |
-| Full | `npm run check` | exit 0 |
+| Full | `npm test` | exit 0 |
 
 ## Scope
 
-**In scope (create):** `packages/shared/src/theme/colors.ts`, `packages/shared/src/theme/contrast.ts`, `packages/shared/src/theme/colors.test.ts`; modify `packages/shared/src/index.ts`.
-**Out of scope:** `packages/maps/**` (plan 009 switches its import), `apps/**`, fonts, spacing, icons.
+**In scope (create):** `packages/shared/src/theme/contrast.ts`, `packages/shared/src/theme/colors.ts`, `packages/shared/src/theme/colors.test.ts`. **Modify:** `packages/shared/src/index.ts` (add `export * from './theme/colors.js'` and `'./theme/contrast.js'`).
+**Out of scope:** `packages/maps/**`, `apps/**`, route-line colors, fonts, spacing, icons.
 
 ## Git workflow
 
-Branch `plan/017-theme`. One commit. Do not push unless told.
+Branch `plan/017-theme`. One commit, e.g. `shared: add tone and mode colors for light and dark (plan 017)`. Do not push unless told.
 
 ## Steps
 
 ### Step 1: Contrast helper (`theme/contrast.ts`)
 
-`relativeLuminance(hex)` and `contrastRatio(hexA, hexB)` per WCAG 2.x. Accept `#rrggbb` only.
+`relativeLuminance(hex)` and `contrastRatio(hexA, hexB)` per WCAG 2.x. Accept `#rrggbb` only; throw on anything else.
+
+**Verify**: `npm run typecheck -w @transit/shared` → exit 0
 
 ### Step 2: Tokens (`theme/colors.ts`)
 
 ```ts
 export type ColorScheme = 'light' | 'dark';
 export interface ToneColors { fg: string; bg: string }
-
-/** 8 route colors, in order. Stable: never reorder (saved trips would change color). Append only. */
-export const routePalette: readonly string[]
-export function routeColor(itineraryId: string): string        // FNV-1a hash of the id, mod 8
-
-export const modeColors: Record<TravelMode, string>             // chips/icons in lists, not map lines
-export const toneColors: Record<ColorScheme, Record<Tone, ToneColors>>
-export const freshnessColors: Record<ColorScheme, { live: string; scheduled: string; estimated: string }>
-export const mapBasemapReference = { light: '#f2efe9', dark: '#1d1f21' } as const   // used only by tests
-export const routeLine = { width: 5, selectedWidth: 8, dimmedOpacity: 0.35, casing: '#ffffff' } as const
+export const toneColors: Record<ColorScheme, Record<Tone, ToneColors>>;
+export const modeColors: Record<ColorScheme, Record<TravelMode, string>>; // chips and icons in lists, not map lines
 ```
-Pick colors that are distinguishable for common color-vision deficiencies (e.g. start from the Okabe–Ito or Tableau 10 palettes and adjust for contrast). Freshness: `live` is green-ish, `scheduled` is gray: "scheduled" must **not** look like a success state.
+
+`neutral` must be gray, not green: "Scheduled (not live)" is neutral and must never look like a success. Pick colors distinguishable under common color-vision deficiencies.
+
+**Verify**: `npm run typecheck -w @transit/shared` → exit 0
 
 ### Step 3: Tests (`theme/colors.test.ts`)
 
-- `routeColor` is stable across calls; 20 sample ids use at least 6 of the 8 colors.
-- Every `routePalette` color has contrast ≥ 3:1 against `mapBasemapReference.light` (WCAG non-text contrast).
-- Every `toneColors[scheme][tone]` has `fg` on `bg` contrast ≥ 4.5:1 for both schemes.
-- `modeColors` has an entry for every `travelModes` value.
-- `routePalette` has exactly 8 unique values.
+- `contrastRatio('#000000', '#ffffff')` is 21 (±0.01); invalid hex throws.
+- For both schemes and every tone, `fg` on `bg` contrast ≥ 4.5.
+- `modeColors[scheme]` has an entry for every value in `travelModes`, and each has contrast ≥ 3 against white (light) / `#121212` (dark).
+- `toneColors.light.neutral.bg` ≠ `toneColors.light.ok.bg`.
 
-**Verify**: `npm run check` → exit 0.
+**Verify**: `npm run test:unit -w @transit/shared` → all pass, ≥ 5 new tests.
 
 ## Done criteria
 
-- [ ] `npm run check` exits 0; ≥ 6 new tests
-- [ ] `routeColor`, `routePalette`, `routeLine`, `modeColors`, `toneColors`, `freshnessColors`, `contrastRatio` exported from `@transit/shared`
-- [ ] Only files in Scope changed
+- [ ] `npm test` exits 0
+- [ ] `toneColors`, `modeColors`, `contrastRatio` are exported from `@transit/shared`
+- [ ] Only files in Scope changed (`git status`)
 
 ## STOP conditions
 
-- A palette that meets 3:1 on the light basemap can't also be told apart by color-blind users. Report the trade-off with the candidate colors; it's a design decision for the maps and UI people.
+- A tone palette that meets 4.5:1 cannot keep `ok`, `warn`, and `danger` distinguishable for color-blind users. Report the candidates on #25; it is a design decision.
+- Someone has already added theme tokens in an app (`apps/*/src/theme/colors.ts` exporting tone colors). Report so they can be merged rather than duplicated.
 
 ## Maintenance notes
 
-- **Color sharing after P4 acceptance:** compute the order-independent `assignRouteColors(fullTripIds)` once over the full trip set. Pass the same assignment to `RouteMap.routeColors`, cards, and picker, including filtered subsets. Do not recompute allocation for each subset or use standalone `routeColor(id)` for cards when the map uses an allocated override.
-- PR #35 was approved at `082892f` after 55 independent maps tests and final CI. This resolves the allocator fix/re-review blocker only; #35 merged at `619fc44`, P4/palette-sharing decisions remain open, and native/device validation is outstanding.
-
-- **Never reorder `routePalette`**: a saved trip's color comes from its position.
-- If the maps team changes the basemap style (D8), update `mapBasemapReference` and re-run the contrast test.
-- Plan 009 Step 3 changes from "write `colors.ts`" to "import `routeColor` and `routeLine` from `@transit/shared`".
-
-## Open questions for review
-
-- 017-Q1 (@KrakenTheJaken): OK to move the route palette out of `packages/maps` into shared, so lists and the map use the same colors?
-- 017-Q2 (**direction from @DMFriends, [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6872563612)**): ship **dark and light now**, with a toggle in Settings. Recorded as the plan owner's direction; adding a dark theme and a Settings toggle to the apps is UI scope, which the UI team / @Cattn should confirm. Either way this plan already defines `light` and `dark` tokens and tests contrast for both, so no step here changes. The toggle itself belongs to UI slice 6 (Settings), not this plan.
+- Apps map `Badge.tone` → `toneColors[scheme][tone]`. Do not add per-badge colors.
+- **Later (after questions 1 and 2):** move `PALETTE` / `routeColor` / `assignRouteColors` into `packages/shared/src/theme/` keeping the exact colors and order, and have `@transit/maps` re-export them so no import breaks. That is a separate PR coordinated with @KrakenTheJaken.

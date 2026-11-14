@@ -7,26 +7,25 @@
 > in `plans/README.md` — unless a reviewer dispatched you and told you they
 > maintain the index.
 >
-> **Drift check (run first)**: `git diff --stat bd41542..HEAD -- apps/mobile plans/015-client-react-hooks.md plans/018-mobile-platform-setup.md`
+> **Drift check (run first)**: `git diff --stat 1e8328a..HEAD -- apps/mobile packages/client-react/src packages/maps/package.json`
 > If any in-scope file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding; on a
-> mismatch, treat it as a STOP condition. Plan 015 is in progress on PR #47. Plan 018 merged in #37; use the existing
-> platform helpers. Do not recreate either package.
+> mismatch, treat it as a STOP condition.
 
 ## Status
 
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: none to start. Uses plans 012 (on main), 004 (on main). Uses 013, 016, and 018 (merged). Reuses 015, 017, and 009 when available.
+- **Depends on**: none to start. Uses merged plans 004, 012, 013, 015, 016, 018. Mounts the native map from 009 when `@transit/maps/native` exists; until then a placeholder.
 - **Category**: implementation (first-pass UI)
-- **Planned at**: commit `bd41542`, 2026-11-14
+- **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `1e8328a` (015 hooks merged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/39
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft.** Feedback welcome before or during the build. Do not also start plan 015, 018, or 009.
+- **Status:** 📝 **First draft.** Feedback welcome before or during the build. Reuse merged 015 (hooks) and 018 (platform helpers); the native map is @KrakenTheJaken's plan 009.
 - **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
 - **Up for grabs?** Yes, for UI. The map drawing stays with @KrakenTheJaken.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
@@ -74,7 +73,10 @@ const api = createApiClient(
   Plan 018 merged in #37. Reuse `getApiUrl` from `apps/mobile/src/platform/api-url-native.ts` for real-client configuration. Do not create `src/platform/`.
 - `apps/mobile/package.json`: Expo SDK `~58.0.25`, React Native `0.88.1`, `react-native-safe-area-context`. No navigation library, no `expo-blur`, no `@transit/maps`.
 - `apps/mobile/app.json` has `"scheme": "transit-agent"` and `"userInterfaceStyle": "light"`. Change `userInterfaceStyle` to `"automatic"` so the dark frames can show. Do not add location or secure-store plugins (plan 018).
-- `@transit/shared` exports `createMockApiClient`, `initialDraftState`, `applyDraftPatch`, `modeGroups`, `createDeviceId`. There is no `packages/client-react` on main at `bd41542` (plan 015, in progress, @Cattn). `leaveByLabel`, `computeWatchStatus`, and optional `SavedItinerary.watchStatus` are on main (plan 013, merged in #34). Plan 016 formatters merged in #36. There is no `routeColor` (plan 017).
+- `@transit/shared` exports `createApiClient`, `createMockApiClient`, `initialDraftState`, `applyDraftPatch`, `modeGroups`, `leaveByLabel`, `computeWatchStatus`, and the plan 016 formatters. `SavedItinerary.watchStatus` is optional.
+- `@transit/client-react` (merged in #47) exports `ApiProvider`, `useTripDraft`, `useSavedItineraries`, `usePlanTrip`, `useAgentChat`, `usePlaceSearch`, `useDeviceId`, `useNow`. `apps/mobile/package.json` does not depend on it yet; add it in Step 1.
+- `apps/mobile/src/platform/index.ts` (plan 018) exports `getApiUrl`, `secureStoreDeviceIdStorage`, `getCurrentPlace`, `useAppForeground`, `parseTripLink`, `useIncomingTripLink`.
+- `@transit/maps` has no `./native` export yet (plan 009, in progress). Do not add `@transit/maps` in this plan.
 - `modeGroups` in `packages/shared/src/domain/modes.ts`:
 
 ```ts
@@ -120,7 +122,8 @@ export const modeGroups = {
 **In scope:**
 - `apps/mobile/App.tsx`
 - `apps/mobile/app.json` (`userInterfaceStyle` only)
-- `apps/mobile/package.json` and `package-lock.json` (only `expo-blur` and the React Navigation packages in Step 1)
+- `apps/mobile/package.json` and `package-lock.json` (only `@transit/client-react`, `expo-blur`, and the React Navigation packages in Step 1)
+- `apps/mobile/.env.example` (add `EXPO_PUBLIC_API_MODE=mock`)
 - `apps/mobile/src/theme/appearance.tsx`
 - `apps/mobile/src/theme/colors.ts`
 - `apps/mobile/src/data/client.ts`
@@ -139,9 +142,9 @@ export const modeGroups = {
 
 **Out of scope:**
 - `apps/mobile/src/platform/**` and any Expo permission plugin (plan 018, merged in #37)
-- `packages/client-react/**` (plan 015, in progress)
+- `packages/client-react/**` (merged; use it, do not edit it)
 - `packages/shared/**` (plans 016 and 017)
-- `packages/maps/**` and adding `@transit/maps` (plan 009, PR #35)
+- `packages/maps/**` and adding `@transit/maps` (plan 009 adds the native renderer and the dependency)
 - `apps/web/**`, `apps/server/**`
 - `plans/ui-direction.md` and `plans/ui-slices.md`
 - Booking, payments, a web layout
@@ -156,7 +159,7 @@ export const modeGroups = {
 
 ### Step 1: Navigation and blur
 
-In `apps/mobile`, `npx expo install expo-blur @react-navigation/native @react-navigation/native-stack react-native-screens`. Do not add `@react-navigation/bottom-tabs`. The home screen is not a tab bar.
+In `apps/mobile`, `npx expo install expo-blur @react-navigation/native @react-navigation/native-stack react-native-screens`, and add `"@transit/client-react": "*"` to `dependencies` (then `npm install` at the root). Do not add `@react-navigation/bottom-tabs`. The home screen is not a tab bar.
 
 `src/navigation/types.ts`:
 
@@ -181,14 +184,11 @@ Results, filters, chat, and fly are presented by Home (sheets), not by extra sta
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 3: One mock client and one draft
+### Step 3: One client (mock or server) and one draft
 
-`src/data/client.ts` creates a single `createMockApiClient({ latencyMs: 0 })` for the app. Do not call `createApiClient` against a server in this plan. The mock already seeds two watched trips (plan 012).
+`src/data/client.ts` exports one client. When `process.env.EXPO_PUBLIC_API_MODE === 'server'`, use `createApiClient(getApiUrl(), { deviceId })` with the id from `useDeviceId(secureStoreDeviceIdStorage)`. Otherwise use `createMockApiClient({ latencyMs: 0 })`, which seeds two watched trips (plan 012). Mock is the default. `App.tsx` wraps everything in `ApiProvider`.
 
-Home holds the draft:
-
-- If `useTripDraft` can be imported from `@transit/client-react`, use it.
-- Otherwise call `initialDraftState()` and `applyDraftPatch` from `@transit/shared` inside `HomeScreen`. Do not create `packages/client-react`.
+Home holds the draft with `useTripDraft()`. Do not hand-roll `applyDraftPatch` state.
 
 The mode control calls `apply({ modes: [...modeGroups[group]] }, 'user')` for `transit` | `drive` | `fly`. It must not clear origin, destination, or time. When the group is `fly`, Home presents the fly sheet (plan 024's screen). Transit and drive stay on the home sheet.
 
@@ -200,7 +200,7 @@ The mode control calls `apply({ modes: [...modeGroups[group]] }, 'user')` for `t
 
 Only when `apps/mobile/package.json` depends on `@transit/maps` and that package exports `./native`, render `RouteMap` from `@transit/maps/native` with `itineraries` from the mock saved list, `selectedItineraryId`, `onRouteSelect`, `visibleModes` equal to the current `draft.modes`, a `styleUrl` constant for OpenFreeMap (the same string plan 009 documents; do not read a secret), and `padding`. The map must not fetch or save.
 
-If the dependency or native export is absent (PR #35 ships web only), render a `View` that fills the screen, `accessibilityLabel="Map"`, and do not add `@transit/maps` or `maplibre`.
+Until then (native export absent), render a `View` that fills the screen, `accessibilityLabel="Map"`. Do not add `@transit/maps` or `maplibre` here.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -208,7 +208,7 @@ If the dependency or native export is absent (PR #35 ships web only), render a `
 
 `HomeChrome.ios.tsx` and `HomeChrome.android.tsx` implement the table in Current state. Shared card UI lives in `TrackedTripCard.tsx`.
 
-Data: `listItineraries()` on the mock client (or `useSavedItineraries` if plan 015 has landed). Pass `enabled: true` only while the app is active. Use the existing `useAppForeground` from `apps/mobile/src/platform`. Do not add a second foreground listener.
+Data: `useSavedItineraries({ pollMs: 30_000, enabled })`, where `enabled` is true only while the app is active. Use the existing `useAppForeground` from `apps/mobile/src/platform`. Do not add a second foreground listener.
 
 The "2 watching" count is the number of saved trips with `watch === true`, not a hard-coded 2.
 
@@ -259,15 +259,6 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- 020-Q1: follow this Figma pass (separate home sheet) rather than UI-5's one three-detent sheet? *(proposed: yes)*
-- 020-Q2: tracked trips first, or the search field? *(proposed: tracked trips, as drawn)*
-- 020-Q3: mic does nothing for now? *(proposed: yes)*
-- 020-Q4: light and dark, default System? *(proposed: yes)*
+See the help box at the top (020-Q1 to 020-Q4). It is the single list; answers are recorded there.
 
-## Map consumer handoff (PR #35 re-review, 2026-11-14)
-
-PR #35 merged at `619fc44` after approval at `082892f`; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
-
-When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; product acceptance still applies.
-
-Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.
+Map behavior (overlap chooser, mode filtering, colors) is tracked once in plan 009 under "Open product decisions". When colors are needed, follow plan 009's rule: compute `assignRouteColors` once over all trips on screen and reuse it for cards and map.

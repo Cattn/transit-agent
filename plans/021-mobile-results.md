@@ -74,7 +74,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 
 - Selecting a card sets `selectedItineraryId` on the map slot from plan 020. Tapping the same route on the map selects the card. There is no separate trip-detail frame in Figma. Expanding a selected card lists `leg.routeName` or the mode, `formatClock` times from plan 016, and `legFreshness`. Do not add a new stack route.
 - `createMockApiClient` (plan 012) scenarios: `normal`, `empty`, `nearMissOnly`, `serverError`, `offline`. The empty scenario's warning is the string `No routes found for this trip` (`packages/shared/src/client/mock/mock-client.ts`). Render `plan.warnings[0]` for that case. For `offline`, show "You are offline". For `serverError`, show the `ApiClientError.message`. Figma does not draw those three. Use one text block in the sheet, not a new frame.
-- Save: a text button "Save" on the expanded card calls `saveItinerary({ itinerary, request, watch: true })` on the mock client. The request is `toTripRequest(draft)` when that returns a request. If the draft is incomplete, disable Save.
+- Save: a text button "Save" on the expanded card calls `saveItinerary({ itinerary, request, watch: true })` via `useSavedItineraries` (plan 015). The request is `toTripRequest(draft)` when that returns a request. If the draft is incomplete, disable Save.
 
 ## Commands you will need
 
@@ -104,7 +104,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 
 ### Step 1: Run a search from the draft
 
-When origin, destination, and time are all set, call `planTrip` on the mock client (or `usePlanTrip` if `@transit/client-react` exports it). Store the latest response only. A request counter ignores stale responses from older calls, the same rule as plan 015 step 4.
+When origin, destination, and time are all set, call `run(request)` from `usePlanTrip()` (`@transit/client-react`, merged in #47). The hook already ignores stale responses. Use the client from plan 020's `src/data/client.ts`; do not create another client.
 
 The home search field does not run this search. The Filters "Show routes" button (plan 022) and a completed draft do. If the draft is incomplete, Results shows "Add where and when" and does not call `planTrip`.
 
@@ -155,15 +155,6 @@ When a question is answered or a frame changes, update this same plan and its is
 
 ## Open questions for review
 
-- ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
-- 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
-- 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
-- 021-Q4: what in this layout should change before it is built?
+See the help box at the top (021-Q*). It is the single list; answers are recorded there.
 
-## Map consumer handoff (PR #35 re-review, 2026-11-14)
-
-PR #35 merged at `619fc44` after approval at `082892f`; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
-
-When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; product acceptance still applies.
-
-Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.
+Map behavior (overlap chooser, mode filtering, colors) is tracked once in plan 009 under "Open product decisions". For card swatches, compute `assignRouteColors` once over all results and reuse it for cards and map.

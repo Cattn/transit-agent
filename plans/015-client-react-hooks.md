@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Technical re-check passed:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8`. COMMENT review, not formal GitHub approval. Conflicts resolved; mergeable and unmerged. Final CI success is not established.
+- **Status:** ✅ **Done.** Merged in #47 (`1a92fef`). Kept as a record; do not re-execute. UI plans 020–027 use these hooks.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -197,7 +197,7 @@ const chat = useAgentChat(trip.state, trip.apply);
 
 ## Maintenance notes
 
-- Integration re-check passed at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8`: reviewer 2 verified the normal two-parent merge, client-react byte-identical to reviewed `73a6d89`, preserved main source/workflows/plans and lock entries (except two app dependencies), and combined shared → maps → client-react build/watch/demo/lint wiring. Independent fresh `npm ci` and full `npm run check` passed 320 existing tests, lint/typechecks, builds, Android/iOS exports and smoke; one React 19.3.0, clean checkout/diff. [Technical-pass COMMENT review](https://github.com/Cattn/transit-agent/pull/47#pullrequestreview-5902357329), not formal GitHub approval. No actionable findings; conflict/integration blocker resolved. GitHub reported mergeable, but CI was in progress at reviewer inspection; final CI success is not established. PR remains unmerged; dependent work must not treat 015 as landed.
+- Merged in #47 as `1a92fef` after an integration re-check at `3c1f2ab` (320 tests, builds, Android/iOS exports, one React 19.3.0).
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.

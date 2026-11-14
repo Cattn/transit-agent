@@ -23,7 +23,7 @@
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
 - **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI. The Gemini agent is plan 006, already in progress with @Cattn. This screen talks to the mock.
+- **Up for grabs?** Yes, for UI. The Gemini agent (plan 006) is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
 - **Waiting on:** The home shell. Not on `GEMINI_API_KEY`.
 
 **Open questions** — @Rad1ee @DMFriends: reply as `023-Q1: ...`. Use the proposed defaults until answered.
@@ -57,9 +57,9 @@ On the phone the agent is a button that opens a sheet. It is not a side panel. T
   2. Agent bubble that lists what it changed, as chips the user can tap. The sample includes arrive by 9:00 and a walk limit. Tapping a chip opens Filters (plan 022) on that field. The chips are the draft provenance entries whose source is `'agent'`, not a second list.
   3. A shorter agent bubble that asks a question, then quick-reply buttons. Render `questions[].options` from the agent response as those buttons. Tapping one sends that option as the next user message.
 - Composer: text field and a send button. Disable send while a request is in flight.
-- `createMockApiClient` already implements `sendAgentMessage`. The mock understands phrases such as a walk limit and "cheap". Use it. If `useAgentChat` is exported from `@transit/client-react`, use that instead of calling the client directly. Do not create that package (plan 015 is in progress).
+- `createMockApiClient` already implements `sendAgentMessage`. The mock understands phrases such as a walk limit and "cheap". Use `useAgentChat(draft, apply)` from `@transit/client-react` (merged in #47); do not call the client directly.
 - If the call throws `ApiClientError` with status 503 or code `agent_unavailable`, show "The agent is not available yet" in the sheet. Do not invent a reply.
-- Plan 006 is in progress on the server. Do not add server code, a Gemini key, or a streaming client.
+- `POST /api/agent/messages` is merged (plan 006). Only Cattn's server holds the Gemini key. Do not add server code, a key, or a streaming client.
 
 ## Commands you will need
 
@@ -120,10 +120,8 @@ Do not add tests or a runner. Run the typecheck and lint commands above. Manuall
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
-- When plan 006 is deployed, Home can swap the mock client for `createApiClient`. The screen stays. Streaming (decision D5-B) is later. Do not open an SSE connection here.
+- Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Streaming (decision D5-B) is later. Do not open an SSE connection here.
 
 ## Open questions for review
 
-- 023-Q1: render live agent replies instead of the sample sentences? *(proposed: yes)*
-- 023-Q2: buttons only when `questions[].options` exists? *(proposed: yes)*
-- 023-Q3: changes you want in the sheet before it is built?
+See the help box at the top (023-Q*). It is the single list; answers are recorded there.
