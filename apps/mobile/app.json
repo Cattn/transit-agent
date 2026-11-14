@@ -6,8 +6,23 @@
     "orientation": "portrait",
     "scheme": "transit-agent",
     "userInterfaceStyle": "light",
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.transitagent.app" },
-    "android": { "package": "com.transitagent.app" },
-    "plugins": [["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]]
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.transitagent.app"
+    },
+    "android": {
+      "package": "com.transitagent.app"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-secure-store"
+    ]
   }
 }
