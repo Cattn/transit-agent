@@ -6,6 +6,9 @@ import {
   type PlanResponse,
   type SaveItineraryRequest
 } from '../domain/api.js';
+import { AgentMessageResponseSchema, type AgentMessageRequest, type AgentMessageResponse } from '../domain/agent.js';
+import { PlaceSearchResponseSchema } from '../domain/place-search.js';
+import type { LngLat, Place } from '../domain/places.js';
 import { SavedItinerarySchema, type SavedItinerary } from '../domain/itinerary.js';
 import type { TripRequest } from '../domain/trip-draft.js';
 import type { HealthResponse, Section } from '../index.js';
@@ -123,6 +126,17 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
 
     deleteItinerary: async (id: string): Promise<void> => {
       await request<undefined>('DELETE', itineraryPath(id));
+    },
+
+    /** POST /api/agent/messages (plan 006). Long timeout: the agent may call tools and plan a trip. */
+    sendAgentMessage: (body: AgentMessageRequest): Promise<AgentMessageResponse> =>
+      request('POST', '/api/agent/messages', { body, schema: AgentMessageResponseSchema, timeoutMs: 45_000 }),
+
+    /** GET /api/places?q=&near=lng,lat (plan 007). `near` biases results toward a point. */
+    searchPlaces: async (q: string, near?: LngLat): Promise<Place[]> => {
+      let path = `/api/places?q=${encodeURIComponent(q)}`;
+      if (near) path += `&near=${near[0]},${near[1]}`;
+      return (await request('GET', path, { schema: PlaceSearchResponseSchema })).places;
     }
   };
 }
