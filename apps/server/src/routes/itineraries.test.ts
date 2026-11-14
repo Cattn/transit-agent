@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sampleItinerary, SavedItinerarySchema, TripRequestSchema, TravelProfileSchema } from '@transit/shared';
@@ -80,6 +83,29 @@ describe.each(['memory', 'sqlite'])('%s persistence API', (implementation) => {
     const items = list.json().itineraries as { id: string; label?: string }[];
     expect(items.map((it) => it.id)).toEqual(['second', 'first']);
     expect(items[0]?.label).toBe('renamed');
+  });
+
+  it('stores a trip color, keeps the first one on re-save and rejects invalid colors', async () => {
+    app = server();
+    const headers = { 'x-device-id': DEVICE_A };
+    const first = await app.inject({ method: 'POST', url: '/api/itineraries', headers, payload: { ...saveBody(), color: '#1D4ED8' } });
+    expect(first.statusCode).toBe(201);
+    expect(first.json().color).toBe('#1D4ED8');
+
+    const again = await app.inject({ method: 'POST', url: '/api/itineraries', headers, payload: { ...saveBody(sampleItinerary.id, 'again'), color: '#BE185D' } });
+    expect(again.json()).toMatchObject({ color: '#1D4ED8', label: 'again' });
+
+    const plain = await app.inject({ method: 'POST', url: '/api/itineraries', headers, payload: saveBody('no-color') });
+    expect(plain.json().color).toBeUndefined();
+
+    const list = await app.inject({ method: 'GET', url: '/api/itineraries', headers });
+    const colors = Object.fromEntries((list.json().itineraries as { id: string; color?: string }[]).map((item) => [item.id, item.color]));
+    expect(colors).toEqual({ [sampleItinerary.id]: '#1D4ED8', 'no-color': undefined });
+    expect((await app.inject({ method: 'GET', url: `/api/itineraries/${sampleItinerary.id}`, headers })).json().color).toBe('#1D4ED8');
+
+    const bad = await app.inject({ method: 'POST', url: '/api/itineraries', headers, payload: { ...saveBody('bad'), color: 'blue' } });
+    expect(bad.statusCode).toBe(400);
+    expect(bad.json().error.code).toBe('invalid_request');
   });
 
   it('requires x-device-id', async () => {
@@ -174,7 +200,26 @@ describe('SQLite storage', () => {
     db = new DatabaseSync(':memory:');
     migrate(db);
     migrate(db);
-    expect(db.prepare('PRAGMA user_version').get()?.user_version).toBe(1);
+    expect(db.prepare('PRAGMA user_version').get()?.user_version).toBe(2);
+  });
+
+  it('keeps saved trip colors across a restart', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'transit-colors-'));
+    const file = join(dir, 'transit.db');
+    try {
+      const before = new DatabaseSync(file);
+      migrate(before);
+      await new SqliteItineraryStore(before).save(DEVICE_A, { itinerary: sampleItinerary, request: TripRequestSchema.parse(fixtureRequest), watch: true, color: '#0F766E' });
+      before.close();
+
+      const after = new DatabaseSync(file);
+      migrate(after);
+      const items = await new SqliteItineraryStore(after).list(DEVICE_A);
+      after.close();
+      expect(items.map((item) => item.color)).toEqual(['#0F766E']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('skips malformed JSON and schema-invalid rows without breaking reads', async () => {

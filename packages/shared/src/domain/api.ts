@@ -15,7 +15,8 @@ export const SaveItineraryRequestSchema = z.object({
   itinerary: ItinerarySchema,
   request: TripRequestSchema,
   label: z.string().max(80).optional(),
-  watch: z.boolean().default(true)
+  watch: z.boolean().default(true),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional()
 });
 export type SaveItineraryRequest = z.infer<typeof SaveItineraryRequestSchema>;
 
