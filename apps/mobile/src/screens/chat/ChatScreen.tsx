@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import { describePatch, type DraftChangeSource, type DraftState, type PlanResponse, type TripDraftPatch } from '@transit/shared';
+import { useEffect, useMemo, useRef } from 'react';
+import { describePatch, type DraftChangeSource, type DraftState, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { useAgentChat } from '@transit/client-react';
 import { useAppColors } from '../../theme/appearance';
 import type { AppColors } from '../../theme/colors';
@@ -32,7 +32,7 @@ export interface ChatChromeProps {
 export interface ChatScreenProps {
   draft: DraftState;
   apply: (patch: TripDraftPatch, source: DraftChangeSource) => void;
-  onPlan: (plan: PlanResponse) => void;
+  onPlan: (plan: PlanResponse, draft: TripDraft) => void;
   onOpenFilters: (field: string) => void;
   onClose: () => void;
 }
@@ -55,9 +55,12 @@ export function ChatScreen({ draft, apply, onPlan, onOpenFilters, onClose }: Cha
   const colors = useAppColors();
   const { messages, pending, error, send, lastPlan } = useAgentChat(draft, apply);
 
+  const forwarded = useRef<PlanResponse>(undefined);
   useEffect(() => {
-    if (lastPlan) onPlan(lastPlan);
-  }, [lastPlan, onPlan]);
+    if (!lastPlan || forwarded.current === lastPlan) return;
+    forwarded.current = lastPlan;
+    onPlan(lastPlan, draft.draft);
+  }, [lastPlan, draft.draft, onPlan]);
 
   const entries = useMemo<ChatEntry[]>(() => {
     const lastAgent = messages.findLastIndex((message) => message.role === 'agent');
