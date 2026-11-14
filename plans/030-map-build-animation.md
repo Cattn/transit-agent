@@ -57,7 +57,7 @@ The owner's direction: while the AI drafts a trip, the map should show it being 
 - `packages/maps/src/web/RouteMap.tsx` — builds `lines = itinerariesToFeatures(...)` and `points = itineraryPoints(...)` with `useMemo`, renders them into `<Source id={ROUTE_SOURCE_ID}>` and `<Source id={POINT_SOURCE_ID}>` with layers from `routeLayers()`. The camera fits with `fitBounds(bounds, { padding, maxZoom: 16, duration: 600 })` only when `fitKey` changes, never on selection.
 - `packages/maps/src/to-geojson.ts` — pure conversion; every leg is a LineString feature with `itineraryId`, `color`, `dash`, `lane`, `direction`.
 - `packages/maps/src/samples.ts` — commute and flight sample itineraries; `demo/App.tsx` is the demo page (`npm run demo:maps`).
-- Plan 029 (in progress, @Cattn) adds to `@transit/shared`:
+- Plan 029 (TODO, @Cattn) adds to `@transit/shared`:
   ```ts
   type AgentProgress = {
     phase: 'idle' | 'thinking' | 'locating' | 'searching' | 'routes' | 'done' | 'error';
@@ -78,8 +78,8 @@ The owner's direction: while the AI drafts a trip, the map should show it being 
 
 ## Scope
 
-**In scope:** `packages/maps/src/contract.ts` (one optional prop), `packages/maps/src/build-preview.ts` (create), `packages/maps/src/build-preview.test.ts` (create), `packages/maps/src/web/RouteMap.tsx`, `packages/maps/src/index.ts`, `packages/maps/demo/*` (a scripted "agent building" scenario), `packages/maps/README.md`. No native files: mobile shows the web renderer through plan 009's DOM map.
-**Out of scope:** `packages/shared/**` and `packages/client-react/**` (plan 029), app screens (027 and 023 wire it in), server code, `line-gradient` styling (incompatible with the dashed walk/bike/flight lines).
+**In scope:** `packages/maps/src/contract.ts` (one optional prop), `packages/maps/src/build-preview.ts` (create), existing `packages/maps/src/to-geojson.test.ts` (extend), `packages/maps/src/web/RouteMap.tsx`, `packages/maps/src/index.ts`, `packages/maps/demo/*` (a scripted "agent building" scenario), `packages/maps/README.md`. No native files: mobile shows the web renderer through plan 009's DOM map.
+**Out of scope:** `packages/shared/**` and `packages/client-react/**` (plan 029), app screens (029 owns Android integration; 027 owns web), server code, `line-gradient` styling (incompatible with the dashed walk/bike/flight lines).
 
 ## Git workflow
 
@@ -148,7 +148,7 @@ No mobile code: the DOM map runs this web renderer, and `buildPreview` is plain 
 
 ## Done criteria
 
-- [ ] `npm test` exits 0; new `build-preview` tests pass
+- [ ] `npm test` exits 0; cases added to the existing test file pass
 - [ ] Demo "Agent building" scenario plays as described in Step 3
 - [ ] Without `buildPreview`, existing maps tests and the demo's other scenarios behave exactly as before
 - [ ] README mapping table added
@@ -162,13 +162,13 @@ No mobile code: the DOM map runs this web renderer, and `buildPreview` is plain 
 
 ## Maintenance notes
 
-- Apps wire it in: plan 027 (web results, @KrakenTheJaken) and plan 023 (mobile chat, @Cattn) pass `buildPreview` built from `useAgentChat().progress`.
+- Apps wire it in: plan 027 (web results, @KrakenTheJaken) and plan 029 (Android integration, @Cattn) pass `buildPreview` built from `useAgentChat().progress`.
 - Saved trips already on the map are not re-animated; only the new search results draw in.
 - Real routing (plan 007) changes only the geometry, not this animation.
 - The web renderer is also the mobile map (plan 009's Expo DOM component), so this animation and any later change to it show up on Android too.
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - When iOS is picked up, check the draw-in in Expo Go on an iPhone (plan 009's DOM map already runs there).

@@ -7,7 +7,7 @@ back in review using the IDs (UI-1, UI-2, …).
 
 **Issue**: https://github.com/Cattn/transit-agent/issues/16
 
-> **iOS is parked (@Cattn, 2026-11-14).** The mobile app is Android-only until iOS comes back out of the backlog ([plans/README.md](README.md#backlog-deliberately-unplanned)). "Mobile" in this doc means Android for now. iOS design notes here and in the Figma page `iOS — Liquid Glass` stay as the reference for later.
+> **iOS is parked (@Cattn, 2026-11-14).** Android is the design target; iOS stays functional through existing fallbacks, with design deferred ([plans/README.md](README.md#backlog-deliberately-unplanned)). "Mobile" in this doc means Android for now. iOS design notes here and in the Figma page `iOS — Liquid Glass` stay as the reference for later.
 
 Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature notes, and the two design threads.
 
@@ -53,18 +53,7 @@ The mode slider is a **filter over one trip draft**, not a separate data model. 
 
 ## Filters (UI-3)
 
-Map 1:1 to `TripDraft` (plan 002). Suggested grouping:
-
-- **Always visible:** From, To (place search → `searchPlaces()`, plan 007), Depart at / Arrive by, mode toggles.
-- **"How strict?"** `lateTolerance` (3-way: *Must be on time* / *A little late is OK* / *Flexible*), optional hard deadline. This stays a **separate control** from the tight-transfers slider (decided on #6).
-- **Sliders:** *Cheaper ↔ Comfier* (`comfortVsCost`), *Safe ↔ Tight transfers* (`transferRisk`), *Less ↔ More walking/biking* (`activeTravel`).
-- **Advanced (collapsed):** max walk min, max bike min, max transfers, min transfer buffer, budget, max drive min, accessibility, own bike/car, car mpg.
-
-Requirements (hard) vs preferences (soft) should look different. For example, use a lock icon on hard limits.
-
-- **Default modes:** a fresh trip starts with walk + bus + train switched on (car, bike, flight off). A saved profile replaces that.
-- **Time zone:** times show in the trip's starting-point time zone by default. Users can pick another (`draft.timeZone`, e.g. in Settings or on the trip).
-- **More filters later** are expected (#6). They're added as new optional fields, so nothing already built breaks.
+Plan 022 owns the layout: From/To, Depart/Arrive time, modes with optional Drive, separate arrival strictness and preference sliders, collapsed Advanced limits. No Budget control or lock icons. Filters and Agent edit the same draft with provenance. Default modes are walk/bus/rail; a saved profile may replace them. Display timezone defaults to origin unless selected.
 
 ## Results list (UI-4)
 
@@ -99,26 +88,11 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 
 - **Mobile testing stays in Expo Go once maps land.** Plan 009 renders the web map in an Expo DOM component (decided 2026-11-14), so the map needs no dev client or EAS build.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.
-- Keep `@transit/shared` framework-free. Hooks such as `useTripDraft` and `useSavedItineraries` live in each app (or a future `packages/ui-hooks` if duplication hurts).
+- Keep `@transit/shared` framework-free. Hooks live in the merged `@transit/client-react` package.
 
-## Building blocks and slices (added 2026-11-14)
+## Current delivery boundary
 
-[`ui-slices.md`](ui-slices.md) splits the UI into 8 pieces that can be built in parallel, each
-with "must have" checks and the data it uses. Shared non-visual helpers now have their own plans:
-mock client (012), React hooks (015), display text (016), colors (017), mobile plumbing (018).
-Use them instead of writing the same logic in each app.
-
-## What the UI can build today, before the server lands
-
-1. Map-home shell + mode slider + chat side panel (web) / bubble (mobile) placeholder.
-2. Filters bound to `DraftState` (plan 004's reducer is pure, so it works offline).
-3. Results list + detail rendering from `sampleItinerary`.
-4. Home cards from a hand-written `SavedItinerary` mock with each `watchStatus.state`.
-
-## Open questions for the UI teammate
-
-(Resolved on #6: risk is two separate controls; users can choose the time zone; default modes explained above. Resolved on #16: map is home, mode slider instead of tabs, permanent chat side panel on web.)
-
+UI slices are historical; do not execute them. Numbered plans and README own delivery. Completed screens stay DONE; continuity is 037, chat polish 035, Android progress wiring 029, Settings 025. Finish Android transit before flights; preserve functional iOS fallbacks while deferring iOS design.
 
 ## Map consumer notes
 

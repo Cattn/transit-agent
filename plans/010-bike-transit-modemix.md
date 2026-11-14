@@ -71,7 +71,7 @@ A typed table: `{ agency, routePattern, allowed: 'always' | 'offPeak' | 'never' 
 ### Step 4: Mode-mix generation
 
 - **(OTP)** Request the extra OTP mode combinations: bike-to-transit (park & ride), rental, and bike-with-transit. Map the results via the 031 mapper.
-- **(non-OTP)** Post-process: for each transit itinerary, try replacing the first and/or last walk leg longer than 8 min with a bike leg (bike speed 250 m/min, with a geometry request to the bike router). Keep the result if it saves ≥ 4 min. Add bikeshare cost and dock checks.
+- **(Transitous/MOTIS)** Use validated access/egress combinations where supported. Separate bike composition needs routed geometry, complete retiming, and scheduled boarding/transfer feasibility checks including dock access and agency rules. Never replace a walk with distance/speed and assume a valid connection. Exclude unsupported compositions and report capability gaps.
 - Either way: bikeshare legs must have a dock with bikes at the start and a dock with free docks at the end. Otherwise add a risk reason ("Only 1 bike left at Kendall dock (live)").
 
 ### Step 5: Personal-bike continuity
@@ -97,3 +97,7 @@ Add `find_bike_docks({ near: string, need: 'bikes' | 'docks' })` to `agent/tools
 
 - ~~010-Q1~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** show bikeshare dock pins. Add a Point layer fed by a separate map prop; rendering stays with the maps team.
 - ~~010-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** use “bike saves X min” summaries derived from actual comparison results; never invent a saving.
+
+## Readiness (`0b37886`)
+
+Deferred until 031 and Android transit completion. Research can proceed; build work needs a refreshed MOTIS composition contract, exact file scope, area branch, and Commands (`npm run test:unit -w @transit/server`, `npm run check`). Extend existing tests only; add no comments and preserve logging.

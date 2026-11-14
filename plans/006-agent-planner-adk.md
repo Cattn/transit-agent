@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Done:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) merged as `7ee32a0a85848aab2c3c55895a67a0c63976fc6e`. Plan 006 implementation is on main; live Gemini/model-quality validation remains outstanding.
+- **Status:** **Done:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) merged as `7ee32a0a85848aab2c3c55895a67a0c63976fc6e`. Plan 006 implementation is on main; live validation passed in #51 with fixes merged in #52. Open PR #72 is a separate speed/reply/model follow-up; its model is not yet the main default.
 - **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 

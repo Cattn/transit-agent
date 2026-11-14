@@ -22,16 +22,16 @@
 
 - **Status:** ✅ **DONE** in [PR #61](https://github.com/Cattn/transit-agent/pull/61) (Steps 1–4, merged as `009a165`, 2026-11-14). Route-line colors stay in `@transit/maps`; apps import them from there.
 - **Owner:** @DMFriends
-- **Waiting on:** nothing. Moving the route palette into shared (Later, below) is a separate later PR and waits on question 1, now asked on [#13](https://github.com/Cattn/transit-agent/issues/13).
+- **Waiting on:** nothing. Palette ownership stays in maps; 017-Q1 was retired at `db8b72c`.
 - **Step 4 (added 2026-11-14, from 017-Q2):** saved trips store their route color so the same trip keeps one color everywhere. Contract + server store + mock client; the UI side is in plans 021, 026, 027 and the maps side in plan 009 step 5.
 
 **Open questions** (answer by number in a comment on #25):
 
-1. @KrakenTheJaken: should the route palette eventually move from `@transit/maps` into shared? Until then, apps import `assignRouteColors` from `@transit/maps`, which is fine.
+None. Route palette ownership stays in maps; 017-Q1 is retired.
 
 **Answered** ([#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), @Cattn, 2026-11-14):
 
-- 017-Q2: route colors are **per trip**: a trip keeps its color, rather than colors being reassigned per screen. This also settles the color half of plan 009's P4. Persisting a trip's color is not part of this plan.
+- 017-Q2: route colors are **per trip**: a trip keeps its color, rather than colors being reassigned per screen. This also settles the color half of plan 009's P4. Persisting saved-trip colors landed in Step 4; maps honors them through #65.
 - 017-Q3: **yes**, dark + light with a Settings toggle is in UI scope now (matches @DMFriends). This plan defines both schemes.
 
 <!-- help:end -->
@@ -132,4 +132,4 @@ Decision (@Cattn, [#25](https://github.com/Cattn/transit-agent/issues/25#issueco
 
 - Apps map `Badge.tone` → `toneColors[scheme][tone]`. Do not add per-badge colors.
 - Per-trip route colors (017-Q2) are split three ways: storage here (Step 4), honoring stored colors in `assignRouteColors` (plan 009 step 5), and passing/saving them on screens (plans 021, 026, 027).
-- **Later (after question 1):** move `PALETTE` / `routeColor` / `assignRouteColors` into `packages/shared/src/theme/` keeping the exact colors and order, and have `@transit/maps` re-export them so no import breaks. That is a separate PR coordinated with @KrakenTheJaken.
+- **Retired follow-up:** route palette stays in maps; 017-Q1 is closed. No shared-palette migration is scheduled.

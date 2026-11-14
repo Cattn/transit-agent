@@ -144,7 +144,7 @@ Document the mobile import (the wrapper path), the `apps/mobile` dependencies, t
 - Mobile plan 020 / #39 built `MapSlot` in `HomeScreen`; it now renders the DOM map. Plan 021 / #40 reuses it for results. Expo Go keeps working.
 - Web plan 026 / #42 owns mounting `/web`, the MapLibre CSS/worker setup, and panel padding.
 - Result screens #40/#45 reuse selection and the same color assignment.
-- Plan 017 / #25 owns moving colors into shared. Once 017-Q1 is settled, switch maps to re-export/use them while retaining exact palette order and public APIs. Maps never stores colors.
+- Plan 017 shipped shared badge/mode colors and saved-trip color storage. The route palette stays in maps; no migration is planned. Maps never stores colors.
 
 ## Scope for the next PR
 
@@ -185,7 +185,7 @@ Do not close #13 or mark all of 009 done just because the bundle builds. Keep ac
 
 - **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; mobile gets the same through the DOM map. Do not drop that argument without agreement.
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
-- **P4 / #25 — color policy:** decided: **permanent colors per saved trip** (@Cattn, 017-Q2 on #25, 2026-11-14; clarified on PR #66: search results follow the mockup, no extra colors), done in step 5. Palette ownership in shared is still open (017-Q1).
+- **P4 / #25 — color policy:** decided: **permanent colors per saved trip** (@Cattn, 017-Q2 on #25, 2026-11-14; clarified on PR #66: search results follow the mockup, no extra colors), done in step 5. Palette ownership stays in maps; 017-Q1 is retired.
 - ~~009-Q5~~ **Answered (2026-11-14):** the same OpenFreeMap style URL works on web and mobile, since mobile runs the web renderer. Keep `styleUrl` configurable.
 
 ## Follow-ups after mobile parity
@@ -196,8 +196,12 @@ Extra labels and fancier lane layouts are separate follow-ups. A native renderer
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - The DOM map already worked in Expo Go on an iPhone (2026-11-14), so iOS is no longer blocked by Xcode or an Apple Developer account for the map. When iOS is picked up, run step 6's checklist in Expo Go on an iPhone and record device/OS and result in the PR.
 - Done criterion to restore: iOS rendering/interaction is verified.
 - @KrakenTheJaken was nominated as iOS tester in [the roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245); availability was never confirmed.
+
+## Reconciliation at `0b37886`
+
+IN PROGRESS: PR #76 (`6932670`) owns the DOM map. Do not start another adapter. Android device proof is still required. Search cards have no extra color dots; saved-trip colors remain permanent.

@@ -134,7 +134,7 @@ See the help box at the top (023-Q*). It is the single list; answers are recorde
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 04 Agent chat` (`2012:482`) and `iOS · Dark · 04 Agent chat` (`2019:1672`) on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Design: glass sheet (`BlurView`) with a grabber, same message list and quick replies. Build it as `ChatChrome.ios.tsx`.

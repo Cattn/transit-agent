@@ -10,7 +10,7 @@
 ## Status
 
 - **Owner:** @Cattn (verified sole assignee on #49).
-- **Status:** Re-check passed at `09b8a33` in PR #50; awaiting owner merge. COMMENT review, not formal approval; unmerged.
+- **Status:** DONE: PR #50 merged and #49 closed; Photon extends this endpoint in merged plan 033 (#64).
 - **Priority**: P1 (MVP: the search box fails against the real server without it)
 - **Effort**: S
 - **Risk**: LOW
