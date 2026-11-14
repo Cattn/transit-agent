@@ -23,15 +23,15 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #22 merges (PR #30 is approved).
+- **Status:** **Up for grabs:** #22 / PR #30 is merged. Round-trip preference and optional two-one-way comparison are decided; reconcile round-trip interfaces before implementing.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Server-side; needs judgment and live network access (use a strong coding model). Starts with a 2-hour research step.
-- **Waiting on:** #22
+- **Waiting on:** nothing for the existing research; round-trip provider/composer contract reconciliation before round-trip implementation.
 
 **Open questions** (answer by number in a comment on #28):
 
 1. @Cattn: do you know whether Clovis's page HTML includes all flights, or only Google's top group? (Step 1 finds out either way.)
-2. @Cattn: round trips later as two one-way searches (lets the agent mix airports, e.g. out of PVD, back into BOS) or port Clovis's round-trip search? *(suggested: two one-ways)*
+**Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis round-trip search. Optionally compare two one-way searches; do not substitute those for the preferred round-trip search.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -114,9 +114,9 @@ apps/server/src/flights/select-provider.ts        FLIGHT_FARES env → provider,
 apps/server/src/flights/**/*.test.ts
 apps/server/.env.example                          (modify: FLIGHT_FARES=fixture)
 ```
-**Out of scope:** Clovis's Elysia routes, its Tauri app and its UI; booking; round trips (one-way
-legs only for v1, the composer in plan 011 pairs them); the door-to-door composer (011 step 4);
-the agent tool itself (011 step 7 / plan 006). Don't add new npm dependencies without a STOP.
+**Out of scope:** Clovis's Elysia routes, its Tauri app and its UI; booking; the door-to-door composer (011 step 4); the agent tool itself (011 step 7 / plan 006). Don't add new npm dependencies without a STOP.
+
+**Round-trip direction ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** prefer Clovis's round-trip search. This supersedes the two-one-way recommendation, but the existing one-way builder, `FareSearch` / `FareQuote`, and steps below do not define round-trip dates, paired results, or combined pricing. Reconcile those interfaces and plan 011 before implementing round trips; do not silently pair one-way prices as a substitute. @Cattn clarified that the optional comparison means **two one-way searches**; the preferred source remains Clovis round-trip search. Existing research may proceed; it does not settle that comparison.
 
 ## Git workflow
 
@@ -219,4 +219,4 @@ All offline, using the recorded fixture:
 ## Open questions for review
 
 - 019-Q1 (@Cattn): Do you know offhand whether Clovis's page HTML includes all flights, or only Google's top group? (Step 1 answers it either way.)
-- 019-Q2 (@Cattn): Round trips later: search two one-way legs (simpler, and lets the agent mix airports, e.g. out of PVD, back into BOS), or port Clovis's round-trip search? *(suggested: two one-ways for v1)*
+- ~~019-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis round-trip search and optionally compare two one-way searches. The “2 round trips” wording is clarified, not a request for two separate round-trip alternatives. Reconcile return dates, paired results, and combined-price contracts before round-trip implementation.
