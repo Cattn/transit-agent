@@ -14,7 +14,7 @@
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/020-mobile-map-home.md. Reads the same draft plan 022 edits.
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/43
 
@@ -26,11 +26,11 @@
 - **Up for grabs?** Yes, for UI. The Gemini agent is plan 006, already in progress with @Cattn. This screen talks to the mock.
 - **Waiting on:** The home shell. Not on `GEMINI_API_KEY`.
 
-**Open questions** (answer `023-Q1: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `023-Q1: ...`. Use the proposed defaults until answered.
 
-1. The sample thread is placeholder copy. *(proposed: render the agent's real `reply`, `draftPatch` chips, and `questions`. Do not hard-code the sample sentences.)*
-2. Quick replies exist only when `questions[].options` is present. The mock often sends a question with no options. *(proposed: show the question text, and buttons only when options exist)*
-3. Anything you want the sheet to drop or add before building? Comment here. The plan gets edited.
+- 023-Q1: render live agent replies instead of the sample sentences? *(proposed: yes)*
+- 023-Q2: buttons only when `questions[].options` exists? *(proposed: yes)*
+- 023-Q3: changes you want in the sheet before it is built?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -100,7 +100,7 @@ iOS: glass sheet, `BlurView`, grabber. Android: Material surface, drag handle, n
 
 ## Test plan
 
-No new runner. Typecheck is the gate. Manually, the mock message "cheap, walk at most 10 min, to Harvard" should change the draft. That string is the mock's example in `plans/ui-slices.md` slice 4. If the mock does not understand it, show the reply it did return. Do not special-case a fake success.
+Do not add tests or a runner. Run the typecheck and lint commands above. Manually, the mock message "cheap, walk at most 10 min, to Harvard" should change the draft. That string is the mock's example in `plans/ui-slices.md` slice 4. If the mock does not understand it, show the reply it did return. Do not special-case a fake success.
 
 ## Done criteria
 
@@ -117,6 +117,8 @@ No new runner. Typecheck is the gate. Manually, the mock message "cheap, walk at
 - You are about to import `@google/adk` or read `GEMINI_API_KEY` in the app.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - When plan 006 is deployed, Home can swap the mock client for `createApiClient`. The screen stays. Streaming (decision D5-B) is later. Do not open an SSE connection here.
 

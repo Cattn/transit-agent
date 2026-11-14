@@ -10,17 +10,16 @@
 > **Drift check (run first)**: `git diff --stat bd41542..HEAD -- apps/mobile plans/015-client-react-hooks.md plans/018-mobile-platform-setup.md`
 > If any in-scope file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding; on a
-> mismatch, treat it as a STOP condition. Plans 015 and 018 are in progress
-> on other machines. If `packages/client-react` or `apps/mobile/src/platform`
-> appeared, use them. Do not recreate them.
+> mismatch, treat it as a STOP condition. Plan 015 is in progress on PR #47. Plan 018 merged in #37; use the existing
+> platform helpers. Do not recreate either package.
 
 ## Status
 
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: none to start. Uses plans 012 (on main), 004 (on main). Calls 015, 016, 017, 018, and 009 only if those files exist.
-- **Category**: direction
+- **Depends on**: none to start. Uses plans 012 (on main), 004 (on main). Uses 013, 016, and 018 (merged). Reuses 015, 017, and 009 when available.
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/39
 
@@ -32,12 +31,12 @@
 - **Up for grabs?** Yes, for UI. The map drawing stays with @KrakenTheJaken.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
 
-**Open questions** (answer by number, for example `020-Q2: search first`). A recommended default is already in the steps, so a build does not have to wait.
+**Open questions** — @Rad1ee @DMFriends: reply as `020-Q1: ...`. Use the proposed defaults until answered.
 
-1. Figma does not use one bottom sheet with peek / half / full (`ui-direction.md` UI-5). Home is a tracked-trips sheet. Recommended default: follow this Figma pass. Do not edit `plans/ui-direction.md`.
-2. Should the first thing on screen be the tracked-trip list, or the "Where to?" field? *(proposed: keep the list, as drawn)*
-3. The mic on the search bar has no speech feature behind it. *(proposed: show it, do nothing on tap)*
-4. Ship light and dark now, because both rows are in the file and plan 017 already leans that way? *(proposed: yes, System as the default)*
+- 020-Q1: follow this Figma pass (separate home sheet) rather than UI-5's one three-detent sheet? *(proposed: yes)*
+- 020-Q2: tracked trips first, or the search field? *(proposed: tracked trips, as drawn)*
+- 020-Q3: mic does nothing for now? *(proposed: yes)*
+- 020-Q4: light and dark, default System? *(proposed: yes)*
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -53,7 +52,7 @@
 
 The frames below are a first pass in [Transit Agent Design Mockups](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups), read 2026-11-14. Copy, spacing, and which controls exist will move. This file is where those changes land.
 
-- Re-read this plan and the issue comments before building. If a comment contradicts a step, follow the comment and update the step.
+- Re-read this plan and the issue comments before building. When an answered question changes a step, update this same plan before building.
 - If a frame is renamed or redrawn, replace the **Current state** excerpt. Do not leave the old strings in place.
 - Spacing and colors are a guide for this pass. What should survive a redraw is the binding to `TripDraft`, freshness, and `createMockApiClient`.
 - When a question is answered, strike it and keep the decision in this file.
@@ -66,19 +65,19 @@ The phone opens on a map of saved trips, not a menu of "Coming soon" cards. Figm
 
 - `apps/mobile/App.tsx` is the scaffold. It calls `createApiClient` and renders `sections` from `@transit/shared` as "Coming soon" cards. Replace that UI. The file's API URL lines are:
 
-```7:9:apps/mobile/App.tsx
+```ts
 const api = createApiClient(
   process.env.EXPO_PUBLIC_API_URL ?? (Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'http://localhost:3001')
 );
 ```
 
-  If `apps/mobile/src/platform/api-url.native.ts` exports `getApiUrl`, call that instead. Plan 018 owns that file and is in progress. Do not create `src/platform/`.
+  Plan 018 merged in #37. Reuse `getApiUrl` from `apps/mobile/src/platform/api-url-native.ts` for real-client configuration. Do not create `src/platform/`.
 - `apps/mobile/package.json`: Expo SDK `~58.0.25`, React Native `0.88.1`, `react-native-safe-area-context`. No navigation library, no `expo-blur`, no `@transit/maps`.
 - `apps/mobile/app.json` has `"scheme": "transit-agent"` and `"userInterfaceStyle": "light"`. Change `userInterfaceStyle` to `"automatic"` so the dark frames can show. Do not add location or secure-store plugins (plan 018).
-- `@transit/shared` exports `createMockApiClient`, `initialDraftState`, `applyDraftPatch`, `modeGroups`, `createDeviceId`. There is no `packages/client-react` on main at `bd41542` (plan 015, in progress, @Cattn). There is no `leaveByLabel` on main (plan 013, approved in PR #34, not merged). There is no `routeColor` (plan 017).
+- `@transit/shared` exports `createMockApiClient`, `initialDraftState`, `applyDraftPatch`, `modeGroups`, `createDeviceId`. There is no `packages/client-react` on main at `bd41542` (plan 015, in progress, @Cattn). `leaveByLabel`, `computeWatchStatus`, and optional `SavedItinerary.watchStatus` are on main (plan 013, merged in #34). Plan 016 formatters merged in #36. There is no `routeColor` (plan 017).
 - `modeGroups` in `packages/shared/src/domain/modes.ts`:
 
-```11:15:packages/shared/src/domain/modes.ts
+```ts
 export const modeGroups = {
   transit: ['walk', 'bike', 'bikeshare', 'bus', 'rail', 'ferry'],
   drive: ['walk', 'car'],
@@ -103,7 +102,7 @@ export const modeGroups = {
 | Chrome | Status bar + home indicator. `SafeAreaView` edges. | Status bar + gesture bar. `SafeAreaView` edges. |
 | Blur | `expo-blur` `BlurView` behind the search, mode control, and sheet | No blur. Surface color from the theme. |
 
-- Tracked trip card (Figma symbol `14:120`, description on the component): title "Commute to Office", message "Bus 1 is 1 min late — leave by 8:04", freshness pill "Live" only when the data is realtime, meta "Bus 1 · arrive 8:27", countdown tile "Leave in / 6 / min". The tile color encodes `watchStatus.state`: onTrack = secondary container, leaveSoon = tertiary container, leaveNow and atRisk = error container. Until plan 013 is merged, `SavedItinerary` has `leaveBy?` and `watch` but no `watchStatus`. Show `leaveBy` with `format` from `Intl` and the label "Scheduled" when no leg is `timeSource: 'realtime'`. Never paint a scheduled time with the Live pill.
+- Tracked trip card (Figma symbol `14:120`, description on the component): title "Commute to Office", message "Bus 1 is 1 min late — leave by 8:04", freshness pill "Live" only when the data is realtime, meta "Bus 1 · arrive 8:27", countdown tile "Leave in / 6 / min". The tile color encodes `watchStatus.state`: onTrack = secondary container, leaveSoon = tertiary container, leaveNow and atRisk = error container. `SavedItinerary.watchStatus` is optional. Use its message and state when present, and `leaveByLabel(leaveBy, new Date())` when a leave-by time exists. Otherwise use `formatClock` and `itineraryFreshness` from plan 016. Do not invent a watch status. Never paint a scheduled time with the Live pill.
 - Saved routes drawn on the home map in the file are named "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", with pins Office and Gym. The app does not draw those vectors itself.
 
 ## Commands you will need
@@ -114,7 +113,7 @@ export const modeGroups = {
 | Lint | `npm run lint` | exit 0 |
 | Full check | `npm test` | exit 0 |
 
-`npm test` is the root script: lint, then typecheck, then unit tests. Mobile has no `test:unit` until plan 018 adds it. Do not add a second Vitest config.
+`npm test` is the root script: lint, then typecheck, then unit tests. Plan 018 already provides mobile platform tests. Do not add tests or another Vitest config.
 
 ## Scope
 
@@ -139,7 +138,7 @@ export const modeGroups = {
 - `apps/mobile/src/screens/fly/FlyScreen.tsx` (placeholder until plan 024)
 
 **Out of scope:**
-- `apps/mobile/src/platform/**` and any Expo permission plugin (plan 018, in progress)
+- `apps/mobile/src/platform/**` and any Expo permission plugin (plan 018, merged in #37)
 - `packages/client-react/**` (plan 015, in progress)
 - `packages/shared/**` (plans 016 and 017)
 - `packages/maps/**` and adding `@transit/maps` (plan 009, PR #35)
@@ -209,13 +208,13 @@ If the dependency is absent, render a `View` that fills the screen, `accessibili
 
 `HomeChrome.ios.tsx` and `HomeChrome.android.tsx` implement the table in Current state. Shared card UI lives in `TrackedTripCard.tsx`.
 
-Data: `listItineraries()` on the mock client (or `useSavedItineraries` if plan 015 has landed). Pass `enabled: true` only while the app is active. If `useAppForeground` exists in `apps/mobile/src/platform`, use it. If it does not, use `AppState` from `react-native` in this screen only. Do not create `src/platform/`.
+Data: `listItineraries()` on the mock client (or `useSavedItineraries` if plan 015 has landed). Pass `enabled: true` only while the app is active. Use the existing `useAppForeground` from `apps/mobile/src/platform`. Do not add a second foreground listener.
 
 The "2 watching" count is the number of saved trips with `watch === true`, not a hard-coded 2.
 
 Chips Home, Office, and Gym set origin or destination only when the profile has that place. The mock profile may be empty. Tapping a chip with no place opens Filters (plan 022's screen) instead of inventing an address. "Recent" on Android is the most recently saved trip's destination, or hidden when there is none.
 
-The location button calls `getCurrentPlace` only when that function exists **and** the user taps it (decided on #26: never at launch). If the helper is missing, the tap does nothing visible except `accessibilityHint` "Location is not available yet". Do not add `expo-location`.
+The location button calls the existing `getCurrentPlace` only on tap (decided on #26). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
 
 "Ask agent" and the Android extended FAB set local state `chatOpen`. Plan 023 replaces the placeholder. This plan shows `ChatScreen` when that flag is true.
 
@@ -225,13 +224,13 @@ The person circle (iOS only) calls `navigation.navigate('Settings')`.
 
 ### Step 6: Wire `App.tsx`
 
-`App.tsx` renders `SafeAreaProvider`, `AppearanceProvider`, `NavigationContainer`, and the native stack with Home and Settings. Delete the "Coming soon" section list. Keep a status line off this screen.
+`App.tsx` renders `SafeAreaProvider`, `AppearanceProvider`, `NavigationContainer`, and the native stack with Home and Settings. Delete the "Coming soon" section list. Preserve existing API status logging and show connection status without covering the map controls.
 
 **Verify**: `npm run lint` → exit 0. `npm run typecheck -w @transit/mobile` → exit 0.
 
 ## Test plan
 
-Mobile has no unit-test runner until plan 018. Do not add one. The typecheck above is the gate. When plan 018's `npm run test:unit -w @transit/mobile` exists, do not put UI tests in this plan.
+Plan 018 already provides the mobile unit-test runner. Do not add tests or another runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -251,6 +250,8 @@ Mobile has no unit-test runner until plan 018. Do not add one. The typecheck abo
 - Implementing the sheet seems to require editing `plans/ui-direction.md`.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - Plans 021–025 replace the placeholder screens. They should import `useAppColors` and the navigation types from this plan.
 - Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Drive / Fly does not clear the draft's places.

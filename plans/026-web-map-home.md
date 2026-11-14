@@ -14,7 +14,7 @@
 - **Effort**: L
 - **Risk**: LOW
 - **Depends on**: none to start. Uses plans 012 and 004, both on main. Mounts `@transit/maps/web` only if the app already depends on it (plan 009).
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/42
 
@@ -26,18 +26,18 @@
 - **Up for grabs?** Yes, for UI. Map drawing stays with @KrakenTheJaken.
 - **Waiting on:** Nothing. A missing map package means a placeholder, not a blocker.
 
-**Open questions** (answer `026-Q1: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `026-Q1: ...`. Use the proposed defaults until answered.
 
-1. `ui-direction.md` describes one ~400 px side panel that holds filters, results, and chat. This Figma pass draws two panels: a 400 px left panel and a 380 px permanent agent panel. *(proposed: follow this Figma pass. Do not edit `ui-direction.md`.)*
-2. The settings icon has no web settings frame. *(proposed: render the button, and do not navigate anywhere until a frame exists)*
-3. Recent rows include "Sun · 2 tickets", and travelers are explicitly later. "Weekend: Seaport" and "Live vehicles" have no data behind them. *(proposed: do not render those sample rows or those two chips. Show saved trips, and Home / Office / Gym / Add place only)*
-4. Suggestion chips, as drawn: "Get me to work by 9, max 15 min walk", "Cheapest way to DC on Friday", "Bike + train to the gym after 5". *(proposed: those three send that text to the mock agent. Replace the list when the frame changes)*
-5. What would you change before a first web build? Name it. This file gets edited. Do not open a second home plan.
+- 026-Q1: two panels, as drawn, rather than one combined side panel? *(proposed: yes)*
+- 026-Q2: settings button does not navigate yet? *(proposed: yes)*
+- 026-Q3: drop the sample recent rows, "2 tickets", "Weekend: Seaport", and "Live vehicles"? *(proposed: yes)*
+- 026-Q4: the three suggestion strings are the ones to send? *(proposed: yes, until the frame changes)*
+- 026-Q5: what should change before a first web build?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
 - **With a coding agent:** pull `main`, then:
-  > Read `plans/026-web-map-home.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. If an issue comment contradicts a step, follow the comment.
+  > Read `plans/026-web-map-home.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. When an answered question changes a step, update this same plan before building.
 - **Just feedback:** answer by question number. The mockup is a first pass.
 
 <!-- help:end -->
@@ -60,7 +60,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
   - Search bar placeholder "Where to?".
   - A segmented control. Treat it as Transit / Drive / Fly, same as mobile, writing `modeGroups` into `draft.modes` without clearing from, to, or time. The segment labels are inside the Material component instance. If a build finds different words in the file, use those words and update this plan.
   - "Tracked trips" and "2 watching · live". The count is saved trips with `watch === true`, not the number 2. "live" is allowed only when one of those trips has a realtime leg. Otherwise "watching".
-  - Two tracked-trip cards. Same binding as plan 020: title from the saved label, leave-by from `leaveBy` until plan 013's `leaveByLabel` exists, and no Live pill on a scheduled trip.
+  - Two tracked-trip cards. Same binding as plan 020: title from the saved label, leave-by from `watchStatus.leaveBy ?? leaveBy`, formatted with `leaveByLabel(leaveBy, new Date())` when present, and no Live pill on a scheduled trip.
   - "Saved places": Home, Office, Gym, Add place. Home and Office set origin or destination from `profile.home` and `profile.work` when set. Gym and Add place do nothing that writes, until 025-Q2 is answered for mobile and repeated here. The mock profile starts empty.
 - Agent panel "Agent panel · permanent" (`2026:371`), 380×868:
   - "Trip agent" / "Edits the same filters you see".
@@ -121,7 +121,7 @@ Mount `RouteMap` from `@transit/maps/web` only when the dependency exists. Other
 
 ## Test plan
 
-`@transit/web` has no unit-test script (`"test": "npm run typecheck"`). Do not add a runner.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -140,6 +140,8 @@ Mount `RouteMap` from `@transit/maps/web` only when the dependency exists. Other
 - Page `Web — Desktop` no longer has `Web · 01 Home`. Stop so this plan can be rewritten.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - Plan 027 replaces the left panel's list with results after a search, and fills the agent thread. It should import the client and the draft from this plan.
 - When a web settings or filters frame is added, edit this plan or add one new plan. Do not bury that screen inside a step here after the fact.

@@ -14,7 +14,7 @@
 - **Effort**: L
 - **Risk**: MED
 - **Depends on**: plans/020-mobile-map-home.md (navigation and the appearance context). Reads the profile from plan 012's mock.
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/41
 
@@ -24,20 +24,20 @@
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Several rows are drawn but have no field to save. Those stay visible and unsaved until the questions below are answered.
 - **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
 - **Up for grabs?** Yes, for UI.
-- **Waiting on:** The home shell. Not on plan 018. If device-id storage is missing, show a session id.
+- **Waiting on:** The home shell. Plan 018 is merged in #37; reuse its persistent device-id storage.
 
-**Open questions** (answer `025-Q1: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `025-Q1: ...`. Use the proposed defaults until answered.
 
-1. "Watch saved trips", "Buffer before leave now", and "Agent can suggest the next option" are not fields on `TravelProfile`. *(proposed: show the rows, keep the toggle in component state, do not add schema fields in this plan)*
-2. "Add a place" and the Gym chip have no profile slot. The schema has `home` and `work` only. *(proposed: Home and Work save. "Add a place" stays visible and does not save)*
-3. Theme / Appearance offers System, Light, and Dark, writing plan 020's appearance context. *(proposed: yes. This is the toggle plan 017 asked the UI to own)*
-4. iOS shows "Cheaper ↔ Comfier" as a row with the value "Balanced" and a chevron. Android shows the slider inline. *(proposed: follow each platform's frame)*
-5. Which groups should be cut from the first build? Name them. This file will be edited.
+- 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
+- 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*
+- 025-Q3: Theme writes System / Light / Dark? *(proposed: yes)*
+- 025-Q4: iOS comfort is a chevron row, Android is a slider? *(proposed: yes)*
+- 025-Q5: which groups should be cut first?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
 - **With a coding agent:** pull `main`, then:
-  > Read `plans/025-mobile-settings.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. If an issue comment contradicts a step, follow the comment.
+  > Read `plans/025-mobile-settings.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. When an answered question changes a step, update this same plan before building.
 - **Just feedback:** answer by question number. Unsaved rows are intentional until you say otherwise.
 
 <!-- help:end -->
@@ -65,7 +65,7 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. i
 - Vehicles, on `profile.defaults.vehicles`: "I have my own bike" (`ownsBike`, subtitle "Adds bike + transit options"), "I have a car" (`ownsCar`, subtitle "Unlocks Drive and park-and-ride"), fuel economy (`carMpg`). Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
 - Leave reminders. Show the three rows from the frames. Do not persist them (025-Q1). iOS footer: "Watching uses live arrivals and tells you when to leave." iOS also has "Hard limits (lock) remove routes. Preferences only change the order." Show those sentences.
 - Display. Time zone writes `defaults.timeZone`. Unset subtitle: Android "Trip's starting point", iOS "Trip start". Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Android row title "Theme", sample value "System (light / dark)". iOS row title "Appearance", sample value "System".
-- About. Device id: if plan 018's storage exists, read it and show the first 8 characters, an ellipsis, and the last 3. Android adds "stored on this phone". If storage is missing, `createDeviceId()` once per session and the subtitle "for this session". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). iOS shows that version. Android shows `0.1.0 (design)` only if you are looking at the mock; the app shows the package version.
+- About. Device id: read the app's existing ID through `secureStoreDeviceIdStorage` from plan 018; show the first 8 characters, an ellipsis, and the last 3. Use the same ID as the API client; do not generate another ID for Settings. Android adds "stored on this phone". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). iOS shows that version. Android shows `0.1.0 (design)` only if you are looking at the mock; the app shows the package version.
 - `getProfile()` on the mock returns `undefined` until `putProfile` is called. Start from an empty profile. `putProfile` body is `PutProfileRequest` (no `updatedAt`).
 
 ## Commands you will need
@@ -81,6 +81,7 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. i
 - `apps/mobile/src/screens/settings/SettingsScreen.tsx`
 - `apps/mobile/src/screens/settings/SettingsChrome.ios.tsx`
 - `apps/mobile/src/screens/settings/SettingsChrome.android.tsx`
+- `apps/mobile/package.json` and `package-lock.json` (only `@react-native-community/slider` if not already installed)
 
 **Out of scope:** `packages/shared/**`, `apps/mobile/src/platform/**`, `app.json` plugins, a new profile field, web settings.
 
@@ -108,7 +109,7 @@ The Theme row calls the appearance setter from plan 020 with `"system" | "light"
 
 ## Test plan
 
-No new runner. Typecheck is the gate.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -125,6 +126,8 @@ No new runner. Typecheck is the gate.
 - The settings frame was removed. Stop so this plan can be rewritten.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - When a later plan adds a real field for the watch default or the leave buffer, persist the row then. Until that, the row is visual.
 - Plan 017 owns color tokens. This screen only picks system, light, or dark.

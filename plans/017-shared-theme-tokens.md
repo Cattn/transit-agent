@@ -12,7 +12,7 @@
 - **Priority**: P1
 - **Effort**: S
 - **Risk**: LOW (new pure module; plan 009 switches to it)
-- **Depends on**: plans/016-display-formatters.md (for the `Tone` type only; if 016 hasn't landed, define `Tone` exactly as in 016 Step 1 inside `theme/` and note it).
+- **Depends on**: plans/016-display-formatters.md (merged in #36; import `Tone` from `@transit/shared`, do not redefine it).
 - **Category**: direction (parallel work)
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged. Still wait for PR #35.)
 - **Co-owners**: maps (@KrakenTheJaken) and UI (@Rad1ee @DMFriends) review the palette.
@@ -23,7 +23,7 @@
 
 - **Status:** 🔄 **Assigned to @DMFriends.** Still waits for PR #35 (maps) to merge, since it moves #35's palette into shared. The allocator fix/re-review passed at `082892f`; merge and P4 acceptance remain required.
 - **Owner:** @DMFriends
-- **Waiting on:** PR #35 merge (allocator fix/re-review resolved at `082892f`; P4 remains open); PR #36 (formatters) merge
+- **Waiting on:** PR #35 merge (allocator fix/re-review resolved at `082892f`; P4 remains open). Plan 016 formatters are merged in #36
 
 **Open questions** (answer by number in a comment on #25):
 
