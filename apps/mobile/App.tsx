@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DarkTheme, DefaultTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { ApiProvider } from '@transit/client-react';
@@ -39,14 +40,16 @@ function Starting() {
 export default function App() {
   const client = useAppClient();
   return (
-    <SafeAreaProvider>
-      <AppearanceProvider>
-        {client ? (
-          <ApiProvider client={client}>
-            <ThemedNavigation />
-          </ApiProvider>
-        ) : <Starting />}
-      </AppearanceProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppearanceProvider>
+          {client ? (
+            <ApiProvider client={client}>
+              <ThemedNavigation />
+            </ApiProvider>
+          ) : <Starting />}
+        </AppearanceProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

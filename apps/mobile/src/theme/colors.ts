@@ -66,3 +66,5 @@ export const dark: AppColors = {
   map: '#1E2320',
   scrim: 'rgba(0, 0, 0, 0.5)'
 };
+
+export const materialSeedColor = '#6750A4';

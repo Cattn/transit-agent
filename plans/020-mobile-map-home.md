@@ -25,7 +25,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔍 **PR #60 open.** Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Not yet tried on a device.
+- **Status:** 🔍 **PR #60 open.** Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go; iOS not yet.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
@@ -112,7 +112,7 @@ export const modeGroups = {
   - Colors come from the Material theme: `Host` `colorScheme` follows `useAppColors()` (light / dark / system) with one `seedColor`, and `useMaterialColors()` gives the same palette to any non-Compose view. Do not hand-pick chip or surface colors.
   - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly.
   - Search bar: `DockedSearchBar` (or `SearchBar`) with Material icons.
-  - Bottom chips (Home / Office / Gym / Recent): `AssistChip`s in theme colors. These were the worst offenders.
+  - Bottom chips (Home / Office / Gym / Settings, per 020-Q5): `AssistChip`s in theme colors. These were the worst offenders.
   - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo's drop-in `@expo/ui/community/bottom-sheet` (same API as `@gorhom/bottom-sheet`) first; the universal `BottomSheet` is a present/dismiss sheet, so it fits modals like chat, not this persistent sheet. If the drop-in can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
   - Tracked trip cards: clearly separated containers (Compose `Card`, elevated or filled) that stand out from the sheet surface, not faint borders.
   - Countdown tile: "Leaves in / # / minutes" in a Material accent container (the watch-state colors above).

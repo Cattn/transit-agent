@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
@@ -9,7 +10,7 @@ export function RootStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings', headerShown: Platform.OS !== 'android' }} />
     </Stack.Navigator>
   );
 }

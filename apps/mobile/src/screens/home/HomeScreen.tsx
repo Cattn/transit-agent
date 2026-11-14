@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Platform, StyleSheet, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Place, SavedItinerary, TravelProfile } from '@transit/shared';
 import { useApi, useNow, useSavedItineraries, useTripDraft } from '@transit/client-react';
@@ -11,8 +11,7 @@ import type { AppColors } from '../../theme/colors';
 import { ChatScreen } from '../chat/ChatScreen';
 import { FiltersScreen } from '../filters/FiltersScreen';
 import { FlyScreen } from '../fly/FlyScreen';
-import { HomeChrome as AndroidChrome } from './HomeChrome.android';
-import { HomeChrome as IosChrome } from './HomeChrome.ios';
+import { HomeChrome } from './HomeChrome';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
 export interface SavedPlaceChip {
@@ -40,7 +39,6 @@ export interface HomeChromeProps {
   onSheetLayout: (height: number) => void;
 }
 
-const HomeChrome = Platform.OS === 'ios' ? IosChrome : AndroidChrome;
 const MAP_PADDING = 16;
 
 function MapSlot({ padding, colors }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors }) {

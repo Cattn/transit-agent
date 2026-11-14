@@ -1,125 +1,278 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { HomeChromeProps } from './HomeScreen';
-import { MODE_OPTIONS } from './ModeSlider';
-import { TrackedTripCard } from './TrackedTripCard';
+import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
+import { Host } from '@expo/ui';
+import {
+  AssistChip,
+  Column,
+  DockedSearchBar,
+  ElevatedCard,
+  ExtendedFloatingActionButton,
+  FilledTonalIconButton,
+  FloatingActionButton,
+  Icon,
+  Row,
+  SegmentedButton,
+  SingleChoiceSegmentedButtonRow,
+  Text,
+  useMaterialColors,
+  type MaterialColors
+} from '@expo/ui/jetpack-compose';
+import { background, clip, fillMaxWidth, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import AccountCircle from '@expo/material-symbols/account_circle.xml';
+import DirectionsBus from '@expo/material-symbols/directions_bus.xml';
+import DirectionsCar from '@expo/material-symbols/directions_car.xml';
+import FitnessCenter from '@expo/material-symbols/fitness_center.xml';
+import Flight from '@expo/material-symbols/flight.xml';
+import HomeIcon from '@expo/material-symbols/home.xml';
+import MyLocation from '@expo/material-symbols/my_location.xml';
+import Notifications from '@expo/material-symbols/notifications.xml';
+import Schedule from '@expo/material-symbols/schedule.xml';
+import Search from '@expo/material-symbols/search.xml';
+import Sensors from '@expo/material-symbols/sensors.xml';
+import Settings from '@expo/material-symbols/settings.xml';
+import WandShine from '@expo/material-symbols/wand_shine.xml';
+import Work from '@expo/material-symbols/work.xml';
+import type { SavedItinerary } from '@transit/shared';
+import { materialSeedColor } from '../../theme/colors';
+import type { HomeChromeProps, SavedPlaceChip } from './HomeScreen';
+import { MODE_OPTIONS, type ModeGroupName } from './ModeSlider';
+import { tileRole, tripCardText } from './TrackedTripCard';
+
+const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, drive: DirectionsCar, fly: Flight };
+const CHIP_ICONS: Record<SavedPlaceChip['key'], number> = { home: HomeIcon, office: Work, gym: FitnessCenter };
+const HANDLE_HEIGHT = 24;
+const LIST_CAP = 236;
+const COLLAPSED_MAX_SHARE = 0.55;
+const MIN_TRAVEL = 120;
+const TOP_GAP = 12;
+
+function tileColors(role: ReturnType<typeof tileRole>, m: MaterialColors): { bg: string; fg: string } {
+  if (role === 'secondary') return { bg: m.secondaryContainer, fg: m.onSecondaryContainer };
+  if (role === 'tertiary') return { bg: m.tertiaryContainer, fg: m.onTertiaryContainer };
+  if (role === 'error') return { bg: m.errorContainer, fg: m.onErrorContainer };
+  return { bg: m.primaryContainer, fg: m.onPrimaryContainer };
+}
+
+function TripCard({ trip, now, m, scheme }: { trip: SavedItinerary; now: Date; m: MaterialColors; scheme: 'light' | 'dark' }) {
+  const text = tripCardText(trip, now);
+  const tile = tileColors(tileRole(text.state), m);
+  const pill = text.live
+    ? { bg: m.primaryContainer, fg: m.onPrimaryContainer, icon: Sensors }
+    : { bg: m.surfaceContainerHighest, fg: m.onSurfaceVariant, icon: Schedule };
+
+  return (
+    <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+      <ElevatedCard colors={{ containerColor: m.surfaceContainerLowest }} elevation={2} modifiers={[fillMaxWidth()]}>
+        <Row horizontalArrangement={{ spacedBy: 14 }} verticalAlignment="center" modifiers={[paddingAll(12)]}>
+          <Column
+            horizontalAlignment="center"
+            verticalArrangement="center"
+            modifiers={[size(80, 88), clip(Shapes.RoundedCorner(20)), background(tile.bg)]}
+          >
+            {'label' in text.tile ? (
+              <Text color={tile.fg} style={{ typography: 'labelLarge', textAlign: 'center' }}>{text.tile.label}</Text>
+            ) : (
+              <>
+                <Text color={tile.fg} style={{ typography: 'labelMedium' }}>{text.tile.top}</Text>
+                <Text color={tile.fg} style={{ typography: 'headlineLarge', fontWeight: '700' }}>{text.tile.value}</Text>
+                <Text color={tile.fg} style={{ typography: 'labelMedium' }}>{text.tile.bottom}</Text>
+              </>
+            )}
+          </Column>
+          <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[weight(1)]}>
+            <Text color={m.onSurface} maxLines={1} overflow="ellipsis" style={{ typography: 'titleMedium' }}>{text.title}</Text>
+            <Text color={m.onSurfaceVariant} maxLines={2} overflow="ellipsis" style={{ typography: 'bodyMedium' }}>{text.message}</Text>
+            <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
+              <Row
+                horizontalArrangement={{ spacedBy: 4 }}
+                verticalAlignment="center"
+                modifiers={[clip(Shapes.RoundedCorner(12)), background(pill.bg), padding(8, 3, 10, 3)]}
+              >
+                <Icon source={pill.icon} size={14} tint={pill.fg} />
+                <Text color={pill.fg} style={{ typography: 'labelMedium', fontWeight: '700' }}>{text.freshness.label}</Text>
+              </Row>
+              <Text color={m.onSurfaceVariant} maxLines={1} overflow="ellipsis" style={{ typography: 'bodySmall' }} modifiers={[weight(1)]}>
+                {text.meta}
+              </Text>
+            </Row>
+          </Column>
+        </Row>
+      </ElevatedCard>
+    </Host>
+  );
+}
 
 export function HomeChrome(props: HomeChromeProps) {
   const { colors, group, trips, now, chips, locating, notice, status } = props;
+  const scheme = colors.scheme;
+  const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const [containerHeight, setContainerHeight] = useState(windowHeight);
+  const [headerHeight, setHeaderHeight] = useState(48);
+  const [footerHeight, setFooterHeight] = useState(72 + insets.bottom);
+  const [listHeight, setListHeight] = useState(LIST_CAP);
+  const [sheetIndex, setSheetIndex] = useState(0);
+  const [topHeight, setTopHeight] = useState(126);
+
+  const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP));
+  const natural = Math.round(HANDLE_HEIGHT + headerHeight + Math.min(listHeight, LIST_CAP) + footerHeight + 8);
+  const collapsed = Math.min(natural, Math.round(containerHeight * COLLAPSED_MAX_SHARE), expanded - MIN_TRAVEL);
+  const snapPoints = [collapsed, expanded];
+  const visible = snapPoints[sheetIndex] ?? collapsed;
+
+  const settle = (index: number) => {
+    if (index < 0) return;
+    setSheetIndex(index);
+    props.onSheetLayout(snapPoints[index] ?? collapsed);
+  };
 
   return (
-    <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-      <View pointerEvents="box-none" style={[styles.top, { top: insets.top + 4 }]}>
-        <View style={[styles.search, { backgroundColor: colors.surfaceVariant }]}>
-          <Text accessibilityLabel="Menu (not available yet)" style={[styles.icon, { color: colors.onSurfaceVariant }]}>≡</Text>
-          <Text style={[styles.searchText, { color: colors.onSurfaceVariant }]}>Where to?</Text>
-          <Text style={[styles.icon, { color: colors.onSurfaceVariant }]}>⌕</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={props.onOpenSettings} style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.avatarText, { color: colors.onPrimary }]}>👤</Text>
-          </Pressable>
-        </View>
-        <View style={[styles.segments, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
-          {MODE_OPTIONS.map((option, index) => {
-            const selected = option.group === group;
-            return (
-              <Pressable
-                key={option.group}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => props.onGroupChange(option.group)}
-                style={[
-                  styles.segment,
-                  index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.outline },
-                  selected && { backgroundColor: colors.secondaryContainer }
-                ]}
-              >
-                <Text style={[styles.segmentText, { color: selected ? colors.onSecondaryContainer : colors.onSurface }]}>
-                  {selected ? '✓' : option.glyph} {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+    <View pointerEvents="box-none" style={StyleSheet.absoluteFill} onLayout={(event) => setContainerHeight(event.nativeEvent.layout.height)}>
+      <Host
+        matchContents={{ vertical: true }}
+        colorScheme={scheme}
+        seedColor={materialSeedColor}
+        style={[styles.top, { top: insets.top + 4 }]}
+        onLayoutContent={(event) => setTopHeight(event.nativeEvent.height)}
+      >
+        <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth()]}>
+          <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+            <DockedSearchBar onQueryChange={() => undefined} modifiers={[weight(1)]}>
+              <DockedSearchBar.LeadingIcon>
+                <Icon source={Search} size={24} contentDescription="Search" />
+              </DockedSearchBar.LeadingIcon>
+              <DockedSearchBar.Placeholder>
+                <Text>Where to?</Text>
+              </DockedSearchBar.Placeholder>
+            </DockedSearchBar>
+            <FilledTonalIconButton onClick={props.onOpenSettings}>
+              <Icon source={AccountCircle} size={28} contentDescription="Settings" />
+            </FilledTonalIconButton>
+          </Row>
+          <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
+            {MODE_OPTIONS.map((option) => (
+              <SegmentedButton key={option.group} selected={option.group === group} onClick={() => props.onGroupChange(option.group)}>
+                <SegmentedButton.Label>
+                  <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
+                    <Icon source={MODE_ICONS[option.group]} size={18} />
+                    <Text>{option.label}</Text>
+                  </Row>
+                </SegmentedButton.Label>
+              </SegmentedButton>
+            ))}
+          </SingleChoiceSegmentedButtonRow>
+        </Column>
+      </Host>
 
-      <View pointerEvents="box-none" style={[styles.actions, { bottom: props.sheetHeight + 16 }]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Use my location"
-          disabled={locating}
-          onPress={props.onLocate}
-          style={[styles.fab, { backgroundColor: colors.primaryContainer }]}
+      {sheetIndex === 0 ? (
+        <Host
+          matchContents
+          colorScheme={scheme}
+          seedColor={materialSeedColor}
+          style={[styles.actions, { bottom: visible + 16 }]}
         >
-          <Text style={[styles.fabIcon, { color: colors.onPrimaryContainer }]}>{locating ? '…' : '⌖'}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ask agent"
-          onPress={props.onAskAgent}
-          style={[styles.extendedFab, { backgroundColor: colors.primaryContainer }]}
-        >
-          <Text style={[styles.extendedFabText, { color: colors.onPrimaryContainer }]}>✦ Ask agent</Text>
-        </Pressable>
-      </View>
+          <Column horizontalAlignment="end" verticalArrangement={{ spacedBy: 12 }}>
+            <FloatingActionButton onClick={locating ? undefined : props.onLocate}>
+              <FloatingActionButton.Icon>
+                <Icon source={MyLocation} size={24} contentDescription={locating ? 'Finding your location' : 'Use my location'} />
+              </FloatingActionButton.Icon>
+            </FloatingActionButton>
+            <ExtendedFloatingActionButton onClick={props.onAskAgent}>
+              <ExtendedFloatingActionButton.Icon>
+                <Icon source={WandShine} size={24} />
+              </ExtendedFloatingActionButton.Icon>
+              <ExtendedFloatingActionButton.Text>
+                <Text>Ask agent</Text>
+              </ExtendedFloatingActionButton.Text>
+            </ExtendedFloatingActionButton>
+          </Column>
+        </Host>
+      ) : null}
+
+      <BottomSheet
+        index={0}
+        snapPoints={snapPoints}
+        enableDynamicSizing={false}
+        enablePanDownToClose={false}
+        onChange={settle}
+        onAnimate={(_from, to) => settle(to)}
+        backgroundStyle={[styles.sheetBackground, { backgroundColor: m.surfaceContainer }]}
+        handleIndicatorStyle={[styles.handle, { backgroundColor: m.onSurfaceVariant }]}
+      >
+        <BottomSheetView style={styles.sheetContent}>
+          <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+            <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+              <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[fillMaxWidth(), padding(16, 0, 16, 8)]}>
+                <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+                  <Text color={m.onSurface} style={{ typography: 'titleLarge' }} modifiers={[weight(1)]}>Tracked trips</Text>
+                  <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
+                    <Icon source={Notifications} size={18} tint={m.onSurfaceVariant} />
+                    <Text color={m.onSurfaceVariant} style={{ typography: 'labelLarge' }}>{`${props.watchingCount} watching`}</Text>
+                  </Row>
+                </Row>
+                {notice ? <Text color={m.onSurface} style={{ typography: 'bodyMedium' }}>{notice}</Text> : null}
+              </Column>
+            </Host>
+          </View>
+          <BottomSheetScrollView
+            style={styles.list}
+            contentContainerStyle={[styles.listContent, { paddingBottom: footerHeight + 8 }]}
+            onContentSizeChange={(_, height) => setListHeight(height - footerHeight - 8)}
+          >
+            {trips.length ? trips.map((trip) => <TripCard key={trip.id} trip={trip} now={now} m={m} scheme={scheme} />) : (
+              <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                <Text color={m.onSurfaceVariant} style={{ typography: 'bodyLarge' }} modifiers={[padding(4, 12, 4, 12)]}>No tracked trips yet.</Text>
+              </Host>
+            )}
+          </BottomSheetScrollView>
+        </BottomSheetView>
+      </BottomSheet>
 
       <View
-        style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 12 }]}
-        onLayout={(event) => props.onSheetLayout(event.nativeEvent.layout.height)}
+        style={[styles.footer, { backgroundColor: m.surfaceContainer, paddingBottom: insets.bottom + 8 }]}
+        onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
       >
-        <View style={[styles.handle, { backgroundColor: colors.outline }]} />
-        <View style={styles.header}>
-          <Text accessibilityRole="header" style={[styles.sheetTitle, { color: colors.onSurface }]}>Tracked trips</Text>
-          <Text style={[styles.watching, { color: colors.onSurfaceVariant }]}>🔔 {props.watchingCount} watching</Text>
-        </View>
-        {notice ? <Text accessibilityLiveRegion="polite" style={[styles.notice, { color: colors.onSurface }]}>{notice}</Text> : null}
-        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-          {trips.length ? trips.map((trip) => <TrackedTripCard key={trip.id} trip={trip} now={now} colors={colors} />) : (
-            <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>No tracked trips yet.</Text>
-          )}
-        </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {chips.map((chip) => (
-            <Pressable key={chip.key} accessibilityRole="button" onPress={chip.onPress} style={[styles.chip, { borderColor: colors.outline }]}>
-              <Text style={[styles.chipText, { color: colors.onSurface }]}>📍 {chip.label}</Text>
-            </Pressable>
-          ))}
-          <Pressable accessibilityRole="button" onPress={props.onOpenSettings} style={[styles.chip, { borderColor: colors.outline }]}>
-            <Text style={[styles.chipText, { color: colors.onSurface }]}>⚙ Settings</Text>
-          </Pressable>
-        </ScrollView>
-        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.onSurfaceVariant }]}>{status}</Text>
+        <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+          <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
+            <Row horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), horizontalScroll()]}>
+              {chips.map((chip) => (
+                <AssistChip key={chip.key} onClick={chip.onPress}>
+                  <AssistChip.LeadingIcon>
+                    <Icon source={CHIP_ICONS[chip.key]} size={18} />
+                  </AssistChip.LeadingIcon>
+                  <AssistChip.Label>
+                    <Text>{chip.label}</Text>
+                  </AssistChip.Label>
+                </AssistChip>
+              ))}
+              <AssistChip onClick={props.onOpenSettings}>
+                <AssistChip.LeadingIcon>
+                  <Icon source={Settings} size={18} />
+                </AssistChip.LeadingIcon>
+                <AssistChip.Label>
+                  <Text>Settings</Text>
+                </AssistChip.Label>
+              </AssistChip>
+            </Row>
+            <Text color={m.onSurfaceVariant} style={{ typography: 'bodySmall' }}>{status}</Text>
+          </Column>
+        </Host>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { position: 'absolute', left: 16, right: 16, gap: 10 },
-  search: { height: 56, borderRadius: 28, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 8, gap: 12, elevation: 3 },
-  searchText: { flex: 1, fontSize: 16 },
-  icon: { fontSize: 22 },
-  avatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 15 },
-  segments: { height: 48, borderRadius: 24, borderWidth: 1, flexDirection: 'row', overflow: 'hidden' },
-  segment: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  segmentText: { fontSize: 14, fontWeight: '500' },
-  actions: { position: 'absolute', right: 16, alignItems: 'flex-end', gap: 12 },
-  fab: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', elevation: 3 },
-  fabIcon: { fontSize: 24 },
-  extendedFab: { height: 56, borderRadius: 16, paddingHorizontal: 20, justifyContent: 'center', elevation: 3 },
-  extendedFabText: { fontSize: 16, fontWeight: '500' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 16, gap: 12, elevation: 8 },
-  handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, marginTop: 16, opacity: 0.6 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sheetTitle: { fontSize: 22 },
-  watching: { fontSize: 12, fontWeight: '500' },
-  notice: { fontSize: 14 },
-  list: { maxHeight: 224 },
-  listContent: { gap: 12 },
-  empty: { fontSize: 15, paddingVertical: 12 },
-  chips: { gap: 8 },
-  chip: { height: 32, borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, justifyContent: 'center' },
-  chipText: { fontSize: 14, fontWeight: '500' },
-  status: { fontSize: 12 }
+  top: { position: 'absolute', left: 16, right: 16 },
+  actions: { position: 'absolute', right: 16 },
+  fullWidth: { width: '100%' },
+  sheetBackground: { borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  handle: { width: 32, height: 4, opacity: 0.4 },
+  sheetContent: { flex: 1 },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  list: { flex: 1 },
+  listContent: { gap: 12, paddingHorizontal: 16, paddingVertical: 4 }
 });
