@@ -154,7 +154,7 @@ See the help box at the top (022-Q*). It is the single list; answers are recorde
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 03 Filters (form sheet, scrolled length)` (`2011:446`) and its dark twin `2019:1422` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS only, from a `FiltersChrome.ios.tsx`.

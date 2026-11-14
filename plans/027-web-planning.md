@@ -10,7 +10,7 @@
 
 ## Status
 
-- **Priority**: P1
+- **Priority**: P3
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/026-web-map-home.md

@@ -10,7 +10,7 @@
 
 ## Status
 
-- **Priority**: P1
+- **Priority**: P3
 - **Effort**: L
 - **Risk**: LOW
 - **Depends on**: none. Uses merged plans 004, 012, 013, 015 (`@transit/client-react`), 016, and the merged web map from 009 (`@transit/maps/web`).
@@ -22,7 +22,7 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
-- **Owner:** @Rad1ee if active; otherwise up for grabs. **Web is low priority (@Cattn, 2026-11-14): Android is the MVP target**, so this is Full app work, not MVP.
+- **Owner:** unassigned (deferred web). **Web is low priority (@Cattn, 2026-11-14): Android is the MVP target**, so this is Later expansion, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** Yes. Comment "taking this" on the issue first.
 - **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. Not on the MVP path any more; the MVP check runs on Android (plan 035).

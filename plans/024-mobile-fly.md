@@ -25,7 +25,7 @@
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on flight prices. **Order:** @DMFriends does plan 022 (Filters, MVP) first, then this.
+- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on flight prices. **Order:** Android transit completion (022, 037, acceptance) first, then 011 comparator response → this screen.
 
 **Open questions** — **@Cattn answers these (design); @DMFriends may propose answers.** Reply as `024-Q1: ...`. Use the proposed defaults until answered.
 
@@ -129,7 +129,11 @@ See the help box at the top (024-Q*). It is the single list; answers are recorde
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 05 Fly` (`2012:677`) and dark twin `2019:1851` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Design: glass sheet (`BlurView`) with a grabber, same list. Title "Door-to-Door"; footer "~ fares are estimates from sample data · 2 min ago". Build it as `FlyChrome.ios.tsx`.
+
+## Readiness (`0b37886`)
+
+Deferred until Android transit acceptance. Reconcile the 011 comparator response before implementation; fixtures remain useful for development, and unavailable prices must not be painted as real.
