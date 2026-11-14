@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { Place, SavedItinerary, TravelProfile } from '@transit/shared';
+import type { DraftChangeSource, Place, PlanResponse, SavedItinerary, TravelProfile, TripDraft, TripDraftPatch } from '@transit/shared';
 import { useApi, useNow, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
@@ -42,8 +42,8 @@ export interface HomeChromeProps {
 
 const MAP_PADDING = 16;
 
-function MapSlot({ padding, colors }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors }) {
-  return <View accessibilityLabel="Map" style={[StyleSheet.absoluteFill, { backgroundColor: colors.map, paddingBottom: padding.bottom }]} />;
+function MapSlot({ padding, colors, plan }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors; plan?: PlanResponse }) {
+  return <View accessibilityLabel={plan ? `Map, ${plan.itineraries.length} routes from the agent` : 'Map'} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map, paddingBottom: padding.bottom }]} />;
 }
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Home'>) {
@@ -59,6 +59,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
+  const [agentPlan, setAgentPlan] = useState<{ plan: PlanResponse; draft: TripDraft }>();
   const edited = useRef(false);
 
   useEffect(() => {
@@ -86,6 +87,14 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     edited.current = true;
     apply(patch, 'user');
   }, [apply]);
+
+  const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
+    edited.current = true;
+    apply(patch, source);
+  }, [apply]);
+
+  const onAgentPlan = useCallback((plan: PlanResponse, draft: TripDraft) => setAgentPlan({ plan, draft }), []);
+  const currentPlan = agentPlan?.draft === state.draft ? agentPlan.plan : undefined;
 
   const group = groupForModes(state.draft.modes);
   const onGroupChange = useCallback((next: ModeGroupName) => {
@@ -120,7 +129,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <MapSlot padding={padding} colors={colors} />
+      <MapSlot padding={padding} colors={colors} plan={currentPlan} />
       <HomeChrome
         colors={colors}
         group={group}
@@ -139,9 +148,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         sheetHeight={sheetHeight}
         onSheetLayout={setSheetHeight}
       />
-      <Modal visible={sheet !== undefined} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
+      {sheet === 'chat' ? (
+        <ChatScreen draft={state} apply={applyAgent} onPlan={onAgentPlan} onOpenFilters={() => setSheet('filters')} onClose={closeSheet} />
+      ) : null}
+      <Modal visible={sheet === 'filters' || sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
         <SafeAreaProvider>
-          {sheet === 'chat' ? <ChatScreen onClose={closeSheet} /> : null}
           {sheet === 'filters' ? <FiltersScreen onClose={closeSheet} /> : null}
           {sheet === 'fly' ? <FlyScreen onClose={closeSheet} /> : null}
         </SafeAreaProvider>
