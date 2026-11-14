@@ -121,7 +121,8 @@ Do not add tests or a runner. Run the typecheck and lint commands above. Manuall
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
-- Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Streaming (decision D5-B) is later. Do not open an SSE connection here.
+- Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Do not open a streaming connection in this plan.
+- **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the native `RouteMap` while the chat sheet is open. Follow-up PR after 029, 030, and the native map (009) land.
 
 ## Open questions for review
 
