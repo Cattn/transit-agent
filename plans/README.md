@@ -28,9 +28,9 @@ Plans are tiered by how settled they are:
 
 | Tier | Meaning | Plans |
 |------|---------|-------|
-| **Done** | Merged. Do not reimplement. Verified 2026-11-14 at `27b7b39` | 001–005, 012–014, 016, 018 |
+| **Done** | Merged. Do not reimplement. Verified 2026-11-14 at `27b7b39` | 001–006, 012–014, 016, 018 |
 | **Executable** | Step-by-step, and expected to be rewritten as the mockups change | 007 research step only; 011 fixture integration; 019; UI plans 020 and 026 now, 021–025 after 020, 027 after 026 |
-| **Waiting on a person** | In progress or approved. Do not start a second copy | 006 (PR #38), 009 (native renderer, KrakenTheJaken), 015 (PR #47), 017 (DMFriends, palette/P4 decisions open) |
+| **Waiting on a person** | In progress or approved. Do not start a second copy | 009 (native renderer, KrakenTheJaken), 015 (PR #47), 017 (DMFriends, palette/P4 decisions open) |
 | **Later** | A dependency is not on main yet | 008, 010 |
 | **Direction** | Broad guidance for a team already working; not step-by-step | `ui-direction.md`, `ui-slices.md` (draft) |
 
@@ -91,7 +91,7 @@ Every numbered plan issue starts with a **"Who's on it & how to help"** box: sta
 | 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27; verified, `planTrip` + `FixtureProvider` still on main) |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (merged in #29; verified, `applyDraftPatch` + API client still exported) |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (merged in #31, 054f511; verified, `node:sqlite` store and `listWatched` still on main) |
-| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn (coding agent running) | P1 | L | 003, 004, 005 (all done) | RE-CHECK PASSED (PR #38 at `c4e8a74`, COMMENT review); unmerged; branch conflicts remain; live quality unvalidated |
+| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn | P1 | L | 003, 004, 005 (all done) | DONE (merged in #38, `7ee32a0`); live quality unvalidated |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
 | 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 (D8, D9) | PARTIAL (pure layer and web renderer merged in #35 at `619fc44`; native renderer still required) |
@@ -124,7 +124,7 @@ The old chart ran almost everything through the server (002 → 003 → 004 → 
 only on the client (004) and the mock (012), and several pure pieces start right away.
 
 ```
-Server (Cattn):     003 ✅ → 005 ──→ 006 ──────────→ 008 ──→ 011
+Server (Cattn):     003 ✅ → 005 ──→ 006 ✅ ───────→ 008 ──→ 011
                      │                               ↑        ↑
 On main:           013 ✅ (leave-by logic) ────────────┘        │
                     014 ✅ (airports + drive cost) → 019 (Clovis) ┘
@@ -150,6 +150,8 @@ interpreted filters. The user gets route options drawn on the map and saves one.
 transit data (007) can land afterwards without any client changes.
 
 ## Dependency notes
+
+- **006 is merged:** PR #38 landed as `7ee32a0`. The shared Gemini endpoint is on main; live Gemini/model quality remains unvalidated. Teammates use Cattn's server for live tests and keep mock/fake development as the default.
 
 - **PR #35:** merged at `619fc44` after approval at `082892f` with 55 independent maps tests and final CI. Plan 017's allocator fix/re-review blocker is resolved, while P4/palette decisions remain. Consumers reuse one full-trip-set color assignment via `RouteMap.routeColors` across filters/cards/map/picker. Native adapters preserve direction-adjusted offsets and selected dash layering; native/device validation remains open.
 
