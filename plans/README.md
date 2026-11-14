@@ -144,7 +144,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 |----|----------|---------|---------|
 | D1 | Launch metro | **Boston** (MBTA + Bluebikes) | 007, 010 |
 | D2 | Transit routing engine | **Transitous-first**, selected by Cattn in the research thread on 2026-11-14. Laptop API proxies hosted MOTIS; direct MBTA data qualifies predictions. Public-service eligibility/automation conditions remain; local OTP is a later alternative. | 007, 008, 010 |
-| D3 | LLM framework | **ADK TypeScript + Gemini**; main model Hydrogen (`gemini-4-hydrogen`), configured with `GEMINI_MODEL` on the server; kept after the live check (#51). Runs with `GEMINI_API_KEY` or Vertex AI + Application Default Credentials (location `global`, #52) | 006 |
+| D3 | LLM framework | **ADK TypeScript + Gemini**; main model `gemini-3.8-flash` at LOW thinking (#72; was Hydrogen, `gemini-4-hydrogen`, kept after the live check #51), configured with `GEMINI_MODEL` / `AGENT_MODEL_<TASK>` and `AGENT_THINKING_<TASK>` on the server, so background AI tasks can use a stronger model or higher thinking. Runs with `GEMINI_API_KEY` or Vertex AI + Application Default Credentials (location `global`, #52) | 006 |
 | D4 | Identity | **Anonymous device ID** (`x-device-id`) | 003–005 |
 | D5 | Agent reply shape | **JSON**, plus a progress stream (newline-delimited JSON over POST) in plan 029; token-by-token text later | 006, 029 |
 | D6 | Database | **`node:sqlite` file** | 005 |
