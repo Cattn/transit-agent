@@ -28,8 +28,8 @@
 
 **Open questions** (answer by number in a comment on #12):
 
-1. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
-2. Start watching a trip 3 hours before departure. Longer for flights?
+1. If you miss your bus, which one: **(a)** the app switches your saved trip to the next option automatically, or **(b)** it suggests the next option and you tap to switch? *(suggested: b. Your earlier "Yes" didn't say which.)*
+2. Watch horizons, only the parts still needed before this is built: how long ahead for light rail/subway vs intercity (Amtrak), and roughly how the checks should ramp up as departure gets closer. *(Already recorded: depends on mode, bus about 2 h, flights 5 h+.)*
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -81,7 +81,12 @@ dependencies landed, and so apps can tick countdowns locally. Check they're expo
 export async function runWatchCycle(deps: { store; providers; now: () => Date; log }): Promise<{ checked: number; updated: number }>
 export function startWatchJob(deps, intervalSeconds): { stop(): void }
 ```
-- `listWatched(now, now + 3h)`. For each itinerary, find the provider by `source.provider` and call `refresh` (catch errors per item). Compute the status and persist `watchStatus` and `leaveBy`.
+- **Watch horizon depends on mode** (owner direction on [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176)). Put it in one config table, `watch/horizons.ts`, keyed by the itinerary's anchor leg mode (the first scheduled leg, same as plan 013):
+  - bus: about **2 h**, with checks that **ramp up** (less often far from departure, more often close to it);
+  - flight: **5 h or more**;
+  - rail: depends on the kind of rail (light rail/subway like the Orange Line vs intercity like Amtrak). The contract has a single `rail` mode, so telling them apart needs a hint such as `agency`/`routeName`; how to do that is open.
+  - **Exact numbers, the rail split and the ramp schedule are not decided yet** (008-Q3). Get them confirmed before implementing this step; until then the bus and flight figures above are provisional, and nothing here is final.
+- `listWatched(now, now + maxHorizon)`, then keep only itineraries whose own mode horizon covers them, and skip ones whose ramp says it's not time to check yet. For each itinerary, find the provider by `source.provider` and call `refresh` (catch errors per item). Compute the status and persist `watchStatus` and `leaveBy`.
 - When the state becomes `missed`, run `planTrip({ ...request, time: { type: 'departAt', at: now } })`. Store the top result's summary in the message ("Missed it — next: Bus 1 at 8:31"). Don't auto-replace the saved itinerary.
 - Never overlap cycles (skip a tick if the previous is still running). `timer.unref()`.
 - `index.ts`: start when `WATCH_ENABLED !== 'false'`, interval `WATCH_INTERVAL_SECONDS` (default 60). Stop on shutdown. `createServer()` without deps never starts it (tests stay hermetic).
@@ -115,5 +120,5 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 ## Open questions for review
 
 - ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
-- 008-Q2: Should "missed" auto-save the next-best trip as the new watched trip? Proposed: no — suggest it, the user taps to switch.
-- 008-Q3: Watch horizon of 3 h — longer for flights (plan 011)?
+- 008-Q2: Should "missed" auto-save the next-best trip as the new watched trip? Proposed: no — suggest it, the user taps to switch. **Still open:** the owner replied "Yes" on [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176), which doesn't say which of the two. Needs an explicit pick: switch automatically, or suggest and wait for a tap.
+- 008-Q3 (**direction given, details open**, [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176)): the horizon depends on mode: bus about 2 h with ramping checks, flights 5 h+, rail depends on light rail vs intercity. **Still open:** exact horizons, how to tell light rail from intercity, and the ramp schedule.
