@@ -103,3 +103,7 @@ The `search_flights` tool returns `summarizeFares()` (plan 019) plus quote ids, 
 - ~~011-Q2~~ **Decided on #6:** add `bags` and `travelers` to `TripDraft` as part of this plan (additive change), not before.
 - 011-Q3: Europe / Eurail (D11-B) goes in the backlog. Agreed?
 - ~~011-Q4~~ **Decided (@Cattn, 2026-11-14, [#15](https://github.com/Cattn/transit-agent/issues/15#issuecomment-6872551924)): yes.** Fly mode shows "take Amtrak instead" as a ground-only competitor (the transit provider run on the same request).
+
+## Round-trip handoff
+
+**Owner decision ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis's round-trip search; optionally compare two one-way searches. Reconcile plan 019's current one-way `FareSearch` / `FareQuote` contract with return dates, paired itineraries, and combined prices before implementing round trips. Existing one-way fixture comparison can proceed; do not treat two one-way fares as the preferred round-trip source.
