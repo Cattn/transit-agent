@@ -102,7 +102,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn (coding agent running) | P1 | M | 004, 012 | IN PROGRESS |
 | 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | APPROVED (PR #36), awaiting merge |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends (waits on PR #35) | P1 | S | 016, PR #35 | TODO |
-| 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — (015 optional) | IN PROGRESS |
+| 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — (015 optional) | APPROVED (PR #37 at `f04e96c`), awaiting merge; UI integration and device checks remain |
 | 019 | [Real flight prices: adapted Clovis (all flights)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | 🟢 up for grabs once 014 lands (strong model) | P2 | L | 014 (D10) | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 012 for mock data | IN PROGRESS (living doc) |
 | — | [UI slices](ui-slices.md) (draft, on [#16](https://github.com/Cattn/transit-agent/issues/16)) | UI team to confirm format | — | — | 012, 015 | DRAFT |
@@ -154,7 +154,7 @@ transit data (007) can land afterwards without any client changes.
   search UI can be built early.
 - **015 changes root build scripts** (`build:packages` builds shared and client-react). Pull
   and re-run `npm install` after it lands.
-- **018 adds native Expo modules.** After it lands, someone rebuilds the Android dev client once.
+- **018 adds native Expo modules.** PR #37 is approved but unmerged. The reviewer verified the full platform barrel in Android/iOS Hermes exports; UI mounting, LAN fallback without an emulator env override, dev-client rebuilds, and Android/iOS location/deep-link checks remain. Its local `DeviceIdStorage` matches plan 015; import the shared type when integrating.
 
 ---
 
