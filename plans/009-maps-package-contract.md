@@ -14,7 +14,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Owner:** @KrakenTheJaken
 - **Issue:** #13
 - **Status:** PARTIAL. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`.
-- **Remaining:** native renderer/export/setup, native parity and device verification, and an integration handoff to the UI team.
+- **Remaining:** native renderer/export/setup, native parity and device verification, and an integration handoff to the UI team. Step 5 (saved colors): PR open.
 - **Ready to continue:** yes. No native export or native MapLibre dependency exists on main at this planning pass.
 - **Related owners:** @DMFriends owns shared colors (#25); @Rad1ee / @DMFriends own app screens (#16, #39, #42).
 - **iOS tester:** @Cattn nominated @KrakenTheJaken in [the roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245). Availability is unconfirmed; no completed device check is implied.
