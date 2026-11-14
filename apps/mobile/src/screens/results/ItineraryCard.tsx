@@ -94,14 +94,17 @@ export function nearMissText(it: Itinerary, timeZone?: string): NearMissText {
   };
 }
 
-export type ToneRole = 'secondary' | 'tertiary';
+export type ToneRole = 'secondary' | 'tertiary' | 'error';
 
 export function toneRole(tone: Tone): ToneRole {
-  return tone === 'warn' || tone === 'danger' ? 'tertiary' : 'secondary';
+  if (tone === 'danger') return 'error';
+  return tone === 'warn' ? 'tertiary' : 'secondary';
 }
 
 function toneColors(tone: Tone, colors: AppColors): { background: string; text: string } {
-  if (toneRole(tone) === 'tertiary') return { background: colors.tertiaryContainer, text: colors.onTertiaryContainer };
+  const role = toneRole(tone);
+  if (role === 'error') return { background: colors.errorContainer, text: colors.onErrorContainer };
+  if (role === 'tertiary') return { background: colors.tertiaryContainer, text: colors.onTertiaryContainer };
   return { background: colors.secondaryContainer, text: colors.onSecondaryContainer };
 }
 

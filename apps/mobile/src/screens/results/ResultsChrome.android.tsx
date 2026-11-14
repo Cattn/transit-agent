@@ -61,7 +61,9 @@ function corners(radius: number) {
 }
 
 function toneColors(tone: Tone, m: MaterialColors): { bg: string; fg: string } {
-  if (toneRole(tone) === 'tertiary') return { bg: m.tertiaryContainer, fg: m.onTertiaryContainer };
+  const role = toneRole(tone);
+  if (role === 'error') return { bg: m.errorContainer, fg: m.onErrorContainer };
+  if (role === 'tertiary') return { bg: m.tertiaryContainer, fg: m.onTertiaryContainer };
   return { bg: m.secondaryContainer, fg: m.onSecondaryContainer };
 }
 
@@ -72,14 +74,12 @@ function LegChips({ chips, m }: { chips: LegChip[]; m: MaterialColors }) {
         <Row key={chip.id} horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
           {index > 0 ? <Text color={m.outline} style={m3Text('labelLarge')}>›</Text> : null}
           {chip.transit ? (
-            <Row
-              horizontalArrangement={{ spacedBy: 2 }}
-              verticalAlignment="center"
-              modifiers={[clip(Shapes.RoundedCorner(8)), background(m.primaryContainer), padding(6, 3, 8, 3)]}
-            >
-              <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onPrimaryContainer} />
-              <Text color={m.onPrimaryContainer} style={m3Text('labelLarge', 700)}>{chip.label}</Text>
-            </Row>
+            <Surface color={m.primaryContainer} contentColor={m.onPrimaryContainer} shape={corners(8)}>
+              <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center" modifiers={[padding(6, 3, 8, 3)]}>
+                <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onPrimaryContainer} />
+                <Text color={m.onPrimaryContainer} style={m3Text('labelLarge', 700)}>{chip.label}</Text>
+              </Row>
+            </Surface>
           ) : (
             <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center">
               <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onSurfaceVariant} />
@@ -102,7 +102,9 @@ function RouteCard({ card, canSave, m, scheme, onSelect, onSave }: {
 }) {
   const { text, selected, saved } = card;
   const risk = toneColors(text.risk.tone, m);
-  const freshColor = text.live ? m.primary : m.onSurfaceVariant;
+  const pill = text.live
+    ? { bg: m.primaryContainer, fg: m.onPrimaryContainer, icon: Sensors }
+    : { bg: m.surfaceContainerHighest, fg: m.onSurfaceVariant, icon: Schedule };
 
   return (
     <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
@@ -121,16 +123,18 @@ function RouteCard({ card, canSave, m, scheme, onSelect, onSave }: {
           <LegChips chips={text.chips} m={m} />
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
             <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[weight(1)]}>
-              <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
-                <Icon source={text.live ? Sensors : Schedule} size={14} tint={freshColor} />
-                <Text color={freshColor} maxLines={1} style={m3Text('labelMedium')}>{text.freshness.label}</Text>
-              </Row>
+              <Surface color={pill.bg} contentColor={pill.fg} shape={corners(12)}>
+                <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center" modifiers={[padding(7, 2, 9, 2)]}>
+                  <Icon source={pill.icon} size={14} tint={pill.fg} />
+                  <Text color={pill.fg} maxLines={1} style={m3Text('labelMedium')}>{text.freshness.label}</Text>
+                </Row>
+              </Surface>
               {text.detail ? <Text color={m.onSurfaceVariant} maxLines={1} overflow="ellipsis" style={m3Text('labelSmall')}>{text.detail}</Text> : null}
             </Row>
             <Text color={m.onSurface} style={m3Text('labelLarge')}>{text.cost}</Text>
-            <Text color={risk.fg} style={m3Text('labelMedium')} modifiers={[clip(Shapes.RoundedCorner(8)), background(risk.bg), padding(8, 2, 8, 2)]}>
-              {text.risk.label}
-            </Text>
+            <Surface color={risk.bg} contentColor={risk.fg} shape={corners(8)}>
+              <Text color={risk.fg} style={m3Text('labelMedium')} modifiers={[padding(8, 2, 8, 2)]}>{text.risk.label}</Text>
+            </Surface>
           </Row>
           {selected ? (
             <Column verticalArrangement={{ spacedBy: 8 }}>
