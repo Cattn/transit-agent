@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 👀 **In review:** PR #29.
+- **Status:** ✅ **Approved:** PR #29, waiting for @Cattn to merge.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #8):
