@@ -142,7 +142,7 @@ In `packages/maps/README.md`, add a short "Animating while the agent works" sect
 
 Use the same pure helpers. Update the native shape sources from a `requestAnimationFrame` loop in the same way. If per-frame updates stutter on a mid-range Android device, fall back to drawing one whole leg at a time (no partial legs), and say so in the PR.
 
-**Verify**: on a rebuilt Android dev client, the demo trip draws in. Record the device and result in the PR.
+**Verify**: on a rebuilt Android dev client, the demo trip draws in. Record the device and result in the PR. Native means Android; iOS is in the backlog.
 
 ## Done criteria
 
@@ -163,3 +163,9 @@ Use the same pure helpers. Update the native shape sources from a `requestAnimat
 - Apps wire it in: plan 027 (web results, @KrakenTheJaken) and plan 023 (mobile chat, @Cattn) pass `buildPreview` built from `useAgentChat().progress`.
 - Saved trips already on the map are not re-animated; only the new search results draw in.
 - Real routing (plan 007) changes only the geometry, not this animation.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- After plan 009's iOS backlog item is done, check the draw-in on a rebuilt iOS dev client with the same pure helpers.

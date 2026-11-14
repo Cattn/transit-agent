@@ -7,6 +7,8 @@ back in review using the IDs (UI-1, UI-2, …).
 
 **Issue**: https://github.com/Cattn/transit-agent/issues/16
 
+> **iOS is parked (@Cattn, 2026-11-14).** The mobile app is Android-only until iOS comes back out of the backlog ([plans/README.md](README.md#backlog-deliberately-unplanned)). "Mobile" in this doc means Android for now. iOS design notes here and in the Figma page `iOS — Liquid Glass` stay as the reference for later.
+
 Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature notes, and the two design threads.
 
 ---
@@ -96,6 +98,7 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 ## Platform notes (UI-8)
 
 - **Android = Material 3 for real** (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)): Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`), Material Symbols icons, theme colors, Roboto, connected button group for modes, extended FAB for Ask agent, draggable sheet. Details in plan 020's Current state.
+- **iOS is parked** (@Cattn, 2026-11-14). Each mobile plan keeps its iOS design in a "Backlog: iOS" section. Compose code still lives only in `.android.tsx` files, because `@expo/ui/jetpack-compose` crashes on iOS and the iOS export still runs in `npm run build:mobile`.
 
 - **Mobile testing changes once maps land.** MapLibre needs the EAS dev client (`npm run build:android`, then `npm run dev:client` in `apps/mobile`). Expo Go stops working.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.

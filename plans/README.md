@@ -44,9 +44,9 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Device checks remain |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Android device checks remain |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
-| 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60). Map placeholder until 009 native; iOS not yet checked |
+| 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60). Map placeholder until 009 native |
 | 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | PR #66 open |
 | 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | Rad1ee | P1 | L | 020 | TODO (MVP; unblocked) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | TODO (MVP; unblocked) |
@@ -60,6 +60,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
 | 032 | [Faster check and test](032-check-speed.md) ([#62](https://github.com/Cattn/transit-agent/issues/62)) | Cattn | P2 | S | — | DONE (#63) |
 | 033 | [Real place search with Photon](033-photon-place-search.md) ([#53](https://github.com/Cattn/transit-agent/issues/53)) | Cattn | P1 | S–M | 028 | DONE (#64) |
+| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | TODO (after #67 merges) |
 | — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | DONE (results on #51; fixes in #52) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
@@ -67,12 +68,14 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason). DONE plan files are kept as the record; do not re-execute them.
 
+**Backlog:** the iOS app is parked (mobile is Android-only); see [Backlog](#backlog-deliberately-unplanned) below.
+
 ## Questions by person
 
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
 - **@Cattn:** 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
-- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#13](https://github.com/Cattn/transit-agent/issues/13); #25 is closed)
+- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, 009-Q5 one style URL for web + native ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#13](https://github.com/Cattn/transit-agent/issues/13); #25 is closed)
 - **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44))
 - **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43))
 
@@ -84,8 +87,8 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 - Use the strongest model for 007, 009, 010, 019.
 - **Labels and milestones:** each issue has one `area: …` label (server, web, mobile, maps, shared), plus at most `help wanted` (up for grabs), `blocked` (waiting on another issue or decision), `research` (starts with a spike), or `bug`. Open questions live in each issue's help box, not a label. Milestones: **MVP** and **Full app**. #16 and #17 are `tracking`.
 - **UI plans and issues need visual proof:** a UI PR shows each primary feature working, as screenshots or a video, ideally about 4 pieces of media (more is fine). Upload with `gh ... --attach` (gh 2.104+); the `ship-plan` skill has the Android-over-USB capture recipe. The PR template and the `review-pr` skill enforce it.
-- **Android is Material 3 (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)):** Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`, real Material 3 components; chosen over `react-native-paper`), Material Symbols icons, theme colors, Roboto. The full list is in plan 020's Current state and applies to 021–025. iOS keeps the glass design.
-- **UI plans (020–027) are a first Figma pass** (`Transit-Agent-Design-Mockups`: `iOS — Liquid Glass`, `Android — Material 3`, `Web — Desktop`). When a frame changes, update that plan's Current state. Web has only home and planning frames; no plan invents web settings, filters, or Fly.
+- **Android is Material 3 (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)):** Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`, real Material 3 components; chosen over `react-native-paper`), Material Symbols icons, theme colors, Roboto. The full list is in plan 020's Current state and applies to 021–025. iOS is parked in the backlog (see Backlog).
+- **UI plans (020–027) are a first Figma pass** (`Transit-Agent-Design-Mockups`: `Android — Material 3`, `Web — Desktop`; `iOS — Liquid Glass` is kept as the reference for the parked iOS app). When a frame changes, update that plan's Current state. Web has only home and planning frames; no plan invents web settings, filters, or Fly.
 - **Mock first:** UI plans default to the mock client. `VITE_API_MODE=server` (web) or `EXPO_PUBLIC_API_MODE=server` (mobile) switches to a real server. Only Cattn's server holds the Gemini key.
 
 ## Plan format
@@ -145,10 +148,13 @@ Transit defaults (Cattn, plan 007 research thread, 2026-11-14): one or two check
 
 Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per trip, not reassigned per screen (017-Q2, settles 009 P4's color policy). Planned before the MVP: storage in 017 step 4, `assignRouteColors(ids, savedColors)` in 009 step 5, screens in 021 / 026 / 027.
 
-**Open:** map behavior P1/P2 and 009-Q5 (#13); palette move 017-Q1 (#13); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
+iOS parked (Cattn, 2026-11-14): mobile is Android-only; iOS parts of plans live in each plan's Backlog: iOS section.
+
+**Open:** map behavior P1/P2 and 009-Q5 (#13); palette move 017-Q1 (#13); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46.
 
 ## Backlog (deliberately unplanned)
 
+- iOS app (all mobile plans' iOS parts; parked by @Cattn 2026-11-14). Each mobile plan keeps its iOS steps and design in a "Backlog: iOS" section; the iOS design reference is the Figma page `iOS — Liquid Glass` and [`ui-direction.md`](ui-direction.md). Existing iOS code on main stays as is.
 - Booking (needs app-owned confirmation + idempotency).
 - Europe / Eurail "cheapest place to land".
 - Probabilistic transfer risk (needs historical delay data; never show made-up percentages).

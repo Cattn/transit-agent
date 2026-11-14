@@ -25,7 +25,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go; iOS not yet.
+- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go. iOS is in the backlog.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
@@ -106,7 +106,7 @@ export const modeGroups = {
 | Blur | `expo-blur` `BlurView` behind the search, mode control, and sheet | No blur. Surface color from the theme. |
 
 - Tracked trip card (Figma symbol `14:120`, description on the component): title "Commute to Office", message "Bus 1 is 1 min late — leave by 8:04", freshness pill "Live" only when the data is realtime, meta "Bus 1 · arrive 8:27", countdown tile "Leaves in / 6 / minutes" (not "Departs"; @Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)). The tile color encodes `watchStatus.state`: onTrack = secondary container, leaveSoon = tertiary container, leaveNow and atRisk = error container. `SavedItinerary.watchStatus` is optional. Use its message and state when present, and `leaveByLabel(leaveBy, new Date())` when a leave-by time exists. Otherwise use `formatClock` and `itineraryFreshness` from plan 016. Do not invent a watch status. Never paint a scheduled time with the Live pill.
-- **Android Material 3 rules (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484), 2026-11-14).** These apply to every Android screen (plans 020–025); iOS keeps the glass design above.
+- **Android Material 3 rules (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484), 2026-11-14).** These apply to every Android screen (plans 020–025). The mobile app is Android-only for now; iOS is parked (see "Backlog: iOS").
   - Use **Expo UI Jetpack Compose** (`@expo/ui/jetpack-compose`, `npx expo install @expo/ui`): Expo's library that renders Google's real Material 3 Compose components (@Cattn chose it over `react-native-paper`, 2026-11-14; docs: https://docs.expo.dev/versions/latest/sdk/ui/jetpack-compose/index.md). It is beta and works in Expo Go. Every Compose component sits inside a `Host` imported from the `@expo/ui` root, not the sub-package. `@expo/ui/jetpack-compose` crashes on iOS, so Compose code lives only in `.android.tsx` files (or behind `Platform.OS`). Inside a `Host`, lay out with Compose `Row` / `Column`, not flexbox. Don't put `matchContents` on the same axis as a scrolling list.
   - Material icons everywhere on Android (search, location, modes, Live, filters): Compose `Icon` with Material Symbols from `@expo/material-symbols`. Roboto is the Android system font; do not override it.
   - Colors come from the Material theme: `Host` `colorScheme` follows `useAppColors()` (light / dark / system) with one `seedColor`, and `useMaterialColors()` gives the same palette to any non-Compose view. Do not hand-pick chip or surface colors.
@@ -277,3 +277,11 @@ When a question is answered or a frame changes, update this same plan and its is
 See the help box at the top (020-Q1 to 020-Q4). It is the single list; answers are recorded there.
 
 Map behavior (overlap chooser, mode filtering, colors) is tracked once in plan 009 under "Open product decisions". When colors are needed, follow plan 009's rule: compute `assignRouteColors` once over all trips on screen and reuse it for cards and map.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Shipped in #60 but never checked on a device: `HomeChrome.ios.tsx` (glass search bar, segmented control with SF Symbols, glass map buttons and Ask agent pill, inset `BlurView` sheet). It stays on main as is.
+- The iOS column of the table in Current state, and [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`) frames `2010:51` / `2019:926`, are the reference for that screen.
+- Platform notes and the original design discussion: [`ui-direction.md`](ui-direction.md) (UI-8).
