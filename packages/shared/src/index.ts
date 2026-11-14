@@ -18,32 +18,10 @@ export const sections: readonly Section[] = [
   { id: 'agent', title: 'Agent', description: 'Plan a trip around your preferences without doing all the research.' }
 ];
 
-export function createApiClient(baseUrl: string) {
-  const url = baseUrl.replace(/\/$/, '');
-
-  async function get<T>(path: string): Promise<T> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    try {
-      const response = await fetch(`${url}${path}`, { signal: controller.signal });
-      if (!response.ok) {
-        throw new Error(`API request failed (${response.status})`);
-      }
-      return await response.json() as T;
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  return {
-    health: () => get<HealthResponse>('/api/health'),
-    sections: () => get<Section[]>('/api/sections')
-  };
-}
-
 export * from './domain/modes.js';
 export * from './domain/places.js';
 export * from './domain/trip-draft.js';
 export * from './domain/itinerary.js';
 export * from './domain/api.js';
 export * from './domain/fixtures.js';
+export * from './client/api-client.js';
