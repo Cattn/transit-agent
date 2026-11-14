@@ -50,12 +50,13 @@ Open **http://localhost:5180**. No server, no API key and no build step needed.
 - Click a route, or a card on the left, to select it. Click again where routes overlap to cycle through them.
 
 The demo's code is small: [`demo/App.tsx`](demo/App.tsx) is the whole page. It plays the app's role (it owns the
-selection and the colours) and uses the default look (`variant="saved"`, grey unfocused trips).
+selection and the colours) and uses the **default look** (no `variant`): every trip in its own colour, the others faded
+only while one is selected.
 
 ### On a phone (Expo Go)
 
 ```sh
-npm install                 # also copies the MapLibre worker into apps/mobile/public (postinstall)
+npm install                 # also generates the built-in MapLibre worker (postinstall)
 npm run build:packages      # the app imports the built packages
 npm run mobile:tunnel       # or: npm run dev:mobile on the same Wi-Fi
 ```
@@ -63,7 +64,8 @@ npm run mobile:tunnel       # or: npm run dev:mobile on the same Wi-Fi
 Scan the QR code with Expo Go (Android: the Expo Go app; iPhone: the camera). The map is the Home screen background.
 No dev build, no Apple developer account and no Mac are needed, because the map is a web page inside the app.
 
-- Your saved trips draw on Home, faded, each in its main mode's colour. Tap one to bring it into focus.
+- Your saved trips draw on Home, faded, each in its own colour, side by side where they share streets. Tap one to
+  bring it into focus.
 - Search a place to see results: grey routes, the chosen one in purple with line bubbles.
 - The location button pans to you; the blue dot has a cone showing which way the phone faces.
 
@@ -100,7 +102,7 @@ export function TripMap({ trips }: { trips: Itinerary[] }) {
         onDeselect={() => setSelected(undefined)} // the user tapped empty map
         styleUrl="https://tiles.openfreemap.org/styles/positron"
         fitKey={trips.map((t) => t.id).join()}    // change it to zoom to the routes
-        variant="choosing"                        // results look; leave out for saved trips
+        variant="choosing"                        // optional: results look; 'saved' for Home
       />
     </div>
   );
@@ -110,20 +112,22 @@ export function TripMap({ trips }: { trips: Itinerary[] }) {
 **3. Colours.** Which colours you pass depends on the screen (see [What the map looks like](#what-the-map-looks-like)):
 
 ```tsx
-import { assignRouteColors, MODE_COLORS, mainMode } from '@transit/maps';
+import { assignRouteColors } from '@transit/maps';
 
-// Saved trips (Home): the stored colour, or the trip's main mode colour.
-const routeColors = new Map(saved.map((t) => [t.id, t.color ?? MODE_COLORS[mainMode(t)]]));
+// Stored colours of ALL saved trips (not only the ones on screen).
+const savedColors = new Map(saved.filter((t) => t.color).map((t) => [t.id, t.color!]));
 
-// When saving a trip, store its main mode colour so it looks the same after saving.
-save({ ...trip, color: MODE_COLORS[mainMode(trip)] });
+// Once, over every trip on screen; pass the same map to the map and the cards.
+const routeColors = assignRouteColors(trips.map((t) => t.id), savedColors);
 
-// Older per-trip palette (still available, still used if you pass no routeColors):
-const paletteColors = assignRouteColors(trips.map((t) => t.id), savedColours);
+// When saving a trip, store the colour it was given, so it keeps it.
+save({ ...trip, color: routeColors.get(trip.id) });
 ```
 
 `assignRouteColors(ids, saved)` gives each trip a stable palette colour from its id; a saved trip keeps its saved colour
-and no new trip borrows a saved colour (while 8 or fewer are in use). See [`src/colors.ts`](src/colors.ts).
+and no other trip borrows a saved colour (while 8 or fewer are in use). See [`src/colors.ts`](src/colors.ts). Plan 009:
+distinct colours are for saved trips; search results are drawn the Figma way (`variant="choosing"`), not in palette
+colours.
 
 **4. No data yet?** Use the example routes: `import { commuteOptions, flightOptions, testScenarios } from '@transit/maps/samples'`.
 
@@ -150,10 +154,25 @@ HomeScreen (React Native)
 | File | What it does |
 | --- | --- |
 | `apps/mobile/src/map/RouteMap.tsx` | The component the app uses. Takes `RouteMapProps` and converts what can't cross into the web view: `Map` → plain object, readonly arrays → arrays, callbacks → `async` functions. Memoised so the web view isn't re-sent props on every render |
-| `apps/mobile/src/map/RouteMapDom.tsx` | The `'use dom'` file. Loads MapLibre's CSS, points MapLibre at its worker, makes the page full-size, turns the colour object back into a `Map`, and renders `@transit/maps/web` |
+| `apps/mobile/src/map/RouteMapDom.tsx` | The `'use dom'` file. Loads MapLibre's CSS, starts MapLibre's worker from the built-in code (a `blob:` URL), makes the page full-size, turns the colour object back into a `Map`, and renders `@transit/maps/web` |
 | `apps/mobile/src/map/useLiveLocation.ts` | Watches the position (`watchPositionAsync`, every 5 m) and compass (`watchHeadingAsync`, only re-renders when it turns 5° or more). Only runs after permission was granted, and only while the app is in the foreground |
 | `apps/mobile/src/map/css.d.ts` | Lets TypeScript import `.css` files |
-| `apps/mobile/public/maplibre-gl-worker.js` | MapLibre's worker, **copied by `postinstall`** from `node_modules` and git-ignored. Served by Metro next to the DOM page, so there's no CDN |
+| `apps/mobile/src/map/maplibre-gl-worker.js` | **Generated by `postinstall`** (git-ignored): MapLibre's worker code as a string module, so it is bundled into the DOM page itself. No separate file to serve, no CDN. See [Why the worker is built in](#why-the-worker-is-built-in) |
+
+### Why the worker is built in
+
+MapLibre runs its tile work in a web worker loaded from a separate file. The first version copied that file to
+`apps/mobile/public/` and loaded it relative to the DOM page. That works in Expo Go (the dev server serves it), but in
+an exported build the DOM page lives in `www.bundle/` while Expo puts `public/` files one folder up, so the worker was
+never found and **the map stayed blank** (PR #76 review, P1).
+
+Now `postinstall` turns `maplibre-gl/dist/maplibre-gl-worker.mjs` into `src/map/maplibre-gl-worker.js`
+(`export default "<worker code>"`), and the DOM component starts the worker from a `Blob`. It works the same in Expo Go,
+exported builds and over-the-air updates. Cost: the DOM bundle is about 0.5 MB bigger (local, no download).
+
+Checked by exporting Android, opening the exported page from `file://` (as Android does) in Chromium: before, "Failed to
+fetch" and a blank map; after, tiles, routes and bubbles. On the Pixel, the web view's network log shows the workers
+starting from `blob:` URLs and no request for a worker file or any CDN.
 
 ### The prop boundary (important)
 
@@ -172,7 +191,7 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 | --- | --- |
 | Which trips | Results open: the results' itineraries plus near misses. Otherwise: the saved, watched trips |
 | Look | Results open: `variant="choosing"`, `unfocusedColors="mode"`. Otherwise: `variant="saved"`, `unfocusedColors="trip"` |
-| Colours | Saved: the stored colour, or `MODE_COLORS[mainMode(trip)]`. Saving a result stores `MODE_COLORS[mainMode(trip)]` |
+| Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given |
 | Accent | `accentColor={light.primary}` (`#6750A4`), always the light theme's purple, because the basemap is always light |
 | Basemap | OpenFreeMap Positron |
 | Padding | Top: the bottom edge of the search bar + mode tabs (`HomeChrome` reports it with `onTopLayout`) + 16. Right: 16 + 64 for the locate / layers button column. Bottom: the sheet's height. Left: 16 |
@@ -187,14 +206,22 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 
 ## What the map looks like
 
-The map has two looks, picked with `variant`. Screens with saved trips use `saved`; search results use `choosing`
-(Figma frame 02).
+The map has three looks, picked with `variant`. With no `variant` it draws the **default look** (unchanged from
+before this PR, used by the web and the demo). Home uses `saved`; search results use `choosing` (Figma frame 02).
+
+### Default look (no `variant`)
+
+| Part | Look |
+| --- | --- |
+| Every trip | In its own `routeColors` colour, selected or not |
+| Fading | Other trips fade (35%) only while one is selected |
+| Markers | White dots ringed in the trip's colour (start, end and transfers), no end icon |
 
 ### `variant="saved"` (Home: your saved trips)
 
 | Part | Look |
 | --- | --- |
-| Unselected trips | Faded (35% opacity), in their `routeColors` colour (`unfocusedColors="trip"`). On Home that is the trip's **main mode colour** |
+| Unselected trips | Faded (35% opacity), in their `routeColors` colour (`unfocusedColors="trip"`), so each saved trip shows its own colour |
 | Nothing selected | Everything is faded. Only a selected trip is ever in focus |
 | Selected trip | Full opacity, a white casing underneath, each leg in **its own mode's colour** (walk grey, bus orange, train purple…) |
 | Start dot | Small dot in the trip's colour, white border |
@@ -227,8 +254,9 @@ The map has two looks, picked with `variant`. Screens with saved trips use `save
 Other colours: unfocused grey `#64748b` (`UNFOCUSED_ROUTE_COLOR`), focus ink `#1f2937` (`FOCUS_INK`, markers in the
 grey look), default accent `#6750A4` (`DEFAULT_ACCENT_COLOR`).
 
-`unfocusedColors` picks the colour of unselected trips: `'grey'` (default: slate grey), `'trip'` (their `routeColors`
-colour) or `'mode'` (the colour of the mode they use most, by distance). In `choosing`, unselected trips are always grey.
+`unfocusedColors` picks the colour of unselected trips: `'trip'` (default: their `routeColors` colour), `'grey'`
+(slate grey) or `'mode'` (the colour of the mode they use most, by distance). In `choosing`, unselected trips are
+always grey.
 
 ### Sizes
 
@@ -259,7 +287,7 @@ Lines get thicker as you zoom in so they're easier to tap; they do not scale wit
 | Location dot | Blue dot, white border; with `userHeading`, a cone pointing where the phone faces (turns with the map) |
 | Bubbles | Don't block taps (`pointer-events: none`); you tap the route under them |
 | Tabs (`visibleModes`) | A trip shows only if every leg's mode is allowed; otherwise the whole trip hides |
-| Overlapping trips | Drawn on top of each other along shared streets (no sideways lanes; see [Decisions](#decisions-and-why)). The selected one is always on top |
+| Overlapping trips | **Side by side (lanes):** every line layer (visible lines, white casing, invisible tap line) is shifted `lane × direction × LANE_SPACING` (10 px) sideways, so trips on the same street, even in opposite directions, show as parallel lines. The selected one is always on top |
 
 ### How legs join up
 
@@ -269,8 +297,8 @@ in the road. `drawnLegLines()` closes every gap of **100 m or less**:
 - Walk / bike into a bus, train or ferry: the **walk is extended to the stop**, so the transit line isn't bent.
 - Anything else: the next leg starts from where the previous one ended.
 
-Start, end and transfer markers sit on these joined ends, so markers never float off the line. Gaps over 100 m stay
-as they are (they mean real data trouble, which shouldn't be hidden).
+Start, end and transfer markers sit on these joined ends. Gaps over 100 m stay as they are (they mean real data
+trouble, which shouldn't be hidden). Joining legs is also what fixed most of the "broken corners" lanes had before.
 
 ---
 
@@ -289,15 +317,15 @@ The contract is [`src/contract.ts`](src/contract.ts) (`RouteMapProps`). Mobile's
 | `fitKey` | | Change it to zoom to the visible trips |
 | `padding` | | `{ top, right, bottom, left }` px to keep routes clear of panels and buttons |
 | `routeColors` | | Colour per trip id. Without it the map uses `assignRouteColors` |
-| `unfocusedColors` | | `'grey'` (default) · `'trip'` · `'mode'`: colour of unselected trips |
-| `variant` | | `'saved'` (default) · `'choosing'`: see [What the map looks like](#what-the-map-looks-like) |
+| `unfocusedColors` | | `'trip'` (default) · `'grey'` · `'mode'`: colour of unselected trips |
+| `variant` | | none (default look) · `'saved'` · `'choosing'`: see [What the map looks like](#what-the-map-looks-like) |
 | `accentColor` | | The `choosing` colour. Default `#6750A4` |
 | `userLocation` | | `[lng, lat]` for the "you are here" dot |
 | `userHeading` | | Compass heading in degrees (0 = north) for the cone. The map never asks for permission |
 | `locateKey` | | Change it to pan to `userLocation` (e.g. a counter bumped by the locate button) |
 
 `onDeselect`, `userHeading`, `locateKey`, `unfocusedColors`, `variant` and `accentColor` are new in this PR and all
-optional, so existing callers (web, demo) keep working unchanged.
+optional, and leaving them out keeps the original look, so existing callers (web, demo) look exactly as before.
 
 ### What the pure package exports (`@transit/maps`)
 
@@ -333,7 +361,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript with no React or MapL
 | [`src/contract.ts`](src/contract.ts) | `RouteMapProps` |
 | [`src/colors.ts`](src/colors.ts) | Palette, mode colours, widths, `assignRouteColors` |
 | [`src/to-geojson.ts`](src/to-geojson.ts) | Features (each leg: colour, mode colour, main mode colour, dash, selected, sort key), markers, leg joining, main mode, bubble labels |
-| [`src/layers.ts`](src/layers.ts) | Line, casing, hit, marker and end-icon layers; the two looks (`look()`) |
+| [`src/layers.ts`](src/layers.ts) | Line, casing, hit, marker and end-icon layers; the lane shift; the three looks (`look()`) |
 | [`src/bounds.ts`](src/bounds.ts) | Camera bounds, ids under a tap, tap cycling |
 | [`src/web/RouteMap.tsx`](src/web/RouteMap.tsx) | The React component: sources, layers, taps, camera, location dot, bubbles |
 | [`src/web/LegBubble.tsx`](src/web/LegBubble.tsx) | One line bubble (Material bus / train / ferry icons) |
@@ -347,8 +375,9 @@ Notes:
   The end icon is a symbol layer on top of the end dot. If the style loses the icon (style reload), a
   `styleimagemissing` listener adds it back.
 - **Bubbles and the location dot are HTML** (`<Marker>`), because they need text, an SVG icon and rotation.
-- **Lane data is still computed** (`lane`, `direction` on each feature, `laneOrder`), but no layer uses it
-  (no `line-offset`). Turning lanes back on is one paint property, if the team ever wants them back.
+- **Lanes** come from `lane` and `direction` on each feature (`laneOrder` puts trips left to right across their
+  direction of travel). Markers are not shifted, so with 3 or more trips the outer lines sit up to 10 px beside their
+  markers.
 - Touch screens are detected with the `(pointer: coarse)` media query (`useSyncExternalStore`), which picks the wider
   tap area.
 
@@ -363,11 +392,13 @@ Decided with @KrakenTheJaken, mostly on 2026-11-14 while testing on an iPhone in
 | **Expo DOM, not native MapLibre** (plan 009 rewrite) | One renderer for web and mobile; works in **Expo Go**, so iPhones can test without a Mac, a paid Apple account or a dev build. Native MapLibre needs a custom dev build |
 | **Tap again to cycle** (P1), no picker | The ring picker was fiddly on a phone (tiny targets, an extra tap). Cycling needs no extra UI |
 | **Tap empty map to deselect** | The expected way to "go back" on a map |
-| **No sideways lanes** | Lanes broke corners (lines swung wide at turns) and pushed markers off the line. Trips now overlap on shared streets. Re-confirmed 2026-11-14; may be revisited |
-| **Home looks "like ours"** | Saved trips should look like the user's own routes: faded in their main mode's colour, the selected one in full mode colours |
+| **Lanes stay** (PR #76 review) | Plan 009 requires opposite-direction trips to stay apart, and Home's saved trips often share streets. We first removed lanes (broken corners, markers off the line); with legs joined, those problems shrank to small hooks at a few sharp transfers, and lanes are back on every line layer |
+| **Home: each saved trip in its own colour, the selected one in mode colours** | Faded trips are told apart by colour; the trip you tap shows how you travel (walk grey, bus orange, train purple) |
 | **Results follow Figma frame 02** | Grey options, one purple chosen route, hollow start, bubbles. Choosing is a different task from browsing saved trips |
 | **Main mode = by distance** | A 2-minute walk shouldn't make a bus trip grey. Distance matches what you see on the map |
-| **Saving stores the main mode colour** | Home then looks the same before and after saving, and "saved trips keep their stored colour" still holds. Trade-off: two saved bus trips are both orange. Re-confirmed 2026-11-14; told Cattn on #13 |
+| **Saving stores the `assignRouteColors` colour** (PR #76 review) | Plan 009's colour rule; every saved trip gets a distinct colour. Storing the main mode colour instead made two saved bus trips both orange |
+| **Default look unchanged** (PR #76 review) | The web map and demo pass no `variant`; they must look the same as before. The new looks are opt-in |
+| **Worker built into the DOM bundle** (PR #76 review) | A separate worker file isn't found in exported builds; see [Why the worker is built in](#why-the-worker-is-built-in) |
 | **Transfer ring = the colour of the leg you switch onto** | It tells you what you're about to board |
 | **End marker has the icon, start is a plain dot** | The destination is what you look for; the start is usually "here" |
 | **Everything faded until selected** (saved look) | With several saved trips, nothing should shout until you pick one |
@@ -392,7 +423,12 @@ So nobody repeats them:
   a custom build for every native change and can't run on an iPhone without a Mac / paid account. Replaced by the DOM
   approach.
 - **The ring picker** for overlapping routes. Replaced by tap-to-cycle.
-- **Sideways lanes** (`line-offset`, 10 px apart). Broken corners and floating markers.
+- **Removing lanes** (trips drawn on top of each other). Simpler, but trips on the same street hid each other and it
+  broke plan 009's rule; lanes are back (PR #76 review).
+- **Saving the main mode colour.** Two saved bus trips were both orange; saving now stores the `assignRouteColors` colour.
+- **The worker as a file in `apps/mobile/public/`.** Fine in Expo Go, blank map in exported builds.
+- **Grey / mode colours as the default look.** Changed how the web map and demo looked; the default is back to the
+  original look.
 - **Hybrid colours** (trip colour when faded, mode colours when selected) everywhere. Confusing; split into the
   two looks above.
 - **The dark theme accent** `#D0BCFF` on the light basemap. Too pale.
@@ -417,19 +453,29 @@ Go and is otherwise parked.
 | --- | --- |
 | ✅ Map logic (`@transit/maps`) | Colours, line styles, features, leg joining, main mode, bubble labels, layers, bounds, tap cycling |
 | ✅ Web map (`@transit/maps/web`) | `RouteMap`, two looks, markers + end icon, bubbles, location dot + cone, pan to location, deselect |
-| ✅ Mobile map | DOM component in Home's `MapSlot`; worker bundled (no CDN); live location + compass; top padding from `HomeChrome` |
+| ✅ Mobile map | DOM component in Home's `MapSlot`; worker built into the bundle (no CDN, works in exported builds); live location + compass; top padding from `HomeChrome` |
 | ✅ Example routes + demo | `@transit/maps/samples` (incl. `testScenarios`), `npm run demo:maps` |
-| ✅ Tests | 100 unit tests in `@transit/maps` |
+| ✅ Tests | 104 unit tests in `@transit/maps` |
+| ✅ Android proof | Pixel 10, Android 17 (beta), Expo Go 58.0.5, light and dark; see [Android proof](#android-proof-pr-76) |
 
-**Before the PR:**
+### Android proof (PR #76)
 
-- [x] Re-confirmed by @KrakenTheJaken on 2026-11-14: **no sideways lanes** (may revisit later).
-- [x] Re-confirmed by @KrakenTheJaken on 2026-11-14: **saving stores the main mode colour** (two bus trips share orange).
-- [x] Android check in Expo Go on a Pixel 10 (screenshots: Home, Home selected, results, results selected).
-- [x] `npm run check`.
-- [ ] #13 comment: DOM approach, P1 = cycling, no lanes, colour rules, saved colour, location on open (overrides
-  018-Q1; the comment on `getCurrentPlace` in `apps/mobile/src/platform/location.ts` still says tap-only), new
-  optional props, `HomeChrome.onTopLayout`, basemap notes.
+Plan 009 step 6, in Expo Go on a Pixel 10 (Android 17 beta, Expo Go 58.0.5), dark and light mode:
+
+| Check | Result |
+| --- | --- |
+| Saved trips on Home | ✅ side by side, each in its own colour |
+| Tap selects, tap again cycles | ✅ |
+| Selecting doesn't move the camera | ✅ identical framing before and after |
+| Sheet vs map gestures | ✅ dragging the sheet doesn't pan the map; panning the map doesn't move the sheet |
+| Results | ✅ grey options; chosen route purple with bubbles; the same card highlights |
+| Saved colour | ✅ a saved result keeps its own colour on Home |
+| Worker, no CDN | ✅ workers start from `blob:` URLs; only the app's own code and `tiles.openfreemap.org` are requested |
+| Commute and flight samples, empty list | ✅ render; empty list doesn't crash |
+| Fit / padding | ✅ below the search bar, above the sheet (tight to the results sheet's edge) |
+| Light and dark mode | ✅ |
+
+Not tested: a low-end Android phone; iOS beyond Expo Go on an iPhone (iOS is parked).
 
 **Later (decided to wait):**
 
@@ -438,6 +484,9 @@ Go and is otherwise parked.
 - [ ] **Colours**: final review of mode colours against the mockup.
 - [ ] **Sizes**: line widths, marker sizes, end icon and bubble / bubble icon size from the final mockup.
 - [ ] **Bubbles over markers**: a bubble can cover a marker of another route; consider hiding overlapping bubbles.
+- [ ] **Fancier lanes** (plan 009 follow-up): markers shifted with their lane, and no small hooks where a very short
+  walk meets a bus at a sharp angle.
+- [ ] **Results fit**: a little gap between the routes and the top of the results sheet (`bottom: sheetHeight + 16`).
 - [ ] **Faded line ends**: where two faded legs meet, their see-through round ends overlap into a darker dot; fade
   with lighter solid colours instead of transparency.
 - [ ] **Mode tabs filter the home map** (P2): pass the Transit / Drive / Fly tab's modes as `visibleModes`.
@@ -474,7 +523,7 @@ Q3–Q5; 030-Q1–Q3) are answered by @KrakenTheJaken.
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 100 tests
+npm run test:unit -w @transit/maps   # 104 tests
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 npm run typecheck -w @transit/maps   # package + demo
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)
@@ -505,8 +554,8 @@ selection, take screenshots, then put it back. Don't commit that.
 ## Gotchas
 
 - **Blank map on the web:** the MapLibre setup from "Use it on the web" is missing, or the map's box has no height.
-- **Blank map on mobile:** `apps/mobile/public/maplibre-gl-worker.js` is missing. Run `npm install` (its
-  `postinstall` copies it). The worker URL is built from `EXPO_BASE_URL`, so it also works under a base path.
+- **Blank map or "Unable to resolve ./maplibre-gl-worker" on mobile:** `apps/mobile/src/map/maplibre-gl-worker.js` is
+  missing. Run `npm install` (its `postinstall` generates it).
 - **"Unable to resolve @expo/metro-runtime"** when bundling the DOM component: the DOM dependencies are missing; they
   are `@expo/metro-runtime`, `react-dom`, `react-native-web` (install with `npx expo install`).
 - **Red box "Unable to find the 'DomWebView' view with tag"** on first load: known Expo glitch, ignore it.

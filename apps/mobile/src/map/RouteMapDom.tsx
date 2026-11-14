@@ -5,8 +5,9 @@ import { setWorkerUrl } from 'maplibre-gl';
 import type { DOMProps } from 'expo/dom';
 import type { Itinerary, TravelMode } from '@transit/shared';
 import { RouteMap } from '@transit/maps/web';
+import workerSource from './maplibre-gl-worker';
 
-setWorkerUrl(new URL(`${process.env.EXPO_BASE_URL ?? ''}maplibre-gl-worker.js`, window.location.href).href);
+setWorkerUrl(URL.createObjectURL(new Blob([workerSource], { type: 'text/javascript' })));
 
 const PAGE_STYLE = 'html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }';
 

@@ -14,7 +14,7 @@
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
     "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/maps && npm run build -w @transit/client-react",
-    "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync(require.resolve('maplibre-gl/dist/maplibre-gl-worker.mjs'),'public/maplibre-gl-worker.js')\"",
+    "postinstall": "node -e \"const fs=require('fs');const src=fs.readFileSync(require.resolve('maplibre-gl/dist/maplibre-gl-worker.mjs'),'utf8').replace(/\\/\\/# sourceMappingURL=\\S+\\s*$/,'');fs.writeFileSync('src/map/maplibre-gl-worker.js','export default '+JSON.stringify(src)+';\\n')\"",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck"

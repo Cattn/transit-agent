@@ -9,7 +9,7 @@ dist/
 .DS_Store
 apps/mobile/android/
 apps/mobile/ios/
-apps/mobile/public/maplibre-gl-worker.js
+apps/mobile/src/map/maplibre-gl-worker.js
 *.db
 *.db-*
 apps/server/data/

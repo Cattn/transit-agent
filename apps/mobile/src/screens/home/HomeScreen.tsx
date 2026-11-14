@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { DraftChangeSource, Itinerary, LngLat, Place, PlanResponse, SavedItinerary, TravelProfile, TripDraft, TripDraftPatch, TripRequest } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
-import { assignRouteColors, MODE_COLORS, mainMode } from '@transit/maps';
+import { assignRouteColors } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { RouteMap } from '../../map/RouteMap';
@@ -236,18 +236,14 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     () => (resultsOpen ? [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])] : watched),
     [resultsOpen, plan.data, watched]
   );
-  const homeColors = useMemo(
-    () => new Map(watched.map((trip) => [trip.id, trip.color ?? MODE_COLORS[mainMode(trip)]] as const)),
-    [watched]
-  );
   const shownIds = resultsOpen
     ? [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])].map((it) => it.id).join(' ')
     : watched.map((trip) => trip.id).join(' ');
   const routeColors = useMemo(() => assignRouteColors(shownIds ? shownIds.split(' ') : [], savedColors), [shownIds, savedColors]);
 
   const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
-    save({ itinerary, request: tripRequest, watch: true, color: MODE_COLORS[mainMode(itinerary)] }).catch(() => undefined);
-  }, [save]);
+    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => undefined);
+  }, [save, routeColors]);
 
   const padding = useMemo(
     () => ({ top: topBarEdge + MAP_PADDING, right: MAP_PADDING + MAP_BUTTON_COLUMN, bottom: sheetHeight, left: MAP_PADDING }),
@@ -265,7 +261,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         padding={padding}
         colors={colors}
         trips={mapTrips}
-        routeColors={resultsOpen ? routeColors : homeColors}
+        routeColors={routeColors}
         selectedItineraryId={selectedId}
         onSelect={setSelectedId}
         onDeselect={clearSelection}

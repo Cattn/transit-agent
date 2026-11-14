@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CASING_EXTRA_WIDTH,
+  DIMMED_OPACITY,
   FOCUS_INK,
   LANE_SPACING,
   LINE_WIDTH,
@@ -40,7 +41,7 @@ function getKeys(value: unknown, out: string[] = []): string[] {
 }
 
 const dashLayer = (dash: string) =>
-  routeLayers().find((l) => l.type === 'line' && JSON.stringify(l.filter ?? []).includes('"dash"') && JSON.stringify(l.filter).includes(`"${dash}"`));
+  routeLayers({ variant: 'saved', unfocused: 'grey' }).find((l) => l.type === 'line' && JSON.stringify(l.filter ?? []).includes('"dash"') && JSON.stringify(l.filter).includes(`"${dash}"`));
 
 describe('routeLayers', () => {
   it('has unique ids', () => {
@@ -48,7 +49,7 @@ describe('routeLayers', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('has one line layer per dash style: mode colours in focus, grey out of focus by default', () => {
+  it('has one line layer per dash style: in the saved look, mode colours in focus and grey out of focus', () => {
     for (const dash of ['solid', 'dashed', 'dotted']) {
       const layer = dashLayer(dash);
       expect(layer, `missing a line layer filtered on dash = ${dash}`).toBeDefined();
@@ -60,12 +61,12 @@ describe('routeLayers', () => {
   });
 
   it('can colour each route out of focus by the mode it uses most, so it keeps that colour when selected', () => {
-    const layer = routeLayers({ unfocused: 'mode' }).find((l) => l.id === 'route-solid')!;
+    const layer = routeLayers({ variant: 'saved', unfocused: 'mode' }).find((l) => l.id === 'route-solid')!;
     expect(evaluate(layer.paint['line-color'], { selected: false, modeColor: '#6b7280', mainModeColor: '#7c3aed' })).toBe('#7c3aed');
   });
 
   it("can colour routes out of focus with each trip's own colour instead", () => {
-    const layer = routeLayers({ unfocused: 'trip' }).find((l) => l.id === 'route-solid')!;
+    const layer = routeLayers({ variant: 'saved', unfocused: 'trip' }).find((l) => l.id === 'route-solid')!;
     expect(evaluate(layer.paint['line-color'], { selected: false, modeColor: '#2563eb', color: '#db2777' })).toBe('#db2777');
     expect(evaluate(layer.paint['line-color'], { selected: true, modeColor: '#2563eb', color: '#db2777' })).toBe('#2563eb');
   });
@@ -76,7 +77,7 @@ describe('routeLayers', () => {
   });
 
   it('only reads properties that the features actually have', () => {
-    for (const layer of [...routeLayers(), ...routeLayers({ unfocused: 'trip' }), ...routeLayers({ unfocused: 'mode' })]) {
+    for (const layer of [...routeLayers(), ...routeLayers({ variant: 'saved', unfocused: 'grey' }), ...routeLayers({ variant: 'saved', unfocused: 'mode' }), ...routeLayers({ variant: 'choosing' })]) {
       const allowed: string[] = layer.source === ROUTE_SOURCE_ID ? ROUTE_KEYS : POINT_KEYS;
       for (const key of getKeys([layer.filter, layer.paint, layer.layout])) {
         expect(allowed, `layer "${layer.id}" reads unknown property "${key}"`).toContain(key);
@@ -124,14 +125,25 @@ describe('selected trip draws on top (PR #35 review, issue 1)', () => {
   });
 });
 
-describe('routes are drawn on their real street', () => {
-  it('no line layer shifts lines sideways, so legs join up and markers sit on the lines at every zoom', () => {
-    for (const layer of routeLayers({ hitLineWidth: TOUCH_HIT_LINE_WIDTH })) {
-      expect(layer.paint['line-offset'], `layer "${layer.id}"`).toBeUndefined();
+describe('lanes (side-by-side routes)', () => {
+  it('every route line layer (casing, visible lines, hit line) uses the same sideways shift, in every look', () => {
+    for (const layers of [routeLayers(), routeLayers({ variant: 'saved' }), routeLayers({ variant: 'choosing' }), routeLayers({ hitLineWidth: TOUCH_HIT_LINE_WIDTH })]) {
+      const lines = layers.filter((l) => l.type === 'line');
+      for (const layer of lines) expect(layer.paint['line-offset'], `layer "${layer.id}"`).toEqual(lines[0]!.paint['line-offset']);
     }
   });
 
-  it('the mouse click target stays narrow, so a click on one route rarely also catches its neighbour', () => {
+  it('a lane-1 line is shifted LANE_SPACING px, the other way when its line runs backwards', () => {
+    const offset = routeLayers()[0]!.paint['line-offset'];
+    expect(evaluate(offset, { lane: 1, direction: 1 })).toBe(LANE_SPACING);
+    expect(evaluate(offset, { lane: 1, direction: -1 })).toBe(-LANE_SPACING);
+  });
+
+  it('leaves a visible gap between neighbouring lanes at city zoom', () => {
+    expect(LANE_SPACING - SELECTED_LINE_WIDTH).toBeGreaterThanOrEqual(3);
+  });
+
+  it('the mouse click target is not so wide that every click hits the neighbouring lane too', () => {
     const hit = routeLayers().find((l) => l.id === interactiveLayerIds()[0])!;
     expect(hit.paint['line-width']).toBeLessThanOrEqual(1.5 * LANE_SPACING);
   });
@@ -176,7 +188,7 @@ describe('touch-sized hit area (plan 009 step 4)', () => {
 
   it('is invisible and sits exactly on the drawn route', () => {
     const hit = hitOf(touch);
-    expect(hit.paint['line-offset']).toBeUndefined();
+    expect(hit.paint['line-offset']).toEqual(touch[0]!.paint['line-offset']);
     expect(hit.paint['line-opacity']).toBe(0);
   });
 });
@@ -201,7 +213,7 @@ describe('zooming in makes routes bigger', () => {
 });
 
 describe('start and end markers (mockup: small dot at the start, bigger circle with an icon at the end)', () => {
-  const layers = routeLayers();
+  const layers = routeLayers({ variant: 'saved', unfocused: 'grey' });
   const dots = layers.find((l) => l.id === 'route-points')!;
   const icon = layers.find((l) => l.id === END_ICON_ID)!;
   const point = (kind: string, extra: FeatureProps = {}): FeatureProps => ({ kind, color: '#db2777', selected: false, dimmed: false, ...extra });
@@ -221,7 +233,7 @@ describe('start and end markers (mockup: small dot at the start, bigger circle w
   it('colours start and end like their trip: dark or grey with grey routes, the main mode colour with mode colours', () => {
     expect(evaluate(dots.paint['circle-color'], point('origin', { selected: true }))).toBe(FOCUS_INK);
     expect(evaluate(dots.paint['circle-color'], point('destination'))).toBe(UNFOCUSED_ROUTE_COLOR);
-    const byMode = routeLayers({ unfocused: 'mode' }).find((l) => l.id === 'route-points')!;
+    const byMode = routeLayers({ variant: 'saved', unfocused: 'mode' }).find((l) => l.id === 'route-points')!;
     for (const selected of [true, false]) {
       for (const kind of ['origin', 'destination']) {
         expect(evaluate(byMode.paint['circle-color'], point(kind, { selected, mainModeColor: '#7c3aed' }))).toBe('#7c3aed');
@@ -252,7 +264,7 @@ describe('start and end markers (mockup: small dot at the start, bigger circle w
 });
 
 describe('only the selected trip is in focus', () => {
-  const layers = routeLayers({ unfocused: 'mode' });
+  const layers = routeLayers({ variant: 'saved', unfocused: 'mode' });
   const line = layers.find((l) => l.id === 'route-solid')!;
   const dots = layers.find((l) => l.id === 'route-points')!;
   const icon = layers.find((l) => l.id === END_ICON_ID)!;
@@ -317,8 +329,38 @@ describe('choosing look for search results (Figma frame 02)', () => {
     }
   });
 
-  it('leaves the saved look exactly as it was when no variant is given', () => {
-    expect(routeLayers()).toEqual(routeLayers({ variant: 'saved' }));
+});
+
+describe('original look when no variant is given (PR #76 review: web and demo unchanged)', () => {
+  const layers = routeLayers();
+  const solid = layers.find((l) => l.id === 'route-solid')!;
+  const selectedSolid = layers.find((l) => l.id === 'route-solid-selected')!;
+  const dots = layers.find((l) => l.id === 'route-points')!;
+  const point = (kind: string, extra: FeatureProps = {}): FeatureProps => ({ kind, color: '#db2777', selected: false, dimmed: false, ...extra });
+
+  it("draws every trip in its own colour, selected or not, ignoring mode colours", () => {
+    const leg = { color: '#db2777', modeColor: '#ea580c', mainModeColor: '#7c3aed' };
+    expect(evaluate(solid.paint['line-color'], { ...leg, selected: false })).toBe('#db2777');
+    expect(evaluate(selectedSolid.paint['line-color'], { ...leg, selected: true })).toBe('#db2777');
+    expect(routeLayers()).toEqual(routeLayers({ unfocused: 'trip' }));
+  });
+
+  it('fades the other trips only while one is selected', () => {
+    expect(evaluate(solid.paint['line-opacity'], { selected: false, dimmed: false })).toBe(1);
+    expect(evaluate(solid.paint['line-opacity'], { selected: false, dimmed: true })).toBe(DIMMED_OPACITY);
+    expect(evaluate(dots.paint['circle-opacity'], point('origin', { dimmed: true }))).toBe(DIMMED_OPACITY);
+  });
+
+  it('draws white dots ringed in the trip colour, transfers included, with no end icon', () => {
+    for (const kind of ['origin', 'destination', 'transfer']) {
+      expect(evaluate(dots.paint['circle-color'], point(kind))).toBe('#ffffff');
+      expect(evaluate(dots.paint['circle-stroke-color'], point(kind))).toBe('#db2777');
+      expect(evaluate(dots.paint['circle-stroke-width'], point(kind))).toBe(3);
+    }
+    expect(evaluate(dots.paint['circle-radius'], point('origin'))).toBe(6);
+    expect(evaluate(dots.paint['circle-radius'], point('destination'))).toBe(6);
+    expect(evaluate(dots.paint['circle-radius'], point('transfer'))).toBe(4);
+    expect(layers.some((l) => l.id === END_ICON_ID)).toBe(false);
   });
 });
 

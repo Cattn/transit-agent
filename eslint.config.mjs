@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**', 'apps/mobile/android/**', 'apps/mobile/ios/**', 'apps/mobile/public/maplibre-gl-worker.js', '.agents/**', '.review-worktrees/**'] },
+  { ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**', 'apps/mobile/android/**', 'apps/mobile/ios/**', 'apps/mobile/src/map/maplibre-gl-worker.js', '.agents/**', '.review-worktrees/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: { ...globals.node, ...globals.browser } } },

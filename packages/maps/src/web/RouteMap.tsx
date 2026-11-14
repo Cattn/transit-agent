@@ -79,8 +79,8 @@ export function RouteMap({
   fitKey,
   padding = DEFAULT_PADDING,
   routeColors,
-  unfocusedColors = 'grey',
-  variant = 'saved',
+  unfocusedColors = 'trip',
+  variant,
   accentColor
 }: RouteMapProps) {
   // A handle on the underlying map so we can call camera methods like fitBounds().

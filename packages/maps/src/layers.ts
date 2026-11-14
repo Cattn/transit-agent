@@ -18,6 +18,7 @@ import {
   FOCUS_INK,
   LINE_WIDTH,
   LINE_WIDTH_ZOOMED_IN,
+  LANE_SPACING,
   LINE_WIDTH_ZOOMED_OUT,
   SELECTED_LINE_WIDTH,
   SELECTED_LINE_WIDTH_ZOOMED_IN,
@@ -95,6 +96,8 @@ const CASING_WIDTH_EXPR = [
 /** Fade every trip that isn't selected, including when nothing is selected: only the selected trip is in focus. */
 const OPACITY_EXPR = ['case', ['get', 'selected'], 1, DIMMED_OPACITY];
 const SELECTED_ON_TOP = ['case', ['get', 'selected'], 1, 0];
+const DIMMED_WHILE_SELECTING = ['case', ['get', 'dimmed'], DIMMED_OPACITY, 1];
+const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], ['get', 'direction'], LANE_SPACING];
 
 /** One line layer for one dash style. */
 /**
@@ -121,7 +124,17 @@ interface Look {
   accent: string;
 }
 
-function look(unfocused: UnfocusedColors, variant: MapVariant, accent: string): Look {
+function look(unfocused: UnfocusedColors, variant: MapVariant | undefined, accent: string): Look {
+  if (variant === undefined) {
+    return {
+      selectedLine: ['get', 'color'],
+      otherLine: unfocusedColor(unfocused),
+      marker: ['get', 'color'],
+      transferRing: ['get', 'color'],
+      opacity: DIMMED_WHILE_SELECTING,
+      accent
+    };
+  }
   if (variant === 'choosing') {
     return {
       selectedLine: accent,
@@ -159,6 +172,7 @@ function dashLayer(dash: Dash, which: 'unselected' | 'selected', style: Look): R
     paint: {
       'line-color': ['case', ['get', 'selected'], style.selectedLine, style.otherLine],
       'line-width': LINE_WIDTH_EXPR,
+      'line-offset': LANE_OFFSET_EXPR,
       'line-opacity': style.opacity,
       // Only add a dasharray when there is one. Solid lines simply leave it out.
       ...(pattern ? { 'line-dasharray': pattern } : {})
@@ -178,16 +192,68 @@ function dashLayer(dash: Dash, which: 'unselected' | 'selected', style: Look): R
  *      responds to clicks, so you can click near a line rather than exactly on it.
  *   5. points: start, end and transfer dots on top of the lines
  */
+const CLASSIC_POINTS: RouteLayer = {
+  id: 'route-points',
+  type: 'circle',
+  source: POINT_SOURCE_ID,
+  paint: {
+    'circle-color': '#ffffff',
+    'circle-stroke-color': ['get', 'color'],
+    'circle-stroke-width': 3,
+    'circle-radius': ['match', ['get', 'kind'], 'transfer', 4, 6],
+    'circle-opacity': DIMMED_WHILE_SELECTING,
+    'circle-stroke-opacity': DIMMED_WHILE_SELECTING
+  }
+};
+
 export function routeLayers({
   hitLineWidth = HIT_LINE_WIDTH,
-  unfocused = 'grey',
-  variant = 'saved',
+  unfocused = 'trip',
+  variant,
   accentColor = DEFAULT_ACCENT_COLOR
 }: { hitLineWidth?: number; unfocused?: UnfocusedColors; variant?: MapVariant; accentColor?: string } = {}): RouteLayer[] {
   const style = look(unfocused, variant, accentColor);
   const isTransfer = ['==', ['get', 'kind'], 'transfer'];
   const hollow = (whenHollow: unknown, otherwise: unknown) =>
     style.hollowStart ? ['case', style.hollowStart, whenHollow, otherwise] : otherwise;
+  const pointLayers: RouteLayer[] = variant === undefined
+    ? [CLASSIC_POINTS]
+    : [
+        {
+          id: 'route-points',
+          type: 'circle',
+          source: POINT_SOURCE_ID,
+          layout: { 'circle-sort-key': SELECTED_ON_TOP },
+          paint: {
+            'circle-color': ['case', isTransfer, '#ffffff', hollow('#ffffff', style.marker)],
+            'circle-stroke-color': ['case', isTransfer, style.transferRing, hollow(style.accent, '#ffffff')],
+            'circle-stroke-width': ['case', isTransfer, ['case', ['get', 'selected'], 2.5, 0], hollow(HOLLOW_START_RING_WIDTH, MARKER_BORDER_WIDTH)],
+            'circle-radius': [
+              'match', ['get', 'kind'],
+              'origin', ORIGIN_DOT_RADIUS,
+              'destination', DESTINATION_DOT_RADIUS,
+              ['case', ['get', 'selected'], TRANSFER_DOT_RADIUS, 0]
+            ],
+            'circle-opacity': style.opacity,
+            'circle-stroke-opacity': style.opacity
+          }
+        },
+        {
+          id: END_ICON_ID,
+          type: 'symbol',
+          source: POINT_SOURCE_ID,
+          filter: ['==', ['get', 'kind'], 'destination'],
+          layout: {
+            'icon-image': END_ICON_ID,
+            'symbol-sort-key': SELECTED_ON_TOP,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true
+          },
+          paint: {
+            'icon-opacity': style.opacity
+          }
+        }
+      ];
   return [
     dashLayer('solid', 'unselected', style),
     dashLayer('dashed', 'unselected', style),
@@ -201,6 +267,7 @@ export function routeLayers({
       paint: {
         'line-color': '#ffffff',
         'line-width': CASING_WIDTH_EXPR, // wider than the line, so a white border shows
+        'line-offset': LANE_OFFSET_EXPR
       }
     },
     dashLayer('solid', 'selected', style),
@@ -218,45 +285,13 @@ export function routeLayers({
       paint: {
         'line-color': '#000000', // any colour; it's never seen
         'line-width': hitLineWidth,
+        'line-offset': LANE_OFFSET_EXPR,
         // Fully transparent. MapLibre still includes it in click queries, because hit-testing uses
         // the line's geometry and width, not what's visible. (visibility: 'none' WOULD remove it.)
         'line-opacity': 0
       }
     },
-    {
-      id: 'route-points',
-      type: 'circle',
-      source: POINT_SOURCE_ID,
-      layout: { 'circle-sort-key': SELECTED_ON_TOP },
-      paint: {
-        'circle-color': ['case', isTransfer, '#ffffff', hollow('#ffffff', style.marker)],
-        'circle-stroke-color': ['case', isTransfer, style.transferRing, hollow(style.accent, '#ffffff')],
-        'circle-stroke-width': ['case', isTransfer, ['case', ['get', 'selected'], 2.5, 0], hollow(HOLLOW_START_RING_WIDTH, MARKER_BORDER_WIDTH)],
-        'circle-radius': [
-          'match', ['get', 'kind'],
-          'origin', ORIGIN_DOT_RADIUS,
-          'destination', DESTINATION_DOT_RADIUS,
-          ['case', ['get', 'selected'], TRANSFER_DOT_RADIUS, 0]
-        ],
-        'circle-opacity': style.opacity,
-        'circle-stroke-opacity': style.opacity
-      }
-    },
-    {
-      id: END_ICON_ID,
-      type: 'symbol',
-      source: POINT_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'destination'],
-      layout: {
-        'icon-image': END_ICON_ID,
-        'symbol-sort-key': SELECTED_ON_TOP,
-        'icon-allow-overlap': true,
-        'icon-ignore-placement': true
-      },
-      paint: {
-        'icon-opacity': style.opacity
-      }
-    }
+    ...pointLayers
   ];
 }
 
