@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DarkTheme, DefaultTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { ApiProvider } from '@transit/client-react';
-import { client, useClientDeviceId } from './src/data/client';
+import { useAppClient } from './src/data/client';
 import { RootStack } from './src/navigation/Root';
 import { AppearanceProvider, useAppColors } from './src/theme/appearance';
 
@@ -25,14 +26,26 @@ function ThemedNavigation() {
   );
 }
 
+function Starting() {
+  const colors = useAppColors();
+  return (
+    <View accessibilityLabel="Starting Transit Agent" style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+      <StatusBar style={colors.scheme === 'dark' ? 'light' : 'dark'} />
+      <ActivityIndicator color={colors.primary} />
+    </View>
+  );
+}
+
 export default function App() {
-  useClientDeviceId();
+  const client = useAppClient();
   return (
     <SafeAreaProvider>
       <AppearanceProvider>
-        <ApiProvider client={client}>
-          <ThemedNavigation />
-        </ApiProvider>
+        {client ? (
+          <ApiProvider client={client}>
+            <ThemedNavigation />
+          </ApiProvider>
+        ) : <Starting />}
       </AppearanceProvider>
     </SafeAreaProvider>
   );
