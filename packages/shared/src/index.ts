@@ -26,3 +26,4 @@ export * from './domain/api.js';
 export * from './domain/fixtures.js';
 export * from './client/api-client.js';
 export * from './client/device-id.js';
+export * from './client/trip-draft-state.js';
