@@ -5,11 +5,20 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "npm run typecheck"
+    "test:unit": "vitest run",
+    "test": "npm run typecheck && npm run test:unit"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.12"
   }
 }
