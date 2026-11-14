@@ -26,7 +26,7 @@
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** Plan 020's home shell. Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
+- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
 
 **Open questions** — **@DMFriends answers these.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 

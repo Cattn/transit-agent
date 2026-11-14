@@ -26,7 +26,7 @@
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Agent:** plan 006 is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
-- **Waiting on:** The home shell. Not on `GEMINI_API_KEY`.
+- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on `GEMINI_API_KEY`.
 
 **Open questions** — **@Cattn answers Q1–Q2; @Rad1ee answers Q3 (design).** Reply as `023-Q1: ...`. Use the proposed defaults until answered.
 

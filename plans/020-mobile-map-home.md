@@ -25,7 +25,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔍 **PR #60 open.** Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go; iOS not yet.
+- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go; iOS not yet.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
