@@ -16,7 +16,7 @@
 - **Depends on**: 009 (DOM map on Android), 021 (Results + Save), 022 (Filters), 034 (chat kept for the session). Already merged: 020 home, 023 chat, 028/033 place search, 006 agent.
 - **Category**: verification
 - **Planned at**: commit `db8b72c`, 2026-11-14
-- **Issue**: see `plans/README.md` (MVP milestone)
+- **Issue**: tracked on [#17](https://github.com/Cattn/transit-agent/issues/17) (roadmap). No separate issue; post the result there.
 
 <!-- help:start -->
 ## Who's on it & how to help
@@ -90,17 +90,17 @@ Start the server, then the app in server mode, and open it on an Android phone i
 
 ### Step 4: Record the result
 
-Post one comment on this plan's issue with a short screen recording (or about 4 screenshots) and
+Post one comment on #17 with a short screen recording (or about 4 screenshots) and
 a pass / fail line per check in Step 3. For each failure, name the plan that owns the screen
 (map 009, Results 021, Filters 022, chat 023/034) and link the bug issue.
 
-**Verify**: the comment is posted. If every check passed, close this issue and the MVP milestone.
+**Verify**: the comment is posted. If every check passed, close the MVP milestone.
 
 ## Done criteria
 
 - [ ] `npm run check` exits 0 on the tested commit
 - [ ] Every check in Step 3 passes on an Android phone against the real server
-- [ ] The result comment with media is on the issue
+- [ ] The result comment with media is on #17
 
 ## STOP conditions
 
