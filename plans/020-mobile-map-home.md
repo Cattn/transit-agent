@@ -25,7 +25,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft.** Feedback welcome before or during the build. Reuse merged 015 (hooks) and 018 (platform helpers); the native map is @KrakenTheJaken's plan 009.
+- **Status:** 🔍 **PR #60 open.** Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Not yet tried on a device.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
