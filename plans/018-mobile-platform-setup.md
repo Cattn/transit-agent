@@ -25,7 +25,7 @@
 
 **Open questions** (answer by number in a comment on #26):
 
-1. iOS is in scope (decided): who has a Mac or iPhone to test the iOS permission prompt? *(Decided already: location is requested only when the user taps "use my location".)*
+1. @KrakenTheJaken was nominated for iOS device verification ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Confirm availability; location/deep-link checks are not completed. Location remains tap-only.
 
 <!-- help:end -->
 
@@ -167,7 +167,7 @@ After merging, someone must run `npm run build:android` once (new native modules
 - Primary reviewer passed 30 mobile tests, mobile typecheck, and Android/iOS Hermes exports with the entire platform barrel imported into a temporary entry point using locked dependencies. Helper bundle coverage is verified; real-device behavior is not.
 - UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, tap-only location, and incoming trip links. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
 - PR #37's local `DeviceIdStorage` already matches plan 015: `get(): Promise<string | null>`, `set(id: string): Promise<void>`. Keep that shape; once 015 lands, import its exported type when wiring the consumer. No worker contract adjustment is needed.
-- After merging, rebuild the native dev client and verify location permission/results and cold/warm trip links on Android and iOS. Device validation and the Mac/iPhone tester question remain open.
+- After merging, rebuild the native dev client and verify location permission/results and cold/warm trip links on Android and iOS. Device validation remains open. Cattn nominated @KrakenTheJaken for iOS checks; availability is unconfirmed.
 
 - Push notifications (D7-C) will add `expo-notifications` next to these helpers and reuse `tripLink` for the notification's target.
 - Any new permission needs `app.json` text **and** a dev-client rebuild. Say so in the PR.
@@ -175,4 +175,4 @@ After merging, someone must run `npm run build:android` once (new native modules
 ## Open questions for review
 
 - ~~018-Q1~~ **Decided (@DMFriends, 2026-11-14, [#26](https://github.com/Cattn/transit-agent/issues/26#issuecomment-6872580875)): only on tap.** `getCurrentPlace()` requests permission only when the user taps "use my location". Never request location at app launch.
-- ~~018-Q2~~ **Decided (@Cattn, 2026-11-14): iOS is in scope.** Test the location permission text on iOS too. Running a dev client on a real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account for device install; without one, use the iOS Simulator (needs a Mac). Whoever has a Mac/iPhone should verify Steps 4 and 6 on iOS.
+- ~~018-Q2~~ **Decided (@Cattn, 2026-11-14): iOS is in scope.** Test the location permission text on iOS too. Running a dev client on a real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account for device install; without one, use the iOS Simulator (needs a Mac). @KrakenTheJaken is the nominated iOS tester ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); confirm availability, then verify Steps 4 and 6. Nomination is not device validation.
