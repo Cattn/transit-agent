@@ -9,6 +9,8 @@
 
 ## Status
 
+- **Owner:** @Cattn (verified sole assignee on #49).
+- **Status:** CLAIMED. Completion is not confirmed; do not start a competing implementation.
 - **Priority**: P1 (MVP: the search box fails against the real server without it)
 - **Effort**: S
 - **Risk**: LOW
