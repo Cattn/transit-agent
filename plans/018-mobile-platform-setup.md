@@ -20,12 +20,12 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **Done.** Merged in #37. Remaining: UI screens call these helpers (plan 020) and Android device checks of location and deep links. iOS checks are in the backlog.
+- **Status:** ✅ **Done.** Merged in #37. Location, device ID storage and the API URL fallback are in use and work in Expo Go on Android (plans 020–022). Nothing remains. iOS checks are in the backlog.
 - **Owner:** @DMFriends
 
 **Open questions** (answer by number in a comment on #26):
 
-None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Android location/deep-link checks are not completed. Location remains tap-only.
+None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Location remains tap-only. **Trip links removed (@Cattn, 2026-11-14):** nothing used them, and checking them needed a dev build, so the feature was deleted (`links.ts`, `links-native.ts`, `expo-linking`).
 
 <!-- help:end -->
 
@@ -128,6 +128,8 @@ export async function getCurrentPlace(): Promise<LocationResult>
 
 ### Step 6: Trip links
 
+> **Trip links removed (@Cattn, 2026-11-14):** nothing used them, and checking them needed a dev build, so the feature was deleted (`links.ts`, `links-native.ts`, `expo-linking`). The step below is history.
+
 `links.ts` (pure): `tripLink(id: string): string` → `transit-agent://trip/${encodeURIComponent(id)}`; `parseTripLink(url: string): { tripId: string } | null` accepts `transit-agent://trip/<id>` and `exp+transit-agent://…` dev-client forms, rejects anything else.
 `links.native.ts`: `useIncomingTripLink(onTrip: (id: string) => void)` using `Linking.getInitialURL()` once and `Linking.addEventListener('url', …)`.
 Tests: round-trip `parseTripLink(tripLink('mock-fast-1a2b'))`; ids with `/` and spaces; foreign URLs → `null`.
@@ -163,11 +165,11 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 ### Review and remaining integration (2026-11-14)
 
-- Merged in #37. Device verification (rebuilt dev client: LAN API fallback, location prompt on tap, deep links) is still outstanding on Android. iOS is in the backlog.
+- Merged in #37. Device verification is done in Expo Go on Android: the LAN API fallback and the location prompt on tap run in the app (plans 020–022). Trip links were removed (see Step 6). iOS is in the backlog.
 - Primary reviewer passed 30 mobile tests, mobile typecheck, and Android/iOS Hermes exports with the entire platform barrel imported into a temporary entry point using locked dependencies. Helper bundle coverage is verified; real-device behavior is not.
-- UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, tap-only location, and incoming trip links. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
+- UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, and tap-only location. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
 - PR #37's local `DeviceIdStorage` already matches plan 015: `get(): Promise<string | null>`, `set(id: string): Promise<void>`. Keep that shape; once 015 lands, import its exported type when wiring the consumer. No worker contract adjustment is needed.
-- After merging, rebuild the native dev client and verify location permission/results and cold/warm trip links on Android. Device validation remains open. iOS checks are in the backlog.
+- No dev build is needed: every remaining helper is included in Expo Go.
 
 - Push notifications (D7-C) will add `expo-notifications` next to these helpers and reuse `tripLink` for the notification's target.
 - Any new permission needs `app.json` text **and** a dev-client rebuild. Say so in the PR.
@@ -181,6 +183,6 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
 
-- Verify on iOS: the location permission text and prompt on tap (Step 4) and cold/warm trip links (Step 6), in a rebuilt iOS dev client.
+- Verify on iOS: the location permission prompt on tap (Step 4).
 - A real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account; without one, use the iOS Simulator (needs a Mac).
 - @KrakenTheJaken was the nominated iOS tester ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); availability was never confirmed.
