@@ -24,11 +24,6 @@
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Small, pure TypeScript with a test table already written. Good first task for anyone.
 
-**Open questions** (answer by number in a comment on #21):
-
-1. Extra buffer before "leave now": 5 min if you must be on time, 2 min normally, 0 if flexible. Sensible?
-2. "Leave soon" starts 10 minutes before the leave-by time. Right threshold?
-
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
 - **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
@@ -109,7 +104,9 @@ Add `watchStatus: WatchStatusSchema.optional()` to `SavedItinerarySchema`.
 ### Step 2: `computeWatchStatus` (`watch.ts`)
 
 ```ts
+/** Provisional values (accepted 2026-11-14, expected to be tuned). Keep every threshold in these two constants. */
 export const leaveBufferMinutes = { strict: 5, some: 2, flexible: 0 } as const;
+export const leaveSoonMinutes = 10;
 export function computeWatchStatus(it: Itinerary, req: TripRequest, now: Date): WatchStatus
 ```
 Rules (in this order):
@@ -122,7 +119,7 @@ Rules (in this order):
    - `req.constraints.arriveBy` defined and last leg `arriveAt > arriveBy` → `atRisk`
    - `leaveBy − now > 3 h` → `scheduled`
    - `leaveBy − now ≤ 0` → `leaveNow`
-   - `leaveBy − now ≤ 10 min` → `leaveSoon`
+   - `leaveBy − now ≤ leaveSoonMinutes` → `leaveSoon`
    - else `onTrack`
 5. **usedRealtime** = any leg has `timeSource === 'realtime'`.
 6. **message**: time formatted with `Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: req.timeZone })` (omit `timeZone` when undefined). Examples:
@@ -176,5 +173,5 @@ Also: `arriveBy` 08:20 → `atRisk`; the same bus as `realtime` with `departAt` 
 
 ## Open questions for review
 
-- 013-Q1: Extra buffer before "leave now": 5 min if you must be on time, 2 min normally, 0 if flexible. Sensible? *(moved from 008-Q1)*
-- 013-Q2: "Leave soon" starts 10 minutes before leave-by. Right threshold?
+- ~~013-Q1~~ **Decided (@Cattn, 2026-11-14):** 5 / 2 / 0 min buffers, provisional and expected to change. Keep them in `leaveBufferMinutes`.
+- ~~013-Q2~~ **Decided (@Cattn, 2026-11-14):** "leave soon" at 10 min, provisional and expected to change. Keep it in `leaveSoonMinutes`.

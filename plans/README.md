@@ -189,8 +189,25 @@ transit data (007) can land afterwards without any client changes.
 | D7 | How clients learn of watch updates | A Poll `GET /api/itineraries` every 30–60 s · B SSE · C Expo push notifications | **A now, C later.** Push needs EAS credentials and a deployed server. | 008 |
 | D8 | Basemap tiles | A MapTiler (free tier, key) · B OpenFreeMap / Protomaps (no key) · C Stadia | **Maps team decides.** The contract in 009 hides it behind a `styleUrl` prop. | 009 |
 | D9 | Map package location | A `packages/maps` with `/web` and `/native` subpath exports · B Map code inside each app | **A**, per the map-architecture thread. | 009 |
-| D10 | Flight price data | A Duffel (test mode, booking-capable) · B SerpApi Google Flights · C Fixture only for demo | **C first, then spike A vs B.** Pricing and access terms change often; verify before relying on either. | 011 |
+| D10 | Flight price data | A Port Clovis's Google Flights client · B Run Clovis as a separate local service · C Duffel API · D SerpApi Google Flights · E Fixture only · (+ agent orchestrates searches on top of any source) | **Sample fares now (014); then A, with E as fallback.** Details below the table. | 011, 014, 006 |
 | D11 | Flight scope for v1 | A US domestic + "nearby airports + drive/train" · B Also Europe/Eurail | **A.** Europe/Eurail goes in the backlog. Eurail fares have no simple public API. | 011 |
+
+
+### D10 in detail: where flight prices come from
+
+[Clovis](https://github.com/Cattn/clovis) is Cattn's flights project. It talks to Google Flights' internal endpoints with plain `fetch` (no browser), throttles requests, and already supports **several origin airports in one search** (`from=BOS,PVD,MHT`), which is exactly what "is it cheaper to fly from another airport" needs.
+
+| Option | How | Good | Bad |
+|---|---|---|---|
+| **A. Port Clovis's client** *(recommended)* | Copy its `src/utils` (`tfs.ts` URL builder, `shopping.ts`, `parser.ts`, `token.ts`, `format.ts`) into `apps/server/src/flights/clovis/`, wrap it as a `ClovisFareProvider` behind plan 014's `FlightFareProvider` interface | Real Google Flights prices, free, no API key, one server process, Cattn knows the code | Unofficial: Google can change the page or show a captcha at any time, and it isn't sanctioned by Google's terms. Fine for a local demo, not for a product. Times come as local strings and durations as `"5h 30m"`, so they need converting to ISO times with offsets. |
+| B. Run Clovis as a service | Start Clovis next to our server and call its HTTP API | No code copied; Clovis improvements arrive for free | Two processes to run (and Clovis uses Bun); same unofficial-source risk as A |
+| C. Duffel | Official flight API; test mode is free | Sanctioned, structured data, can book later | Account and key needed; test mode may return sample airlines rather than real prices (verify); real use is paid |
+| D. SerpApi (Google Flights) | Paid service that returns Google Flights results as JSON | Simple, maintained by someone else | Small free quota; comparing ~5 origins × 3 destinations uses it up fast |
+| E. Sample fares only | Plan 014's `FixtureFareProvider` | Never breaks; perfect for a demo script | Not real prices |
+
+**"Have the agent check flights itself"** works as a layer on top of any source, not as a source by itself. Letting the model read prices off web pages is slow and can't be checked, and it breaks the rule that the agent never invents a route. Instead, give the agent a `search_flights` tool backed by A–E, and let it *decide which searches to run*: try other airports, shift dates ±2 days, or for Europe, try several landing cities and compare the train onward. That's where the agent adds value (plan 006 tool + plan 011 step 7).
+
+**Recommended path:** keep sample fares (014) for development and the demo fallback; build A as plan 011 step 6 with caching and the existing throttle; add the agent's `search_flights` tool on top. Revisit C if booking ever matters.
 
 ---
 

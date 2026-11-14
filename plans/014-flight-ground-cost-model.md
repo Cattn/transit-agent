@@ -25,8 +25,7 @@
 
 **Open questions** (answer by number in a comment on #22):
 
-1. From Boston, include the NYC airports (~300 km away) by default? *(suggested: yes, the issue's example asks exactly that)*
-2. $25/day default parking when an airport's rate is unknown. OK?
+1. $25/day default parking when an airport's rate is unknown. OK?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -146,5 +145,5 @@ Fixture fares are deterministic and make the comparison interesting. For any des
 
 ## Open questions for review
 
-- 014-Q1: From Boston, include the NYC airports (~300 km away) by default? *(moved from 011-Q1; proposed: yes, because the issue's example asks exactly that)*
+- ~~014-Q1~~ **Decided (@Cattn, 2026-11-14):** yes, include the NYC airports. Plan 011 uses a default search radius of **350 km** so JFK, LGA and EWR are in by default from Boston.
 - 014-Q2: $25/day default parking when an airport's rate is unknown. OK?

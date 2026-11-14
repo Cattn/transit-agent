@@ -28,7 +28,7 @@
 
 **Open questions** (answer by number in a comment on #15):
 
-1. Which flight price source: Duffel or SerpApi (Google Flights)? Someone needs to check current pricing and terms.
+1. Where flight prices come from (D10): port Cattn's Clovis Google Flights client (suggested), Duffel, SerpApi, or sample fares only? Options and trade-offs are in `plans/README.md` → D10.
 2. Show "take Amtrak instead" as an option in Fly mode (e.g. Boston → DC)? *(suggested: yes)*
 
 **How to help**
@@ -81,7 +81,7 @@ plan 014, which can start before plan 003 lands. Check they exist; if not, STOP.
 
 ### Step 6 (after D10): Real fare provider
 
-Implement the chosen `FlightFareProvider` (`DUFFEL_API_KEY` or `SERPAPI_KEY` server env). Respect rate limits, cache identical queries for 15 min, and record one real sample for mapper tests. Keep fixture fares selectable via `FLIGHT_FARES=fixture`.
+Implement the `FlightFareProvider` chosen in D10 (options and trade-offs in `plans/README.md` → D10; the leading option is porting Cattn's Clovis Google Flights client). Whatever the source: respect rate limits, cache identical queries for 15 min, record one real sample response for mapper tests, and keep fixture fares selectable via `FLIGHT_FARES=fixture` (the demo fallback if the live source breaks).
 
 ### Step 7: Agent
 

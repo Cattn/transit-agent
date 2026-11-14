@@ -27,7 +27,7 @@
 **Open questions** (answer by number in a comment on #26):
 
 1. @Rad1ee @DMFriends: ask for location on first launch, or only when the user taps "use my location"? *(suggested: only on tap)*
-2. Is iOS in scope for the demo, or Android only?
+2. iOS is in scope (decided): who has a Mac or iPhone to test the iOS permission prompt?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -177,4 +177,4 @@ After merging, someone must run `npm run build:android` once (new native modules
 ## Open questions for review
 
 - 018-Q1 (@Rad1ee @DMFriends): Ask for location on first launch, or only when the user taps "use my location"? *(proposed: only on tap)*
-- 018-Q2: Is iOS in scope for the demo, or Android only? (Affects whether someone tests the iOS permission text.)
+- ~~018-Q2~~ **Decided (@Cattn, 2026-11-14): iOS is in scope.** Test the location permission text on iOS too. Running a dev client on a real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account for device install; without one, use the iOS Simulator (needs a Mac). Whoever has a Mac/iPhone should verify Steps 4 and 6 on iOS.
