@@ -69,7 +69,7 @@ plan 014, which can start before plan 003 lands. Check they exist; if not, STOP.
 
 `supports`: `modes` includes `flight`. `search`:
 1. Origin airports = `airportsNear(origin, 250 km)` (top 5). Destination airports = `airportsNear(destination, 150 km)` (top 3).
-2. For each origin airport, compute ground options: drive (if `ownsCar`; cost via step 2, days = trip length or 1), and transit/rail via the existing ground providers (`planTrip` on a sub-request with `modes` minus `flight`). Pick the best ground option by the user's preferences.
+2. For each origin airport, compute ground options: drive (if `car` is in the request's `modes`, i.e. the user turned on the Drive filter (D12), and `ownsCar`; cost via step 2, days = trip length or 1), and transit/rail via the existing ground providers (`planTrip` on a sub-request with `modes` minus `flight`). Pick the best ground option by the user's preferences.
 3. Fare search for the cross-product (one provider call with arrays).
 4. Compose itineraries: ground leg(s) → `flight` leg(s) → ground leg at destination. The airport arrival buffer before departure is 90 min domestic, 150 international (`constants`). Shorten it by 15 min when `transferRisk ≥ 0.7`. Layovers become `transferBufferMinutes` on the next flight leg, so the existing risk rules apply. Flight geometry = great-circle LineString (64 points, split at the antimeridian).
 5. Cost lines: fare, gas, parking, tolls, transit fares, bag fees if bags > included (assume 1 checked bag unless the draft says otherwise; add a `bags` field to `TripDraft` only after review, see Q2).

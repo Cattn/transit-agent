@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **MVP, next up.** Build with the defaults until a question is answered. Visual target: Figma frame 03 Filters, Android, exactly.
+- **Status:** **MVP, in review (PR #74).** Visual target: Figma frame 03 Filters, Android, exactly. **Scope added 2026-11-14 (D12):** the Drive chip in Modes and the two-segment Transit / Fly control on Home (Step 4).
 - **Owner:** @DMFriends (2026-11-14; moved from @Cattn, originally @Rad1ee). DMFriends built Home (020) and Results (021), which this sheet sits on. Fly (024) waits until this is done.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
@@ -32,7 +32,7 @@
 - ~~022-Q1~~ **Decided:** yes, the Android full-height sheet as drawn (replaces Home's RN `Modal` `pageSheet` for Filters).
 - ~~022-Q2~~ **Decided:** yes, keep each screen's wording (Filters: On time / Bit late OK / Flexible; Settings keeps its own).
 - ~~022-Q3~~ **Decided:** yes, place search stays inside the sheet.
-- ~~022-Q4~~ **Decided — changes from the frame:** (a) **no car chip** under Modes; (b) **Advanced limits start collapsed**; (c) the **Agent mark** goes on every field the agent set or recommended (provenance `'agent'`), not only the ones drawn; (d) **no Budget control** at all: budget is not a hard limit.
+- ~~022-Q4~~ **Decided — changes from the frame:** (a) ~~no car chip under Modes~~ **superseded by D12: the car chip comes back as the Drive filter** (see Modes and Step 4); (b) **Advanced limits start collapsed**; (c) the **Agent mark** goes on every field the agent set or recommended (provenance `'agent'`), not only the ones drawn; (d) **no Budget control** at all: budget is not a hard limit.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -54,7 +54,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - Frames: `Android · 03 Filters (full sheet, scrolled length)` (`2004:1253`) and its dark twin `2018:1721`.
 - Android sheet (`2004:1341`): title "Trip filters", close icon, "Reset", then:
   - Where & when: From "Current location · Beacon Hill", To "Office · 200 Clarendon St", a Depart / Arrive segmented control, and the time "9:00 AM" (no lock icon).
-  - Modes: filter chips for walk, bus, train and bike (022-Q4: **no car chip**, even though the frame draws one; driving is the Drive tab). Map chips to `draft.modes`; leave any mode without a chip untouched in the draft. At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
+  - Modes: filter chips for walk, bus, train, bike and **Drive** (the car chip the frame draws, icon `directions_car`, label "Drive"). **Transit / Fly, no Drive tab** (@Cattn, 2026-11-14; D12 in `plans/README.md`): Drive is a filter chip (`car` in `draft.modes`), off by default, that can be turned on under Transit or Fly so a trip can include driving part of the way. The Drive chip adds or removes `car` in `draft.modes`. It is off for a new draft and shows under both Transit and Fly. Map chips to `draft.modes`; leave any mode without a chip untouched in the draft (for example `flight` under Fly). At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
   - "How strict is the arrival time?" Material segmented button with the labels "On time", "Bit late OK", "Flexible". Map them to `preferences.lateTolerance`: `strict`, `some`, `flexible`.
   - Three sliders: Cheaper ↔ Comfier (`comfortVsCost`), Safe transfers ↔ Tight (`transferRisk`), Less walking ↔ More (`activeTravel`). Values are 0..1. Any control whose provenance key is `'agent'` shows the "Agent" mark (022-Q4: every agent-set or agent-recommended field, not only the walking slider drawn in the frame), e.g. `provenance['preferences.activeTravel'] === 'agent'`.
   - Advanced limits, **collapsed by default** (022-Q4; the frame draws them expanded). Opening Filters on a limit field from an agent chip expands them. Rows: Max walk ("15 min", agent mark when set by the agent), Max transfers ("1"), Step-free access ("Off"). **Build this section from the current Figma frame `2004:1253`, not from this text** (@Cattn's review of PR #74, 2026-11-14: the Advanced limits section was far off the frame); where this text and the frame disagree on layout, the frame wins, except the 022-Q4 decisions. **No Budget row** (022-Q4: budget is not a hard limit; leave any budget constraint in the draft untouched, and do not change `packages/shared`). Clearing a limit sends `null` in the patch, not `0`.
@@ -77,9 +77,10 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - `apps/mobile/src/screens/filters/FiltersChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
 - `apps/mobile/src/screens/filters/PlaceField.tsx`
-- `apps/mobile/src/screens/home/HomeScreen.tsx` (only the flag that presents Filters)
+- `apps/mobile/src/screens/home/HomeScreen.tsx` (the flag that presents Filters, the tapped field, and the mode-control handler in Step 4)
+- `apps/mobile/src/screens/home/ModeSlider.tsx`, `HomeChrome.android.tsx`, `HomeChrome.ios.tsx` (Step 4 only: drop the Drive segment; no iOS design work)
 
-**Out of scope:** `packages/shared/**`, `apps/mobile/src/platform/**`, `app.json` plugins, results cards (plan 021), settings rows (plan 025).
+**Out of scope:** `packages/shared/**` (leave `modeGroups.drive` in place; the app stops using it), `apps/mobile/src/platform/**`, `app.json` plugins, results cards (plan 021), settings rows (plan 025).
 
 ## Git workflow
 
@@ -91,7 +92,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 1: Shared filter state
 
-`FiltersScreen.tsx` reads the draft from the callback props Home passes: `draft`, `provenance`, `apply`, and an optional `field` (a provenance key such as `constraints.maxWalkMinutes`). **Open on the tapped field:** the agent's chips call `onOpenFilters(field)` (plan 023), but Home currently drops the argument (`onOpenFilters={() => setSheet('filters')}` in `apps/mobile/src/screens/home/HomeScreen.tsx`). Keep the field in Home state, pass it to `FiltersScreen`, and scroll to (and expand, for Advanced limits) that section. The Results Filters chip passes no field and opens at the top. Every control calls `apply` with a `TripDraftPatch` and `'user'`. Reset calls `apply` to set modes back to `['walk', 'bus', 'rail']`, `preferences` back to the schema defaults (`comfortVsCost` 0.5, `transferRisk` 0.3, `lateTolerance` `'some'`, `activeTravel` 0.5), and each constraint key to `null`.
+`FiltersScreen.tsx` reads the draft from the callback props Home passes: `draft`, `provenance`, `apply`, and an optional `field` (a provenance key such as `constraints.maxWalkMinutes`). **Open on the tapped field:** the agent's chips call `onOpenFilters(field)` (plan 023), but Home currently drops the argument (`onOpenFilters={() => setSheet('filters')}` in `apps/mobile/src/screens/home/HomeScreen.tsx`). Keep the field in Home state, pass it to `FiltersScreen`, and scroll to (and expand, for Advanced limits) that section. The Results Filters chip passes no field and opens at the top. Every control calls `apply` with a `TripDraftPatch` and `'user'`. Reset calls `apply` to set modes back to `['walk', 'bus', 'rail']` (plus `flight` when the draft has it, so Reset under Fly stays on Fly; Drive turns off), `preferences` back to the schema defaults (`comfortVsCost` 0.5, `transferRisk` 0.3, `lateTolerance` `'some'`, `activeTravel` 0.5), and each constraint key to `null`.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -107,6 +108,18 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 **Verify**: `npm run lint` → exit 0
 
+### Step 4: Transit / Fly control and the Drive filter (D12)
+
+**Transit / Fly, no Drive tab** (@Cattn, 2026-11-14; D12 in `plans/README.md`): Drive is a filter chip (`car` in `draft.modes`), off by default, that can be turned on under Transit or Fly so a trip can include driving part of the way.
+
+- `ModeSlider.tsx`: `ModeGroupName` is `'transit' | 'fly'`; `MODE_OPTIONS` has Transit and Fly only. `groupForModes` returns `'fly'` when `flight` is in the modes, otherwise `'transit'` (a car-only draft from the agent shows as Transit with Drive on).
+- `modesForGroup(group, currentModes)` takes `modeGroups[group]` without `car`, then adds `car` back only if `currentModes` has it. So switching Transit ⇄ Fly keeps the Drive choice, and Fly no longer turns driving on by itself.
+- `HomeChrome.android.tsx`: the `SingleChoiceSegmentedButtonRow` has two segments (bus and airplane icons); remove the `drive` entry from `MODE_ICONS`. `HomeChrome.ios.tsx` only needs to keep compiling.
+- `HomeScreen.tsx`: pass the current modes into `modesForGroup`. Switching must still keep from, to and time.
+- The Figma Home frames may still draw three segments. This rule wins for the mode control; everything else on Home follows the frame.
+
+**Verify**: `npm run typecheck -w @transit/mobile` and `npm run lint` → exit 0. On the phone: Home shows Transit / Fly; Drive chip on, switch to Fly and back, Drive is still on.
+
 ## Test plan
 
 Do not add tests or a runner. Run the typecheck and lint commands above.
@@ -118,7 +131,8 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
 - [ ] A hard limit control sends `null` when cleared
 - [ ] `lateTolerance` and `transferRisk` are two controls
-- [ ] No car chip and no Budget row; Advanced limits start collapsed
+- [ ] Drive chip in Modes (off by default, kept across Transit ⇄ Fly); no Budget row; Advanced limits start collapsed
+- [ ] Home's mode control is Transit / Fly only
 - [ ] No files outside Scope are modified
 
 ## STOP conditions

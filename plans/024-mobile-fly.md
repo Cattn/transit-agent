@@ -48,7 +48,7 @@ First Figma pass, read 2026-11-14. The door-to-door layout is a draft, and the s
 
 ## Why this matters
 
-Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to the fly group. The sheet compares whole journeys, including the ride to the airport. Caption: door-to-door, including an Amtrak option (#15). Booking stays out.
+Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to the fly group. **Transit / Fly, no Drive tab** (@Cattn, 2026-11-14; D12 in `plans/README.md`): Drive is a filter chip (`car` in `draft.modes`), off by default, that can be turned on under Transit or Fly so a trip can include driving part of the way. So under Fly, driving to the airport is offered only when `car` is in `draft.modes`. The sheet compares whole journeys, including the ride to the airport. Caption: door-to-door, including an Amtrak option (#15). Booking stays out.
 
 ## Current state
 
@@ -60,7 +60,7 @@ Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to t
   - Footer: "~ fares are estimates from sample data · checked 2 min ago". Show the "~" sentence only when some `cost.lines` entry has `estimated: true`, or when the list is the empty state above. Use `formatAge(source.fetchedAt, new Date())` from plan 016. Hide the age when no itinerary exists; do not show a checked time on an empty state.
 - Android: Material sheet and drag handle.
 - Component `2006:733` default props, for field order only: code "BOS", title "Fly from Logan", total time "4h 05m", breakdown "Blue Line 25m · airport buffer 1h 15m · flight 1h 35m · Metro 25m", cost "fare $129 + T $2.40", tag "Best overall", total "~$131". Those strings are the draft's example. They are not mock data.
-- `modeGroups.fly` is `['walk', 'car', 'rail', 'bus', 'flight']` (`packages/shared/src/domain/modes.ts`).
+- `modeGroups.fly` is `['walk', 'car', 'rail', 'bus', 'flight']` (`packages/shared/src/domain/modes.ts`), but the app drops `car` unless the Drive filter is on (plan 022 Step 4). The Fly sheet needs a way to reach that filter: reuse the Results Filters chip pattern (opens plan 022's sheet). If the Fly frame has no place for it, ask @Cattn on #44.
 
 ## Commands you will need
 

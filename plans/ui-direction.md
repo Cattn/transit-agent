@@ -26,12 +26,12 @@ Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature note
 
 ## Navigation (UI-1)
 
-**Decided on #16 (DMFriends):** the **map is the home page / dashboard**, and a **mode slider** switches between transit, drive and fly instead of tabs.
+**Decided on #16 (DMFriends):** the **map is the home page / dashboard**, and a **mode slider** switches between transit, drive and fly instead of tabs. **Changed 2026-11-14 (D12):** the slider is Transit / Fly; Drive is a filter chip that can be turned on under either.
 
 | Screen | Shows | Backed by |
 |---|---|---|
 | **Map home** | Full map with saved / tracked trips drawn on it. Tracked trips also appear as cards (leave-by countdown, live vs scheduled) in a panel (web) or bottom sheet (mobile). Search box + filters to plan a new trip. | `listItineraries()` polled every 30–60 s while visible (plan 008 `watchStatus`); `planTrip()` for new searches |
-| **Mode slider** (on the map home) | Transit (bus + bike) / Drive / Fly. Changes which routes are shown and searched; the Fly position also shows the airport comparison list (plan 011) | sets `draft.modes` from `modeGroups.transit` / `.drive` / `.fly`; passes the same list to the map as `visibleModes` |
+| **Mode slider** (on the map home) | Transit (bus + bike) / Fly, with Drive as a filter chip (D12). Changes which routes are shown and searched; the Fly position also shows the airport comparison list (plan 011) | sets `draft.modes` from `modeGroups.transit` / `.fly`, with `car` only when the Drive chip is on; passes the same list to the map as `visibleModes` |
 | **Settings** | Profile defaults (home/work, sliders, vehicles), time zone, device id, about | `getProfile()` / `putProfile()` (plan 005) |
 
 **AI chat:** on **web, a permanent side panel** next to the map (decided on #16). On **mobile, a floating bubble** that opens a chat sheet.

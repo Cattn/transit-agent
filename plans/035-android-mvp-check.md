@@ -69,13 +69,13 @@ server and the live agent. This plan is that run, on Android, the main target (@
 
 Start the server, then the app in server mode, and open it on an Android phone in Expo Go.
 
-**Verify**: Home shows the map (not the placeholder) and the Transit / Drive / Fly control.
+**Verify**: Home shows the map (not the placeholder) and the Transit / Fly control (no Drive tab; D12).
 
 ### Step 3: The MVP flow
 
 1. Tap Ask and type: "Get me from MIT to South Station by 9 tomorrow".
 2. When the agent replies, tap one of its chips to open Filters.
-3. In Filters, change one preference (for example less walking) and tap "Show routes".
+3. In Filters, change one preference (for example less walking), turn Drive on and off once, and tap "Show routes".
 4. In Results, tap a card. Then tap Save.
 5. Reopen the chat.
 6. Fully close the app and open it again.

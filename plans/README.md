@@ -154,6 +154,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 | D9 | Map package | **`packages/maps`** with `/web`; mobile renders `/web` in an Expo DOM component (no `/native`) | 009 |
 | D10 | Flight prices | **Sample fares for tests + adapted Clovis (all flights)** (plan 019) | 011, 019 |
 | D11 | Flight scope | **US domestic + nearby airports** first; Europe later (working default) | 011 |
+| D12 | Home mode control | **Transit / Fly** (@Cattn, 2026-11-14). Drive is no longer a tab: it is a Drive filter chip (`car` in `draft.modes`), off by default, under Transit and Fly, so a trip can include driving part of the way. `modeGroups.drive` stays in shared but the app stops using it. Built in plan 022 Step 4 | 011, 020, 022, 024–027, 035 |
 
 Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent auto-searches once from/to/time are known and can read but not edit saved trips; missed trips switch automatically; flights checked 3/2/1 days out then more often in the last 24 h (exact cadence open, 008-Q3); bikeshare dock pins and "bike saves X min" both approved; rideshare removed for now; separate transfer-risk and lateness controls; optional display time zone; USD only; no payment screen.
 
@@ -187,6 +188,8 @@ Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` 
 - *A separate web MVP check* (2026-11-14): the MVP is Android (plan 035); plan 027 Step 3 is the web version, done when web is picked up.
 
 ## Reconcile log
+
+- **2026-11-14:** D12: Home is Transit / Fly; Drive becomes a filter chip. Added to plan 022 (Step 4, PR #74 in review) instead of a new plan; notes in 011, 020, 024–027, 035 and ui-direction.
 
 - **2026-11-14:** 022-Q1–Q4 answered by @Cattn on #46: full sheet, keep wording, search in the sheet; no car chip, Advanced limits collapsed, Agent mark on every agent-set field, no Budget control.
 

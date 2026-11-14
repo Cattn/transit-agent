@@ -69,7 +69,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 - Left panel "Side panel · 400" (`2026:190`), 400×868, inset 16:
   - "Transit Agent", a notifications icon, a settings icon.
   - Search bar placeholder "Where to?".
-  - A segmented control. Treat it as Transit / Drive / Fly, same as mobile, writing `modeGroups` into `draft.modes` without clearing from, to, or time. The segment labels are inside the Material component instance. If a build finds different words in the file, use those words and update this plan.
+  - A segmented control. Treat it as Transit / Fly, same as mobile (D12: Drive is a filter chip, not a segment; see plan 022 Step 4), writing the group's modes into `draft.modes` without clearing from, to, or time. The segment labels are inside the Material component instance. If a build finds different words in the file, use those words and update this plan.
   - "Tracked trips" and "2 watching · live". The count is saved trips with `watch === true`, not the number 2. "live" is allowed only when one of those trips has a realtime leg. Otherwise "watching".
   - Two tracked-trip cards. Same binding as plan 020: title from the saved label, leave-by from `watchStatus.leaveBy ?? leaveBy`, formatted with `leaveByLabel(leaveBy, new Date())` when present, and no Live pill on a scheduled trip.
   - "Saved places": Home, Office, Gym, Add place. Home and Office set origin or destination from `profile.home` and `profile.work` when set. Gym and Add place do nothing that writes, until 025-Q2 is answered for mobile and repeated here. The mock profile starts empty.
