@@ -10,7 +10,7 @@ import { apiMode } from '../../data/client';
 import type { RootStackParamList } from '../../navigation/types';
 import { useAppColors } from '../../theme/appearance';
 import type { AppColors } from '../../theme/colors';
-import { ChatScreen } from '../chat/ChatScreen';
+import { ChatScreen, useChatSession } from '../chat/ChatScreen';
 import { FiltersScreen } from '../filters/FiltersScreen';
 import { FlyScreen } from '../fly/FlyScreen';
 import { ResultsScreen } from '../results/ResultsScreen';
@@ -69,6 +69,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
+  const [chatBehind, setChatBehind] = useState(false);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [agentPlan, setAgentPlan] = useState<{ plan: PlanResponse; draft: TripDraft }>();
   const currentPlan = agentPlan?.draft === state.draft ? agentPlan.plan : undefined;
@@ -116,6 +117,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setAgentPlan({ plan: agent, draft });
     setResultsOpen(true);
   }, []);
+
+  const chat = useChatSession(state, applyAgent, onAgentPlan);
 
   const group = groupForModes(state.draft.modes);
   const onGroupChange = useCallback((next: ModeGroupName) => {
@@ -189,7 +192,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, [save, routeColors]);
 
   const padding = { top: MAP_PADDING, right: MAP_PADDING, bottom: sheetHeight, left: MAP_PADDING };
-  const closeSheet = () => setSheet(undefined);
+  const closeSheet = () => {
+    setSheet(chatBehind ? 'chat' : undefined);
+    setChatBehind(false);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -230,8 +236,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onSheetLayout={setSheetHeight}
         />
       )}
-      {sheet === 'chat' ? (
-        <ChatScreen draft={state} apply={applyAgent} onPlan={onAgentPlan} onOpenFilters={() => setSheet('filters')} onClose={closeSheet} />
+      {sheet === 'chat' || chatBehind ? (
+        <ChatScreen draft={state} chat={chat} onOpenFilters={() => { setChatBehind(true); setSheet('filters'); }} onClose={closeSheet} />
       ) : null}
       <Modal visible={sheet === 'filters' || sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
         <SafeAreaProvider>

@@ -29,10 +29,11 @@ export interface ChatChromeProps {
   onClose: () => void;
 }
 
+export type ChatSession = ReturnType<typeof useAgentChat>;
+
 export interface ChatScreenProps {
   draft: DraftState;
-  apply: (patch: TripDraftPatch, source: DraftChangeSource) => void;
-  onPlan: (plan: PlanResponse, draft: TripDraft) => void;
+  chat: ChatSession;
   onOpenFilters: (field: string) => void;
   onClose: () => void;
 }
@@ -51,9 +52,9 @@ function agentChips({ draft, provenance }: DraftState): AgentChip[] {
   return chips;
 }
 
-export function ChatScreen({ draft, apply, onPlan, onOpenFilters, onClose }: ChatScreenProps) {
-  const colors = useAppColors();
-  const { messages, pending, error, send, lastPlan } = useAgentChat(draft, apply);
+export function useChatSession(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void, onPlan: (plan: PlanResponse, draft: TripDraft) => void): ChatSession {
+  const chat = useAgentChat(draft, apply);
+  const { lastPlan } = chat;
 
   const forwarded = useRef<PlanResponse>(undefined);
   useEffect(() => {
@@ -61,6 +62,13 @@ export function ChatScreen({ draft, apply, onPlan, onOpenFilters, onClose }: Cha
     forwarded.current = lastPlan;
     onPlan(lastPlan, draft.draft);
   }, [lastPlan, draft.draft, onPlan]);
+
+  return chat;
+}
+
+export function ChatScreen({ draft, chat, onOpenFilters, onClose }: ChatScreenProps) {
+  const colors = useAppColors();
+  const { messages, pending, error, send } = chat;
 
   const entries = useMemo<ChatEntry[]>(() => {
     const lastAgent = messages.findLastIndex((message) => message.role === 'agent');
