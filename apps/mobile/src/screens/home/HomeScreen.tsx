@@ -186,7 +186,6 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           draftState={state}
           request={request}
           plan={plan}
-          routeColors={routeColors}
           now={now}
           savedIds={savedIds}
           selectedId={selectedId}

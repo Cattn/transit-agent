@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  formatAge,
   formatCost,
   formatDuration,
   formatTimeRange,
@@ -37,7 +36,7 @@ export interface ItineraryCardText {
   chips: LegChip[];
   freshness: Badge;
   live: boolean;
-  updated: string;
+  detail: string;
   cost: string;
   risk: Badge;
   details: LegDetail[];
@@ -46,6 +45,18 @@ export interface ItineraryCardText {
 export interface NearMissText {
   title: string;
   reason: string;
+  mode: Leg['mode'];
+  cost: string;
+}
+
+function freshnessDetail(it: Itinerary, now: Date): string {
+  const live = it.legs.find((leg) => leg.timeSource === 'realtime' && scheduledModes.includes(leg.mode));
+  if (live) {
+    const minutes = Math.round((Date.parse(live.departAt) - now.getTime()) / 60_000);
+    const stop = live.from.name ? `at ${live.from.name} ` : '';
+    return minutes > 0 ? `${stop}in ${minutes} min` : `${stop}now`;
+  }
+  return itineraryFreshness(it).label === 'Live' ? '' : it.legs.some((leg) => leg.timeSource === 'scheduled') ? 'timetable only' : '';
 }
 
 function cardFreshness(it: Itinerary): Badge {
@@ -66,7 +77,7 @@ export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): 
     }),
     freshness,
     live: itineraryFreshness(it).label === 'Live',
-    updated: `updated ${formatAge(it.source.fetchedAt, now)}`,
+    detail: freshnessDetail(it, now),
     cost: formatCost(it.cost),
     risk: riskBadge(it.risk),
     details: it.legs.map((leg) => ({ id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: legFreshness(leg) }))
@@ -74,33 +85,30 @@ export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): 
 }
 
 export function nearMissText(it: Itinerary, timeZone?: string): NearMissText {
-  return { title: `${it.summary} · ${formatTimeRange(it.departAt, it.arriveAt, timeZone)}`, reason: it.violations[0] ?? '' };
+  const main = it.legs.find((leg) => scheduledModes.includes(leg.mode)) ?? it.legs[0]!;
+  return {
+    title: `${it.summary} · ${formatTimeRange(it.departAt, it.arriveAt, timeZone)}`,
+    reason: it.violations[0] ?? '',
+    mode: main.mode,
+    cost: formatCost(it.cost)
+  };
 }
 
-export type ToneRole = 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral';
+export type ToneRole = 'secondary' | 'tertiary';
 
 export function toneRole(tone: Tone): ToneRole {
-  if (tone === 'ok') return 'primary';
-  if (tone === 'info') return 'secondary';
-  if (tone === 'warn') return 'tertiary';
-  if (tone === 'danger') return 'error';
-  return 'neutral';
+  return tone === 'warn' || tone === 'danger' ? 'tertiary' : 'secondary';
 }
 
 function toneColors(tone: Tone, colors: AppColors): { background: string; text: string } {
-  const role = toneRole(tone);
-  if (role === 'primary') return { background: colors.primaryContainer, text: colors.onPrimaryContainer };
-  if (role === 'secondary') return { background: colors.secondaryContainer, text: colors.onSecondaryContainer };
-  if (role === 'tertiary') return { background: colors.tertiaryContainer, text: colors.onTertiaryContainer };
-  if (role === 'error') return { background: colors.errorContainer, text: colors.onErrorContainer };
-  return { background: colors.surfaceVariant, text: colors.onSurfaceVariant };
+  if (toneRole(tone) === 'tertiary') return { background: colors.tertiaryContainer, text: colors.onTertiaryContainer };
+  return { background: colors.secondaryContainer, text: colors.onSecondaryContainer };
 }
 
 const MODE_GLYPHS: Partial<Record<Leg['mode'], string>> = { walk: '🚶', bike: '🚲', bikeshare: '🚲', car: '🚗', bus: '🚌', rail: '🚆', ferry: '⛴', flight: '✈' };
 
 export interface ItineraryCardProps {
   text: ItineraryCardText;
-  color?: string;
   selected: boolean;
   saved: boolean;
   canSave: boolean;
@@ -109,7 +117,7 @@ export interface ItineraryCardProps {
   onSave: () => void;
 }
 
-export function ItineraryCard({ text, color, selected, saved, canSave, colors, onPress, onSave }: ItineraryCardProps) {
+export function ItineraryCard({ text, selected, saved, canSave, colors, onPress, onSave }: ItineraryCardProps) {
   const risk = toneColors(text.risk.tone, colors);
   return (
     <Pressable
@@ -117,10 +125,9 @@ export function ItineraryCard({ text, color, selected, saved, canSave, colors, o
       accessibilityState={{ selected }}
       accessibilityLabel={`${text.times}, ${text.duration}. ${text.freshness.label}. ${text.cost}. ${text.risk.label}.`}
       onPress={onPress}
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: selected ? colors.primary : colors.surfaceVariant }]}
+      style={[styles.card, { backgroundColor: colors.surface, borderWidth: selected ? 2 : 1, borderColor: selected ? colors.primary : colors.outline }]}
     >
       <View style={styles.row}>
-        {color ? <View style={[styles.swatch, { backgroundColor: color }]} /> : null}
         <Text style={[styles.times, { color: colors.onSurface }]}>{text.times}</Text>
         <Text style={[styles.duration, { color: colors.onSurface }]}>{text.duration}</Text>
       </View>
@@ -138,10 +145,8 @@ export function ItineraryCard({ text, color, selected, saved, canSave, colors, o
       </View>
       <View style={styles.row}>
         <View style={styles.freshness}>
-          <View style={[styles.pill, { backgroundColor: text.live ? colors.primaryContainer : colors.surfaceVariant }]}>
-            <Text numberOfLines={1} style={[styles.pillText, { color: text.live ? colors.onPrimaryContainer : colors.onSurfaceVariant }]}>{text.freshness.label}</Text>
-          </View>
-          <Text numberOfLines={1} style={[styles.meta, { color: colors.onSurfaceVariant }]}>{text.updated}</Text>
+          <Text numberOfLines={1} style={[styles.fresh, { color: text.live ? colors.primary : colors.onSurfaceVariant }]}>{text.freshness.label}</Text>
+          {text.detail ? <Text numberOfLines={1} style={[styles.meta, { color: colors.onSurfaceVariant }]}>{text.detail}</Text> : null}
         </View>
         <View style={styles.end}>
           <Text style={[styles.cost, { color: colors.onSurface }]}>{text.cost}</Text>
@@ -168,9 +173,8 @@ export function ItineraryCard({ text, color, selected, saved, canSave, colors, o
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, borderWidth: 1.5, padding: 14, gap: 8 },
+  card: { borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, gap: 10 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  swatch: { width: 8, height: 8, borderRadius: 4 },
   times: { flex: 1, fontSize: 17, fontWeight: '700' },
   duration: { fontSize: 17, fontWeight: '700' },
   legs: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4 },
@@ -179,9 +183,8 @@ const styles = StyleSheet.create({
   leg: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
   legText: { fontSize: 13, fontWeight: '600' },
   freshness: { flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pill: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  pillText: { fontSize: 12, fontWeight: '700' },
-  meta: { flexShrink: 1, fontSize: 12 },
+  fresh: { fontSize: 12, fontWeight: '500' },
+  meta: { flexShrink: 1, fontSize: 11, fontWeight: '500' },
   end: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cost: { fontSize: 15, fontWeight: '700' },
   badge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },

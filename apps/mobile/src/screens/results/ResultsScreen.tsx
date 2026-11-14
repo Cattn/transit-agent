@@ -28,7 +28,6 @@ export interface ResultChip {
 export interface ResultCard {
   id: string;
   text: ItineraryCardText;
-  color?: string;
   selected: boolean;
   saved: boolean;
 }
@@ -60,7 +59,6 @@ export interface ResultsScreenProps {
   draftState: DraftState;
   request: ReturnType<typeof toTripRequest>;
   plan: { data?: PlanResponse; error?: ApiClientError; loading: boolean };
-  routeColors: ReadonlyMap<string, string>;
   now: Date;
   savedIds: ReadonlySet<string>;
   selectedId?: string;
@@ -100,7 +98,7 @@ function resultChips(state: DraftState, now: Date): ResultChip[] {
 }
 
 export function ResultsScreen(props: ResultsScreenProps) {
-  const { draftState, request, now, selectedId, onSelect, routeColors } = props;
+  const { draftState, request, now, selectedId, onSelect } = props;
   const { data, error, loading } = props.plan;
 
   const timeZone = request.ok ? request.request.timeZone : undefined;
@@ -131,7 +129,6 @@ export function ResultsScreen(props: ResultsScreenProps) {
     cards: message ? [] : itineraries.map((it) => ({
       id: it.id,
       text: itineraryCardText(it, now, timeZone),
-      color: routeColors.get(it.id),
       selected: it.id === selectedId,
       saved: props.savedIds.has(it.id)
     })),

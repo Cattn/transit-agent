@@ -35,7 +35,7 @@
 - ~~021-Q3~~ **Decided (@DMFriends, 2026-11-14, PR #66):** yes, one text block for empty, offline and error.
 - ~~021-Q4~~ **Decided (@DMFriends, 2026-11-14, PR #66):** build the frame as drawn, with plan 020's Android Material 3 rules. iOS is built but not checked on a device.
 - **Reaching Results before plan 022 (@DMFriends, 2026-11-14, PR #66):** a Home / Office chip with a saved place sets the destination, a missing time becomes "Leave now", and a missing origin uses the current location; the complete draft opens Results. Mock mode seeds the mock profile with Home and Office places (`src/data/client.ts`) so the chips work without a server.
-- **Route colors ([PR #66 review](https://github.com/Cattn/transit-agent/pull/66#pullrequestreview-5905972622), 2026-11-14):** done as Step 2 says. The mobile app depends on `@transit/maps` (`package.json`, lockfile and the EAS post-install build); `assignRouteColors(ids, savedColors)` runs once in Home over the trips on screen, and the same map goes to the map slot, the card swatches and `color` on Save.
+- **Route colors ([PR #66 review](https://github.com/Cattn/transit-agent/pull/66#pullrequestreview-5905972622), 2026-11-14):** done as Step 2 says. The mobile app depends on `@transit/maps` (`package.json`, lockfile and the EAS post-install build); `assignRouteColors(ids, savedColors)` runs once in Home over the trips on screen, and the same map goes to the map slot and `color` on Save. Cards have no color swatch: @Cattn ([PR #66 review](https://github.com/Cattn/transit-agent/pull/66#pullrequestreview-5906125257), 2026-11-14) asked for the Figma card as drawn, which has none.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
