@@ -21,9 +21,9 @@
   },
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc",
+    "build": "tsc --incremental --tsBuildInfoFile dist/.tsbuildinfo",
     "demo": "vite --config demo/vite.config.ts",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p demo",
+    "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo && tsc --noEmit -p demo --incremental --tsBuildInfoFile node_modules/.cache/typecheck-demo.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck && npm run test:unit"
   },

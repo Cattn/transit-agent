@@ -14,7 +14,7 @@
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
     "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/client-react",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck"
   },
