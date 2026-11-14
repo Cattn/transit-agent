@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,7 @@ function Glass({ dark, style, children }: { dark: boolean; style: StyleProp<View
 }
 
 export function HomeChrome(props: HomeChromeProps) {
-  const { colors, group, trips, now, chips, locating, notice, status } = props;
+  const { colors, group, trips, now, chips, locating, notice, status, onTopLayout } = props;
   const insets = useSafeAreaInsets();
   const dark = colors.scheme === 'dark';
   const { height: windowHeight } = useWindowDimensions();
@@ -32,6 +32,11 @@ export function HomeChrome(props: HomeChromeProps) {
   const [listHeight, setListHeight] = useState(LIST_CAP);
   const [sheetIndex, setSheetIndex] = useState(1);
   const [topHeight, setTopHeight] = useState(106);
+  const topEdge = Math.round(insets.top + 4 + topHeight);
+
+  useEffect(() => {
+    onTopLayout?.(topEdge);
+  }, [onTopLayout, topEdge]);
 
   const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP + SHEET_INSET));
   const natural = Math.round(HANDLE_HEIGHT + headerHeight + Math.min(listHeight, LIST_CAP) + footerHeight + 24);

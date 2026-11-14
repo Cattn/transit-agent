@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
@@ -118,7 +118,7 @@ function TripCard({ trip, now, m, scheme }: { trip: SavedItinerary; now: Date; m
 }
 
 export function HomeChrome(props: HomeChromeProps) {
-  const { colors, group, trips, now, chips, locating, notice, status } = props;
+  const { colors, group, trips, now, chips, locating, notice, status, onTopLayout } = props;
   const scheme = colors.scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const insets = useSafeAreaInsets();
@@ -130,6 +130,11 @@ export function HomeChrome(props: HomeChromeProps) {
   const [listHeight, setListHeight] = useState(LIST_CAP);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
   const [topHeight, setTopHeight] = useState(126);
+  const topEdge = Math.round(insets.top + 4 + topHeight);
+
+  useEffect(() => {
+    onTopLayout?.(topEdge);
+  }, [onTopLayout, topEdge]);
 
   const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP));
   const natural = Math.round(HANDLE_HEIGHT + headerHeight + Math.min(listHeight, LIST_CAP) + footerHeight + 8);

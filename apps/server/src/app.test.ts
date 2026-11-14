@@ -1,7 +1,10 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { PlaceSearchResponseSchema } from '@transit/shared';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { Gemini, type LlmRequest } from '@google/adk';
+import { ThinkingLevel } from '@google/genai';
+import { PlaceSearchResponseSchema, TripDraftSchema } from '@transit/shared';
 import { createServer } from './app.js';
-import { plannerConfigured } from './agent/models.js';
+import { plannerConfigured, thinkingFor } from './agent/models.js';
+import { AdkPlanner } from './agent/adk-planner.js';
 import { createPlannerTools } from './agent/tools.js';
 import { instructions } from './agent/instructions.js';
 import { createPlaceSearcher } from './places/geocoder.js';
@@ -11,6 +14,8 @@ let app: ReturnType<typeof createServer> | undefined;
 afterEach(async () => {
   await app?.close();
   app = undefined;
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('server', () => {
@@ -174,6 +179,52 @@ describe('plannerConfigured', () => {
     expect(plannerConfigured({ GOOGLE_GENAI_USE_ENTERPRISE: 'false', GOOGLE_GENAI_USE_VERTEXAI: 'true', GEMINI_API_KEY: 'k' })).toBe(true));
 });
 
+describe('planner thinking configuration', () => {
+  it.each([undefined, '', '   ', 'invalid', 'MINIMAL', ' minimal ', 'THINKING_LEVEL_UNSPECIFIED'])('defaults %s to LOW', (level) => {
+    expect(thinkingFor('planner', { AGENT_THINKING_PLANNER: level })).toBe(ThinkingLevel.LOW);
+  });
+
+  it.each([
+    [' low ', ThinkingLevel.LOW],
+    [' Medium ', ThinkingLevel.MEDIUM],
+    ['hIgH', ThinkingLevel.HIGH]
+  ])('normalizes %s', (level, expected) => {
+    expect(thinkingFor('planner', { AGENT_THINKING_PLANNER: level })).toBe(expected);
+  });
+
+  it('ignores thinking settings for other tasks and global model settings', () => {
+    const env = { AGENT_THINKING_BACKGROUND: 'HIGH', AGENT_THINKING: 'HIGH', GEMINI_MODEL: 'HIGH', AGENT_MODEL_PLANNER: 'HIGH' };
+    expect(thinkingFor('planner', env)).toBe(ThinkingLevel.LOW);
+    expect(thinkingFor('planner', { ...env, AGENT_THINKING_PLANNER: 'MEDIUM' })).toBe(ThinkingLevel.MEDIUM);
+  });
+
+  it.each([
+    [undefined, ThinkingLevel.LOW],
+    [' medium ', ThinkingLevel.MEDIUM],
+    ['HIGH', ThinkingLevel.HIGH],
+    ['MINIMAL', ThinkingLevel.LOW]
+  ])('passes %s into the model request while retaining planner tools', async (level, expected) => {
+    vi.stubEnv('AGENT_THINKING_PLANNER', level);
+    vi.stubEnv('AGENT_MODEL_PLANNER', 'gemini-3.8-flash');
+    vi.stubEnv('GOOGLE_GENAI_USE_ENTERPRISE', 'false');
+    vi.stubEnv('GOOGLE_GENAI_USE_VERTEXAI', 'false');
+    vi.stubEnv('GEMINI_API_KEY', 'test-key');
+    const requests: LlmRequest[] = [];
+    vi.spyOn(Gemini.prototype, 'generateContentAsync').mockImplementation(async function* (request) {
+      requests.push(request);
+      yield { content: { role: 'model', parts: [{ text: 'Where would you like to go?' }] } };
+    });
+    const planner = new AdkPlanner({ providers: [], itineraries: {} as never, places: {} as never });
+    const result = await planner.respond({ deviceId: 'thinking-config-test', message: 'Hello', draft: TripDraftSchema.parse({}) });
+    expect(result.reply).toBe('Where would you like to go?');
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.config?.thinkingConfig?.thinkingLevel).toBe(expected);
+    expect(requests[0]?.config?.tools?.flatMap((tool) => 'functionDeclarations' in tool ? tool.functionDeclarations?.map((declaration) => declaration.name) ?? [] : []).sort()).toEqual([
+      'ask_user', 'find_place', 'list_saved_trips', 'search_routes', 'update_trip_draft'
+    ]);
+  });
+});
+
 describe('planner tool declarations', () => {
   it('omit schema keywords Gemini function declarations reject', () => {
     const declarations = JSON.stringify(createPlannerTools({} as never).map((tool) => tool._getDeclaration()));
@@ -185,6 +236,6 @@ describe('planner tool declarations', () => {
 describe('planner instructions', () => {
   it('include the current local date and time so "now" resolves', () => {
     const text = instructions('America/New_York', new Date('2026-11-14T09:05:00Z'));
-    expect(text).toContain('Today is 2026-11-14 and the current time is 04:05, timezone America/New_York.');
+    expect(text).toContain('Today is Saturday 2026-11-14 and the current time is 04:05, timezone America/New_York.');
   });
 });
