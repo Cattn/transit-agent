@@ -20,14 +20,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 👀 **In review:** PR #27. Checks pass (48 server tests + smoke).
+- **Status:** ✅ **Done.** Merged in #27 (includes a CORS fix for PATCH/DELETE).
 - **Owner:** @Cattn
-
-**Open questions** (answer by number in a comment on #7):
-
-1. When nothing matches all your limits, we show up to 3 "almost works" options. Is 3 the right number?
-2. Should planning a trip use your saved profile defaults automatically (needs the device ID on every request)? *(suggested: yes, when the app sends it)*
-3. Who explains why option #1 is ranked first: the server (a fixed one-line reason) or the AI agent? *(suggested: agent; server only gives the facts)*
 
 <!-- help:end -->
 

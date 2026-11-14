@@ -87,7 +87,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 |------|-------|-------------------|----------|--------|------------|--------|
 | 001 | [Establish a unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (merged in #18) |
 | 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19) |
-| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | IN REVIEW (PR #27) |
+| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27) |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | IN REVIEW (PR #29) |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | 🟢 up for grabs | P1 | M | 003, 004 | TODO |
 | 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 | TODO |
@@ -115,7 +115,7 @@ The old chart ran almost everything through the server (002 → 003 → 004 → 
 only on the client (004) and the mock (012), and several pure pieces start right away.
 
 ```
-Server (Cattn):     003 ──→ 005 ──→ 006 ──────────→ 008 ──→ 011
+Server (Cattn):     003 ✅ → 005 ──→ 006 ──────────→ 008 ──→ 011
                      │                               ↑        ↑
 Start now, anyone:  013 (leave-by logic) ────────────┘        │
                     014 (airports + drive cost) → 019 (Clovis) ┘
@@ -129,7 +129,7 @@ UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in para
 Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
 ```
 
-**Unblocked right now (nothing to wait for):** 004, 007 research, 009 steps 1–5, 013, 014, 016, 018, UI slice 1 (shell).
+**Unblocked right now (nothing to wait for):** 007 research, 009 steps 1–5, 013, 014, 016, 018, UI slice 1 (shell).
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is
