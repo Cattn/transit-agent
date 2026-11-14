@@ -16,16 +16,16 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | # | Plan | Who | State |
 |---|------|-----|-------|
 | 1 | **009** DOM map: `@transit/maps/web` in a `'use dom'` component, mounted in Home's `MapSlot` | KrakenTheJaken | Not started. **Longest pole:** Android shows no map until it lands |
-| 2 | **021** Results sheet + Save | DMFriends | PR #66: approved at `1b0604c`; full check passed, awaiting user merge |
-| 3 | **022** Filters full sheet | Cattn (from Rad1ee) | Unblocked |
-| 4 | **034** Keep the chat for the session | Cattn | Unblocked (S) |
+| 2 | **021** Results sheet + Save | DMFriends | ✅ Merged (#66, `9450fed`) |
+| 3 | **022** Filters full sheet | DMFriends | Unblocked. Rebase on 034 before the PR |
+| 4 | **034** Keep the chat for the session | Cattn | In progress (worker thread, branch `plan/034-mobile-chat-session`) |
 | 5 | **035** Android MVP check against the real server | Cattn | After 1–4 |
 
 **Right after the MVP:** **029** (the agent streams each step) + **030** (the map animates while the agent builds the trip; built once on web, shows on Android through the DOM map), with #54 (turn speed). This is the owner's "watch the map build the trip" direction.
 
 **Then (Full app):**
 - Transit (Cattn): 031 real Boston routing (Transitous) → 008 auto-watch + "when do I leave" → 010 bike + transit.
-- Flights (DMFriends): 024 Fly screen → 011 door-to-door on sample fares; 019 real fares (Clovis, Cattn).
+- Flights (DMFriends, after 022): 024 Fly screen → 011 door-to-door on sample fares; 019 real fares (Clovis, Cattn).
 - 025 Settings (KrakenTheJaken, from Rad1ee).
 - Web, low priority, up for grabs: 026 home → 027 results.
 - Later: booking, Europe/Eurail, token streaming, push notifications, iOS-specific design.
@@ -38,16 +38,16 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 |------|-------|-----|-----|--------|------------|--------|
 | 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web #35, saved colors #65; DOM renderer next). **MVP** |
 | 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | DONE (#66) |
-| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | Cattn | P1 | L | 020 | TODO (reassigned from Rad1ee). **MVP** |
-| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | TODO (unblocked). **MVP** |
-| 035 | [Android MVP check against the real server](035-android-mvp-check.md) (tracked on [#17](https://github.com/Cattn/transit-agent/issues/17), no separate issue) | Cattn | P1 | S | 009, 021, 022, 034 | TODO. **MVP milestone** |
+| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | DMFriends | P1 | L | 020, 021, 023 | TODO (refreshed 2026-11-14: Material components, open on the tapped field). **MVP** |
+| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | IN PROGRESS (worker thread). **MVP** |
+| 035 | [Android MVP check against the real server](035-android-mvp-check.md) (tracked on [#17](https://github.com/Cattn/transit-agent/issues/17), no separate issue) | Cattn | P1 | S | 009, 022, 034 | TODO. **MVP milestone** |
 | 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | — | TODO (right after MVP) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | TODO (right after MVP; pure layer + web demo can start any time) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO (with 029) |
 | 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | TODO (008-Q3 details remain) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
-| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (unblocked; 021 merged) |
+| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (after 022) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (fixture steps executable) |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | KrakenTheJaken | P2 | L | 020 | TODO (reassigned from Rad1ee; after 030) |
@@ -93,7 +93,7 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 
 ## How to contribute
 
-- **Assignments (reconciled 2026-11-14):** the Who column shows the assignee. @Rad1ee is inactive: his MVP filters plan (022) moved to Cattn, Settings (025) to KrakenTheJaken, and his design questions to Cattn. He keeps web home (026) if he comes back; otherwise it's up for grabs. To help on someone else's issue, ask the assignee first.
+- **Assignments (reconciled 2026-11-14):** the Who column shows the assignee. @Rad1ee is inactive: his MVP filters plan (022) moved to DMFriends (via Cattn), Settings (025) to KrakenTheJaken, and his design questions to Cattn. He keeps web home (026) if he comes back; otherwise it's up for grabs. To help on someone else's issue, ask the assignee first.
 - **With a coding agent:** pull `main`, then: *"Read `plans/NNN-name.md` and follow it step by step. Run every verification command, only change files listed under Scope, stop and tell me on any STOP condition, don't push."* Open a PR that says `Closes #N`.
 - **Answer questions** on the issue by number (`020-Q2: search first`). The answer is recorded in that same plan; never open a second plan for the same screen.
 - Use the strongest model for 007, 009, 010, 019.
@@ -186,6 +186,8 @@ Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` 
 - *A separate web MVP check* (2026-11-14): the MVP is Android (plan 035); plan 027 Step 3 is the web version, done when web is picked up.
 
 ## Reconcile log
+
+- **2026-11-14 at `3a55b10`:** 021 merged (#66). 022 → DMFriends, refreshed: Expo UI Compose components instead of RN `Switch` and the community slider, open on the tapped field (Home drops it today), footer from Home's `plan`. 024 after 022. 034 started in a worker thread. 009 notes that search results follow Figma frame 02 and only saved trips get distinct colors. 035 no longer waits on 021.
 
 - **2026-11-14 at `db8b72c`:** Android-first MVP. New plan 035 (Android MVP check, tracked on #17 to avoid another issue) replaces 027 Step 3 as the milestone. Web 026/027 → P3, Full app. @Rad1ee inactive: 022 → Cattn, 025 → KrakenTheJaken, design questions (021–026, 030) → Cattn, 027 → up for grabs. 021 marked IN PROGRESS (PR #66). Status table reordered: open plans first, in working order. Answered questions removed from Questions by person (geocoding #53, 023-Q1–Q2, 009-Q5, 017-Q1). `ui-slices.md` marked superseded; `ui-direction.md` has no open questions. DONE plans spot-checked: files from 023 (`screens/chat`), 033/028 (`apps/server/src/places`) and 015 (`packages/client-react`) are on main.
 

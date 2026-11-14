@@ -13,18 +13,18 @@
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: plans/020-mobile-map-home.md (merged #60) and plan 023 (merged #67: chat chips call `onOpenFilters(field)`; open Filters on that field when one is passed). Plan 021's Filters chip should open this screen. You may stub that chip if 021 has not merged: Home gets a temporary "Filters" text button.
+- **Depends on**: plans/020-mobile-map-home.md (merged #60) and plan 023 (merged #67), plan 021 (merged #66: Results, its Filters chip and `plan` are on main). Plan 034 (chat kept for the session, @Cattn) runs in parallel and also touches Home's sheet state: rebase on it before opening the PR.
 - **Category**: implementation (first-pass UI)
-- **Planned at**: commit `bd41542`, 2026-11-14
+- **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `3a55b10` (021 and 023 merged; Material components; open on the tapped field)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/46
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **MVP, next up.** Build with the defaults until a question is answered.
-- **Owner:** @Cattn (reassigned 2026-11-14 from @Rad1ee, who is inactive. Cattn built the agent chat in plan 023, whose chips already call `onOpenFilters(field)`, and does plan 034 next to it.)
+- **Status:** **MVP, next up.** Build with the defaults until a question is answered. Visual target: Figma frame 03 Filters, Android, exactly.
+- **Owner:** @DMFriends (2026-11-14; moved from @Cattn, originally @Rad1ee). DMFriends built Home (020) and Results (021), which this sheet sits on. Fly (024) waits until this is done.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** No. Talk to @Cattn before starting related work.
+- **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on the server.
 
 **Open questions** — **@Cattn answers these (design).** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
@@ -78,7 +78,6 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
 - `apps/mobile/src/screens/filters/PlaceField.tsx`
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only the flag that presents Filters)
-- `apps/mobile/package.json` and `package-lock.json` (only `@react-native-community/slider` from Step 2)
 
 **Out of scope:** `packages/shared/**`, `apps/mobile/src/platform/**`, `app.json` plugins, results cards (plan 021), settings rows (plan 025).
 
@@ -92,19 +91,19 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 1: Shared filter state
 
-`FiltersScreen.tsx` reads the draft from the callback props Home passes: `draft`, `provenance`, `apply`. Every control calls `apply` with a `TripDraftPatch` and `'user'`. Reset calls `apply` to set modes back to `['walk', 'bus', 'rail']`, `preferences` back to the schema defaults (`comfortVsCost` 0.5, `transferRisk` 0.3, `lateTolerance` `'some'`, `activeTravel` 0.5), and each constraint key to `null`.
+`FiltersScreen.tsx` reads the draft from the callback props Home passes: `draft`, `provenance`, `apply`, and an optional `field` (a provenance key such as `constraints.maxWalkMinutes`). **Open on the tapped field:** the agent's chips call `onOpenFilters(field)` (plan 023), but Home currently drops the argument (`onOpenFilters={() => setSheet('filters')}` in `apps/mobile/src/screens/home/HomeScreen.tsx`). Keep the field in Home state, pass it to `FiltersScreen`, and scroll to (and expand, for Advanced limits) that section. The Results Filters chip passes no field and opens at the top. Every control calls `apply` with a `TripDraftPatch` and `'user'`. Reset calls `apply` to set modes back to `['walk', 'bus', 'rail']`, `preferences` back to the schema defaults (`comfortVsCost` 0.5, `transferRisk` 0.3, `lateTolerance` `'some'`, `activeTravel` 0.5), and each constraint key to `null`.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle, the sections in Current state, `Switch` from `react-native` for step-free access, and `Slider` from `@react-native-community/slider`. If it is not already installed, install it with `npx expo install @react-native-community/slider` in `apps/mobile`. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `Switch` for step-free access, `ListItem` rows for the limits, Material Symbols icons (lock, edit) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
 ### Step 3: Show routes
 
-"Show routes" closes Filters and asks Home to show Results (plan 021). If 021 has not merged, Home still unmounts Filters. Do not call the client directly from Filters.
+"Show routes" closes Filters and asks Home to show Results (plan 021, on main). The footer counts come from Home's current `plan` (the agent's `currentPlan` or the search Results ran); hide them while it is loading. Do not call the client directly from Filters.
 
 **Verify**: `npm run lint` → exit 0
 
