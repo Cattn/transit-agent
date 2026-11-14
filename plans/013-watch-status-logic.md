@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress** by @DMFriends.
+- **Status:** ✅ **Approved:** PR #34 passed review; waiting to be merged.
 - **Owner:** @DMFriends
 
 <!-- help:end -->
