@@ -106,6 +106,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
               <ItineraryCard
                 key={card.id}
                 text={card.text}
+                color={card.color}
                 selected={card.selected}
                 saved={card.saved}
                 canSave={props.canSave}

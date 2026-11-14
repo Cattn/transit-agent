@@ -18,7 +18,7 @@ import {
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { alpha, background, clip, fillMaxWidth, horizontalScroll, padding, paddingAll, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { alpha, background, clip, fillMaxWidth, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import type { Tone } from '@transit/shared';
 import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
 import BookmarkAdd from '../../../assets/icons/bookmark_add_fill.xml';
@@ -110,7 +110,9 @@ function RouteCard({ card, canSave, m, scheme, onSelect, onSave }: {
 }) {
   const { text, selected, saved } = card;
   const risk = toneColors(text.risk.tone, m);
-  const freshColor = text.live ? m.primary : m.onSurfaceVariant;
+  const pill = text.live
+    ? { bg: m.primaryContainer, fg: m.onPrimaryContainer, icon: Sensors }
+    : { bg: m.surfaceContainerHighest, fg: m.onSurfaceVariant, icon: Schedule };
 
   return (
     <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
@@ -123,15 +125,22 @@ function RouteCard({ card, canSave, m, scheme, onSelect, onSave }: {
         modifiers={[fillMaxWidth()]}
       >
         <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[paddingAll(16)]}>
-          <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+          <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+            {card.color ? <Row modifiers={[size(8, 8), clip(Shapes.Circle), background(card.color)]}>{null}</Row> : null}
             <Text color={m.onSurface} style={m3Text('titleMedium', 700)} modifiers={[weight(1)]}>{text.times}</Text>
             <Text color={m.onSurface} style={m3Text('titleMedium', 700)}>{text.duration}</Text>
           </Row>
           <LegChips chips={text.chips} m={m} />
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
-            <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center" modifiers={[weight(1)]}>
-              <Icon source={text.live ? Sensors : Schedule} size={14} tint={freshColor} />
-              <Text color={freshColor} maxLines={1} style={m3Text('labelMedium', 700)}>{text.freshness.label}</Text>
+            <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center" modifiers={[weight(1)]}>
+              <Row
+                horizontalArrangement={{ spacedBy: 4 }}
+                verticalAlignment="center"
+                modifiers={[clip(Shapes.RoundedCorner(12)), background(pill.bg), padding(7, 2, 9, 2)]}
+              >
+                <Icon source={pill.icon} size={13} tint={pill.fg} />
+                <Text color={pill.fg} maxLines={1} style={m3Text('labelSmall', 700)}>{text.freshness.label}</Text>
+              </Row>
               <Text color={m.onSurfaceVariant} maxLines={1} overflow="ellipsis" style={m3Text('bodySmall')}>{text.updated}</Text>
             </Row>
             <Text color={m.onSurface} style={m3Text('titleSmall', 700)}>{text.cost}</Text>

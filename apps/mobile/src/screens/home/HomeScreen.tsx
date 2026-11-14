@@ -3,7 +3,8 @@ import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Itinerary, Place, SavedItinerary, TravelProfile, TripDraftPatch, TripRequest } from '@transit/shared';
-import { useApi, useNow, useSavedItineraries, useTripDraft } from '@transit/client-react';
+import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
+import { assignRouteColors } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import type { RootStackParamList } from '../../navigation/types';
@@ -43,7 +44,14 @@ export interface HomeChromeProps {
 
 const MAP_PADDING = 16;
 
-function MapSlot({ padding, colors, selectedItineraryId }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors; selectedItineraryId?: string }) {
+interface MapSlotProps {
+  padding: { top: number; right: number; bottom: number; left: number };
+  colors: AppColors;
+  routeColors: ReadonlyMap<string, string>;
+  selectedItineraryId?: string;
+}
+
+function MapSlot({ padding, colors, selectedItineraryId }: MapSlotProps) {
   return <View accessibilityLabel="Map" accessibilityValue={{ text: selectedItineraryId }} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map, paddingBottom: padding.bottom }]} />;
 }
 
@@ -61,7 +69,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [notice, setNotice] = useState<string>();
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
   const [resultsOpen, setResultsOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string>();
+  const plan = usePlanTrip();
+  const { run: runPlan, clear: clearPlan } = plan;
+  const requestKey = resultsOpen && request.ok ? JSON.stringify(request.request) : '';
+  const [selection, setSelection] = useState<{ key: string; id?: string }>({ key: '' });
+  const selectedId = selection.key === requestKey ? selection.id : undefined;
+  const setSelectedId = useCallback((id: string | undefined) => setSelection({ key: requestKey, id }), [requestKey]);
   const edited = useRef(false);
 
   useEffect(() => {
@@ -130,10 +143,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
   }, [profile, searchTo]);
 
-  const closeResults = useCallback(() => {
-    setResultsOpen(false);
-    setSelectedId(undefined);
-  }, []);
+  const closeResults = useCallback(() => setResultsOpen(false), []);
 
   useEffect(() => {
     if (!resultsOpen) return;
@@ -145,24 +155,37 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     editDraft({ origin: state.draft.destination ?? null, destination: state.draft.origin ?? null });
   }, [state.draft.origin, state.draft.destination, editDraft]);
 
-  const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
-    save({ itinerary, request: tripRequest, watch: true }).catch(() => undefined);
-  }, [save]);
+  useEffect(() => {
+    if (!requestKey) { clearPlan(); return; }
+    void runPlan(JSON.parse(requestKey) as TripRequest);
+  }, [requestKey, runPlan, clearPlan]);
 
   const savedIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
+  const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
 
   const watched = items.filter((trip) => trip.watch);
+  const shownIds = resultsOpen
+    ? [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])].map((it) => it.id).join(' ')
+    : watched.map((trip) => trip.id).join(' ');
+  const routeColors = useMemo(() => assignRouteColors(shownIds ? shownIds.split(' ') : [], savedColors), [shownIds, savedColors]);
+
+  const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
+    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => undefined);
+  }, [save, routeColors]);
+
   const padding = { top: MAP_PADDING, right: MAP_PADDING, bottom: sheetHeight, left: MAP_PADDING };
   const closeSheet = () => setSheet(undefined);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <MapSlot padding={padding} colors={colors} selectedItineraryId={selectedId} />
+      <MapSlot padding={padding} colors={colors} routeColors={routeColors} selectedItineraryId={selectedId} />
       {resultsOpen ? (
         <ResultsScreen
           colors={colors}
           draftState={state}
           request={request}
+          plan={plan}
+          routeColors={routeColors}
           now={now}
           savedIds={savedIds}
           selectedId={selectedId}

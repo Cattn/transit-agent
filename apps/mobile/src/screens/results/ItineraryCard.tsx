@@ -100,6 +100,7 @@ const MODE_GLYPHS: Partial<Record<Leg['mode'], string>> = { walk: '🚶', bike: 
 
 export interface ItineraryCardProps {
   text: ItineraryCardText;
+  color?: string;
   selected: boolean;
   saved: boolean;
   canSave: boolean;
@@ -108,7 +109,7 @@ export interface ItineraryCardProps {
   onSave: () => void;
 }
 
-export function ItineraryCard({ text, selected, saved, canSave, colors, onPress, onSave }: ItineraryCardProps) {
+export function ItineraryCard({ text, color, selected, saved, canSave, colors, onPress, onSave }: ItineraryCardProps) {
   const risk = toneColors(text.risk.tone, colors);
   return (
     <Pressable
@@ -119,6 +120,7 @@ export function ItineraryCard({ text, selected, saved, canSave, colors, onPress,
       style={[styles.card, { backgroundColor: colors.surface, borderColor: selected ? colors.primary : colors.surfaceVariant }]}
     >
       <View style={styles.row}>
+        {color ? <View style={[styles.swatch, { backgroundColor: color }]} /> : null}
         <Text style={[styles.times, { color: colors.onSurface }]}>{text.times}</Text>
         <Text style={[styles.duration, { color: colors.onSurface }]}>{text.duration}</Text>
       </View>
@@ -135,9 +137,12 @@ export function ItineraryCard({ text, selected, saved, canSave, colors, onPress,
         ))}
       </View>
       <View style={styles.row}>
-        <Text numberOfLines={1} style={[styles.meta, { color: text.live ? colors.primary : colors.onSurfaceVariant }]}>
-          {text.freshness.label} · {text.updated}
-        </Text>
+        <View style={styles.freshness}>
+          <View style={[styles.pill, { backgroundColor: text.live ? colors.primaryContainer : colors.surfaceVariant }]}>
+            <Text numberOfLines={1} style={[styles.pillText, { color: text.live ? colors.onPrimaryContainer : colors.onSurfaceVariant }]}>{text.freshness.label}</Text>
+          </View>
+          <Text numberOfLines={1} style={[styles.meta, { color: colors.onSurfaceVariant }]}>{text.updated}</Text>
+        </View>
         <View style={styles.end}>
           <Text style={[styles.cost, { color: colors.onSurface }]}>{text.cost}</Text>
           <View style={[styles.badge, { backgroundColor: risk.background }]}>
@@ -165,14 +170,18 @@ export function ItineraryCard({ text, selected, saved, canSave, colors, onPress,
 const styles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: 1.5, padding: 14, gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  times: { fontSize: 17, fontWeight: '700' },
+  swatch: { width: 8, height: 8, borderRadius: 4 },
+  times: { flex: 1, fontSize: 17, fontWeight: '700' },
   duration: { fontSize: 17, fontWeight: '700' },
   legs: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4 },
   legWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   chevron: { fontSize: 14 },
   leg: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
   legText: { fontSize: 13, fontWeight: '600' },
-  meta: { flexShrink: 1, fontSize: 12, fontWeight: '600' },
+  freshness: { flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  pill: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  pillText: { fontSize: 12, fontWeight: '700' },
+  meta: { flexShrink: 1, fontSize: 12 },
   end: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cost: { fontSize: 15, fontWeight: '700' },
   badge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },

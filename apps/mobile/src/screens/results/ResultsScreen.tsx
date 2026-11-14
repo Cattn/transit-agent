@@ -1,17 +1,18 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   describePatch,
   formatAge,
   formatClock,
   itineraryFreshness,
+  type ApiClientError,
   type DraftState,
   type Itinerary,
+  type PlanResponse,
   type Place,
   type TripConstraints,
   type TripRequest,
   type toTripRequest
 } from '@transit/shared';
-import { usePlanTrip } from '@transit/client-react';
 import type { AppColors } from '../../theme/colors';
 import { itineraryCardText, nearMissText, type ItineraryCardText, type NearMissText } from './ItineraryCard';
 import { ResultsChrome } from './ResultsChrome';
@@ -27,6 +28,7 @@ export interface ResultChip {
 export interface ResultCard {
   id: string;
   text: ItineraryCardText;
+  color?: string;
   selected: boolean;
   saved: boolean;
 }
@@ -57,6 +59,8 @@ export interface ResultsScreenProps {
   colors: AppColors;
   draftState: DraftState;
   request: ReturnType<typeof toTripRequest>;
+  plan: { data?: PlanResponse; error?: ApiClientError; loading: boolean };
+  routeColors: ReadonlyMap<string, string>;
   now: Date;
   savedIds: ReadonlySet<string>;
   selectedId?: string;
@@ -96,15 +100,8 @@ function resultChips(state: DraftState, now: Date): ResultChip[] {
 }
 
 export function ResultsScreen(props: ResultsScreenProps) {
-  const { draftState, request, now, selectedId, onSelect } = props;
-  const { data, error, loading, run, clear } = usePlanTrip();
-  const requestKey = request.ok ? JSON.stringify(request.request) : '';
-
-  useEffect(() => {
-    onSelect(undefined);
-    if (!requestKey) { clear(); return; }
-    void run(JSON.parse(requestKey) as TripRequest);
-  }, [requestKey, run, clear, onSelect]);
+  const { draftState, request, now, selectedId, onSelect, routeColors } = props;
+  const { data, error, loading } = props.plan;
 
   const timeZone = request.ok ? request.request.timeZone : undefined;
   const itineraries = useMemo(() => data?.itineraries ?? [], [data]);
@@ -134,6 +131,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
     cards: message ? [] : itineraries.map((it) => ({
       id: it.id,
       text: itineraryCardText(it, now, timeZone),
+      color: routeColors.get(it.id),
       selected: it.id === selectedId,
       saved: props.savedIds.has(it.id)
     })),

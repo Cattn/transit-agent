@@ -13,7 +13,7 @@
     "build:android": "npx --yes eas-cli@27.10.0 build --platform android --profile development",
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
-    "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/client-react",
+    "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/client-react && npm run build -w @transit/maps",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck"
@@ -26,6 +26,7 @@
     "@react-navigation/native": "^7.5.1",
     "@react-navigation/native-stack": "^7.21.0",
     "@transit/client-react": "*",
+    "@transit/maps": "*",
     "@transit/shared": "*",
     "expo": "~58.0.25",
     "expo-blur": "~58.0.6",
