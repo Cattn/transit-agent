@@ -27,8 +27,9 @@
 
 **Open questions** (answer by number in a comment on #13):
 
-1. @KrakenTheJaken: which map tile provider (MapTiler, OpenFreeMap, Stadia, ...)? Does one style URL work on both web and mobile?
-2. @KrakenTheJaken: should the map package be pre-built like the shared package, or should apps use its source directly? *(suggested: pre-built)*
+1. @KrakenTheJaken: does one OpenFreeMap style URL work on both web and mobile, or does each platform need its own?
+
+*Decided:* tiles from **OpenFreeMap**; the package is **pre-built** (`tsc` to `dist`).
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
