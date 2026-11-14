@@ -25,7 +25,7 @@
 
 **Open questions** (answer by number in a comment on #26):
 
-None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Location remains tap-only. **Trip links removed (@Cattn, 2026-11-14):** nothing used them, and checking them needed a dev build, so the feature was deleted (`links.ts`, `links-native.ts`, `expo-linking`).
+None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Foreground location permission may be requested at app launch; no tap is required (@Cattn, 2026-11-14). **Trip links removed (@Cattn, 2026-11-14):** nothing used them, and checking them needed a dev build, so the feature was deleted (`links.ts`, `links-native.ts`, `expo-linking`).
 
 <!-- help:end -->
 
@@ -120,7 +120,7 @@ Add `expo-secure-store` to `app.json` plugins if its docs for SDK 58 require it.
 export type LocationResult = { ok: true; place: Place } | { ok: false; reason: 'denied' | 'unavailable' }
 export async function getCurrentPlace(): Promise<LocationResult>
 ```
-`requestForegroundPermissionsAsync()` → not granted → `{ ok: false, reason: 'denied' }`. Then `getCurrentPositionAsync({ accuracy: Balanced })` (catch → `unavailable`). Return `{ name: 'Current location', coordinates: [lng, lat], kind: 'address' }`. **Note the order: `[longitude, latitude]`** (GeoJSON, as in `LngLatSchema`). Add the `expo-location` plugin to `app.json` with `locationWhenInUsePermission: "Transit Agent uses your location to plan trips from where you are."`. Foreground ("when in use") only; no background location. Call it **only from a user tap** (018-Q1); never at app launch.
+`requestForegroundPermissionsAsync()` → not granted → `{ ok: false, reason: 'denied' }`. Then `getCurrentPositionAsync({ accuracy: Balanced })` (catch → `unavailable`). Return `{ name: 'Current location', coordinates: [lng, lat], kind: 'address' }`. **Note the order: `[longitude, latitude]`** (GeoJSON, as in `LngLatSchema`). Add the `expo-location` plugin to `app.json` with `locationWhenInUsePermission: "Transit Agent uses your location to plan trips from where you are."`. Foreground ("when in use") only; no background location. It may be called at app launch or from a user tap (018-Q1); no tap is required.
 
 ### Step 5: Foreground hook
 
@@ -167,7 +167,7 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 - Merged in #37. Device verification is done in Expo Go on Android: the LAN API fallback and the location prompt on tap run in the app (plans 020–022). Trip links were removed (see Step 6). iOS is in the backlog.
 - Primary reviewer passed 30 mobile tests, mobile typecheck, and Android/iOS Hermes exports with the entire platform barrel imported into a temporary entry point using locked dependencies. Helper bundle coverage is verified; real-device behavior is not.
-- UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, and tap-only location. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
+- UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, and foreground location (launch-time permission requests are allowed). Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
 - PR #37's local `DeviceIdStorage` already matches plan 015: `get(): Promise<string | null>`, `set(id: string): Promise<void>`. Keep that shape; once 015 lands, import its exported type when wiring the consumer. No worker contract adjustment is needed.
 - No dev build is needed: every remaining helper is included in Expo Go.
 
@@ -176,13 +176,13 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 ## Open questions for review
 
-- ~~018-Q1~~ **Decided (@DMFriends, 2026-11-14, [#26](https://github.com/Cattn/transit-agent/issues/26#issuecomment-6872580875)): only on tap.** `getCurrentPlace()` requests permission only when the user taps "use my location". Never request location at app launch.
+- ~~018-Q1~~ **Updated (@Cattn, 2026-11-14): requesting foreground location permission at app launch is allowed; no tap is required.** `getCurrentPlace()` may be called at launch or from "use my location". This supersedes the earlier [tap-only decision](https://github.com/Cattn/transit-agent/issues/26#issuecomment-6872580875). Background location remains out of scope.
 - ~~018-Q2~~ **Decided (@Cattn, 2026-11-14): iOS is in scope.** Test the location permission text on iOS too. Running a dev client on a real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account for device install; without one, use the iOS Simulator (needs a Mac). @KrakenTheJaken is the nominated iOS tester ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); confirm availability, then verify Steps 4 and 6. Nomination is not device validation. **Superseded (@Cattn, 2026-11-14): iOS is parked in the backlog; see "Backlog: iOS".**
 
 ## Backlog: iOS
 
 iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
 
-- Verify on iOS: the location permission prompt on tap (Step 4).
+- Verify on iOS: the foreground location permission prompt at launch or on tap (Step 4).
 - A real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account; without one, use the iOS Simulator (needs a Mac).
 - @KrakenTheJaken was the nominated iOS tester ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); availability was never confirmed.

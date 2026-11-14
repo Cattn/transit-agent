@@ -99,7 +99,7 @@ export const modeGroups = {
 |---|---|---|
 | Search | Glass bar: magnifying glass, "Where to?", mic, person circle. Mic is visual only. Person circle navigates to Settings (plan 025). | Material search bar, 56 pt: menu icon (visual only), "Where to?", search icon, avatar. The avatar navigates to Settings (plan 025). |
 | Mode control | Glass segmented control: Transit, Fly (D12: no Drive) | Material segmented button, Transit, Fly |
-| Map buttons | Two circular glass buttons stacked (location, layers). Location calls plan 018 only on tap. | One FAB (location) and one extended FAB labeled "Ask agent" |
+| Map buttons | Two circular glass buttons stacked (location, layers). Location uses plan 018; permission may also be requested at app launch. | One FAB (location) and one extended FAB labeled "Ask agent" |
 | Ask agent | Tinted glass pill "Ask agent" with sparkles, above the sheet | The extended FAB. Plan 023 owns the sheet it opens. |
 | Sheet | Inset glass sheet, grabber, "Tracked Trips", bell + "2 watching", two cards, chips Home / Office / Gym, a filter icon | Edge-to-edge Material sheet, drag handle, "Tracked trips", bell + "2 watching", two cards, assistive chips Home / Office / Gym / Settings |
 | Chrome | Status bar + home indicator. `SafeAreaView` edges. | Status bar + gesture bar. `SafeAreaView` edges. |
@@ -229,7 +229,7 @@ The "2 watching" count is the number of saved trips with `watch === true`, not a
 
 Chips Home, Office, and Gym set origin or destination only when the profile has that place. The mock profile may be empty. Tapping a chip with no place opens Filters (plan 022's screen) instead of inventing an address. The Settings chip on Android calls `navigation.navigate('Settings')`.
 
-The location button calls the existing `getCurrentPlace` only on tap (decided on #26). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
+The location button calls the existing `getCurrentPlace`; Home may also call it at launch without a tap (018-Q1, updated by @Cattn, 2026-11-14). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
 
 "Ask agent" and the Android extended FAB set local state `chatOpen`. Plan 023 replaces the placeholder. This plan shows `ChatScreen` when that flag is true.
 

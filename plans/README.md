@@ -67,7 +67,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Trip links removed (Cattn, 2026-11-14) |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Launch-time foreground location permission allowed (018-Q1). Trip links removed (Cattn, 2026-11-14) |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | DONE (#67) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
