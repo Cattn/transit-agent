@@ -17,11 +17,12 @@
 - **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `3a55b10` (021 and 023 merged; Material components; open on the tapped field)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/46
+- **Status**: PR #70 open, stacked on #69
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **MVP, next up.** Build with the defaults until a question is answered. Visual target: Figma frame 03 Filters, Android, exactly.
+- **Status:** PR #70 open, stacked on #69. Visual target: Figma frame 03 Filters, Android, exactly.
 - **Owner:** @DMFriends (2026-11-14; moved from @Cattn, originally @Rad1ee). DMFriends built Home (020) and Results (021), which this sheet sits on. Fly (024) waits until this is done.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
@@ -113,13 +114,13 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
-- [ ] `npm run typecheck -w @transit/mobile` exits 0
-- [ ] `npm run lint` exits 0
-- [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
-- [ ] A hard limit control sends `null` when cleared
-- [ ] `lateTolerance` and `transferRisk` are two controls
-- [ ] No car chip and no Budget row; Advanced limits start collapsed
-- [ ] No files outside Scope are modified
+- [x] `npm run typecheck -w @transit/mobile` exits 0
+- [x] `npm run lint` exits 0
+- [x] Android shows the full sheet, not `presentationStyle="formSheet"`
+- [x] A hard limit control sends `null` when cleared
+- [x] `lateTolerance` and `transferRisk` are two controls
+- [x] No car chip and no Budget row; Advanced limits start collapsed
+- [ ] No files outside Scope are modified (lock and chevron icons under `apps/mobile/assets/icons`, required for the limit rows)
 
 ## STOP conditions
 
