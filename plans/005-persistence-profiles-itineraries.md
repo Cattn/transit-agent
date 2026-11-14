@@ -21,8 +21,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** #7 and #8 are done.
-- **Owner:** Nobody yet
+- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Owner:** @Cattn
 - **Up for grabs?** Yes. Server-side; small database work.
 
 **Open questions** (answer by number in a comment on #9):
