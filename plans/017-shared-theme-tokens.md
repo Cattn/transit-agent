@@ -22,23 +22,15 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Wait for PR #35** (maps) to merge: it already has the route palette, which this plan moves into shared.
-- **Owner:** Nobody yet. @KrakenTheJaken and the UI team review the colors.
-- **Up for grabs?** Yes, after #35 merges. Small.
-- **Waiting on:** PR #35; color-uniqueness question on #13 (plan 009 P4)
+- **Status:** 🔄 **Assigned to @DMFriends.** Still waits for PR #35 (maps) to merge, since it moves #35's palette into shared. Don't reuse #35's color allocator until it's fixed and re-reviewed.
+- **Owner:** @DMFriends
+- **Waiting on:** PR #35 (merge + allocator fix/re-review); PR #36 (formatters) merge
 
 **Open questions** (answer by number in a comment on #25):
 
 1. @KrakenTheJaken: OK to move the route color palette out of the maps package into shared, so result cards and map lines use the same colors?
-2. @Rad1ee @DMFriends: dark mode now or later? *(suggested: define the colors now, ship light only)*
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/017-shared-theme-tokens.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #25`.
-- **Just feedback:** answer the open questions above by number in a comment.
+2. Colors: unique per screen vs stable per trip (plan 009 proposal P4, discussed on #13)
+3. Dark + light with a Settings toggle (@DMFriends' direction): @Cattn / @Rad1ee, confirm it's in UI scope now?
 
 <!-- help:end -->
 
@@ -130,4 +122,4 @@ Pick colors that are distinguishable for common color-vision deficiencies (e.g. 
 ## Open questions for review
 
 - 017-Q1 (@KrakenTheJaken): OK to move the route palette out of `packages/maps` into shared, so lists and the map use the same colors?
-- 017-Q2 (@Rad1ee @DMFriends): Dark mode now or later? *(proposed: define the tokens now, ship light only)*
+- 017-Q2 (**direction from @DMFriends, [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6872563612)**): ship **dark and light now**, with a toggle in Settings. Recorded as the plan owner's direction; adding a dark theme and a Settings toggle to the apps is UI scope, which the UI team / @Cattn should confirm. Either way this plan already defines `light` and `dark` tokens and tests contrast for both, so no step here changes. The toggle itself belongs to UI slice 6 (Settings), not this plan.
