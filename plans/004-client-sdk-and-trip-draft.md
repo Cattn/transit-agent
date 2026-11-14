@@ -20,21 +20,12 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** No longer waits for #7 (changed 2026-11-14).
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Good fit for a UI person, since the UI is what uses it. It unblocks the mock client (#20) and the shared hooks (#23).
+- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #8):
 
 1. Should the app double-check every server response against the shared types in production too, or only in development? *(suggested: always, for now)*
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/004-client-sdk-and-trip-draft.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #8`.
-- **Just feedback:** answer the open questions above by number in a comment.
 
 <!-- help:end -->
 
