@@ -19,6 +19,7 @@ This builds and watches shared code and starts the API, web app, and Expo togeth
 - `apps/mobile`: Expo + React Native for Android and iOS.
 - `apps/server`: Fastify API with request logging, CORS, and graceful shutdown.
 - `packages/shared`: API types, planning sections, and an API client used by both apps.
+- `packages/maps`: the route map (`@transit/maps`). Draws `Itinerary[]` on MapLibre; see [`packages/maps/README.md`](packages/maps/README.md) for how to put a route on the map.
 
 Keep reusable types and platform-independent logic in `packages/shared/src`. Each client owns its platform UI. Shared output is compiled into `packages/shared/dist`; `npm run dev` rebuilds it automatically.
 
@@ -26,6 +27,7 @@ Keep reusable types and platform-independent logic in `packages/shared/src`. Eac
 
 - `npm run dev`: run everything with shared-package watching.
 - `npm run dev:web`, `npm run dev:server`, `npm run dev:mobile`: run individual apps after `npm run build:shared`.
+- `npm run demo:maps`: the route map demo with sample routes at http://localhost:5180. No server or build needed.
 - `npm run android`: open Expo Go on an Android emulator or connected Android phone.
 - `npm run ios`: open an iOS simulator on macOS.
 - `npm run mobile:tunnel`: expose the Expo development server through a tunnel.
@@ -48,6 +50,17 @@ Copy the relevant app's `.env.example` to `.env` when overriding defaults. Resta
 - Mobile: `EXPO_PUBLIC_API_URL` must be reachable from the device. Android emulators default to `http://10.0.2.2:3001`; iOS simulators default to `http://localhost:3001`.
 
 Client environment variables are public. Keep provider keys and secrets on the server.
+
+## Mobile platform helpers
+
+`apps/mobile/src/platform` holds the phone-only pieces screens share:
+- `getApiUrl()` picks the API address: `EXPO_PUBLIC_API_URL` if set, else the LAN address Expo serves from (works on a real phone), else the emulator/simulator default.
+- `secureStoreDeviceIdStorage` keeps the anonymous device ID in the OS keychain/keystore.
+- `getCurrentPlace()` is "use my location". It asks for permission only when called, and only for when-in-use location; the app never requests background location.
+- `useAppForeground()` lets screens pause polling while the app is in the background.
+- `tripLink()`, `parseTripLink()` and `useIncomingTripLink()` handle `transit-agent://trip/<id>` links.
+
+These use `expo-secure-store`, `expo-location`, `expo-linking` and `expo-constants`. Expo Go already includes them, but a development build must be rebuilt (`npm run build:android`, and `npm run build:ios` for iPhone) after pulling this change or any new permission text in `app.json`. Run the pure helpers' tests with `npm run test:unit -w @transit/mobile`.
 
 ## Test on your Android phone
 

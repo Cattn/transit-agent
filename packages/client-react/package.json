@@ -1,0 +1,35 @@
+{
+  "name": "@transit/client-react",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run --passWithNoTests",
+    "test": "npm run typecheck && npm run test:unit"
+  },
+  "devDependencies": {
+    "react": "19.3.0",
+    "@types/react": "~19.3.0",
+    "vitest": "^4.1.12",
+    "@testing-library/react": "^16.3.0",
+    "jsdom": "^27.0.0",
+    "react-dom": "19.3.0"
+  },
+  "dependencies": {
+    "@transit/shared": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}

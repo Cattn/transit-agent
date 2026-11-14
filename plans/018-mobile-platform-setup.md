@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress** by @DMFriends.
+- **Status:** **Approved, awaiting merge:** [PR #37](https://github.com/Cattn/transit-agent/pull/37) at `f04e96c56ab095d4c368004dc895bca1af4cc564` by @DMFriends.
 - **Owner:** @DMFriends
 
 **Open questions** (answer by number in a comment on #26):
@@ -160,6 +160,14 @@ After merging, someone must run `npm run build:android` once (new native modules
 - Typecheck can't resolve `.native.ts` files (TypeScript doesn't know about platform extensions). If so, rename `*.native.ts` to plain `.ts` (the pure files are already separate) and note it.
 
 ## Maintenance notes
+
+### Review and remaining integration (2026-11-14)
+
+- PR #37 is approved at `f04e96c56ab095d4c368004dc895bca1af4cc564`; CI passed, but it remains unmerged. Do not mark plan 018 done or its dependency merged.
+- Primary reviewer passed 30 mobile tests, mobile typecheck, and Android/iOS Hermes exports with the entire platform barrel imported into a temporary entry point using locked dependencies. Helper bundle coverage is verified; real-device behavior is not.
+- UI consumers still need to mount the helpers: use `getApiUrl()`, persistent device ID storage, foreground-controlled saved-trip polling, tap-only location, and incoming trip links. Remove an emulator-only `EXPO_PUBLIC_API_URL` override when exercising Expo's LAN fallback.
+- PR #37's local `DeviceIdStorage` already matches plan 015: `get(): Promise<string | null>`, `set(id: string): Promise<void>`. Keep that shape; once 015 lands, import its exported type when wiring the consumer. No worker contract adjustment is needed.
+- After merging, rebuild the native dev client and verify location permission/results and cold/warm trip links on Android and iOS. Device validation and the Mac/iPhone tester question remain open.
 
 - Push notifications (D7-C) will add `expo-notifications` next to these helpers and reuse `tripLink` for the notification's target.
 - Any new permission needs `app.json` text **and** a dev-client rebuild. Say so in the PR.

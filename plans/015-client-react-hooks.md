@@ -4,7 +4,8 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 45f5379..HEAD -- packages package.json apps/web/package.json apps/mobile/package.json`
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages package.json apps/web/package.json apps/mobile/package.json`
+> Reconciled 2026-11-14: an empty diff is expected. If this prints anything, compare Current state before proceeding. Plans 004 and 012 are already on this commit.
 > Expected: plans 004 and 012 landed in `packages/shared/src/client/`. If a `packages/client-react`
 > or `packages/ui-hooks` directory already exists, STOP: the UI team may have started their own.
 
@@ -15,12 +16,12 @@
 - **Risk**: MEDIUM (new workspace package; touches root build scripts that every app uses)
 - **Depends on**: plans/004-client-sdk-and-trip-draft.md, plans/012-mock-api-client.md (tests run against the mock). Uses plan 013's `computeWatchStatus` only through data already on `SavedItinerary`.
 - **Category**: direction (parallel work)
-- **Planned at**: commit `45f5379`, 2026-11-14
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** **Technical re-check passed:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8`. COMMENT review, not formal GitHub approval. Conflicts resolved; mergeable and unmerged. Final CI success is not established.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -46,7 +47,7 @@ imports shared and must not depend on React. A **separate package** keeps that r
 - `packages/shared/package.json` is the pattern for a workspace library: `"type": "module"`, `main: ./dist/index.js`, `types`, `exports`, scripts `build: tsc`, `typecheck: tsc --noEmit`, `test:unit: vitest run`. Its `tsconfig.json` extends `../../tsconfig.base.json` with `module: NodeNext`, `rootDir: src`, `outDir: dist`, `declaration: true`, and excludes `src/**/*.test.ts`. Read both files and copy them.
 - Root `package.json` scripts build shared first everywhere: `build:shared`, `build:web`, `build:server`, `build:mobile`, `build`, `typecheck`, `test:unit`, and `dev` (concurrently). `apps/mobile/package.json` has `"eas-build-post-install": "npm run build -w @transit/shared"`.
 - React versions: `react` `19.3.0` in both apps; `@types/react` `~19.3.0`.
-- After plan 004: `@transit/shared` exports `ApiClient`, `ApiClientError`, `createDeviceId`, `initialDraftState`, `applyDraftPatch`, `toTripRequest`, `describePatch`, `DraftState`, `TripDraftPatch`, `DraftChangeSource`, `AgentMessageResponse`, `Place`. After plan 012: `createMockApiClient`.
+- On main at `9ccf722`, `@transit/shared` (`packages/shared/src/index.ts`) already exports `ApiClient`, `ApiClientError`, `createDeviceId`, `initialDraftState`, `applyDraftPatch`, `toTripRequest`, `describePatch`, `DraftState`, `TripDraftPatch`, `DraftChangeSource`, `AgentMessageResponse`, `Place`, and `createMockApiClient`. `packages/client-react` does not exist. Root `build:shared` still builds only `@transit/shared`.
 - ESLint already applies `react-hooks` rules to `apps/web/src/**` and `apps/mobile/**` (`eslint.config.mjs`). Extend that `files` list to include `packages/client-react/src/**/*.{ts,tsx}`.
 
 ## Commands you will need
@@ -195,6 +196,8 @@ const chat = useAgentChat(trip.state, trip.apply);
 - The root script change breaks CI (`.github/workflows/ci.yml` calls a script you renamed).
 
 ## Maintenance notes
+
+- Integration re-check passed at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8`: reviewer 2 verified the normal two-parent merge, client-react byte-identical to reviewed `73a6d89`, preserved main source/workflows/plans and lock entries (except two app dependencies), and combined shared → maps → client-react build/watch/demo/lint wiring. Independent fresh `npm ci` and full `npm run check` passed 320 existing tests, lint/typechecks, builds, Android/iOS exports and smoke; one React 19.3.0, clean checkout/diff. [Technical-pass COMMENT review](https://github.com/Cattn/transit-agent/pull/47#pullrequestreview-5902357329), not formal GitHub approval. No actionable findings; conflict/integration blocker resolved. GitHub reported mergeable, but CI was in progress at reviewer inspection; final CI success is not established. PR remains unmerged; dependent work must not treat 015 as landed.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
