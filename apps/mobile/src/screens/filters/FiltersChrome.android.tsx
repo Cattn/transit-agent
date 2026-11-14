@@ -3,38 +3,38 @@ import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
 import {
+  AlertDialog,
   Button,
   Column,
   FilterChip,
   FlowRow,
   Icon,
+  HorizontalDivider,
   IconButton,
   ListItem,
+  RadioButton,
   Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
   Slider,
-  Switch,
   Text,
   TextButton,
   TimePickerDialog,
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { clickable, fillMaxWidth, padding, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { background, clickable, clip, fillMaxWidth, padding, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
 import ArrowDown from '../../../assets/icons/keyboard_arrow_down_fill.xml';
 import ArrowUp from '../../../assets/icons/keyboard_arrow_up_fill.xml';
 import Close from '../../../assets/icons/close_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
-import Edit from '../../../assets/icons/edit_fill.xml';
-import Lock from '../../../assets/icons/lock_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
 import { useAppColors } from '../../theme/appearance';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
-import type { ChipMode, FilterFocus, FiltersChromeProps, LimitAction } from './FiltersScreen';
+import type { ChipMode, FilterFocus, FiltersChromeProps } from './FiltersScreen';
 import { PlaceField, type PlaceFieldColors } from './PlaceField';
 
 const MODE_ICONS: Record<ChipMode, number> = {
@@ -55,9 +55,8 @@ function Block({ scheme, children }: { scheme: 'light' | 'dark'; children: React
 function AgentMark({ show, m }: { show: boolean; m: MaterialColors }) {
   if (!show) return null;
   return (
-    <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 4 }}>
-      <Icon source={Edit} size={14} tint={m.primary} contentDescription="Set by the agent" />
-      <Text color={m.primary} style={m3Text('labelMedium')}>Agent</Text>
+    <Row modifiers={[clip(Shapes.RoundedCorner(8)), background(m.tertiaryContainer), padding(8, 2, 8, 2)]}>
+      <Text color={m.onTertiaryContainer} style={m3Text('labelMedium')}>✦ Agent</Text>
     </Row>
   );
 }
@@ -91,35 +90,46 @@ function PreferenceSlider({ value, onChange }: { value: number; onChange: (value
   );
 }
 
-function LimitRow({ title, item, m, onAction }: {
-  title: string;
-  item: { label: string; set: boolean; agent: boolean };
-  m: MaterialColors;
-  onAction: (action: LimitAction) => void;
-}) {
+type LimitItem = FiltersChromeProps['limits'][number];
+
+function LimitRow({ title, value, agent, m, onClick }: { title: string; value: string; agent: boolean; m: MaterialColors; onClick: () => void }) {
   return (
-    <ListItem modifiers={[fillMaxWidth()]}>
-      <ListItem.LeadingContent>
-        <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Limit" />
-      </ListItem.LeadingContent>
+    <ListItem colors={{ containerColor: m.surfaceContainerLowest }} modifiers={[fillMaxWidth(), clickable(onClick)]}>
       <ListItem.HeadlineContent>
         <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
           <Text style={m3Text('bodyLarge')}>{title}</Text>
-          <AgentMark show={item.agent} m={m} />
+          <AgentMark show={agent} m={m} />
         </Row>
       </ListItem.HeadlineContent>
-      <ListItem.SupportingContent>
-        <Row verticalAlignment="center">
-          {item.set ? <TextButton onClick={() => onAction('down')}><Text style={m3Text('labelLarge')}>−</Text></TextButton> : null}
-          {item.set ? <TextButton onClick={() => onAction('up')}><Text style={m3Text('labelLarge')}>+</Text></TextButton> : null}
-          {item.set ? <TextButton onClick={() => onAction('clear')}><Text style={m3Text('labelLarge')}>Clear</Text></TextButton> : null}
-          {item.set ? null : <TextButton onClick={() => onAction('up')}><Text style={m3Text('labelLarge')}>Set</Text></TextButton>}
-        </Row>
-      </ListItem.SupportingContent>
       <ListItem.TrailingContent>
-        <Text style={m3Text('labelLarge')}>{item.label}</Text>
+        <Text color={m.primary} style={m3Text('labelLarge')}>{value}</Text>
       </ListItem.TrailingContent>
     </ListItem>
+  );
+}
+
+function LimitDialog({ item, m, onPick, onDismiss }: { item: LimitItem; m: MaterialColors; onPick: (value: number | null) => void; onDismiss: () => void }) {
+  return (
+    <AlertDialog onDismissRequest={onDismiss}>
+      <AlertDialog.Title>
+        <Text style={m3Text('headlineSmall')}>{item.title}</Text>
+      </AlertDialog.Title>
+      <AlertDialog.Text>
+        <Column modifiers={[fillMaxWidth()]}>
+          {item.options.map((option) => (
+            <Row key={option.label} verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), clickable(() => onPick(option.value)), padding(0, 4, 0, 4)]}>
+              <RadioButton selected={option.selected} onClick={() => onPick(option.value)} />
+              <Text color={m.onSurface} style={m3Text('bodyLarge')}>{option.label}</Text>
+            </Row>
+          ))}
+        </Column>
+      </AlertDialog.Text>
+      <AlertDialog.DismissButton>
+        <TextButton onClick={onDismiss}>
+          <Text style={m3Text('labelLarge')}>Cancel</Text>
+        </TextButton>
+      </AlertDialog.DismissButton>
+    </AlertDialog>
   );
 }
 
@@ -130,6 +140,8 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const scroll = useRef<ScrollViewInstance>(null);
   const scrolled = useRef(false);
   const [pickingTime, setPickingTime] = useState(false);
+  const [pickingLimit, setPickingLimit] = useState<LimitItem['key']>();
+  const editing = props.limits.find((item) => item.key === pickingLimit);
   const placeColors: PlaceFieldColors = {
     surface: m.surface,
     onSurface: m.onSurface,
@@ -146,7 +158,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   };
 
   return (
-    <View style={[styles.fill, { backgroundColor: m.surface, paddingTop: insets.top }]}>
+    <View style={[styles.fill, { backgroundColor: m.surfaceContainerLow, paddingTop: insets.top }]}>
       <View style={styles.handleRow}>
         <View style={[styles.handle, { backgroundColor: m.onSurfaceVariant }]} />
       </View>
@@ -169,7 +181,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
             </Column>
           </Block>
           <Block scheme={scheme}>
-            <ListItem modifiers={[fillMaxWidth(), clickable(() => props.onSearch('origin'))]}>
+            <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => props.onSearch('origin'))]}>
               <ListItem.OverlineContent>
                 <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>From</Text>
               </ListItem.OverlineContent>
@@ -185,7 +197,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
             <PlaceField near={props.search.near} showLocation locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
           ) : null}
           <Block scheme={scheme}>
-            <ListItem modifiers={[fillMaxWidth(), clickable(() => props.onSearch('destination'))]}>
+            <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => props.onSearch('destination'))]}>
               <ListItem.OverlineContent>
                 <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>To</Text>
               </ListItem.OverlineContent>
@@ -215,10 +227,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </Block>
           <Block scheme={scheme}>
             <Column modifiers={[fillMaxWidth()]}>
-              <ListItem modifiers={[fillMaxWidth(), clickable(() => setPickingTime(true))]}>
-                <ListItem.LeadingContent>
-                  <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Locked time" />
-                </ListItem.LeadingContent>
+              <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => setPickingTime(true))]}>
                 <ListItem.HeadlineContent>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
                     <Text style={m3Text('bodyLarge')}>{props.time.label}</Text>
@@ -296,9 +305,9 @@ export function FiltersChrome(props: FiltersChromeProps) {
                 <Column key={row.key} verticalArrangement={{ spacedBy: 4 }}>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
                     <Text style={m3Text('bodyLarge')}>{row.start}</Text>
-                    <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')}>↔</Text>
-                    <Text modifiers={[weight(1)]} style={m3Text('bodyLarge')}>{row.end}</Text>
                     <AgentMark show={row.agent} m={m} />
+                    <Row modifiers={[weight(1)]}>{null}</Row>
+                    <Text style={m3Text('bodyLarge')}>{row.end}</Text>
                   </Row>
                   <PreferenceSlider value={row.value} onChange={(value) => props.onPreference(row.key, value)} />
                 </Column>
@@ -309,52 +318,51 @@ export function FiltersChrome(props: FiltersChromeProps) {
 
         <View onLayout={(event) => remember('limits', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 8)]}>
-              <Row verticalAlignment="center" modifiers={[fillMaxWidth(), clickable(props.onToggleLimits)]}>
-                <Text modifiers={[weight(1)]} style={m3Text('titleMedium')}>Advanced limits</Text>
-                <Icon source={props.limitsOpen ? ArrowUp : ArrowDown} size={24} contentDescription={props.limitsOpen ? 'Collapse advanced limits' : 'Expand advanced limits'} />
-              </Row>
-              {props.limitsOpen ? (
-                <Column>
-                  <LimitRow title="Max walk" item={props.walk} m={m} onAction={props.onWalk} />
-                  <LimitRow title="Max transfers" item={props.transfers} m={m} onAction={props.onTransfers} />
-                  <ListItem modifiers={[fillMaxWidth()]}>
-                    <ListItem.LeadingContent>
-                      <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Limit" />
-                    </ListItem.LeadingContent>
-                    <ListItem.HeadlineContent>
-                      <Text style={m3Text('bodyLarge')}>Step-free access</Text>
-                    </ListItem.HeadlineContent>
-                    <ListItem.SupportingContent>
-                      <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                        <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.stepFree.on ? 'On' : 'Off'}</Text>
-                        <AgentMark show={props.stepFree.agent} m={m} />
-                      </Row>
-                    </ListItem.SupportingContent>
-                    <ListItem.TrailingContent>
-                      <Switch value={props.stepFree.on} onCheckedChange={props.onStepFree} />
-                    </ListItem.TrailingContent>
-                  </ListItem>
-                </Column>
+            <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 16)]}>
+              <Column modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(16)), background(m.surfaceContainerLowest)]}>
+                <Row verticalAlignment="center" modifiers={[fillMaxWidth(), clickable(props.onToggleLimits), padding(16, 16, 16, 8)]}>
+                  <Text modifiers={[weight(1)]} style={m3Text('titleSmall')}>Advanced limits</Text>
+                  <Icon source={props.limitsOpen ? ArrowUp : ArrowDown} size={24} tint={m.onSurfaceVariant} contentDescription={props.limitsOpen ? 'Collapse advanced limits' : 'Expand advanced limits'} />
+                </Row>
+                {props.limitsOpen ? (
+                  <Column modifiers={[fillMaxWidth(), padding(0, 0, 0, 8)]}>
+                    {props.limits.map((item) => (
+                      <LimitRow key={item.key} title={item.title} value={item.label} agent={item.agent} m={m} onClick={() => setPickingLimit(item.key)} />
+                    ))}
+                    <LimitRow title="Step-free access" value={props.stepFree.on ? 'On' : 'Off'} agent={props.stepFree.agent} m={m} onClick={() => props.onStepFree(!props.stepFree.on)} />
+                  </Column>
+                ) : null}
+              </Column>
+              {editing ? (
+                <LimitDialog
+                  item={editing}
+                  m={m}
+                  onPick={(value) => {
+                    setPickingLimit(undefined);
+                    props.onLimit(editing.key, value);
+                  }}
+                  onDismiss={() => setPickingLimit(undefined)}
+                />
               ) : null}
             </Column>
           </Block>
         </View>
       </ScrollView>
       <Block scheme={scheme}>
-        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 12)]}>
-          {props.counts ? (
-            <Column>
-              <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.counts.routes}</Text>
-              <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.counts.almost}</Text>
+        <Column modifiers={[fillMaxWidth()]}>
+          <HorizontalDivider color={m.outlineVariant} />
+          <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 16 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 12)]}>
+            <Column modifiers={[weight(1)]}>
+              {props.counts ? <Text color={m.onSurface} style={m3Text('titleSmall')}>{props.counts.routes}</Text> : null}
+              {props.counts ? <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.counts.almost}</Text> : null}
             </Column>
-          ) : null}
-          <Button onClick={props.onShowRoutes} modifiers={[fillMaxWidth()]}>
-            <Text style={m3Text('labelLarge')}>Show routes</Text>
-          </Button>
+            <Button onClick={props.onShowRoutes}>
+              <Text style={m3Text('labelLarge')}>Show routes</Text>
+            </Button>
+          </Row>
         </Column>
       </Block>
-      <View style={{ height: insets.bottom, backgroundColor: m.surface }} />
+      <View style={{ height: insets.bottom, backgroundColor: m.surfaceContainerLow }} />
     </View>
   );
 }

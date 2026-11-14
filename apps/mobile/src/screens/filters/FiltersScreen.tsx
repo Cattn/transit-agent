@@ -24,7 +24,7 @@ const PREFERENCE_ROWS = [
 
 export type FilterFocus = 'where' | 'modes' | 'strict' | 'prefs' | 'limits';
 export type ChipMode = (typeof CHIP_MODES)[number];
-export type LimitAction = 'down' | 'up' | 'clear';
+export type LimitKey = 'maxWalkMinutes' | 'maxTransfers';
 export type PreferenceKey = (typeof PREFERENCE_ROWS)[number]['key'];
 export type TimeType = (typeof TIME_OPTIONS)[number]['value'];
 export type LateTolerance = (typeof LATE_OPTIONS)[number]['value'];
@@ -59,10 +59,8 @@ export interface FiltersChromeProps {
   onLateTolerance: (value: LateTolerance) => void;
   preferences: { key: PreferenceKey; start: string; end: string; value: number; agent: boolean }[];
   onPreference: (key: PreferenceKey, value: number) => void;
-  walk: { label: string; set: boolean; agent: boolean };
-  transfers: { label: string; set: boolean; agent: boolean };
-  onWalk: (action: LimitAction) => void;
-  onTransfers: (action: LimitAction) => void;
+  limits: { key: LimitKey; title: string; label: string; agent: boolean; options: { value: number | null; label: string; selected: boolean }[] }[];
+  onLimit: (key: LimitKey, value: number | null) => void;
   stepFree: { on: boolean; agent: boolean };
   onStepFree: (on: boolean) => void;
   counts?: { routes: string; almost: string };
@@ -102,12 +100,12 @@ function toggleMode(modes: readonly TravelMode[], mode: ChipMode): TravelMode[] 
   return [...chips, ...rest];
 }
 
-function stepLimit(current: number | undefined, delta: 1 | -1, steps: readonly number[], start: number): number | null | undefined {
-  if (current === undefined) return delta > 0 ? start : undefined;
-  if (delta > 0) return steps.find((step) => step > current) ?? current;
-  let lower: number | undefined;
-  for (const step of steps) if (step < current) lower = step;
-  return lower ?? null;
+function limitOptions(current: number | undefined, steps: readonly number[], label: (value: number) => string) {
+  const values = current === undefined || steps.includes(current) ? steps : [...steps, current].sort((a, b) => a - b);
+  return [
+    { value: null, label: 'No limit', selected: current === undefined },
+    ...values.map((value) => ({ value, label: label(value), selected: value === current }))
+  ];
 }
 
 function upcoming(picked: Date, now: Date): Date {
@@ -164,14 +162,8 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
     });
   };
 
-  const onLimit = (key: 'maxWalkMinutes' | 'maxTransfers', current: number | undefined, action: LimitAction, steps: readonly number[], start: number) => {
-    const next = action === 'clear'
-      ? (current === undefined ? undefined : null)
-      : stepLimit(current, action === 'up' ? 1 : -1, steps, start);
-    if (next === undefined) return;
-    if (key === 'maxWalkMinutes') apply({ constraints: { maxWalkMinutes: next } }, 'user');
-    else apply({ constraints: { maxTransfers: next } }, 'user');
-  };
+  const walkLabel = (value: number) => `${value} min`;
+  const transferLabel = (value: number) => (value === 0 ? 'No transfers' : String(value));
 
   const data = plan && !plan.loading ? plan.data : undefined;
   const near = searching === 'destination' ? draft.origin?.coordinates : draft.destination?.coordinates;
@@ -247,18 +239,27 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
       else if (key === 'transferRisk') apply({ preferences: { transferRisk: next } }, 'user');
       else apply({ preferences: { activeTravel: next } }, 'user');
     },
-    walk: {
-      label: draft.constraints.maxWalkMinutes === undefined ? 'No limit' : `${draft.constraints.maxWalkMinutes} min`,
-      set: draft.constraints.maxWalkMinutes !== undefined,
-      agent: agent('constraints.maxWalkMinutes')
+    limits: [
+      {
+        key: 'maxWalkMinutes',
+        title: 'Max walk',
+        label: draft.constraints.maxWalkMinutes === undefined ? 'No limit' : walkLabel(draft.constraints.maxWalkMinutes),
+        agent: agent('constraints.maxWalkMinutes'),
+        options: limitOptions(draft.constraints.maxWalkMinutes, WALK_STEPS, walkLabel)
+      },
+      {
+        key: 'maxTransfers',
+        title: 'Max transfers',
+        label: draft.constraints.maxTransfers === undefined ? 'No limit' : transferLabel(draft.constraints.maxTransfers),
+        agent: agent('constraints.maxTransfers'),
+        options: limitOptions(draft.constraints.maxTransfers, TRANSFER_STEPS, transferLabel)
+      }
+    ],
+    onLimit: (key, value) => {
+      if (value === (draft.constraints[key] ?? null)) return;
+      if (key === 'maxWalkMinutes') apply({ constraints: { maxWalkMinutes: value } }, 'user');
+      else apply({ constraints: { maxTransfers: value } }, 'user');
     },
-    transfers: {
-      label: draft.constraints.maxTransfers === undefined ? 'No limit' : String(draft.constraints.maxTransfers),
-      set: draft.constraints.maxTransfers !== undefined,
-      agent: agent('constraints.maxTransfers')
-    },
-    onWalk: (action) => onLimit('maxWalkMinutes', draft.constraints.maxWalkMinutes, action, WALK_STEPS, 15),
-    onTransfers: (action) => onLimit('maxTransfers', draft.constraints.maxTransfers, action, TRANSFER_STEPS, 1),
     stepFree: { on: draft.constraints.wheelchairAccessible === true, agent: agent('constraints.wheelchairAccessible') },
     onStepFree: (on) => apply({ constraints: { wheelchairAccessible: on ? true : null } }, 'user'),
     counts: data ? countCopy(data.itineraries.length, data.nearMisses.length) : undefined

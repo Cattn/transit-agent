@@ -48,17 +48,17 @@ First Figma pass, read 2026-11-14. The sheet layout is the part most likely to b
 
 ## Why this matters
 
-Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preference sliders only rank them. Figma draws those differently: a lock on hard limits, and the section title "Preferences (rank, never exclude)". This is UI slice 2, with the layout from frame **03 Filters**.
+Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preference sliders only rank them. Figma draws those differently: hard limits sit in their own Advanced limits card, and the section title "Preferences (rank, never exclude)". This is UI slice 2, with the layout from frame **03 Filters**.
 
 ## Current state
 
 - Frames: `Android · 03 Filters (full sheet, scrolled length)` (`2004:1253`) and its dark twin `2018:1721`.
 - Android sheet (`2004:1341`): title "Trip filters", close icon, "Reset", then:
-  - Where & when: From "Current location · Beacon Hill", To "Office · 200 Clarendon St", a Depart / Arrive segmented control, and a locked time "9:00 AM".
+  - Where & when: From "Current location · Beacon Hill", To "Office · 200 Clarendon St", a Depart / Arrive segmented control, and the time "9:00 AM" (no lock icon; tap opens the Material time picker).
   - Modes: filter chips for walk, bus, train and bike (022-Q4: **no car chip**, even though the frame draws one; driving is the Drive tab). Map chips to `draft.modes`; leave any mode without a chip untouched in the draft. At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
   - "How strict is the arrival time?" Material segmented button with the labels "On time", "Bit late OK", "Flexible". Map them to `preferences.lateTolerance`: `strict`, `some`, `flexible`.
   - Three sliders: Cheaper ↔ Comfier (`comfortVsCost`), Safe transfers ↔ Tight (`transferRisk`), Less walking ↔ More (`activeTravel`). Values are 0..1. Any control whose provenance key is `'agent'` shows the "Agent" mark (022-Q4: every agent-set or agent-recommended field, not only the walking slider drawn in the frame), e.g. `provenance['preferences.activeTravel'] === 'agent'`.
-  - Advanced limits, **collapsed by default** (022-Q4; the frame draws them expanded). Opening Filters on a limit field from an agent chip expands them. Rows: Max walk (lock, "15 min", agent mark when set by the agent), Max transfers (lock, "1"), Step-free access (lock, "Off"). **No Budget row** (022-Q4: budget is not a hard limit; leave any budget constraint in the draft untouched, and do not change `packages/shared`). Locks are the visual for constraints. Clearing a limit sends `null` in the patch, not `0`.
+  - Advanced limits, **collapsed by default** (022-Q4; the frame draws them expanded). Opening Filters on a limit field from an agent chip expands them. Card per the current Figma (@Cattn, #74 review, 2026-11-14): a rounded `surfaceContainerLowest` card titled "Advanced limits" with plain rows, label left and value right in `primary`: Max walk ("15 min", Agent pill when set by the agent), Max transfers ("1"), Step-free access ("Off"). **No lock icons** anywhere. Tapping Max walk or Max transfers opens a Material dialog of choices ("No limit" plus fixed steps); tapping Step-free toggles On/Off. **No Budget row** (022-Q4: budget is not a hard limit; leave any budget constraint in the draft untouched, and do not change `packages/shared`). Picking "No limit" (clearing) a limit sends `null` in the patch, not `0`.
   - Footer: "3 routes match" / "1 almost works" from the latest plan response when plan 021 has run, otherwise hide the counts. Button "Show routes" closes the sheet and leaves the results sheet up.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
@@ -98,7 +98,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `Switch` for step-free access, `ListItem` rows for the limits, Material Symbols icons (lock, edit) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `ListItem` rows for the limits with an `AlertDialog` + `RadioButton` picker, a tertiary-container "✦ Agent" pill, Material Symbols icons and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -120,7 +120,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [x] A hard limit control sends `null` when cleared
 - [x] `lateTolerance` and `transferRisk` are two controls
 - [x] No car chip and no Budget row; Advanced limits start collapsed
-- [ ] No files outside Scope are modified (lock and chevron icons under `apps/mobile/assets/icons`, required for the limit rows; Home only changes which sheet is shown while Filters is up)
+- [ ] No files outside Scope are modified (chevron icons under `apps/mobile/assets/icons` for the limits card; Home only changes which sheet is shown while Filters is up)
 
 ## STOP conditions
 

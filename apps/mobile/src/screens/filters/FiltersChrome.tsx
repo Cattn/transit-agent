@@ -3,29 +3,29 @@ import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '../../theme/appearance';
 import type { AppColors } from '../../theme/colors';
-import type { FilterFocus, FiltersChromeProps, LimitAction } from './FiltersScreen';
+import type { FilterFocus, FiltersChromeProps, LimitKey } from './FiltersScreen';
 import { PlaceField } from './PlaceField';
 
 function nudge(value: number, delta: number): number {
   return Math.min(1, Math.max(0, Math.round((value + delta) * 10) / 10));
 }
 
-function LimitRow({ title, item, colors, onAction }: {
-  title: string;
-  item: { label: string; set: boolean; agent: boolean };
+function LimitRow({ item, colors, onLimit }: {
+  item: FiltersChromeProps['limits'][number];
   colors: AppColors;
-  onAction: (action: LimitAction) => void;
+  onLimit: (key: LimitKey, value: number | null) => void;
 }) {
   return (
     <View style={styles.limit}>
-      <Text style={[styles.body, { color: colors.onSurface }]}>{title}</Text>
-      <Text style={{ color: colors.onSurfaceVariant }}>{item.label}</Text>
+      <Text style={[styles.body, { color: colors.onSurface }]}>{item.title}</Text>
+      <Text style={{ color: colors.primary }}>{item.label}</Text>
       {item.agent ? <Text style={{ color: colors.primary }}>Agent</Text> : null}
       <View style={styles.row}>
-        {item.set ? <Pressable accessibilityRole="button" onPress={() => onAction('down')}><Text style={[styles.action, { color: colors.primary }]}>−</Text></Pressable> : null}
-        {item.set ? <Pressable accessibilityRole="button" onPress={() => onAction('up')}><Text style={[styles.action, { color: colors.primary }]}>+</Text></Pressable> : null}
-        {item.set ? <Pressable accessibilityRole="button" onPress={() => onAction('clear')}><Text style={[styles.action, { color: colors.primary }]}>Clear</Text></Pressable> : null}
-        {item.set ? null : <Pressable accessibilityRole="button" onPress={() => onAction('up')}><Text style={[styles.action, { color: colors.primary }]}>Set</Text></Pressable>}
+        {item.options.map((option) => (
+          <Pressable key={option.label} accessibilityRole="button" accessibilityState={{ selected: option.selected }} onPress={() => onLimit(item.key, option.value)} style={[styles.choice, { backgroundColor: option.selected ? colors.primaryContainer : colors.surfaceVariant }]}>
+            <Text style={{ color: option.selected ? colors.onPrimaryContainer : colors.onSurface }}>{option.label}</Text>
+          </Pressable>
+        ))}
       </View>
     </View>
   );
@@ -138,8 +138,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </Pressable>
           {props.limitsOpen ? (
             <View>
-              <LimitRow title="Max walk" item={props.walk} colors={colors} onAction={props.onWalk} />
-              <LimitRow title="Max transfers" item={props.transfers} colors={colors} onAction={props.onTransfers} />
+              {props.limits.map((item) => <LimitRow key={item.key} item={item} colors={colors} onLimit={props.onLimit} />)}
               <View style={styles.limit}>
                 <Text style={[styles.body, { color: colors.onSurface }]}>Step-free access</Text>
                 <Text style={{ color: colors.onSurfaceVariant }}>{props.stepFree.on ? 'On' : 'Off'}</Text>
