@@ -124,7 +124,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const searchTo = useCallback(async (destination: Place) => {
     const patch: TripDraftPatch = { destination };
     if (!state.draft.time) patch.time = { type: 'departAt', at: new Date().toISOString() };
-    if (!state.draft.origin) {
+    const origin = state.draft.origin;
+    if (!origin || (origin.coordinates[0] === destination.coordinates[0] && origin.coordinates[1] === destination.coordinates[1])) {
       setLocating(true);
       const result = await getCurrentPlace();
       setLocating(false);
