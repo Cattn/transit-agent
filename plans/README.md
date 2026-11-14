@@ -53,7 +53,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | 🟢 UI | P2 | L | 020 | TODO |
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | 🟢 UI | P1 | L | — | TODO (**MVP, start here**) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | 🟢 UI | P1 | M | 026 | TODO (MVP check) |
-| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | AWAITING RE-CHECK (PR #50 at `09b8a33`); cleanup pushed, unmerged |
+| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | RE-CHECK PASSED (PR #50 at `09b8a33`, COMMENT); awaiting owner merge |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
 | — | [UI slices](ui-slices.md) | UI team | — | — | — | Draft |
 
@@ -139,5 +139,5 @@ Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent a
 
 ## Reconcile log
 
-- **2026-11-14:** Plan 028 cleanup pushed at `09b8a33` in #50. Original reviewer re-check is pending; the PR stays unmerged.
+- **2026-11-14:** Plan 028 re-check passed at `09b8a33` in #50 (COMMENT, not formal approval). Awaiting owner merge.
 - **2026-11-14 at `1e8328a`:** 015 marked DONE (#47). 013/014/016/018 plan files updated to DONE. UI plans 020–027 refreshed: use merged hooks; web mounts the real `@transit/maps/web`; mock/server switch added; 027 gains the MVP end-to-end check. 017 rescoped to badge/mode colors (unblocked). 007/008/010 stale facts fixed (gazetteer and agent tools exist; obsolete done criterion removed). Duplicate open-question lists and repeated map-handoff appendices removed (009 is the single source). New plan 028: `/api/places` was called by the client but never served.

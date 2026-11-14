@@ -10,7 +10,7 @@
 ## Status
 
 - **Owner:** @Cattn (verified sole assignee on #49).
-- **Status:** Cleanup pushed at `09b8a33` in PR #50; awaiting the original reviewer's re-check. Prior COMMENT technical pass was at `c1f8602`, not formal approval; unmerged.
+- **Status:** Re-check passed at `09b8a33` in PR #50; awaiting owner merge. COMMENT review, not formal approval; unmerged.
 - **Priority**: P1 (MVP: the search box fails against the real server without it)
 - **Effort**: S
 - **Risk**: LOW
@@ -91,6 +91,6 @@ Preserve the five existing PR cases by moving them into the existing `apps/serve
 
 ## Maintenance notes
 
-- Current owner instructions prohibit new test files and source comments. PR #50's cleanup is pushed at `09b8a33`: the five cases are in `apps/server/src/app.test.ts`, `routes/places.test.ts` is removed, and the new route JSDoc is removed. Behavior is unchanged. The original reviewer is re-checking that head. Do not send a second review packet, re-review unrelated functionality, or merge without authorization.
+- Current owner instructions prohibit new test files and source comments. PR #50 re-check passed at `09b8a33` with no blocking findings: the five cases are in `apps/server/src/app.test.ts`, `routes/places.test.ts` is removed, and the new route JSDoc is removed. 92 server tests, the server build, and GitHub checks passed. The review is a COMMENT, not a formal approval. Merge stays with the owner.
 
 Plan 007 step 5 replaces the body of this route with `Geocoder.search(q, near)` and keeps the gazetteer as a fallback. Keep the response shape; the client and mock depend on it.
