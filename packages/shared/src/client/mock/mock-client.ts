@@ -8,6 +8,7 @@ import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
 import { mockItineraries } from './mock-routes.js';
 import { mockAgentReply } from './mock-agent.js';
+import { mockSearchPlaces } from './mock-places.js';
 
 export type MockScenario = 'normal' | 'empty' | 'nearMissOnly' | 'serverError' | 'offline';
 
@@ -115,9 +116,9 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
       const scenario = await beforeCall();
       return AgentMessageResponseSchema.parse(mockAgentReply(body, now(), (request) => planTrip(request, scenario)));
     },
-    async searchPlaces() {
+    async searchPlaces(q) {
       await beforeCall();
-      return PlaceSearchResponseSchema.parse({ places: [] }).places;
+      return PlaceSearchResponseSchema.parse({ places: mockSearchPlaces(q) }).places;
     }
   };
 }
