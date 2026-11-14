@@ -152,6 +152,8 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 ## Maintenance notes
 
+- @Cattn nominated @KrakenTheJaken for iOS device verification ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Availability is unconfirmed; native rendering, location, and deep-link device checks remain outstanding. Nomination is not completed verification.
+
 - **Re-review at `082892f` passed:** 55 maps tests independently passed and final CI succeeded. Review was static/pure only; no browser/native/device validation is claimed. #35 is still unmerged and P1/P2/P4 remain product decisions.
 - **Caller-owned colors:** optional `RouteMap.routeColors` accepts one shared assignment. Compute `assignRouteColors(fullTripIds)` over the full trip set and reuse it for filtered subsets, cards, map, and picker; do not allocate each subset separately. `itinerariesToFeatures` and `itineraryPoints` accept the same assignment via `colors`.
 - **Current callback/predicate:** the approved PR still passes `candidates` to `onRouteSelect`; P1 does not yet authorize dropping it. `isItineraryVisible(itinerary, visibleModes)` already exists in the pure package; if P2 is accepted, use that same whole-trip predicate for list and map.
