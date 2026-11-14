@@ -81,7 +81,10 @@ export function routeColor(itineraryId: string): string {
  * once for everything you show and pass the same map to the map (RouteMap's `routeColors`) and to
  * the result cards. Don't recompute it for a filtered subset.
  */
-export function assignRouteColors(itineraryIds: readonly string[]): Map<string, string> {
+export function assignRouteColors(
+  itineraryIds: readonly string[],
+  fixed?: ReadonlyMap<string, string>
+): Map<string, string> {
   // Sorted and de-duplicated, so the result depends only on WHICH trips there are.
   const ids = [...new Set(itineraryIds)].sort();
   const preferred = (id: string) => hashString(id) % PALETTE.length;
@@ -90,8 +93,15 @@ export function assignRouteColors(itineraryIds: readonly string[]): Map<string, 
   const used = new Set<string>();
   const bumped: string[] = [];
 
+  for (const color of fixed?.values() ?? []) used.add(color.toLowerCase());
+  for (const id of ids) {
+    const saved = fixed?.get(id);
+    if (saved !== undefined) colors.set(id, saved);
+  }
+
   // Pass 1: the first (by sorted id) trip to want each colour keeps it.
   for (const id of ids) {
+    if (colors.has(id)) continue;
     const color = PALETTE[preferred(id)]!;
     if (used.has(color)) {
       bumped.push(id);

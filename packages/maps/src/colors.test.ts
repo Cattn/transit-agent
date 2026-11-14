@@ -95,3 +95,79 @@ describe('assignRouteColors (no two trips on screen share a colour)', () => {
     expect([...assignRouteColors(ids)]).toEqual([...assignRouteColors(ids)]);
   });
 });
+
+describe('assignRouteColors with saved colours (plan 009 step 5)', () => {
+  const idWanting = (color: string, skip: string[] = []) =>
+    Array.from({ length: 1000 }, (_, i) => `trip-${i}`).find((id) => routeColor(id) === color && !skip.includes(id))!;
+  const [blue, red, green] = PALETTE as [string, string, string];
+
+  it('gives a listed saved trip exactly its saved colour, even one outside the palette', () => {
+    const saved = idWanting(blue);
+    const fixed = new Map([[saved, red], ['old-save', '#123456']]);
+    const colors = assignRouteColors([saved, 'old-save', 'new-trip'], fixed);
+    expect(colors.get(saved)).toBe(red);
+    expect(colors.get('old-save')).toBe('#123456');
+  });
+
+  it('never gives a new trip a saved colour, even when that saved trip is not on screen', () => {
+    const newTrip = idWanting(blue);
+    const colors = assignRouteColors([newTrip], new Map([['saved-elsewhere', blue]]));
+    expect(colors.get(newTrip)).not.toBe(blue);
+    expect(PALETTE).toContain(colors.get(newTrip));
+  });
+
+  it('treats a saved colour as taken whatever its letter case', () => {
+    const newTrip = idWanting(blue);
+    const colors = assignRouteColors([newTrip], new Map([['saved-elsewhere', blue.toUpperCase()]]));
+    expect(colors.get(newTrip)?.toLowerCase()).not.toBe(blue.toLowerCase());
+  });
+
+  it('lets a new trip keep its own routeColor when no saved or new trip wants it', () => {
+    const newTrip = idWanting(green);
+    const colors = assignRouteColors([newTrip, 'saved-a'], new Map([['saved-a', blue], ['saved-b', red]]));
+    expect(colors.get(newTrip)).toBe(green);
+  });
+
+  it('gives saved and new trips all different colours while 8 or fewer are in use', () => {
+    const fixed = new Map([['saved-a', PALETTE[0]!], ['saved-b', PALETTE[3]!], ['saved-off-screen', PALETTE[5]!]]);
+    const newTrips = Array.from({ length: 5 }, (_, i) => `fx-transit-${i}`);
+    const colors = assignRouteColors(['saved-a', 'saved-b', ...newTrips], fixed);
+    const used = [...colors.values(), PALETTE[5]!];
+    expect(new Set(used).size).toBe(used.length);
+  });
+
+  it('only returns the listed trips', () => {
+    const colors = assignRouteColors(['b', 'a', 'b'], new Map([['a', red], ['not-listed', blue]]));
+    expect([...colors.keys()].sort()).toEqual(['a', 'b']);
+  });
+
+  it('gives the same colours whatever order the trips are listed in', () => {
+    const fixed = new Map([['saved-a', blue], ['saved-b', green]]);
+    const ids = ['saved-a', 'saved-b', ...Array.from({ length: 6 }, (_, i) => `fx-transit-${i}`)];
+    const asObject = (list: string[]) => Object.fromEntries(assignRouteColors(list, fixed));
+    expect(asObject([...ids].reverse())).toEqual(asObject(ids));
+    expect(asObject([...ids.slice(3), ...ids.slice(0, 3)])).toEqual(asObject(ids));
+  });
+
+  it('keeps two listed saved trips on their colour even when they were saved with the same one', () => {
+    const colors = assignRouteColors(['saved-a', 'saved-b'], new Map([['saved-a', red], ['saved-b', red]]));
+    expect(colors.get('saved-a')).toBe(red);
+    expect(colors.get('saved-b')).toBe(red);
+  });
+
+  it('repeats colours past 8 instead of failing', () => {
+    const fixed = new Map(PALETTE.map((color, i) => [`saved-${i}`, color]));
+    const colors = assignRouteColors(['new-1', 'new-2', 'new-3'], fixed);
+    expect(colors.size).toBe(3);
+    for (const c of colors.values()) expect(PALETTE).toContain(c);
+  });
+
+  it('without saved colours gives exactly the same result as before', () => {
+    for (let seed = 0; seed < 100; seed++) {
+      const ids = Array.from({ length: 1 + (seed % 10) }, (_, i) => `t${(seed * 7919 + i * 104729) % 100000}`);
+      const before = [...assignRouteColors(ids)];
+      expect([...assignRouteColors(ids, undefined)]).toEqual(before);
+      expect([...assignRouteColors(ids, new Map())]).toEqual(before);
+    }
+  });
+});

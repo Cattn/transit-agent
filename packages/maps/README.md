@@ -77,6 +77,19 @@ const routeColors = useMemo(() => assignRouteColors(trips.map((t) => t.id)), [tr
 // <RouteMap ... routeColors={routeColors} />   and in a card:   routeColors.get(trip.id)
 ```
 
+**Saved trips keep their colour.** Pass the saved colours (`SavedItinerary.color`) as the second argument:
+
+```tsx
+const saved = new Map(savedTrips.filter((t) => t.color).map((t) => [t.id, t.color!]));
+const routeColors = assignRouteColors(trips.map((t) => t.id), saved);
+```
+
+- A listed trip found in `saved` gets exactly that colour.
+- Every colour in `saved` counts as taken, even for saved trips not on screen, so a new result never borrows
+  a saved trip's colour (while 8 or fewer colours are in use; past 8, colours repeat).
+- When saving a trip, store the colour it is showing now (`routeColors.get(id)`), so it stays the same.
+- Pass all saved trips, not only the ones on screen. Without the second argument, nothing changes.
+
 **4. No data yet?** Use the example routes: `import { commuteOptions, flightOptions } from '@transit/maps/samples'`.
 
 Each leg needs a `geometry`: a GeoJSON `LineString` with at least 2 points in **`[longitude, latitude]`** order.
@@ -90,7 +103,7 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 
 | Done | |
 | --- | --- |
-| ✅ Map logic (`@transit/maps`) | Colours, line styles, side-by-side lanes, map data, drawing rules, zoom box. 55 tests at the #35 re-review |
+| ✅ Map logic (`@transit/maps`) | Colours (saved trips keep theirs), line styles, side-by-side lanes, map data, drawing rules, zoom box. 65 tests |
 | ✅ Web map (`@transit/maps/web`) | `RouteMap` + the overlap picker |
 | ✅ Example routes (`@transit/maps/samples`) | Real street geometry, sample flights |
 | ✅ Demo | `npm run demo:maps` |
@@ -99,7 +112,10 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 
 - [ ] **Mobile map** (plan 009 step 7): MapLibre React Native. Needs an Expo dev build; it can't run in Expo Go.
 - [ ] **Use it in the app screens** (UI team, #16): add the MapLibre setup above to `apps/web`, then mount `<RouteMap>`.
-- [ ] **Shared colours** (#25, DMFriends): coordinate palette ownership and P4 before moving the palette/allocator into shared. Reuse one full-trip-set assignment across cards/map/picker; persistent per-trip colors across changing sets/sessions remain a product decision, not a new storage requirement.
+- [x] **Saved trips keep their colour** (plan 009 step 5, P4 decided on #25): `assignRouteColors(ids, savedColours)`.
+  The server stores the colour (plan 017); the screens pass it in (plans 021, 026, 027).
+- [ ] **Palette in shared** (017-Q1, #13): move `PALETTE` / `routeColor` / `assignRouteColors` to `@transit/shared`,
+  same colours and order, with `@transit/maps` re-exporting them.
 - [ ] **Real routes** (#11): server results replace the example routes. No map changes needed.
 - [ ] **Bike-share docks on the map** (#14): an optional `docks` prop and a pin layer.
 
@@ -119,8 +135,9 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 1. **The map only draws.** It never fetches data, saves anything or decides the selection. Trips go in, clicks come out.
 2. **Coordinates are `[longitude, latitude]`.** Convert other formats on the server, never in map code.
 3. **`@transit/maps` stays pure.** No React or MapLibre imports there; the server imports it. UI code lives in `/web`.
-4. **One colour scheme.** Compute `assignRouteColors(ids)` once for everything on screen and pass that same map to
-   `<RouteMap routeColors>` and the result cards. Don't recompute it for a filtered subset.
+4. **One colour scheme.** Compute `assignRouteColors(ids, savedColours)` once for everything on screen and pass that
+   same map to `<RouteMap routeColors>` and the result cards. Don't recompute it for a filtered subset. The map never
+   stores colours; saved colours come from the app.
 5. **Changing the props or feature data?** Say so on #13 first; the UI team builds on them.
 6. **Plan 009 is claimed** (#13). Don't re-implement it; comment on the issue instead.
 
@@ -143,7 +160,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript. Only `src/web/` know
 
 | Behaviour | How |
 | --- | --- |
-| A colour per trip | A hash of the trip id picks one of 8 colours; `assignRouteColors` moves clashes to a free colour. Re-ordering the trips never changes their colours |
+| A colour per trip | A hash of the trip id picks one of 8 colours; `assignRouteColors` moves clashes to a free colour. Re-ordering the trips never changes their colours; a saved trip keeps its saved colour |
 | Line style per mode | Walk dotted · bike, bikeshare, flight dashed · bus, rail, ferry, car solid |
 | Tap selects the whole trip | Every leg carries its trip id |
 | Overlapping routes | Each trip gets a lane 10 px to the side, ordered so lanes push routes apart. Works for trips going opposite ways too (e.g. a commute and its return) |
@@ -172,7 +189,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript. Only `src/web/` know
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 55 tests at the #35 re-review
+npm run test:unit -w @transit/maps   # 65 tests
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)
 ```
