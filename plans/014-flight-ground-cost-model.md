@@ -73,7 +73,7 @@ export const AIRPORTS: readonly Airport[]
 export function airportsNear(point: LngLat, radiusKm: number): Array<Airport & { distanceKm: number }>   // sorted nearest first
 export function airportToPlace(a: Airport): Place   // { name, coordinates, kind: 'airport', code: iata }
 ```
-About 25 entries: BOS, PVD, MHT, BDL, HVN, ALB, PWM, JFK, LGA, EWR, HPN, ISP, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO. Use real coordinates (look each up; 3 decimals is enough) and each airport's IANA time zone. `parkingUsdPerDay` only where you can cite a public long-term rate; otherwise leave it undefined. Add a header comment saying where the coordinates came from.
+About 27 entries: BOS, PVD, MHT, BDL, HVN, ALB, PWM, JFK, LGA, EWR, HPN, ISP, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO, plus the two fallback hubs DTW and CLT used by the sample fares. Use real coordinates (look each up; 3 decimals is enough) and each airport's IANA time zone. `parkingUsdPerDay` only where you can cite a public long-term rate; otherwise leave it undefined. Add a header comment saying where the coordinates came from.
 
 **Reference (from @Cattn):** [`Cattn/clovis` `client/src/lib/airports.ts`](https://github.com/Cattn/clovis/blob/main/client/src/lib/airports.ts) has IATA codes, cities and names for every large and scheduled-medium airport (sourced from OurAirports). Use it for codes and names. It has **no coordinates**, so take those from OurAirports' `airports.csv` (`latitude_deg`, `longitude_deg`; mind the `[lng, lat]` order). Keep v1 to the ~25 airports above; the full list can come later with plan 011.
 
@@ -100,8 +100,10 @@ export interface FlightFareProvider { readonly name: string; search(q: FareSearc
 export class FixtureFareProvider implements FlightFareProvider { name = 'fixture-fares' }
 ```
 Fixture fares are deterministic and make the comparison interesting. For any destination `X`, from each requested origin:
-- BOS: $240 nonstop. PVD: $150 nonstop. MHT: $200 nonstop. JFK: $130 nonstop. EWR: $135, 1 stop with a **45 min** layover at ORD. BDL: $190, 1 stop with a **2 h** layover at PHL.
-- Departure `date` at 09:00 local offset `-05:00`; flight time = great-circle distance ÷ 800 km/h + 30 min (+ layover if any).
+- BOS: $240 nonstop. PVD: $150 nonstop. MHT: $200 nonstop. JFK: $130 nonstop. EWR: $135, 1 stop with a **45 min** layover. BDL: $190, 1 stop with a **2 h** layover.
+- **Connecting flights must be real two-leg trips.** The layover hub is the first entry in the origin's hub list that is **neither the origin nor the destination**: EWR → `['ORD', 'DTW']`, BDL → `['PHL', 'CLT']`. So EWR→ORD connects at DTW, and BDL→PHL connects at CLT. A 1-stop quote always has `stops: 1`, exactly one layover (at the hub), and **two** `flightNumbers` (origin→hub, hub→destination). If no hub in the list qualifies (only possible if a list is edited later), return a nonstop quote instead (`stops: 0`, no layovers, one flight number).
+- Departure `date` at 09:00 local offset `-05:00`. Each flight leg takes great-circle distance ÷ 800 km/h + 30 min. A nonstop is one leg. A 1-stop is leg 1 (origin→hub) + layover + leg 2 (hub→destination), so `durationMinutes` and `arriveAt` include both legs and the layover.
+- **Every returned quote is a fresh object.** Never return or share module-level arrays or objects (e.g. a route table's `layovers`), and don't reuse one `layovers` array for both of an origin's flights. Mutating a returned quote must not affect later searches.
 - Destination coordinates come from `AIRPORTS`; unknown IATA → skip it.
 - `fetchedAt` = `new Date().toISOString()`; `carrier: 'Sample Air'`; `source: 'fixture-fares'`; no `bookingUrl`.
 - Return **two flights per origin** (09:00 and a $40-cheaper 06:00 red-eye-style early flight), so callers see "all flights", not just one. `id` = `` `fx-${from}-${to}-${date}-${hhmm}` ``; `flightNumbers` like `['SA101']`.
@@ -111,7 +113,9 @@ Fixture fares are deterministic and make the comparison interesting. For any des
 - `airportsNear(Boston [-71.0589, 42.3601], 100)` → BOS first, includes PVD and MHT, excludes JFK; radius 350 includes JFK.
 - `driveCost(100, 2, { mpg: 25, gasUsdPerGallon: 3.2 })` → Gas 12.80, Parking 50.00 (default), no Tolls line.
 - `gasPriceFromEnv({ GAS_USD_PER_GALLON: 'abc' })` → 3.2.
-- Fixture: BOS→ORD includes all 6 origins when asked; JFK has the lowest fare; the EWR fare has one 45 min layover; two calls give equal results apart from `fetchedAt`.
+- Fixture: BOS→ORD includes all 6 origins when asked; JFK has the lowest fare; two calls give equal results apart from `fetchedAt`.
+- Fixture connections: for **every** origin in the sample table and every destination in `AIRPORTS`, a quote's layover airport is never its origin or its destination; 1-stop quotes have 2 flight numbers and nonstops have 1. Specifically: EWR→ORD connects at DTW, EWR→LAX at ORD, BDL→PHL at CLT, BDL→ORD at PHL. The EWR quote's layover is 45 min and its duration = leg 1 + 45 + leg 2.
+- Fixture isolation: mutate `quotes[0].layovers[0].minutes = 999` from one search, then search again (same and new provider instance). The new results are unchanged.
 - **A worked example as a test**, encoding the product question. From Boston Common (−71.0656, 42.3550), a 1-day trip, `mpg: 25`, gas $3.20, round-trip drive = 2 × straight-line miles (an underestimate; fine for the test):
   - PVD ≈ 150 fare + ~$12 gas + $25 parking ≈ **$187**
   - JFK ≈ 130 fare + ~$47 gas + $25 parking ≈ **$202**

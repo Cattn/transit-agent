@@ -21,10 +21,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #8 merges.
+- **Status:** 🟢 **Up for grabs now.** #8 is merged.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Good fit for a UI person: it's the data your screens will run on until the server is ready.
-- **Waiting on:** #8
 
 **Open questions** (answer by number in a comment on #20):
 
