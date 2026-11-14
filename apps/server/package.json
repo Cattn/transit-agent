@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
-    "build": "tsc",
+    "build": "tsc --incremental --tsBuildInfoFile dist/.tsbuildinfo",
     "start": "node --env-file-if-exists=.env dist/index.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck && npm run test:unit",
     "airports:northeast": "node scripts/northeast-airports.mjs"
