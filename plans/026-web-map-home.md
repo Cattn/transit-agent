@@ -10,7 +10,7 @@
 
 ## Status
 
-- **Priority**: P1
+- **Priority**: P3
 - **Effort**: L
 - **Risk**: LOW
 - **Depends on**: none. Uses merged plans 004, 012, 013, 015 (`@transit/client-react`), 016, and the merged web map from 009 (`@transit/maps/web`).
@@ -22,7 +22,7 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
-- **Owner:** @Rad1ee if active; otherwise up for grabs. **Web is low priority (@Cattn, 2026-11-14): Android is the MVP target**, so this is Full app work, not MVP.
+- **Owner:** unassigned (deferred web). **Web is low priority (@Cattn, 2026-11-14): Android is the MVP target**, so this is Later expansion, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** Yes. Comment "taking this" on the issue first.
 - **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. Not on the MVP path any more; the MVP check runs on Android (plan 035).
@@ -69,7 +69,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
 - Left panel "Side panel · 400" (`2026:190`), 400×868, inset 16:
   - "Transit Agent", a notifications icon, a settings icon.
   - Search bar placeholder "Where to?".
-  - A segmented control. Treat it as Transit / Drive / Fly, same as mobile, writing `modeGroups` into `draft.modes` without clearing from, to, or time. The segment labels are inside the Material component instance. If a build finds different words in the file, use those words and update this plan.
+  - A segmented control. Treat it as Transit / Fly, same as mobile (D12: Drive is a filter chip, not a segment; see plan 022 Step 4), writing the group's modes into `draft.modes` without clearing from, to, or time. The segment labels are inside the Material component instance. If a build finds different words in the file, use those words and update this plan.
   - "Tracked trips" and "2 watching · live". The count is saved trips with `watch === true`, not the number 2. "live" is allowed only when one of those trips has a realtime leg. Otherwise "watching".
   - Two tracked-trip cards. Same binding as plan 020: title from the saved label, leave-by from `watchStatus.leaveBy ?? leaveBy`, formatted with `leaveByLabel(leaveBy, new Date())` when present, and no Live pill on a scheduled trip.
   - "Saved places": Home, Office, Gym, Add place. Home and Office set origin or destination from `profile.home` and `profile.work` when set. Gym and Add place do nothing that writes, until 025-Q2 is answered for mobile and repeated here. The mock profile starts empty.

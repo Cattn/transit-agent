@@ -1,6 +1,6 @@
 # Plan 011: Compare flights door-to-door, including other airports, getting there by car or train, and total cost
 
-> **Executor instructions**: Steps 1–5 work entirely on fixture fare data and are fully specified.
+> **Executor instructions**: Deferred until Android transit completion. Refresh the fixture slice below before execution.
 > Step 6 (real fare provider) must wait for decision D10 recorded in `plans/README.md`. Honor STOP
 > conditions; update the status row when done.
 >
@@ -15,17 +15,17 @@
 - **Risk**: MED (fare data access is the hard part; the comparison logic is not)
 - **Depends on**: plans/003, plans/014, plans/019 (real prices; sample fares work without it); uses 007's ground routing when available (falls back to fixture)
 - **Category**: direction
-- **Blocked by decisions**: D10 (fare source), D11 (scope: US domestic + nearby airports first)
+- **Readiness**: deferred; D10 selected, US domestic/nearby airports first; Europe remains backlog.
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/15
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Assigned to @DMFriends (fixture integration first).** #7 and #22 are merged. Reuse the existing airports, drive costs, and sample fares; real ground routing remains plan 007.
+- **Status:** **Assigned to @DMFriends (fixture integration first).** #7 and #22 are merged. Reuse the existing airports, drive costs, and sample fares; real ground routing remains plan 031.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** Nothing for fixture integration. Real prices: #28; real ground routing: #11.
+- **Waiting on:** Nothing for fixture integration. Real prices: #28; real ground routing: #57.
 
 **Open questions** (answer by number in a comment on #15) — **@Cattn answers this.**
 
@@ -69,19 +69,19 @@ plan 014, which can start before plan 003 lands. Check they exist; if not, STOP.
 
 `supports`: `modes` includes `flight`. `search`:
 1. Origin airports = `airportsNear(origin, 250 km)` (top 5). Destination airports = `airportsNear(destination, 150 km)` (top 3).
-2. For each origin airport, compute ground options: drive (if `ownsCar`; cost via step 2, days = trip length or 1), and transit/rail via the existing ground providers (`planTrip` on a sub-request with `modes` minus `flight`). Pick the best ground option by the user's preferences.
+2. For each origin airport, compute ground options: drive (if `car` is in the request's `modes`, i.e. the user turned on the Drive filter (D12), and `ownsCar`; cost via step 2, days = trip length or 1), and transit/rail via the existing ground providers (`planTrip` on a sub-request with `modes` minus `flight`). Pick the best ground option by the user's preferences.
 3. Fare search for the cross-product (one provider call with arrays).
 4. Compose itineraries: ground leg(s) → `flight` leg(s) → ground leg at destination. The airport arrival buffer before departure is 90 min domestic, 150 international (`constants`). Shorten it by 15 min when `transferRisk ≥ 0.7`. Layovers become `transferBufferMinutes` on the next flight leg, so the existing risk rules apply. Flight geometry = great-circle LineString (64 points, split at the antimeridian).
-5. Cost lines: fare, gas, parking, tolls, transit fares, bag fees if bags > included (assume 1 checked bag unless the draft says otherwise; add a `bags` field to `TripDraft` only after review, see Q2).
+5. Cost lines: fare, gas, parking, tolls, transit fares, bag fees if bags > included (add the approved additive bags/travelers fields during this plan, confirming defaults before implementation).
 6. Summary format: `"Drive 2h10 to JFK ($38 gas + $60 parking) → JetBlue nonstop → $312 total vs $389 from BOS"`. Compute the "vs" comparison against the cheapest home-airport option.
 
 ### Step 5: Tests
 
-`ground-cost` math; composer with fixture fares: PVD beats BOS when `comfortVsCost` = 0; BOS wins when `comfortVsCost` = 1; `maxDriveMinutes: 90` excludes JFK (near-miss with reason); a 45 min layover is `medium`/`high` risk while 2 h is `low`; great-circle split for a trans-Pacific sample; every itinerary passes `ItinerarySchema`.
+`ground-cost` math; composer with fixture fares: PVD beats BOS when `comfortVsCost` = 0; BOS wins when `comfortVsCost` = 1; a tight `maxDriveMinutes` excludes an in-radius airport with a near-miss reason; JFK is outside the 250 km Boston search radius; a 45 min layover is `medium`/`high` risk while 2 h is `low`; great-circle split for a trans-Pacific sample; every itinerary passes `ItinerarySchema`.
 
 ### Step 6 (after D10): Real fare provider
 
-**Done by plan 019** (D10 decided: sample fares for testing + an adapted copy of Clovis that returns *all* flights). Use `selectFareProvider()` from `flights/select-provider.ts`, and put its fallback warning into `PlanResponse.warnings`. The composer ranks fares; the provider never sorts or trims.
+**Future integration owned by plan 019** (D10 decided: sample fares for testing + an adapted copy of Clovis that returns *all* flights). Use `selectFareProvider()` from `flights/select-provider.ts`, and put its fallback warning into `PlanResponse.warnings`. The composer ranks fares; the provider never sorts or trims.
 
 ### Step 7: Agent
 
@@ -111,3 +111,7 @@ The `search_flights` tool returns `summarizeFares()` (plan 019) plus quote ids, 
 ## Round-trip handoff
 
 **Owner decision ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis's round-trip search; optionally compare two one-way searches. Reconcile plan 019's current one-way `FareSearch` / `FareQuote` contract with return dates, paired itineraries, and combined prices before implementing round trips. Existing one-way fixture comparison can proceed; do not treat two one-way fares as the preferred round-trip source.
+
+## Deliverable boundary (`0b37886`)
+
+011 owns the one-way fixture composer and its API/agent entry point. Inject existing FlightFareProvider/FixtureFareProvider from `apps/server/src/flights/fares.ts`. Close independently of unfinished selectFareProvider/summarizeFares/filterFares; those helpers, live fare selection/drill-down and round trips belong to 019 integration. Replace the illustrative JFK summary with a computed in-radius comparison. Before pickup add exact Scope, area branch, Commands (`npm run test:unit -w @transit/server`, `npm run check`), connection feasibility cases and a response consumed by 024. 024 must not invent a comparator response. Extend existing tests only; no new comments; preserve logging.

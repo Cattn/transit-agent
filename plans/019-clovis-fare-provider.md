@@ -61,7 +61,7 @@ in and adapted. "Copied in" means this repo owns the code from now on. It will d
 ## Current state
 
 **Clovis** (`Cattn/clovis`, public, no license file; Cattn owns it, so copying is fine; credit it
-in a header comment). Relevant files, all in `src/utils/`:
+in the appropriate license/notice file; add no source comments). Relevant files, all in `src/utils/`:
 
 | File | What it does | Keep / change |
 |---|---|---|
@@ -220,3 +220,7 @@ All offline, using the recorded fixture:
 
 - 019-Q1 (@Cattn): Do you know offhand whether Clovis's page HTML includes all flights, or only Google's top group? (Step 1 answers it either way.)
 - ~~019-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis round-trip search and optionally compare two one-way searches. The “2 round trips” wording is clarified, not a request for two separate round-trip alternatives. Reconcile return dates, paired results, and combined-price contracts before round-trip implementation.
+
+## Readiness (`0b37886`)
+
+Deferred until Android transit completion. Integrate the 011 fixture composer response before 024 calls live fares. Round trips need paired legs, dates and combined price; two one-way prices do not substitute for the selected round-trip source. Historical header-comment/test-file instructions are superseded: preserve required license attribution in appropriate notice files, extend existing tests only, add no source comments, and preserve logging.

@@ -21,7 +21,7 @@ have" is true with the mock **and** with the real server once it's up.
 | Text (times, costs, "live"/"scheduled", risk) | `formatClock`, `formatCost`, `legFreshness`, `riskBadge`, … | 016 |
 | Leave-by countdown | `leaveByLabel`, `watchStatus` on saved trips | 013 |
 | Colors that match the map | `routeColor(id)`, `toneColors`, `freshnessColors` | 017 |
-| Phone-only helpers | location, device ID storage, foreground, trip links | 018 |
+| Phone-only helpers | location, device ID storage, foreground | 018 |
 | The map itself | `<RouteMap>` from `@transit/maps` | 009 (maps team) |
 
 Until a building block lands, use a stub with the same name and swap it later. The interfaces are

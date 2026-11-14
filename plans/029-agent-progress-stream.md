@@ -70,7 +70,8 @@ The owner wants the map to "build itself" while the agent drafts a trip: places 
 ## Scope
 
 **In scope:** `packages/shared/src/domain/agent.ts` (event schema), `packages/shared/src/client/api-client.ts` (`streamAgentMessage`), `packages/shared/src/client/agent-progress.ts` (create: pure reducer), `packages/shared/src/client/mock/mock-client.ts` (simulated events), their tests; `apps/server/src/agent/{types,tools,adk-planner,fake-planner}.ts`, `apps/server/src/routes/agent.ts`, their tests; `packages/client-react/src/use-agent-chat.ts`.
-**Out of scope:** any map or screen code (plan 030 and the UI plans), token-by-token reply text, changing what the agent does or its instructions, the JSON endpoint's response shape.
+**Additional in scope:** `apps/mobile/src/screens/home/HomeScreen.tsx`, `apps/mobile/src/screens/chat/*`, and the existing DOM wrapper, for progress wiring only.
+**Out of scope:** maps renderer internals (030), screen redesign, token-by-token reply text, changing what the agent does or its instructions, the JSON endpoint's response shape.
 
 ## Git workflow
 
@@ -158,3 +159,7 @@ New tests in Steps 2, 4, and 5, as listed. Existing JSON-endpoint tests must pas
 - New agent tools should emit an event only if the map or chat has something to show for it. Add the type to the schema and the reducer together.
 - Token-by-token reply text (the rest of D5-B) can be added later as a `text` event without changing these.
 - #54 (turn speed) is separate: this makes the wait visible, not shorter.
+
+## Android integration and closure (`0b37886`)
+
+Cattn owns the running Android consumer, not completed 023. Rebase on #72 and 035. Verify platform streaming support (`expo/fetch` in the installed SDK), retain JSON fallback, consume session progress in Home, convert Place coordinates to 030 buildPreview, and send plain JSON across the DOM boundary. Before 030 lands, show truthful textual phases and omit map preview; after 030, attach Android proof of the whole sequence before closing #56. Clear previews on new turns, invalidated drafts, cancellation and errors. Ignore late events from older turns. Preserve prior usable results and retry after stream failures. `npm run check` must pass; record Android start/progress/success/failure/retry. Extend existing tests only.

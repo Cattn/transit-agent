@@ -23,7 +23,6 @@ import {
 import { background, clip, fillMaxWidth, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
-import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import FitnessCenter from '../../../assets/icons/fitness_center_fill.xml';
 import Flight from '../../../assets/icons/flight_fill.xml';
 import HomeIcon from '../../../assets/icons/home_fill.xml';
@@ -42,7 +41,7 @@ import type { HomeChromeProps, SavedPlaceChip } from './HomeScreen';
 import { MODE_OPTIONS, type ModeGroupName } from './ModeSlider';
 import { tileRole, tripCardText } from './TrackedTripCard';
 
-const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, drive: DirectionsCar, fly: Flight };
+const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, fly: Flight };
 const CHIP_ICONS: Record<SavedPlaceChip['key'], number> = { home: HomeIcon, office: Work, gym: FitnessCenter };
 const HANDLE_HEIGHT = 24;
 const LIST_CAP = 212;

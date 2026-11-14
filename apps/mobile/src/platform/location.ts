@@ -4,8 +4,8 @@ import type { Place } from '@transit/shared';
 export type LocationResult = { ok: true; place: Place } | { ok: false; reason: 'denied' | 'unavailable' };
 
 /**
- * "Use my location": asks for when-in-use permission (only when called, i.e. when the user taps
- * the button, per 018-Q1), then reads one position. When-in-use only: no tracking while the app is closed.
+ * Asks for when-in-use permission at launch or on tap (018-Q1), then reads one position.
+ * When-in-use only: no tracking while the app is closed.
  */
 export async function getCurrentPlace(): Promise<LocationResult> {
   try {

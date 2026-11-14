@@ -22,7 +22,7 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Several rows are drawn but have no field to save. Those stay visible and unsaved until the questions below are answered.
-- **Owner:** @KrakenTheJaken, after plan 030 (Reassigned 2026-11-14 from @Rad1ee, who is inactive). Full app, not MVP.
+- **Owner:** @KrakenTheJaken, after map integration and 037 (Reassigned 2026-11-14 from @Rad1ee, who is inactive). Full app, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** Yes, until @KrakenTheJaken starts it. Comment on the issue first.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Plan 018 is merged in #37; reuse its persistent device-id storage.
@@ -62,8 +62,8 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. A
   - Max walk, lock, sample "15 min", subtitle "Hard limit". Writes `constraints.maxWalkMinutes`. Clearing sends `null`.
   - Max transfers, lock, sample "1". Writes `constraints.maxTransfers`. Clearing sends `null`.
   - Arrival strictness. Subtitle "A little late is OK" for `some`, "Must be on time" for `strict`, "Flexible" for `flexible`. Writes `preferences.lateTolerance`.
-  - Step-free. "Step-free routes only". `Switch` from `react-native`. Writes `constraints.wheelchairAccessible`.
-- Vehicles, on `profile.defaults.vehicles`: "I have my own bike" (`ownsBike`, subtitle "Adds bike + transit options"), "I have a car" (`ownsCar`, subtitle "Unlocks Drive and park-and-ride"), fuel economy (`carMpg`). Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
+  - Step-free. "Step-free routes only". Compose `Switch`. Writes `constraints.wheelchairAccessible`.
+- Vehicles, on `profile.defaults.vehicles`: "I have my own bike" (`ownsBike`, subtitle "Adds bike + transit options"), "I have a car" (`ownsCar`, subtitle "Lets trips include driving part of the way"; D12: Drive is a filter chip, not a tab), fuel economy (`carMpg`). Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
 - Leave reminders. Show the three rows from the frames. Do not persist them (025-Q1).
 - Display. Time zone writes `defaults.timeZone`. Unset subtitle: "Trip's starting point". Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Row title "Theme", sample value "System (light / dark)".
 - About. Device id: read the app's existing ID through `secureStoreDeviceIdStorage` from plan 018; show the first 8 characters, an ellipsis, and the last 3. Use the same ID as the API client; do not generate another ID for Settings. Add "stored on this phone". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). The frame shows `0.1.0 (design)`; the app shows the package version.
@@ -80,9 +80,11 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. A
 
 **In scope:**
 - `apps/mobile/src/screens/settings/SettingsScreen.tsx`
+- `apps/mobile/src/screens/settings/SettingsScreen.android.tsx` (replace or remove the platform placeholder so Metro reaches the real screen)
+- `apps/mobile/src/screens/home/HomeScreen.tsx` (profile refresh on navigation focus only)
 - `apps/mobile/src/screens/settings/SettingsChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/settings/SettingsChrome.android.tsx`
-- `apps/mobile/package.json` and `package-lock.json` (only `@react-native-community/slider` if not already installed)
+- No new control dependencies; use installed Expo UI Compose.
 
 **Out of scope:** `packages/shared/**`, `apps/mobile/src/platform/**`, `app.json` plugins, a new profile field, web settings.
 
@@ -96,13 +98,13 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. A
 
 ### Step 1: Load and save the profile
 
-On mount, `getProfile()`. Edits to places, trip defaults, vehicles, time zone, and step-free call `putProfile` with the merged profile. A failed call shows the error and keeps the old values on screen.
+On mount, `getProfile()`. Edits to places, trip defaults, vehicles, time zone, and step-free call `putProfile` with the merged profile. A failed call shows the error and keeps the old values on screen. Serialize saves. Refresh Home/Work on navigation focus without resetting an edited trip draft.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
 ### Step 2: Android layout
 
-`SettingsChrome.android.tsx`: top app bar "Settings" with a back icon, the groups in Current state, inline slider for comfort. Next to it, a plain `SettingsChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Use `@react-native-community/slider` if plan 022 already added it. If it is not installed, `npx expo install @react-native-community/slider` inside `apps/mobile`.
+`SettingsChrome.android.tsx`: top app bar "Settings" with a back icon, the groups in Current state, inline slider for comfort. Next to it, a plain `SettingsChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Use Expo UI Compose Slider and Switch on Android, matching 022; do not install a community slider.
 
 The Theme row calls the appearance setter from plan 020 with `"system" | "light" | "dark"`.
 
@@ -141,9 +143,13 @@ See the help box at the top (025-Q*). It is the single list; answers are recorde
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 06 Settings (scrolled length)` (`2017:795`) and dark twin `2019:2043` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Layout: stack header large title "Settings", inset groups, uppercase section labels, `Switch` for switch rows. Build it as `SettingsChrome.ios.tsx`.
 - iOS copy that differs: profile card "This iPhone's Profile" / "Defaults fill every new trip."; modes as capsules; comfort is a chevron row valued "Balanced" (0.5), "Cheaper" (< 0.35), "Comfier" (> 0.65) that opens the same slider (was 025-Q4); strictness values "On time" / "Bit late OK" / "Flexible"; "Step-Free Routes Only"; time zone unset subtitle "Trip start"; row "Appearance" with value "System"; About shows the package version.
 - iOS reminder footers: "Watching uses live arrivals and tells you when to leave." and "Hard limits (lock) remove routes. Preferences only change the order."
+
+## Readiness gate (`0b37886`)
+
+025-Q1/Q2 are unresolved product decisions: Cattn must choose whether to omit unsupported reminder/Add-place rows, label them unavailable, or scope persistence separately. Do not implement enabled-looking controls that silently discard changes. Supported Home/Work/defaults/appearance can proceed independently. Verify Android opens the implemented screen, Home chips refresh on return, restart preserves values, and `npm run check` passes. Attach light/dark device proof. Live data work is 031/#57, not closed research #11.

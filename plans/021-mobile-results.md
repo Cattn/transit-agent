@@ -168,7 +168,7 @@ Map behavior (overlap chooser, mode filtering) is tracked once in plan 009 under
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 02 Results` (`2011:152`) and `iOS · Dark · 02 Results` (`2019:1140`) on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Design: inset glass sheet (`BlurView`) with a grabber, more than half the screen; glass circular back button with a chevron; agent chip in the indigo accent, user chips neutral; SF Symbols for walk and bus on the cards.

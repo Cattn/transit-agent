@@ -9,7 +9,7 @@
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** TODO (plan 023 merged in #67, `59968d1`)
+- **State:** DONE in PR #69 (merged as `4faaf91`, 2026-11-14)
 - **Priority:** P1 (MVP polish: losing the conversation on a chip tap feels broken)
 - **Effort:** S
 - **Risk:** LOW (mobile-only state move; no contract or server change)
@@ -84,6 +84,6 @@ In PR #67 the chat thread lives in `useAgentChat` inside `ChatScreen`, which onl
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Check that the thread survives a chip tap into Filters and a close/reopen with the iOS chat sheet (plan 023's backlog), using whichever option (a) or (b) Android shipped.

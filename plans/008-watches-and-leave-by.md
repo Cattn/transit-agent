@@ -15,7 +15,7 @@
 - **Risk**: MED
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
-- **Blocked by decisions**: D7 (client polling first; push later)
+- **State**: BLOCKED on 031 and the scheduling/storage refresh below; D7 polling is settled.
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
@@ -126,3 +126,7 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 - ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
 - ~~008-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** automatically switch missed trips; no confirmation tap.
 - 008-Q3 (partly answered by Cattn, 2026-11-14): transit defaults are recorded in Step 4 and plan 007. Exact early/final check times, adaptation rules, intercity treatment and preference storage remain implementation details to resolve; flight policy is separate.
+
+## Required refresh before execution (`0b37886`)
+
+The outline is not an executable handoff. SQLite listWatched excludes departed trips and loses device identity; ItineraryStore.update only patches label/watch. Specify internal `{ deviceId, itinerary }` watched records, overdue active eligibility until terminal/expired with a bounded retention policy agreed by Cattn, and matching memory/SQLite behavior. Add an internal atomic update for refreshed itinerary/status/replacement retaining saved ID, label and color. Never expose another device through HTTP. Extend existing store tests for two owners, overdue/terminal trips, persistence and missed-trip replacement. Resolve exact cadence/freshness policy, explicit Scope and area branch before TODO. Commands: `npm run test:unit -w @transit/server`, `npm run check`. No new test files/comments; preserve logging.

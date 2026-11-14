@@ -1,34 +1,24 @@
 # Transit Agent — Implementation Plans
 
-First generated 2026-11-13 against `c9e33cc`. **Last reconciled 2026-11-14 at `db8b72c`.**
-Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/17). One plan per issue; the issue's "Who's on it & how to help" box mirrors the plan's.
+First generated 2026-11-13 against `c9e33cc`. **Last reconciled 2026-11-14; audit baseline `0b37886`, publication base `91778d3`.**
+Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/17). GitHub issues mirror the reconciled roadmap. Plan 036 is #78; plan 037 is #77. Milestones: fixture MVP, Android transit, then Later expansion.
 
 ---
 
-## MVP: where we are and what's next
+## Product focus and execution order
 
-**MVP goal (#17):** on **Android**, type a trip request, see and edit the interpreted filters, see routes on the map, save one. Fixture routes are enough. Web is low priority and not part of the MVP (@Cattn, 2026-11-14).
+**Confirmed by Cattn, 2026-11-14: complete Android transit first; flights follow.** iOS remains functional; iOS-specific design is deferred. Web is low priority. Build one coherent loop: search or ask → inspect/edit the same draft → choose a route → save → reopen/manage it, with truthful loading, freshness and error states.
 
-**Done on main:** contract, planning API (fixture routes), client + mock, SQLite saves/profiles, Gemini agent, React hooks, formatters, colors, leave-by logic, mobile platform helpers, real place search (Photon), the web route map, and on Android: map home (020) and agent chat (023).
+1. Finish existing PRs: 009/#76 (Kraken), 022/#74 (DMFriends), agent #72 (Cattn). 034/#69 is merged. #75 link removal remains open.
+2. Run **036** fixture MVP acceptance. **035** retains chat best-option polish and issue #73; only the duplicate verification plan was renumbered. Measure #72 against #54 before starting another speed fix.
+3. **DMFriends: 037** Home search, saved-trip actions and visible failures. **Cattn: 035 → 029**, including Android progress wiring. **Kraken: map interaction proof → 030**, with Android integration coordinated through 029. Animation must not block functional fixes.
+4. **Kraken: supported Settings (025)** after 037, coordinating Home changes with DMFriends. Cattn decides how unsupported rows should appear before they ship.
+5. **Cattn: refine 031 → real Boston routing → 008 watches**, after its cadence/storage contract is resolved. Repeat Android acceptance with genuine scheduled/live/degraded data. Fixture MVP acceptance does not prove usable live travel advice.
+6. After Android transit acceptance: **DMFriends 011 fixture comparator → 024 Fly**, Cattn 019 live fares. Bike/transit 010 follows validated engine capabilities; web 026/027 and iOS design stay deferred.
 
-**MVP critical path (all Android):**
+Design ownership: Cattn decides, DMFriends ties screens together, Kraken owns map behavior. Use Material 3 Compose controls and shared cards/type/icons. Search cards get no extra color dots; saved-trip colors remain permanent. Review the full journey in light/dark, including empty/loading/error/retry states. No enabled-looking control may silently discard changes.
 
-| # | Plan | Who | State |
-|---|------|-----|-------|
-| 1 | **009** DOM map: `@transit/maps/web` in a `'use dom'` component, mounted in Home's `MapSlot` | KrakenTheJaken | Not started. **Longest pole:** Android shows no map until it lands |
-| 2 | **021** Results sheet + Save | DMFriends | PR #66: approved at `1b0604c`; full check passed, awaiting user merge |
-| 3 | **022** Filters full sheet | Cattn (from Rad1ee) | Unblocked |
-| 4 | **034** Keep the chat for the session | Cattn | Unblocked (S) |
-| 5 | **035** Android MVP check against the real server | Cattn | After 1–4 |
-
-**Right after the MVP:** **029** (the agent streams each step) + **030** (the map animates while the agent builds the trip; built once on web, shows on Android through the DOM map), with #54 (turn speed). This is the owner's "watch the map build the trip" direction.
-
-**Then (Full app):**
-- Transit (Cattn): 031 real Boston routing (Transitous) → 008 auto-watch + "when do I leave" → 010 bike + transit.
-- Flights (DMFriends): 024 Fly screen → 011 door-to-door on sample fares; 019 real fares (Clovis, Cattn).
-- 025 Settings (KrakenTheJaken, from Rad1ee).
-- Web, low priority, up for grabs: 026 home → 027 results.
-- Later: booking, Europe/Eurail, token streaming, push notifications, iOS-specific design.
+Full findings, issue inventory and limitations: [reconciliation report](reconciliation-2026-11-14.md).
 
 ---
 
@@ -36,22 +26,24 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 
 | Plan | Title | Who | Pri | Effort | Depends on | Status |
 |------|-------|-----|-----|--------|------------|--------|
-| 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web #35, saved colors #65; DOM renderer next). **MVP** |
+| 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (#76 open; device proof required). **MVP** |
 | 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | DONE (#66) |
-| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | Cattn | P1 | L | 020 | TODO (reassigned from Rad1ee). **MVP** |
-| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | TODO (unblocked). **MVP** |
-| 035 | [Android MVP check against the real server](035-android-mvp-check.md) (tracked on [#17](https://github.com/Cattn/transit-agent/issues/17), no separate issue) | Cattn | P1 | S | 009, 021, 022, 034 | TODO. **MVP milestone** |
-| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | — | TODO (right after MVP) |
+| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | DMFriends | P1 | L | 020, 021, 023 | IN PROGRESS (#74 open; D12 included). **MVP** |
+| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | DONE (#69) |
+| 035 | [Agent chat matches frame 04 (best-option card, chip icons)](035-mobile-chat-best-option.md) ([#73](https://github.com/Cattn/transit-agent/issues/73)) | Cattn | P1 | S | 023, 021, 034, #72 | BLOCKED (#72 open; #69 merged) |
+| 036 | [Android MVP check against the real server](036-android-mvp-check.md) ([#78](https://github.com/Cattn/transit-agent/issues/78)) | Cattn | P1 | S | 009, 022, 034 | BLOCKED (#13/#46 pending merge). **MVP milestone** |
+| 037 | [Android trip continuity](037-android-trip-continuity.md) ([#77](https://github.com/Cattn/transit-agent/issues/77)) | DMFriends | P1 | M | 009, 022, 034 | BLOCKED (#74/#76 pending merge) |
+| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | #72, 035; 030 for animation | BLOCKED (#72/#73; owns Android consumer) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | TODO (right after MVP; pure layer + web demo can start any time) |
-| — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO (with 029) |
-| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
-| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | TODO (008-Q3 details remain) |
+| — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | IN PROGRESS (#72 candidate; remeasure before another fix) |
+| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | BLOCKED (Transitous/return contract refinement) |
+| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | BLOCKED (031, durable storage and cadence) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
-| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (unblocked; 021 merged) |
-| 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (fixture steps executable) |
+| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (after Android transit; 011 response first) |
+| 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (deferred; fixture scope/response refresh required) |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
-| 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | KrakenTheJaken | P2 | L | 020 | TODO (reassigned from Rad1ee; after 030) |
-| 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | Rad1ee or up for grabs | P3 | L | — | TODO (web, low priority) |
+| 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | KrakenTheJaken | P2 | L | 020 | BLOCKED (037 and unsupported-row decision; supported scope defined) |
+| 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | unassigned | P3 | L | — | TODO (web, low priority) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | up for grabs | P3 | M | 026 | TODO (web, low priority) |
 | 001 | [Unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (#18) |
 | 002 | [Shared trip contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (#19) |
@@ -66,7 +58,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Android location/deep-link device checks remain (decision 3 below) |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Launch-time foreground location permission allowed (018-Q1). Link removal is open #75 |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | DONE (#67) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
@@ -76,28 +68,21 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Cattn (design), DMFriends | — | — | — | Reference; plans 020–027 win |
 | — | [UI slices](ui-slices.md) | — | — | — | — | Superseded by plans 020–027 |
 
-Open plans come first, in working order; DONE plans follow by number. Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason). DONE plan files are kept as the record; do not re-execute them. P3 = low priority (web).
+Execution order above is authoritative; the table retains existing plan groupings. Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason). DONE plan files are kept as the record; do not re-execute them. P3 = low priority (web).
 
-## Questions by person
+## Remaining decisions
 
-Answer on the linked issue by question number. Each plan uses the proposed default until then.
-
-- **@Cattn, decisions blocking work now:**
-  1. ~~#66 route-color dot~~ **Decided:** no dot; result cards match the Figma exactly, and colors are for saved trips.
-  2. **iOS in `npm run check`:** keep exporting the iOS bundle so iOS keeps working (recommended; iOS runs fine, it just gets no iOS-specific design), or drop it.
-  3. **018 Android location / deep-link checks:** retry in Expo Go first (recommended), or keep them as a dev-build step.
-- **@Cattn, design (taken over from @Rad1ee):** 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 023-Q3 ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · the 030 look ([#56](https://github.com/Cattn/transit-agent/issues/56)) · 026/027 when someone picks web up.
-- **@Cattn, server:** 029-Q1–Q2 stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55)) · 008-Q3 watch cadence ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)).
-- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 030-Q1–Q3 ([#56](https://github.com/Cattn/transit-agent/issues/56)).
-- **@DMFriends:** none blocking; may propose answers on #40 and #44.
+- Cattn: 025 unsupported reminder/Add-place rows (omit, mark unavailable, or separately scope persistence); 008 exact cadence/freshness/overdue-retention policy; 031 return-response representation.
+- Cattn + Kraken: 009 overlap-picker/mode-filter behavior; 030 animation look. Preserve existing compatible behavior until agreed.
+- Flight/web questions stay in their deferred plans; they do not block Android transit.
 
 ## How to contribute
 
-- **Assignments (reconciled 2026-11-14):** the Who column shows the assignee. @Rad1ee is inactive: his MVP filters plan (022) moved to Cattn, Settings (025) to KrakenTheJaken, and his design questions to Cattn. He keeps web home (026) if he comes back; otherwise it's up for grabs. To help on someone else's issue, ask the assignee first.
+- **Assignments (reconciled 2026-11-14):** the Who column shows the assignee. @Rad1ee is inactive: his MVP filters plan (022) moved to DMFriends (via Cattn), Settings (025) to KrakenTheJaken, and his design questions to Cattn. Web home (026) is unassigned and deferred; inactive owners are not left assigned. To help on someone else's issue, ask the assignee first.
 - **With a coding agent:** pull `main`, then: *"Read `plans/NNN-name.md` and follow it step by step. Run every verification command, only change files listed under Scope, stop and tell me on any STOP condition, don't push."* Open a PR that says `Closes #N`.
 - **Answer questions** on the issue by number (`020-Q2: search first`). The answer is recorded in that same plan; never open a second plan for the same screen.
 - Use the strongest model for 007, 009, 010, 019.
-- **Labels and milestones:** each issue has one `area: …` label (server, web, mobile, maps, shared), plus at most `help wanted` (up for grabs), `blocked` (waiting on another issue or decision), `research` (starts with a spike), or `bug`. Open questions live in each issue's help box, not a label. Milestones: **MVP** and **Full app**. #16 and #17 are `tracking`.
+- **Labels and milestones:** each issue has one `area: …` label (server, web, mobile, maps, shared), plus at most `help wanted` (up for grabs), `blocked` (waiting on another issue or decision), `research` (starts with a spike), or `bug`. Open questions live in each issue's help box, not a label. Milestones: **MVP**, **Android transit**, **Later expansion**. #16 and #17 are `tracking`.
 - **UI plans and issues need visual proof:** a UI PR shows each primary feature working, as screenshots or a video, ideally about 4 pieces of media (more is fine). Upload with `gh ... --attach` (gh 2.104+); the `ship-plan` skill has the Android-over-USB capture recipe. The PR template and the `review-pr` skill enforce it.
 - **Android is Material 3 (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)):** Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`, real Material 3 components; chosen over `react-native-paper`), Material Symbols icons, theme colors, Roboto. The full list is in plan 020's Current state and applies to 021–025. iOS is parked in the backlog (see Backlog).
 - **UI plans (020–027) are a first Figma pass** (`Transit-Agent-Design-Mockups`: `Android — Material 3`, `Web — Desktop`; `iOS — Liquid Glass` is kept as the reference for the parked iOS app). When a frame changes, update that plan's Current state. Web has only home and planning frames; no plan invents web settings, filters, or Fly.
@@ -105,7 +90,7 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 
 ## Plan format
 
-Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. Post-MVP plans 031, 008, 010, and 011 still lack the Commands and Git workflow sections; add them when the plan is picked up.
+Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. 008, 010 and 011 require scope/contract refinement before build work. 031 remains blocked on the explicit contract gates in its refreshed outline. Historical DONE excerpts are records, not execution instructions.
 
 **Keep plans closable.** One plan is one deliverable that can be finished and its issue closed. Research or decision work is its own plan. When a plan finishes but leaves later work, close it and open a new plan for the rest instead of keeping the old one open.
 
@@ -153,6 +138,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 | D9 | Map package | **`packages/maps`** with `/web`; mobile renders `/web` in an Expo DOM component (no `/native`) | 009 |
 | D10 | Flight prices | **Sample fares for tests + adapted Clovis (all flights)** (plan 019) | 011, 019 |
 | D11 | Flight scope | **US domestic + nearby airports** first; Europe later (working default) | 011 |
+| D12 | Home mode control | **Transit / Fly** (@Cattn, 2026-11-14). Drive is no longer a tab: it is a Drive filter chip (`car` in `draft.modes`), off by default, under Transit and Fly, so a trip can include driving part of the way. `modeGroups.drive` stays in shared but the app stops using it. Built in plan 022 Step 4 | 011, 020, 022, 024–027, 036 |
 
 Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent auto-searches once from/to/time are known and can read but not edit saved trips; missed trips switch automatically; flights checked 3/2/1 days out then more often in the last 24 h (exact cadence open, 008-Q3); bikeshare dock pins and "bike saves X min" both approved; rideshare removed for now; separate transfer-risk and lateness controls; optional display time zone; USD only; no payment screen.
 
@@ -162,7 +148,7 @@ Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/is
 
 iOS parked (Cattn, 2026-11-14): Android is the design target; iOS parts of plans live in each plan's Backlog: iOS section. iOS still runs (Cattn, 2026-11-14): Android-only Compose screens keep a plain fallback file so the app works on iOS without iOS-specific design.
 
-Android-first MVP (Cattn, 2026-11-14): the MVP is checked on Android (plan 035); web (026, 027) is low priority. Design feedback comes from Cattn; @Rad1ee is inactive and his MVP work was reassigned.
+Android-first MVP (Cattn, 2026-11-14): the MVP is checked on Android (plan 036); web (026, 027) is low priority. Design feedback comes from Cattn; @Rad1ee is inactive and his MVP work was reassigned.
 
 Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` in a `'use dom'` component; native MapLibre dropped; `maps/native` branch kept unmerged for reference.
 
@@ -183,11 +169,29 @@ Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` 
 - *React hooks inside `@transit/shared`*: shared stays framework-free; hooks live in `@transit/client-react`.
 - *More CI work now*: `ci.yml` already runs lint, typecheck, unit tests, build, and smoke.
 - *Moving the route palette into shared* (2026-11-14; 017-Q1 retired 2026-11-14 at `db8b72c`): apps import `assignRouteColors` from `@transit/maps`, and P4 is settled (permanent per-trip colors).
-- *A separate web MVP check* (2026-11-14): the MVP is Android (plan 035); plan 027 Step 3 is the web version, done when web is picked up.
+- *A separate web MVP check* (2026-11-14): the MVP is Android (plan 036); plan 027 Step 3 is the web version, done when web is picked up.
 
 ## Reconcile log
+
+- **2026-11-14:** D12: Home is Transit / Fly; Drive becomes a filter chip. Added to plan 022 (Step 4, PR #74 in review) instead of a new plan; notes in 011, 020, 024–027, 035 and ui-direction.
+
+- **2026-11-14:** 022-Q1–Q4 answered by @Cattn on #46: full sheet, keep wording, search in the sheet; no car chip, Advanced limits collapsed, Agent mark on every agent-set field, no Budget control.
+
+- **2026-11-14 at `3a55b10`:** 021 merged (#66). 022 → DMFriends, refreshed: Expo UI Compose components instead of RN `Switch` and the community slider, open on the tapped field (Home drops it today), footer from Home's `plan`. 024 after 022. 034 started in a worker thread. 009 notes that search results follow Figma frame 02 and only saved trips get distinct colors. 035 no longer waits on 021.
 
 - **2026-11-14 at `db8b72c`:** Android-first MVP. New plan 035 (Android MVP check, tracked on #17 to avoid another issue) replaces 027 Step 3 as the milestone. Web 026/027 → P3, Full app. @Rad1ee inactive: 022 → Cattn, 025 → KrakenTheJaken, design questions (021–026, 030) → Cattn, 027 → up for grabs. 021 marked IN PROGRESS (PR #66). Status table reordered: open plans first, in working order. Answered questions removed from Questions by person (geocoding #53, 023-Q1–Q2, 009-Q5, 017-Q1). `ui-slices.md` marked superseded; `ui-direction.md` has no open questions. DONE plans spot-checked: files from 023 (`screens/chat`), 033/028 (`apps/server/src/places`) and 015 (`packages/client-react`) are on main.
 
 - **2026-11-14:** Plan 028 re-check passed at `09b8a33` in #50 (COMMENT, not formal approval). Awaiting owner merge.
 - **2026-11-14 at `1e8328a`:** 015 marked DONE (#47). 013/014/016/018 plan files updated to DONE. UI plans 020–027 refreshed: use merged hooks; web mounts the real `@transit/maps/web`; mock/server switch added; 027 gains the MVP end-to-end check. 017 rescoped to badge/mode colors (unblocked). 007/008/010 stale facts fixed (gazetteer and agent tools exist; obsolete done criterion removed). Duplicate open-question lists and repeated map-handoff appendices removed (009 is the single source). New plan 028: `/api/places` was called by the client but never served.
+
+## Current execution guardrails
+
+All active plans: no new source comments or test files; preserve logging; match style; keep changes small. Historical instructions requesting new comments/test files are superseded. Extend existing tests where meaningful. Run `npm run check` before pushing; merging requires authorization. Re-read changed prerequisites before implementation. DONE confirms merged implementation, not fresh runtime/device certification.
+
+## Reconcile log — latest
+
+- **2026-11-14 at `0b37886`:** reviewed all 36 numbered plans, UI references/research, 43 issues (17 open/26 closed) and PR states. Confirmed Android transit before flights. Kept 035/#73; renumbered duplicate MVP check to 036. Added 037 for uncovered continuity gaps under #17, without a new issue. Corrected statuses, iOS wording, palette ownership, Settings platform scope and Android progress ownership. No source changes, commits, pushes or GitHub mutations. See report for evidence and limits.
+
+## GitHub publication
+
+2026-11-14: synchronized issue bodies, owners, blockers and milestones on explicit owner instruction. Created #77 (037, DMFriends) and #78 (036, Cattn). Completed issues remain closed; incomplete features remain open. Web is unassigned/deferred. No implementation PRs merged.

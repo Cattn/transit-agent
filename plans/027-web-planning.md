@@ -10,7 +10,7 @@
 
 ## Status
 
-- **Priority**: P1
+- **Priority**: P3
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/026-web-map-home.md
@@ -56,7 +56,7 @@ After a search, the left panel becomes the result list and the agent stays put. 
 - Frames: `Web · 02 Planning — results + agent` (`2028:247`) and `Web · Dark · 02 Planning — results + agent` (`2028:1118`).
 - Left panel:
   - From "Current location", To "Office · 200 Clarendon St", a swap control. Bind to the draft. Swap uses `applyDraftPatch` with source `'user'`.
-  - Segmented Transit / Drive / Fly, same rule as plan 026.
+  - Segmented Transit / Fly, same rule as plan 026, plus the Drive filter chip (D12).
   - Chips: "Arrive by 9:00", "Agent: walk ≤ 15 min", "Cheaper", "All filters". The first three come from the draft (time, provenance on `constraints.maxWalkMinutes`, and `comfortVsCost` under 0.35). The agent chip clears that field back to the user when clicked, by applying the same value with source `'user'`. "All filters" follows question 1.
   - "3 routes" is `plan.itineraries.length`. Subtitle from the draft time. "updated 20s ago" from `source.fetchedAt`.
   - Warning banner. Render `plan.warnings[0]`. The sample sentence is "Green Line realtime unavailable — showing timetable".
