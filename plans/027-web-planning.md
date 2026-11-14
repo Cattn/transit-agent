@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
-- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
-- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
+- **Owner:** @KrakenTheJaken (assigned 2026-11-14; the screen is mostly map work: card ↔ map selection, shared route colors, the selected-route card). Starts after the native map (009).
+- **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work. @Rad1ee (026 owner, design lead) reviews the layout.
 - **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
-**Open questions** — **@Rad1ee answers these.** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@KrakenTheJaken answers these; @Rad1ee reviews design.** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
 - 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
 - ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".

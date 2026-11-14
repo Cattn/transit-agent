@@ -52,7 +52,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020 | TODO |
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | Rad1ee | P2 | L | 020 | TODO |
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | Rad1ee | P1 | L | — | TODO (**MVP, start here**) |
-| 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | Rad1ee | P1 | M | 026 | TODO (MVP check) |
+| 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | KrakenTheJaken | P1 | M | 026 | TODO (MVP check) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
 | — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | TODO (MVP; manual check, no plan file) |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
@@ -65,9 +65,9 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason).
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
 - **@Cattn:** D2 routing engine, after the 007 research report ([#11](https://github.com/Cattn/transit-agent/issues/11)) · 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · keep Hydrogen after the live check ([#51](https://github.com/Cattn/transit-agent/issues/51))
-- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, P4 color policy (with DMFriends), 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
+- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, P4 color policy (with DMFriends), 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
 - **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 017-Q2 unique vs permanent route colors ([#25](https://github.com/Cattn/transit-agent/issues/25))
-- **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 027-Q1, Q3–Q5 ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 with Cattn ([#25](https://github.com/Cattn/transit-agent/issues/25))
+- **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 with Cattn ([#25](https://github.com/Cattn/transit-agent/issues/25))
 
 ## How to contribute
 
