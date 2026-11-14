@@ -55,7 +55,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 ## Current state
 
 - Plan 020 owns `HomeScreen` and a placeholder `apps/mobile/src/screens/results/ResultsScreen.tsx`. Replace the placeholder. Do not re-layout the home chrome.
-- Frames: `iOS · 02 Results` (`2011:152`), `iOS · Dark · 02 Results` (`2019:1140`), `Android · 02 Results` (`2003:660`), `Android · Dark · 02 Results` (`2018:1375`). Dark is the same layout.
+- Frames: `Android · 02 Results` (`2003:660`), `Android · Dark · 02 Results` (`2018:1375`). Dark is the same layout.
 - Shared content of the results sheet:
   - Trip header: back, "Current location", "Office · 200 Clarendon St", a swap control.
   - Chips: "Arrive by 9:00", an agent chip "Agent: walk ≤ 15 min", "Cheaper", and "Filters".
@@ -64,14 +64,14 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
   - Warning banner. The mock can return `warnings`. The frame's sample sentence is "Green Line realtime unavailable — showing timetable". Render `plan.warnings[0]` when present.
   - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. A route-color swatch is an 8 pt circle in the trip's color from the same map passed to `RouteMap.routeColors` (see Step 2). Do not invent a palette in `packages/shared`.
   - "Almost works" then a dimmed row. Sample: "Walk the whole way · 8:04 – 8:49" and "45 min walk — breaks your 15 min limit". Bind this to `plan.nearMisses` and `violations[0]`.
-- iOS vs Android:
+- Android chrome (Material 3 rules in plan 020):
 
-| Piece | iOS | Android |
-|---|---|---|
-| Sheet | Inset glass sheet, grabber, more than half the screen | Material sheet from about y=372 on a 917 pt frame, drag handle, no blur |
-| Header back | Glass circular button, chevron | 48 pt icon button, Material back icon |
-| Chips | Agent chip uses the indigo accent. User chips are neutral. | Material chips. The agent chip includes the sparkle icon. |
-| Card | Same fields. SF symbols for walk and bus. | Material icons. The bus leg is a primary-container chip. |
+| Piece | Android |
+|---|---|
+| Sheet | Material sheet from about y=372 on a 917 pt frame, drag handle, no blur |
+| Header back | 48 pt icon button, Material back icon |
+| Chips | Material chips. The agent chip includes the sparkle icon. |
+| Card | Material icons. The bus leg is a primary-container chip. |
 
 - Selecting a card sets `selectedItineraryId` on the map slot from plan 020. Tapping the same route on the map selects the card. There is no separate trip-detail frame in Figma. Expanding a selected card lists `leg.routeName` or the mode, `formatClock` times from plan 016, and `legFreshness`. Do not add a new stack route.
 - `createMockApiClient` (plan 012) scenarios: `normal`, `empty`, `nearMissOnly`, `serverError`, `offline`. The empty scenario's warning is the string `No routes found for this trip` (`packages/shared/src/client/mock/mock-client.ts`). Render `plan.warnings[0]` for that case. For `offline`, show "You are offline". For `serverError`, show the `ApiClientError.message`. Figma does not draw those three. Use one text block in the sheet, not a new frame.
@@ -88,7 +88,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 
 **In scope:**
 - `apps/mobile/src/screens/results/ResultsScreen.tsx`
-- `apps/mobile/src/screens/results/ResultsChrome.ios.tsx`
+- `apps/mobile/src/screens/results/ResultsChrome.tsx` (plain fallback, see Step 3)
 - `apps/mobile/src/screens/results/ResultsChrome.android.tsx`
 - `apps/mobile/src/screens/results/ItineraryCard.tsx`
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only to present Results when a search has been run, to pass `selectedItineraryId`, and to pass saved colors to the home map)
@@ -117,13 +117,15 @@ Render `itineraries` and `nearMisses` with the card fields above. Freshness text
 
 Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
+**Android (from @Cattn's review of PR #66, 2026-11-14):** follow plan 020's "Android Material 3 rules" and the `expo-ui` skill on every element of this sheet: Expo UI Jetpack Compose components (`Card`, `AssistChip` / `FilterChip`, `Surface`, `Badge`, `Icon`), laid out to match Figma frame **02 Results** on the `Android — Material 3` page. No hand-styled stand-ins for components Material 3 has. Badge and freshness colors come from the Material theme (`useMaterialColors()` / the `Host` color scheme), not `toneColors` from `@transit/shared`: Tight uses the `error` / `errorContainer` roles, Some risk uses `tertiaryContainer`, Safe and Live use `primaryContainer` / `secondaryContainer`.
+
 **Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. Both are on main (017 step 4 in #61, 009 step 5 in #65). Apply the same `savedColors` to the home map from plan 020, so a saved trip has the same color on home and in Results.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 3: Platform chrome
+### Step 3: Android chrome
 
-`ResultsChrome.ios.tsx` uses `BlurView` for the sheet. `ResultsChrome.android.tsx` uses the theme surface and a 32×4 drag handle. Both receive the same card list.
+`ResultsChrome.android.tsx` uses the theme surface and a 32×4 drag handle. Next to it, a plain `ResultsChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Both receive the same card list.
 
 The Filters chip sets Home state so plan 022's screen is visible. The agent chip scrolls to that field once plan 022 exists; until then it only opens Filters.
 
@@ -161,3 +163,11 @@ When a question is answered or a frame changes, update this same plan and its is
 See the help box at the top (021-Q*). It is the single list; answers are recorded there.
 
 Map behavior (overlap chooser, mode filtering) is tracked once in plan 009 under "Open product decisions". Colors are decided (017-Q2); see Step 2.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Frames: `iOS · 02 Results` (`2011:152`) and `iOS · Dark · 02 Results` (`2019:1140`) on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
+- Design: inset glass sheet (`BlurView`) with a grabber, more than half the screen; glass circular back button with a chevron; agent chip in the indigo accent, user chips neutral; SF Symbols for walk and bus on the cards.
+- Build it as `ResultsChrome.ios.tsx` with the same card list. General direction: [`ui-direction.md`](ui-direction.md).

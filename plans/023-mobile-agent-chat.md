@@ -51,9 +51,9 @@ On the phone the agent is a button that opens a sheet. It is not a side panel. T
 
 ## Current state
 
-- Frames: `iOS · 04 Agent chat` (`2012:482`), `iOS · Dark · 04 Agent chat` (`2019:1672`), `Android · 04 Agent chat` (`2004:1571`), `Android · Dark · 04 Agent chat` (`2018:2055`).
+- Frames: `Android · 04 Agent chat` (`2004:1571`), `Android · Dark · 04 Agent chat` (`2018:2055`).
 - The sheet covers most of the map. A dim route preview stays behind it. Do not fetch that route inside the sheet. Pass the current itineraries through for the map slot plan 020 already owns.
-- Header: sparkle avatar, title "Trip agent", subtitle that a reply edits the trip. Android uses a Material sheet and drag handle. iOS uses a glass sheet and grabber.
+- Header: sparkle avatar, title "Trip agent", subtitle that a reply edits the trip. Android uses a Material sheet and drag handle.
 - Sample thread, in order:
   1. User bubble. The frame's sample asks for a cheap trip to the office with little walking.
   2. Agent bubble that lists what it changed, as chips the user can tap. The sample includes arrive by 9:00 and a walk limit. Tapping a chip opens Filters (plan 022) on that field. The chips are the draft provenance entries whose source is `'agent'`, not a second list.
@@ -74,7 +74,7 @@ On the phone the agent is a button that opens a sheet. It is not a side panel. T
 
 **In scope:**
 - `apps/mobile/src/screens/chat/ChatScreen.tsx`
-- `apps/mobile/src/screens/chat/ChatChrome.ios.tsx`
+- `apps/mobile/src/screens/chat/ChatChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/chat/ChatChrome.android.tsx`
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only the `chatOpen` flag plan 020 left)
 
@@ -94,9 +94,9 @@ On the phone the agent is a button that opens a sheet. It is not a side panel. T
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 2: Platform sheet
+### Step 2: Android sheet
 
-iOS: glass sheet, `BlurView`, grabber. Android: Material surface, drag handle, no blur. Both use the same message list. Quick replies are buttons under the latest agent message that has `options`.
+`ChatChrome.android.tsx`: Material surface, drag handle, no blur. Next to it, a plain `ChatChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Both use the same message list. Quick replies are buttons under the latest agent message that has `options`.
 
 **Verify**: `npm run lint` → exit 0
 
@@ -131,3 +131,10 @@ When a question is answered or a frame changes, update this same plan and its is
 ## Open questions for review
 
 See the help box at the top (023-Q*). It is the single list; answers are recorded there.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Frames: `iOS · 04 Agent chat` (`2012:482`) and `iOS · Dark · 04 Agent chat` (`2019:1672`) on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
+- Design: glass sheet (`BlurView`) with a grabber, same message list and quick replies. Build it as `ChatChrome.ios.tsx`.

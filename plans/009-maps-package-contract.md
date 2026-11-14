@@ -1,4 +1,4 @@
-# Plan 009: Finish the shared route map on web, Android, and iOS
+# Plan 009: Finish the shared route map on web and Android
 
 ## Goal
 
@@ -6,7 +6,7 @@ The map is the user's saved-route library and the visual view of current search 
 
 The app supplies trips, selection, colors, location, and layout padding. The map renders them and reports route choices. It does not search for routes, call the API, save trips, request location permission, or own the app's selected trip. Real routing is plan 007; the map must work now with existing sample/mock itineraries.
 
-**Next deliverable for Kraken:** add the missing `@transit/maps/native` renderer to the existing package and verify it in rebuilt Android/iOS dev clients. Do not rebuild the shared layer or web renderer.
+**Next deliverable for Kraken:** add the missing `@transit/maps/native` renderer to the existing package and verify it in a rebuilt Android dev client. Do not rebuild the shared layer or web renderer.
 
 ## Status
 
@@ -17,14 +17,14 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Remaining:** native renderer/export/setup, native parity and device verification, and an integration handoff to the UI team. Step 5 (saved colors): PR open.
 - **Ready to continue:** yes. No native export or native MapLibre dependency exists on main at this planning pass.
 - **Related owners:** @DMFriends owns shared colors (#25); @Rad1ee / @DMFriends own app screens (#16, #39, #42).
-- **iOS tester:** @Cattn nominated @KrakenTheJaken in [the roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245). Availability is unconfirmed; no completed device check is implied.
+- **Platforms:** web and Android. iOS is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end.
 
 <!-- help:start -->
 ## Who's on it & how to help
 
 - **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package.
 - **Done:** pure map layer and web renderer, merged in #35.
-- **Next:** native renderer, Android/iOS setup and verification, then UI handoff.
+- **Next:** native renderer, Android setup and verification, then UI handoff.
 - **UI team:** mount the map in mobile #39 and web #42; keep screen/navigation work in those plans.
 - **Color work:** coordinate with @DMFriends on #25 rather than creating another palette.
 - **Feedback:** answer the open decisions below on #13 using `P1`, `P2`, `P4`, or `009-Q5`.
@@ -99,7 +99,7 @@ Create `packages/maps/src/native/RouteMap.tsx` and `src/native/index.ts`; add th
 
 Use existing samples/mock trips and a temporary minimal consumer if the UI shell is not ready. Do not rewrite app screens merely to demonstrate the adapter.
 
-Check in a rebuilt Android dev client and on iOS when the nominated tester is available:
+Check in a rebuilt Android dev client:
 
 - Commute and flight samples render; empty trips/filter results do not crash.
 - All dash styles and start/end/transfer points appear.
@@ -111,7 +111,7 @@ Check in a rebuilt Android dev client and on iOS when the nominated tester is av
 - The supplied location marker works without the map itself requesting permission.
 - Test the existing OpenFreeMap Positron style on native. Record whether web/native can share that URL (009-Q5); keep `styleUrl` configurable regardless.
 
-Record device/OS, build, result, and any untested platform in the PR. A JS export or pure test pass is not a device rendering result. iOS availability must be confirmed rather than assumed.
+Record device/OS, build, result, and any untested platform in the PR. A JS export or pure test pass is not a device rendering result.
 
 ### 4. Give UI a concrete integration handoff
 
@@ -160,7 +160,6 @@ Core plan 009 is complete when:
 - [ ] Native dependency/plugin/EAS wiring is documented and buildable.
 - [ ] Shared geometry, colors, filtering/selection callbacks, layer order, offsets, bounds, and padding work across renderers.
 - [ ] Android rendering/interaction is verified in a rebuilt dev client.
-- [ ] iOS rendering/interaction is verified, or explicitly remains an open blocker with tester availability recorded.
 - [ ] UI has a usable mounting handoff; no app/data responsibilities moved into maps.
 - [x] `assignRouteColors` honors saved colors (step 5, #65).
 - [ ] Required contract decisions are resolved or explicitly tracked with compatible behavior retained.
@@ -173,10 +172,17 @@ Do not close #13 or mark all of 009 done just because the native JS bundle build
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
 - **P4 / #25 — color policy, maps + UI:** colors decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14). Palette ownership in shared is still open (017-Q1). Storage is plan 017 step 4; maps honors it in step 5.
 - **009-Q5 — style compatibility, Kraken:** same OpenFreeMap style URL on web/native, or platform-specific URLs? Establish during native verification.
-- **iOS availability:** Kraken is nominated; confirm device/simulator access. Nomination is not completed verification.
 
 ## Follow-ups after native parity
 
 Bikeshare dock pins are **approved**, along with bike-savings summaries, by [Cattn's roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245) and chat clarification. Under plan 010 / #14, agree a separate caller-supplied dock-data prop and Point layer with the server/UI owner. Maps renders the supplied dock data; GBFS fetching and “bike saves X min” calculations stay outside maps. Do not make that later data integration a blocker for the native MVP.
 
 Extra labels, fancier lane layouts, or persistent saved-trip colors are separate follow-ups, not prerequisites for this continuation.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Set up `@transit/maps/native` on iOS and run step 3's checklist in a rebuilt iOS dev client (`npm run build:ios`; a real iPhone needs an Apple Developer account, otherwise the iOS Simulator on a Mac). Record device/OS and result in the PR.
+- Done criterion to restore: iOS rendering/interaction is verified.
+- @KrakenTheJaken was nominated as iOS tester in [the roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245); availability was never confirmed.
