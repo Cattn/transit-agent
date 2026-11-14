@@ -23,7 +23,6 @@ export class AdkPlanner implements PlannerAgent {
     let reply = '';
     try {
       for await (const event of runner.runAsync({ userId: input.deviceId, sessionId: session.id, abortSignal, newMessage: { role: 'user', parts: [{ text: JSON.stringify({ message: input.message, draft: input.draft }) }] } })) {
-        // A model error arrives as an event, not a throw. Fail the turn instead of returning an empty reply.
         if (event.errorCode) throw new Error(`Planner model error ${event.errorCode}: ${event.errorMessage ?? 'no message'}`);
         if (isFinalResponse(event)) reply = event.content?.parts?.map((part) => part.text ?? '').join('') ?? '';
       }

@@ -17,7 +17,6 @@ export interface TurnContext {
   signal?: AbortSignal;
 }
 
-/** Keywords the Gemini/Vertex function-declaration schema rejects ("Unknown name ..."). Zod still validates the args. */
 const unsupportedSchemaKeys = new Set(['exclusiveMinimum', 'exclusiveMaximum']);
 
 export function stripUnsupportedSchemaKeys<T>(value: T): T {
