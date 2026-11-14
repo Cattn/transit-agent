@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Claimed by @Cattn** (self-assigned 2026-11-14). Research is not recorded complete; implementation still waits for the research result and D2 decision.
+- **Status:** **Research in progress for @Cattn** in the [dedicated research thread](t3-thread://v2/488b75a5-34d6-4ef6-9f50-bbf2d6942b14/mcp:launch:47c6c907a28e722363a5f542b8af2ec3b5ce2cee441f1b97d57d3fdcefa0c625). Report and owner questions will be delivered there. Implementation remains pending the report and D2 decision.
 - **Owner:** @Cattn
 - **Up for grabs?** No. Coordinate any contribution with @Cattn; do not start a competing research or implementation worker.
 - **Waiting on:** @Cattn's research recommendation and D2 decision before implementation; plan 003 / #7 is already merged.
