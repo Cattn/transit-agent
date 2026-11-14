@@ -27,7 +27,9 @@
 
 **Open questions** (answer by number in a comment on #10):
 
-1. Which exact model should the main agent use, and should different tasks use different models? (Model research is in progress; the default stays `gemini-flash-latest` until decided.)
+**Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** main model is Hydrogen, API model ID `gemini-4-hydrogen`.
+
+1. Should any future tasks use a different model? The main-model choice is settled; task-specific allocation remains open.
 
 *Decided:* the agent can see your saved trips (read-only), and the model is switchable by configuration, per task if needed.
 
@@ -84,7 +86,7 @@ memory. Every number comes from a tool.
 ```
 package.json (engines), .nvmrc, .github/workflows/ci.yml (npm version step only), README.md (Node version + env var docs)
 apps/server/package.json, package-lock.json
-apps/server/.env.example                 add GEMINI_API_KEY=, GEMINI_MODEL=gemini-flash-latest, AGENT_MODEL_PLANNER= (optional override)
+apps/server/.env.example                 add GEMINI_API_KEY=, GEMINI_MODEL=gemini-4-hydrogen, AGENT_MODEL_PLANNER= (optional override)
 apps/server/src/agent/types.ts           PlannerAgent interface (framework-free)
 apps/server/src/agent/instructions.ts    system instruction text
 apps/server/src/agent/tools.ts           createPlannerTools(turn) — FunctionTools via closures
@@ -156,12 +158,12 @@ Include today's date and the user's timezone (from `draft.time` if present, else
 
 ### Step 6b: Configurable model selection (`agent/models.ts`)
 
-Requested on #10: model choice must be **switchable**, possibly with **different models for different tasks**. The exact models and which task gets which are **not decided** (006-Q3).
+Requested on #10: model choice must be **switchable**, possibly with **different models for different tasks**. The main model is **Hydrogen, `gemini-4-hydrogen`** (006-Q3, owner clarification in chat). Whether future tasks use separate models remains open.
 ```ts
 export type AgentTask = 'planner';   // more tasks (e.g. 'flightSearch', 'summarize') get added only when a plan needs them
 export function modelFor(task: AgentTask, env = process.env): string
 ```
-Lookup order: `AGENT_MODEL_<TASK>` (e.g. `AGENT_MODEL_PLANNER`) → `GEMINI_MODEL` → the current default `'gemini-flash-latest'`. This is the **only** place model ids are read; no other file hard-codes one. Document both env vars in `.env.example`. A per-user setting in the app (changing the model from the Settings screen) is a later follow-up that would feed this same function. Don't build it here.
+Lookup order: `AGENT_MODEL_<TASK>` (e.g. `AGENT_MODEL_PLANNER`) → `GEMINI_MODEL` → the owner-selected default `'gemini-4-hydrogen'`. This is the **only** place model ids are read; no other file hard-codes one. Document both env vars in `.env.example`. A per-user setting in the app (changing the model from the Settings screen) is a later follow-up that would feed this same function. Don't build it here.
 
 ### Step 7: ADK implementation (`agent/adk-planner.ts`)
 
@@ -219,6 +221,8 @@ Cattn runs the Gemini-enabled server on their own machine. Teammates run their w
 
 ## Maintenance notes
 
+- **Selected model versus deployed configuration:** @Cattn selected `gemini-4-hydrogen` in chat after the roadmap answer. Apply it via the existing server model configuration (`AGENT_MODEL_PLANNER` / `GEMINI_MODEL`); the already-merged implementation's fallback may still be `gemini-flash-latest`. This planning update does not change runtime configuration or establish live model availability/quality.
+
 - Final integrated head `8623a2534a809d7b4d4d66f8634385a490aab621` merged in PR #38 as `7ee32a0`. Normal main merge preserved reviewed agent source/routes/index and the production UUID11 workaround; only the lockfile conflict required regeneration. Author verified fresh `npm ci`, full `npm run check` (320 existing tests, all builds/exports/smoke), native ADK import, real built/TS no-key health 200/agent 503, completed/in-flight plan invalidation, and max two questions. No live Gemini calls or model-quality validation.
 - The implementation dependency is satisfied on main. UI consumers can use the shared server endpoint; real transit/flight providers and live-model quality checks remain separate work.
 
@@ -231,4 +235,4 @@ Cattn runs the Gemini-enabled server on their own machine. Teammates run their w
 
 - 006-Q1: Should the agent *auto-search* as soon as the draft is complete, or wait for the user to say "go"? Proposed: auto-search (fewer round trips).
 - ~~006-Q2~~ **Decided (@Cattn, 2026-11-14, [#10](https://github.com/Cattn/transit-agent/issues/10#issuecomment-6871994354)): yes.** The agent can read saved trips via the read-only `list_saved_trips` tool (Step 5).
-- 006-Q3 (**partly decided**, [#10](https://github.com/Cattn/transit-agent/issues/10#issuecomment-6871994354)): model choice must be switchable, possibly per task (Step 6b). **Still open:** which exact model the main agent uses (the owner prefers a newer model; the identifier hasn't been confirmed) and whether different tasks get different models. Model research is happening separately; until it lands, keep the default `gemini-flash-latest` and don't guess new identifiers.
+- 006-Q3 (**main model decided**, [roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14): use Hydrogen, API model ID `gemini-4-hydrogen`. Model selection remains configurable. Separate models for future tasks remain open; no additional task/model allocation is approved. The selected model's availability and live response quality have not been verified.
