@@ -43,7 +43,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 014 | [Airports, drive cost, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | DMFriends | P2 | S | 002 | DONE (#30) |
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
-| 017 | [Badge + mode colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S | 016 | TODO (rescoped; unblocked) |
+| 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | TODO (unblocked; Step 4 added for 017-Q2) |
 | 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Device checks remain |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | TODO (MVP) |
@@ -113,7 +113,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 ## Dependency notes
 
 - **Mobile map needs a dev client.** MapLibre React Native does not run in Expo Go. Once 009 lands: `npm run build:android` + `npm run dev:client` in `apps/mobile`.
-- **Route colors:** compute `assignRouteColors` (from `@transit/maps`) once over every trip on screen and pass the same map to `RouteMap.routeColors` and the cards.
+- **Route colors:** compute `assignRouteColors(ids, savedColors)` (from `@transit/maps`) once over every trip on screen, where `savedColors` comes from `SavedItinerary.color`, and pass the same map to `RouteMap.routeColors` and the cards. Save sends the trip's current color. Until 017 step 4 and 009 step 5 land, use the one-argument call.
 - **008 needs 031** for real live data; its pure logic is already in 013.
 - **011 round trips:** Clovis round-trip search is preferred (optionally compare two one-way searches). Reconcile 019's one-way `FareSearch`/`FareQuote` before building round trips.
 - **Node ≥ 24.13 / npm ≥ 11.8** for everyone (ADK requirement, on main).
@@ -140,7 +140,7 @@ Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent a
 
 Transit defaults (Cattn, plan 007 research thread, 2026-11-14): one or two checks before two hours unless overridden, then ramp nearer departure; subway around 1 h/30/20/10 min with issue-driven adjustments; commuter rail broadly similar with some earlier checking. Include first morning returns and clearly show long waits/next-day dates. Exact early/final scheduling, intercity treatment and preference storage remain with 008-Q3.
 
-Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per trip, not reassigned per screen (017-Q2, settles 009 P4's color policy); persisting them is separate future work.
+Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per trip, not reassigned per screen (017-Q2, settles 009 P4's color policy). Planned before the MVP: storage in 017 step 4, `assignRouteColors(ids, savedColors)` in 009 step 5, screens in 021 / 026 / 027.
 
 **Open:** map behavior P1/P2 and 009-Q5 (#13); palette move 017-Q1 (#25); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
 

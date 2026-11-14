@@ -24,7 +24,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 
 - **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package.
 - **Done:** pure map layer and web renderer, merged in #35.
-- **Next:** native renderer, Android/iOS setup and verification, then UI handoff.
+- **Next:** native renderer, Android/iOS setup and verification, then UI handoff. Also step 5 (saved trips keep their color), which can ship as its own small PR first.
 - **UI team:** mount the map in mobile #39 and web #42; keep screen/navigation work in those plans.
 - **Color work:** coordinate with @DMFriends on #25 rather than creating another palette.
 - **Feedback:** answer the open decisions below on #13 using `P1`, `P2`, `P4`, or `009-Q5`.
@@ -120,11 +120,20 @@ Document the native import, required app dependency/plugin, style URL(s), rebuil
 - Mobile plan 020 / #39 owns the home screen, selection state, bottom-sheet padding, and calling plan 018 helpers. Until `./native` exists it may use its documented placeholder.
 - Web plan 026 / #42 owns mounting `/web`, the MapLibre CSS/worker setup, and panel padding. The package does not own those screens.
 - Result screens #40/#45 reuse selection and the same color assignment.
-- Plan 017 / #25 owns moving colors into shared. Once its tokens are exported and palette/P4 decisions are settled, switch maps to re-export/use them while retaining exact palette order and public APIs. Do not invent a second palette or add saved-trip color persistence in this PR.
+- Plan 017 / #25 owns moving colors into shared. Once its tokens are exported and 017-Q1 is settled, switch maps to re-export/use them while retaining exact palette order and public APIs. Do not invent a second palette. Maps never stores colors; saved colors come in through step 5.
+
+### 5. Honor saved trip colors (P4 / 017-Q2)
+
+Decision: the same trip keeps one color wherever it appears. Plan 017 step 4 stores `SavedItinerary.color`; maps has to respect it.
+
+- `assignRouteColors(itineraryIds, fixed?: ReadonlyMap<string, string>)`: every listed id found in `fixed` gets exactly that color. All colors in `fixed` count as taken, even for ids not in the list, so a new result never borrows a saved trip's color while 8 or fewer are in use. The other ids go through the current two passes, skipping taken colors; past 8, colors repeat as today. The result still contains only listed ids and stays independent of list order.
+- Without `fixed`, results are identical to today (existing tests stay green).
+- Add cases to the existing `packages/maps/src/colors.test.ts`. Mention the new argument in `packages/maps/README.md`.
+- This can go in its own small PR ahead of the native work; UI plans 021, 026, 027 use it.
 
 ## Scope for the next PR
 
-**In scope:** native files/export in `packages/maps`, minimal layer-adapter changes needed for parity, existing maps tests when useful, package peer/dependency/lock changes, `apps/mobile/package.json` and `app.json` native setup, EAS build wiring, and maps/mobile setup documentation.
+**In scope:** `assignRouteColors` fixed colors (step 5, may be its own PR), native files/export in `packages/maps`, minimal layer-adapter changes needed for parity, existing maps tests when useful, package peer/dependency/lock changes, `apps/mobile/package.json` and `app.json` native setup, EAS build wiring, and maps/mobile setup documentation.
 
 **Out of scope:** rebuilding the pure/web package; designing app screens/navigation; server routing or live arrivals; shared-theme implementation owned by DMFriends; new tests/test files; new source comments; changing existing logging.
 
@@ -153,6 +162,7 @@ Core plan 009 is complete when:
 - [ ] Android rendering/interaction is verified in a rebuilt dev client.
 - [ ] iOS rendering/interaction is verified, or explicitly remains an open blocker with tester availability recorded.
 - [ ] UI has a usable mounting handoff; no app/data responsibilities moved into maps.
+- [ ] `assignRouteColors` honors saved colors (step 5).
 - [ ] Required contract decisions are resolved or explicitly tracked with compatible behavior retained.
 
 Do not close #13 or mark all of 009 done just because the native JS bundle builds. Keep actual app-screen mounting tracked in its UI issue.
@@ -161,7 +171,7 @@ Do not close #13 or mark all of 009 done just because the native JS bundle build
 
 - **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; do not drop that argument without agreement.
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
-- **P4 / #25 — color policy, maps + UI:** colors decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14). Palette ownership in shared is still open (017-Q1). Order-independent allocation and caller overrides are implemented; these do not settle persistence policy.
+- **P4 / #25 — color policy, maps + UI:** colors decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14). Palette ownership in shared is still open (017-Q1). Storage is plan 017 step 4; maps honors it in step 5.
 - **009-Q5 — style compatibility, Kraken:** same OpenFreeMap style URL on web/native, or platform-specific URLs? Establish during native verification.
 - **iOS availability:** Kraken is nominated; confirm device/simulator access. Nomination is not completed verification.
 
