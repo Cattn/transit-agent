@@ -21,15 +21,15 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Waiting** on #7 and #8.
+- **Status:** 🟢 **Ready to start.** #7 and #8 are done.
 - **Owner:** Suggested: @Cattn (holds the Gemini API key). Unassigned until started.
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
-- **Waiting on:** #7, #8
 
 **Open questions** (answer by number in a comment on #10):
 
-1. Should the agent be able to see your saved trips ("same as my usual commute but later")? *(suggested: later)*
-2. Use the fast, cheap Gemini Flash model, or a stronger Pro model? *(suggested: Flash, switchable by a setting)*
+1. Which exact model should the main agent use, and should different tasks use different models? (Model research is in progress; the default stays `gemini-flash-latest` until decided.)
+
+*Decided:* the agent can see your saved trips (read-only), and the model is switchable by configuration, per task if needed.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -84,10 +84,11 @@ memory. Every number comes from a tool.
 ```
 package.json (engines), .nvmrc, .github/workflows/ci.yml (npm version step only), README.md (Node version + env var docs)
 apps/server/package.json, package-lock.json
-apps/server/.env.example                 add GEMINI_API_KEY=, GEMINI_MODEL=gemini-flash-latest
+apps/server/.env.example                 add GEMINI_API_KEY=, GEMINI_MODEL=gemini-flash-latest, AGENT_MODEL_PLANNER= (optional override)
 apps/server/src/agent/types.ts           PlannerAgent interface (framework-free)
 apps/server/src/agent/instructions.ts    system instruction text
 apps/server/src/agent/tools.ts           createPlannerTools(turn) — FunctionTools via closures
+apps/server/src/agent/models.ts          modelFor(task) — the one place model ids are chosen (Step 6b)
 apps/server/src/agent/adk-planner.ts     the ONLY file importing '@google/adk'
 apps/server/src/agent/fake-planner.ts    deterministic test double
 apps/server/src/places/gazetteer.ts      static place lookup (until plan 007 adds geocoding)
@@ -128,7 +129,7 @@ export interface PlannerAgent { respond(input: AgentTurnInput, signal?: AbortSig
 
 ### Step 5: Tools (`agent/tools.ts`)
 
-`createPlannerTools(turn: TurnContext)`, where `TurnContext` is a per-request object `{ draft: TripDraft; patch: TripDraftPatch; questions: …[]; plan?: PlanResponse; providers: RouteProvider[] }`. Build the tools fresh per request, so closures write into this turn's context. Do not use module-level state.
+`createPlannerTools(turn: TurnContext)`, where `TurnContext` is a per-request object `{ deviceId: string; draft: TripDraft; patch: TripDraftPatch; questions: …[]; plan?: PlanResponse; providers: RouteProvider[]; itineraries: ItineraryStore }`. Build the tools fresh per request, so closures write into this turn's context. Do not use module-level state.
 
 | Tool name | Parameters (zod) | Behaviour | Returns to model |
 |---|---|---|---|
@@ -136,6 +137,7 @@ export interface PlannerAgent { respond(input: AgentTurnInput, signal?: AbortSig
 | `find_place` | `{ query: string }` | `gazetteer.search(query)` → up to 5 `Place`s | the places |
 | `search_routes` | `{}` | `toTripRequest(mergedDraft)`. If incomplete, return `{ status: 'incomplete', missing }`. Else `planTrip` and store the result in `turn.plan` | **compact** list: `id, summary, departAt, arriveAt, durationMinutes, cost.totalUsd, risk.level, risk.reasons, violations` (no geometry: saves tokens) |
 | `ask_user` | `{ field: string, question: string, options?: string[] }` | push to `turn.questions` | `{ status: 'queued' }` |
+| `list_saved_trips` | `{}` | `turn.itineraries.list(turn.deviceId)` (read-only; the agent never saves, edits or deletes trips) | **compact** list, max 20: `id, label, summary, departAt, arriveAt, watch`, plus `request` origin/destination names + coordinates, `time`, `modes`. The agent copies what it needs into the draft with `update_trip_draft` ("same as my usual commute but leave later"). Decided on #10 (Q1). |
 
 `places/gazetteer.ts`: a hard-coded list (≈ 25 entries) for the launch metro (D1, Boston default): Boston Common, South Station, North Station, Back Bay, Kendall/MIT, Harvard Sq, Logan Airport (BOS, `kind: 'airport'`), PVD, MHT, BDL, HVN, JFK, LGA, EWR, New Haven Union Station, NYC Penn Station, DC Union Station. Case-insensitive substring + IATA code match.
 
@@ -152,11 +154,20 @@ The instruction string must state, in plain sentences:
 
 Include today's date and the user's timezone (from `draft.time` if present, else `America/New_York`) in the instruction per request.
 
+### Step 6b: Configurable model selection (`agent/models.ts`)
+
+Requested on #10: model choice must be **switchable**, possibly with **different models for different tasks**. The exact models and which task gets which are **not decided** (006-Q3).
+```ts
+export type AgentTask = 'planner';   // more tasks (e.g. 'flightSearch', 'summarize') get added only when a plan needs them
+export function modelFor(task: AgentTask, env = process.env): string
+```
+Lookup order: `AGENT_MODEL_<TASK>` (e.g. `AGENT_MODEL_PLANNER`) → `GEMINI_MODEL` → the current default `'gemini-flash-latest'`. This is the **only** place model ids are read; no other file hard-codes one. Document both env vars in `.env.example`. A per-user setting in the app (changing the model from the Settings screen) is a later follow-up that would feed this same function. Don't build it here.
+
 ### Step 7: ADK implementation (`agent/adk-planner.ts`)
 
 `export class AdkPlanner implements PlannerAgent`:
 - Holds one module-lifetime `InMemorySessionService`. Gets the session by `sessionId` (scoped `appName: 'transit-agent'`, `userId: deviceId`), or creates a new one when it's missing or not found.
-- Per request: `createPlannerTools(turn)` → `new LlmAgent({ name: 'trip_planner', model: process.env.GEMINI_MODEL ?? 'gemini-flash-latest', instruction, tools })` → runner (signature from step 3) → iterate events and collect the final response text.
+- Per request: `createPlannerTools(turn)` → `new LlmAgent({ name: 'trip_planner', model: modelFor('planner'), instruction, tools })` → runner (signature from step 3) → iterate events and collect the final response text.
 - Returns `{ sessionId, reply, draftPatch: turn.patch, questions: turn.questions, plan: turn.plan }`, validated with `AgentMessageResponseSchema.parse`.
 - Abort after 40 s (pass `signal` if the runner supports it).
 If ADK forbids changing the agent/tools for an existing session's runner, keep one agent and pass per-turn context through session `state` or the tool context. Describe what you did in the PR. If neither works, STOP.
@@ -205,5 +216,5 @@ Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory to
 ## Open questions for review
 
 - 006-Q1: Should the agent *auto-search* as soon as the draft is complete, or wait for the user to say "go"? Proposed: auto-search (fewer round trips).
-- 006-Q2: Should the agent see the user's saved itineraries ("same as my usual commute but leave later")? Proposed: later, as a `list_saved_trips` tool.
-- 006-Q3: Model: `gemini-flash-latest` (fast, cheap) vs a Pro model for harder flight reasoning? Proposed: Flash, env-configurable.
+- ~~006-Q2~~ **Decided (@Cattn, 2026-11-14, [#10](https://github.com/Cattn/transit-agent/issues/10#issuecomment-6871994354)): yes.** The agent can read saved trips via the read-only `list_saved_trips` tool (Step 5).
+- 006-Q3 (**partly decided**, [#10](https://github.com/Cattn/transit-agent/issues/10#issuecomment-6871994354)): model choice must be switchable, possibly per task (Step 6b). **Still open:** which exact model the main agent uses (the owner prefers a newer model; the identifier hasn't been confirmed) and whether different tasks get different models. Model research is happening separately; until it lands, keep the default `gemini-flash-latest` and don't guess new identifiers.

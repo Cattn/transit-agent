@@ -12,7 +12,7 @@
 - **Priority**: P1
 - **Effort**: M
 - **Risk**: MED (`node:sqlite` stability flag varies by Node version — see step 1)
-- **Depends on**: plans/003-planning-api-fixture-provider.md (DONE, #27), plans/004-client-sdk-and-trip-draft.md (`TripDraftPatchSchema`)
+- **Depends on**: plans/003-planning-api-fixture-provider.md (DONE, #27), plans/004-client-sdk-and-trip-draft.md (DONE, #29; `TripDraftPatchSchema`)
 - **Category**: direction
 - **Decisions**: D4-A (device-id identity) and D6-A (`node:sqlite` file) are both decided.
 - **Planned at**: commit `c9e33cc`, 2026-11-13
@@ -21,10 +21,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #8 merges (PR #29). #7 is done.
-- **Owner:** Nobody yet
+- **Status:** 👀 **In review:** PR #31.
+- **Owner:** @Cattn
 - **Up for grabs?** Yes. Server-side; small database work.
-- **Waiting on:** #8 (PR #29)
 
 **Open questions** (answer by number in a comment on #9):
 

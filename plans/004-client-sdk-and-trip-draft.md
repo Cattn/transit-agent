@@ -20,12 +20,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **Approved:** PR #29, waiting for @Cattn to merge.
+- **Status:** ✅ **Done.** Merged in #29.
 - **Owner:** @Cattn
-
-**Open questions** (answer by number in a comment on #8):
-
-1. Should the app double-check every server response against the shared types in production too, or only in development? *(suggested: always, for now)*
 
 <!-- help:end -->
 
