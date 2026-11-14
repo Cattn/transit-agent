@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__t3-code__t3_background_wait",
+      "mcp__t3-code__t3_thread_read",
+      "mcp__t3-code__t3_thread_list",
+      "Bash(git fetch)",
+      "Bash(git fetch *)",
+      "Bash(npm test)",
+      "Bash(npm test -w *)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}
