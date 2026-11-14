@@ -171,3 +171,24 @@ describe('createApiClient', () => {
     expect(fetch.mock.calls[0]?.[0]).toBe('http://x/api/agent/messages');
   });
 });
+
+it('gets and puts validated profiles with device headers', async () => {
+  const profile = { displayName: 'Commuter', defaults: {}, updatedAt: '2026-11-13T13:00:00Z' };
+  const fetch = stubFetch(json(profile));
+  const client = createApiClient('http://x', { fetch, deviceId: 'test-device' });
+  expect(await client.getProfile()).toEqual(profile);
+  expect(await client.putProfile({ displayName: 'Commuter' })).toEqual(profile);
+  expect(fetch.mock.calls.map(([url, init]) => [url, init.method, (init.headers as Record<string, string>)['x-device-id']]))
+    .toEqual([['http://x/api/profile', 'GET', 'test-device'], ['http://x/api/profile', 'PUT', 'test-device']]);
+  expect(JSON.parse(fetch.mock.calls[1]![1].body as string)).toEqual({ displayName: 'Commuter' });
+});
+
+it('returns undefined only for profile 404s and validates profile responses', async () => {
+  const missing = createApiClient('http://x', { fetch: stubFetch(json({ error: { code: 'not_found', message: 'Missing' } }, 404)) });
+  await expect(missing.getProfile()).resolves.toBeUndefined();
+  const unauthorized = createApiClient('http://x', { fetch: stubFetch(json({ error: { code: 'missing_device_id', message: 'Required' } }, 400)) });
+  await expect(unauthorized.getProfile()).rejects.toMatchObject({ status: 400 });
+  const invalid = createApiClient('http://x', { fetch: stubFetch(json({ updatedAt: 'bad' })) });
+  await expect(invalid.getProfile()).rejects.toBeInstanceOf(ZodError);
+  await expect(invalid.putProfile({})).rejects.toBeInstanceOf(ZodError);
+});

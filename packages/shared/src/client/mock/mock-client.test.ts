@@ -1,4 +1,5 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import { ZodError } from 'zod';
 import type { ApiClient } from '../api-client.js';
 import { createMockApiClient } from './mock-client.js';
 import type { MockScenario } from './mock-client.js';
@@ -42,7 +43,7 @@ it('rejects every method in error scenarios', async () => {
     const api = createMockApiClient({ scenario, latencyMs: 0, now });
     const calls = [api.health(), api.sections(), api.planTrip(request), api.listItineraries(), api.getItinerary('x'),
       api.saveItinerary({ itinerary, request, watch: true }), api.updateItinerary('x', {}), api.deleteItinerary('x'),
-      api.sendAgentMessage({ message: 'hello', draft: request }), api.searchPlaces('Boston')];
+      api.sendAgentMessage({ message: 'hello', draft: request }), api.searchPlaces('Boston'), api.getProfile(), api.putProfile({})];
     await Promise.all(calls.map((call) => expect(call).rejects.toMatchObject(scenario === 'offline'
       ? { status: 0, code: 'network', message: 'Network error' } : { status: 500, code: 'internal', message: 'Internal error' })));
   }
@@ -97,4 +98,55 @@ it('returns saved trips newest first and protects stored state', async () => {
   const list = await api.listItineraries();
   expect(list[0]!.id).toBe(latest.id);
   expect(list[0]!.legs[0]!.from.name).not.toBe('Changed');
+});
+
+it('round-trips and replaces one profile per instance without exposing stored state', async () => {
+  const api = client();
+  expect(await api.getProfile()).toBeUndefined();
+  const input = { displayName: 'Commuter', home: request.origin, work: request.destination, defaults: { modes: ['bike' as const] } };
+  const saved = await api.putProfile(input);
+  expect(saved).toEqual({ ...input, updatedAt: now().toISOString() });
+  input.defaults.modes.push('bike');
+  saved.defaults.modes?.push('car');
+  const loaded = await api.getProfile();
+  expect(loaded?.defaults.modes).toEqual(['bike']);
+  loaded!.defaults.modes?.push('car');
+  expect((await api.getProfile())?.defaults.modes).toEqual(['bike']);
+  expect(await client().getProfile()).toBeUndefined();
+  expect(await api.putProfile({ displayName: 'Replacement' })).toEqual({ displayName: 'Replacement', defaults: {}, updatedAt: now().toISOString() });
+});
+
+it('validates profile writes and keeps the previous profile on failure', async () => {
+  const api = client();
+  const saved = await api.putProfile({ displayName: 'Valid' });
+  await expect(api.putProfile({ displayName: 'x'.repeat(61) })).rejects.toBeInstanceOf(ZodError);
+  await expect(api.putProfile({ defaults: { preferences: { comfortVsCost: 2 } } })).rejects.toBeInstanceOf(ZodError);
+  expect(await api.getProfile()).toEqual(saved);
+});
+
+it('applies profile latency and reads the current scenario before changing state', async () => {
+  vi.useFakeTimers();
+  try {
+    let scenario: MockScenario = 'normal';
+    const api = createMockApiClient({ scenario: () => scenario, latencyMs: 50, now });
+    const saved = api.putProfile({ displayName: 'Original' });
+    await vi.advanceTimersByTimeAsync(50);
+    expect(await saved).toMatchObject({ displayName: 'Original' });
+    let completed = false;
+    const pending = api.getProfile().then((profile) => { completed = true; return profile; });
+    await vi.advanceTimersByTimeAsync(49);
+    expect(completed).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toMatchObject({ displayName: 'Original' });
+    const failed = expect(api.putProfile({ displayName: 'Lost' })).rejects.toMatchObject({ code: 'network' });
+    scenario = 'offline';
+    await vi.advanceTimersByTimeAsync(50);
+    await failed;
+    scenario = 'normal';
+    const loaded = api.getProfile();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(await loaded).toMatchObject({ displayName: 'Original' });
+  } finally {
+    vi.useRealTimers();
+  }
 });

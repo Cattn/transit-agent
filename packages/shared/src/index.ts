@@ -30,3 +30,4 @@ export * from './client/api-client.js';
 export * from './client/device-id.js';
 export * from './client/trip-draft-state.js';
 export { createMockApiClient, type MockScenario, type MockApiClientOptions } from './client/mock/mock-client.js';
+export * from './domain/profile.js';

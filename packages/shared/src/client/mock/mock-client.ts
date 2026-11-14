@@ -4,6 +4,7 @@ import { PlanResponseSchema } from '../../domain/api.js';
 import { AgentMessageResponseSchema } from '../../domain/agent.js';
 import { PlaceSearchResponseSchema } from '../../domain/place-search.js';
 import { SavedItinerarySchema, type SavedItinerary } from '../../domain/itinerary.js';
+import { TravelProfileSchema, type TravelProfile } from '../../domain/profile.js';
 import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
 import { mockItineraries } from './mock-routes.js';
@@ -22,6 +23,7 @@ export interface MockApiClientOptions {
 export function createMockApiClient(options: MockApiClientOptions = {}): ApiClient {
   const now = options.now ?? (() => new Date());
   const saved = new Map<string, SavedItinerary>();
+  let profile: TravelProfile | undefined;
   if (options.seedSaved ?? true) {
     const clock = now();
     for (const [minutes, label] of [[25, 'Morning commute'], [180, 'Dinner']] as const) {
@@ -95,6 +97,15 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
       return z.array(SavedItinerarySchema).parse([...saved.values()].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)));
     },
     async getItinerary(id) { await beforeCall(); return getSaved(id); },
+    async getProfile() {
+      await beforeCall();
+      return profile && TravelProfileSchema.parse(profile);
+    },
+    async putProfile(input) {
+      await beforeCall();
+      profile = TravelProfileSchema.parse({ ...input, updatedAt: now().toISOString() });
+      return TravelProfileSchema.parse(profile);
+    },
     async saveItinerary(input) {
       await beforeCall();
       const itinerary = SavedItinerarySchema.parse({ ...input.itinerary, savedAt: now().toISOString(), label: input.label, watch: input.watch, request: input.request });
