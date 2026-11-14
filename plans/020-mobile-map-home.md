@@ -112,7 +112,7 @@ export const modeGroups = {
   - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly.
   - Search bar: `DockedSearchBar` (or `SearchBar`) with Material icons.
   - Bottom chips (Home / Office / Gym / Recent): `AssistChip`s in theme colors. These were the worst offenders.
-  - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo UI's universal `BottomSheet` (from `@expo/ui`, SDK 56+) first; Expo's `expo-ui` skill prefers it over `@gorhom/bottom-sheet`. If it can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
+  - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo's drop-in `@expo/ui/community/bottom-sheet` (same API as `@gorhom/bottom-sheet`) first; the universal `BottomSheet` is a present/dismiss sheet, so it fits modals like chat, not this persistent sheet. If the drop-in can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
   - Tracked trip cards: clearly separated containers (Compose `Card`, elevated or filled) that stand out from the sheet surface, not faint borders.
   - Countdown tile: "Leaves in / # / minutes" in a Material accent container (the watch-state colors above).
   - "Live": an M3 Expressive-style pill with a Material icon, only for realtime data.
