@@ -76,7 +76,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - `apps/mobile/src/screens/filters/FiltersScreen.tsx`
 - `apps/mobile/src/screens/filters/FiltersChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
-- `apps/mobile/src/screens/filters/PlaceField.tsx`
+- `apps/mobile/src/screens/filters/PlaceField.tsx` (plain fallback) and `PlaceField.android.tsx` (Compose `OutlinedTextField` and `ListItem` rows, PR #70 review)
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (the flag that presents Filters, the tapped field, and the mode-control handler in Step 4)
 - `apps/mobile/src/screens/home/ModeSlider.tsx`, `HomeChrome.android.tsx`, `HomeChrome.ios.tsx` (Step 4 only: drop the Drive segment; no iOS design work)
 
@@ -98,7 +98,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `Switch` for step-free access, `ListItem` rows for the limits, Material Symbols icons (no lock icons) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `ListItem` rows for the limits on a rounded `surfaceContainerLowest` card as in the frame (value in `primary` on the right; Max walk and Max transfers open an `AlertDialog` of `RadioButton` choices with "No limit" first; Step-free toggles On/Off on tap), a tertiary-container "✦ Agent" pill, Material Symbols icons (no lock icons) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -126,13 +126,13 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
-- [ ] `npm run typecheck -w @transit/mobile` exits 0
-- [ ] `npm run lint` exits 0
-- [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
-- [ ] A hard limit control sends `null` when cleared
-- [ ] `lateTolerance` and `transferRisk` are two controls
-- [ ] Drive chip in Modes (off by default, kept across Transit ⇄ Fly); no Budget row; Advanced limits start collapsed
-- [ ] Home's mode control is Transit / Fly only
+- [x] `npm run typecheck -w @transit/mobile` exits 0
+- [x] `npm run lint` exits 0
+- [x] Android shows the full sheet, not `presentationStyle="formSheet"`
+- [x] A hard limit control sends `null` when cleared
+- [x] `lateTolerance` and `transferRisk` are two controls
+- [x] Drive chip in Modes (off by default, kept across Transit ⇄ Fly); no Budget row; Advanced limits start collapsed
+- [x] Home's mode control is Transit / Fly only
 - [ ] No files outside Scope are modified
 
 ## STOP conditions
