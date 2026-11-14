@@ -53,7 +53,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | 🟢 UI | P2 | L | 020 | TODO |
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | 🟢 UI | P1 | L | — | TODO (**MVP, start here**) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | 🟢 UI | P1 | M | 026 | TODO (MVP check) |
-| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) | 🟢 up for grabs | P1 | S | — | TODO (MVP) |
+| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | 🟢 up for grabs | P1 | S | — | TODO (MVP) |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
 | — | [UI slices](ui-slices.md) | UI team | — | — | — | Draft |
 
@@ -65,6 +65,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason).
 - **With a coding agent:** pull `main`, then: *"Read `plans/NNN-name.md` and follow it step by step. Run every verification command, only change files listed under Scope, stop and tell me on any STOP condition, don't push."* Open a PR that says `Closes #N`.
 - **Answer questions** on the issue by number (`020-Q2: search first`). The answer is recorded in that same plan; never open a second plan for the same screen.
 - Use the strongest model for 007, 009, 010, 019.
+- **Labels and milestones:** every plan issue has `plan` plus an `area: …` label (server, agent, web, mobile, maps, shared, flights). `help wanted` = up for grabs, `question` = open questions in the help box, `blocked` = waiting on another issue or decision, `research` = starts with a spike. Milestones: **MVP** and **Full app**. Roadmap and direction issues (#16, #17) are `tracking`.
 - **UI plans (020–027) are a first Figma pass** (`Transit-Agent-Design-Mockups`: `iOS — Liquid Glass`, `Android — Material 3`, `Web — Desktop`). When a frame changes, update that plan's Current state. Web has only home and planning frames; no plan invents web settings, filters, or Fly.
 - **Mock first:** UI plans default to the mock client. `VITE_API_MODE=server` (web) or `EXPO_PUBLIC_API_MODE=server` (mobile) switches to a real server. Only Cattn's server holds the Gemini key.
 

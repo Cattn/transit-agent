@@ -15,7 +15,7 @@
 - **Depends on**: none (006 and 004 are merged)
 - **Category**: bug
 - **Planned at**: commit `1e8328a`, 2026-11-14
-- **Issue**: none yet
+- **Issue**: https://github.com/Cattn/transit-agent/issues/49
 
 ## Why this matters
 
