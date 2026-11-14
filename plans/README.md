@@ -89,7 +89,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19) |
 | 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27) |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (merged in #29) |
-| 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn (coding agent running) | P1 | M | 003, 004 | IN PROGRESS |
+| 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | IN REVIEW (PR #31) |
 | 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 | TODO |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
