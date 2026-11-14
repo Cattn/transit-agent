@@ -32,7 +32,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 003 | [Planning API + fixture provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (#27) |
 | 004 | [Typed client + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (#29) |
 | 005 | [SQLite saves + profiles](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (#31) |
-| 006 | [Gemini planner agent (ADK)](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn | P1 | L | 003–005 | DONE (#38). Live model quality not yet checked |
+| 006 | [Gemini planner agent (ADK)](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn | P1 | L | 003–005 | DONE (#38). Live check passed (#51) |
 | 007 | [Real transit routing + live arrivals](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | Cattn | P1 | L | 003 (D2) | IN PROGRESS (research thread; D2 pending) |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 007, 013, 005 | TODO (008-Q3 open) |
 | 009 | [Route map: native renderer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web merged in #35; native next) |
