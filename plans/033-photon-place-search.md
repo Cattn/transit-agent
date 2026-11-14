@@ -10,7 +10,7 @@
 ## Status
 
 - **Owner:** @Cattn (worker)
-- **State:** TODO
+- **State:** PR #64 open
 - **Priority:** P1 (MVP)
 - **Effort:** S–M
 - **Risk:** MED (new outbound network call, behind an env var; no contract change)
