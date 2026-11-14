@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** 👀 **In review:** PR #32.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #20):
