@@ -13,7 +13,7 @@
 - **Priority**: P1 (this is the MVP milestone)
 - **Effort**: S
 - **Risk**: LOW (no code). Needs Cattn's machine, which holds the Gemini credentials.
-- **Depends on**: 009 (DOM map on Android), 021 (Results + Save), 022 (Filters), 034 (chat kept for the session). Already merged: 020 home, 023 chat, 028/033 place search, 006 agent.
+- **Depends on**: 009 (DOM map on Android), 022 (Filters), 034 (chat kept for the session). Already merged: 020 home, 021 Results + Save (#66), 023 chat, 028/033 place search, 006 agent.
 - **Category**: verification
 - **Planned at**: commit `db8b72c`, 2026-11-14
 - **Issue**: tracked on [#17](https://github.com/Cattn/transit-agent/issues/17) (roadmap). No separate issue; post the result there.
@@ -21,10 +21,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** Waiting on 009, 021, 022 and 034.
+- **Status:** Waiting on 009, 022 and 034 (021 merged in #66).
 - **Owner:** @Cattn (only Cattn's server holds the Gemini key).
 - **Up for grabs?** No.
-- **Waiting on:** #13 (009, @KrakenTheJaken), #40 (021, @DMFriends), #46 (022, @Cattn), #68 (034, @Cattn).
+- **Waiting on:** #13 (009, @KrakenTheJaken), #46 (022, @DMFriends), #68 (034, @Cattn).
 
 **Open questions:** none.
 
