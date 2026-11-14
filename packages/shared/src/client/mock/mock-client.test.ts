@@ -37,6 +37,15 @@ it('saves, lists, updates and deletes itineraries', async () => {
   await expect(api.deleteItinerary(saved.id)).rejects.toMatchObject({ code: 'not_found' });
 });
 
+it('keeps the first saved color for a trip', async () => {
+  const api = client();
+  const itinerary = (await api.planTrip(request)).itineraries[0]!;
+  expect((await api.saveItinerary({ itinerary, request, watch: true, color: '#1D4ED8' })).color).toBe('#1D4ED8');
+  expect((await api.saveItinerary({ itinerary, request, watch: true, color: '#BE185D' })).color).toBe('#1D4ED8');
+  expect((await api.getItinerary(itinerary.id)).color).toBe('#1D4ED8');
+  expect((await api.updateItinerary(itinerary.id, { label: 'Renamed' })).color).toBe('#1D4ED8');
+});
+
 it('rejects every method in error scenarios', async () => {
   const itinerary = (await client().planTrip(request)).itineraries[0]!;
   for (const scenario of ['offline', 'serverError'] as const) {

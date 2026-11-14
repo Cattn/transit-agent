@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **Assigned to @DMFriends.** Rescoped 2026-11-14 so it is no longer blocked: this plan now ships only badge (tone) and mode colors. Route-line colors already exist in `@transit/maps` and apps import them from there.
+- **Status:** 🔍 **PR #61 open** (Steps 1–4). Route-line colors stay in `@transit/maps`; apps import them from there.
 - **Owner:** @DMFriends
 - **Waiting on:** nothing for Steps 1–4. Moving the route palette into shared (Later, below) waits on question 1.
 - **Step 4 (added 2026-11-14, from 017-Q2):** saved trips store their route color so the same trip keeps one color everywhere. Contract + server store + mock client; the UI side is in plans 021, 026, 027 and the maps side in plan 009 step 5.

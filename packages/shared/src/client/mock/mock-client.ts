@@ -108,7 +108,8 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     },
     async saveItinerary(input) {
       await beforeCall();
-      const itinerary = SavedItinerarySchema.parse({ ...input.itinerary, savedAt: now().toISOString(), label: input.label, watch: input.watch, request: input.request });
+      const color = saved.get(input.itinerary.id)?.color ?? input.color;
+      const itinerary = SavedItinerarySchema.parse({ ...input.itinerary, savedAt: now().toISOString(), label: input.label, watch: input.watch, request: input.request, color });
       saved.set(itinerary.id, itinerary);
       return SavedItinerarySchema.parse(itinerary);
     },

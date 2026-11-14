@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { sampleItinerary } from '../domain/fixtures.js';
 import type { Itinerary } from '../domain/itinerary.js';
 import { travelModes } from '../domain/modes.js';
+import { modeColors, toneColors, type ColorScheme } from '../theme/colors.js';
+import { contrastRatio, relativeLuminance } from '../theme/contrast.js';
 import {
   formatAge,
   formatClock,
@@ -172,5 +174,54 @@ describe('watchStateBadge', () => {
   it('returns a copy, so callers cannot change the shared wording', () => {
     watchStateBadge('done').label = 'changed';
     expect(watchStateBadge('done').label).toBe('Done');
+  });
+});
+
+describe('contrastRatio', () => {
+  it('is 21 for black on white, in either order', () => {
+    expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 2);
+    expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21, 2);
+  });
+
+  it('is 1 for identical colors', () => {
+    expect(contrastRatio('#6750A4', '#6750a4')).toBeCloseTo(1, 5);
+  });
+
+  it.each(['#fff', 'ffffff', '#ggg000', '#1234567', 'red', ''])('throws on %j', (bad) => {
+    expect(() => contrastRatio(bad, '#000000')).toThrow();
+    expect(() => relativeLuminance(bad)).toThrow();
+  });
+});
+
+const schemes: ColorScheme[] = ['light', 'dark'];
+const tones = ['neutral', 'info', 'ok', 'warn', 'danger'] as const;
+
+describe('toneColors', () => {
+  it.each(schemes.flatMap((scheme) => tones.map((tone) => [scheme, tone] as const)))('%s %s text meets 4.5:1 on its background', (scheme, tone) => {
+    const { fg, bg } = toneColors[scheme][tone];
+    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('keeps neutral (e.g. "Scheduled (not live)") apart from ok', () => {
+    expect(toneColors.light.neutral.bg).not.toBe(toneColors.light.ok.bg);
+    expect(toneColors.dark.neutral.bg).not.toBe(toneColors.dark.ok.bg);
+  });
+
+  it('gives every tone a distinct background in each scheme', () => {
+    for (const scheme of schemes) {
+      expect(new Set(tones.map((tone) => toneColors[scheme][tone].bg)).size).toBe(tones.length);
+    }
+  });
+});
+
+describe('modeColors', () => {
+  const surfaces: Record<ColorScheme, string> = { light: '#ffffff', dark: '#121212' };
+
+  it.each(schemes)('%s has a color for every travel mode', (scheme) => {
+    expect(Object.keys(modeColors[scheme]).sort()).toEqual([...travelModes].sort());
+  });
+
+  it.each(schemes.flatMap((scheme) => travelModes.map((mode) => [scheme, mode] as const)))('%s %s meets 3:1 on the surface', (scheme, mode) => {
+    expect(contrastRatio(modeColors[scheme][mode], surfaces[scheme])).toBeGreaterThanOrEqual(3);
   });
 });

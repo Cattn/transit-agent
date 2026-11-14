@@ -31,6 +31,8 @@ export class MemoryItineraryStore implements ItineraryStore {
       request: structuredClone(input.request)
     };
     if (input.label !== undefined) saved.label = input.label;
+    const color = this.device(deviceId).get(saved.id)?.color ?? input.color;
+    if (color !== undefined) saved.color = color;
     this.device(deviceId).set(saved.id, saved);
     return structuredClone(saved);
   }
