@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
+- **Status:** 🔍 **PR #67 open** (Android checked on a Pixel 10; iOS not yet checked). First draft, after plan 020. Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
