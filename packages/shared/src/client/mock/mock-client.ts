@@ -85,6 +85,7 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
       await beforeCall();
       return z.array(z.object({ id: z.enum(['flight', 'commute', 'biking', 'agent']), title: z.string(), description: z.string() })).parse(sections);
     },
+    /** Mock results sort by duration and do not reproduce server ranking. */
     async planTrip(request) {
       const scenario = await beforeCall();
       return planTrip(request, scenario);
