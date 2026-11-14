@@ -129,7 +129,7 @@ Build the two panels from Current state. The agent empty state hides once `messa
 
 `npm install -w @transit/web @transit/maps maplibre-gl react-map-gl`. Add the MapLibre setup to `main.tsx`. Mount `RouteMap` from `@transit/maps/web` filling the page behind the panels, with the props and padding in Current state. Saved itineraries come from `useSavedItineraries({ enabled: true })`.
 
-**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Saving happens in plan 027. If `assignRouteColors` has no second argument yet (plan 009 step 5) or `color` is not in the save contract yet (plan 017 step 4), use the one-argument call, omit `color`, and say so in the PR.
+**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Saving happens in plan 027. Both are on main (017 step 4 in #61, 009 step 5 in #65).
 
 **Verify**: `npm run lint` → exit 0, then `npm run build:web` → exit 0. Manual: `npm run dev:web`, open http://localhost:5173, the two mock saved trips are drawn on the map.
 

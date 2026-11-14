@@ -35,7 +35,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 006 | [Gemini planner agent (ADK)](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn | P1 | L | 003–005 | DONE (#38). Live check passed (#51) |
 | 007 | [Real transit routing + live arrivals](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | Cattn | P1 | S | 003 | DONE (research; D2 Transitous-first). Implementation → 031 |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | TODO (transit defaults selected; 008-Q3 details remain) |
-| 009 | [Route map: native renderer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web merged in #35; step 5 saved colors PR open; native next) |
+| 009 | [Route map: native renderer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web #35, saved colors #65; native next) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (fixture steps executable) |
 | 012 | [Mock API client](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (#32) |
@@ -116,7 +116,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 ## Dependency notes
 
 - **Mobile map needs a dev client.** MapLibre React Native does not run in Expo Go. Once 009 lands: `npm run build:android` + `npm run dev:client` in `apps/mobile`.
-- **Route colors:** compute `assignRouteColors(ids, savedColors)` (from `@transit/maps`) once over every trip on screen, where `savedColors` comes from `SavedItinerary.color`, and pass the same map to `RouteMap.routeColors` and the cards. Save sends the trip's current color. `SavedItinerary.color` is on main (#61); until 009 step 5 lands, use the one-argument call.
+- **Route colors:** compute `assignRouteColors(ids, savedColors)` (from `@transit/maps`) once over every trip on screen, where `savedColors` comes from `SavedItinerary.color`, and pass the same map to `RouteMap.routeColors` and the cards. Save sends the trip's current color. `SavedItinerary.color` (#61) and the two-argument `assignRouteColors` (#65) are on main.
 - **008 needs 031** for real live data; its pure logic is already in 013.
 - **011 round trips:** Clovis round-trip search is preferred (optionally compare two one-way searches). Reconcile 019's one-way `FareSearch`/`FareQuote` before building round trips.
 - **Node ≥ 24.13 / npm ≥ 11.8** for everyone (ADK requirement, on main).

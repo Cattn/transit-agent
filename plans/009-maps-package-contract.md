@@ -13,7 +13,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Priority:** P1
 - **Owner:** @KrakenTheJaken
 - **Issue:** #13
-- **Status:** PARTIAL. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`.
+- **Status:** PARTIAL. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`. Step 5 (saved trips keep their color) merged in [PR #65](https://github.com/Cattn/transit-agent/pull/65) as `b32424f`.
 - **Remaining:** native renderer/export/setup, native parity and device verification, and an integration handoff to the UI team. Step 5 (saved colors): PR open.
 - **Ready to continue:** yes. No native export or native MapLibre dependency exists on main at this planning pass.
 - **Related owners:** @DMFriends owns shared colors (#25); @Rad1ee / @DMFriends own app screens (#16, #39, #42).
@@ -24,7 +24,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 
 - **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package.
 - **Done:** pure map layer and web renderer, merged in #35.
-- **Next:** native renderer, Android/iOS setup and verification, then UI handoff. Also step 5 (saved trips keep their color), which can ship as its own small PR first.
+- **Next:** native renderer, Android/iOS setup and verification, then UI handoff.
 - **UI team:** mount the map in mobile #39 and web #42; keep screen/navigation work in those plans.
 - **Color work:** coordinate with @DMFriends on #25 rather than creating another palette.
 - **Feedback:** answer the open decisions below on #13 using `P1`, `P2`, `P4`, or `009-Q5`.
@@ -162,7 +162,7 @@ Core plan 009 is complete when:
 - [ ] Android rendering/interaction is verified in a rebuilt dev client.
 - [ ] iOS rendering/interaction is verified, or explicitly remains an open blocker with tester availability recorded.
 - [ ] UI has a usable mounting handoff; no app/data responsibilities moved into maps.
-- [ ] `assignRouteColors` honors saved colors (step 5).
+- [x] `assignRouteColors` honors saved colors (step 5, #65).
 - [ ] Required contract decisions are resolved or explicitly tracked with compatible behavior retained.
 
 Do not close #13 or mark all of 009 done just because the native JS bundle builds. Keep actual app-screen mounting tracked in its UI issue.
