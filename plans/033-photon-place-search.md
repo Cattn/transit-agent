@@ -10,7 +10,7 @@
 ## Status
 
 - **Owner:** @Cattn (worker)
-- **State:** PR #64 open
+- **State:** DONE in PR #64 (merged as `243d64d`, 2026-11-14)
 - **Priority:** P1 (MVP)
 - **Effort:** S–M
 - **Risk:** MED (new outbound network call, behind an env var; no contract change)
