@@ -89,6 +89,8 @@ export function airportToPlace(a: Airport): Place   // { name, coordinates, kind
 ```
 About 25 entries: BOS, PVD, MHT, BDL, HVN, ALB, PWM, JFK, LGA, EWR, HPN, ISP, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO. Use real coordinates (look each up; 3 decimals is enough). `parkingUsdPerDay` only where you can cite a public long-term rate; otherwise leave it undefined. Add a header comment saying where the coordinates came from.
 
+**Reference (from @Cattn):** [`Cattn/clovis` `client/src/lib/airports.ts`](https://github.com/Cattn/clovis/blob/main/client/src/lib/airports.ts) has IATA codes, cities and names for every large and scheduled-medium airport (sourced from OurAirports). Use it for codes and names. It has **no coordinates**, so take those from OurAirports' `airports.csv` (`latitude_deg`, `longitude_deg`; mind the `[lng, lat]` order). Keep v1 to the ~25 airports above; the full list can come later with plan 011.
+
 ### Step 2: Ground cost (`ground-cost.ts`)
 
 ```ts
