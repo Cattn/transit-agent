@@ -104,7 +104,20 @@ export const modeGroups = {
 | Chrome | Status bar + home indicator. `SafeAreaView` edges. | Status bar + gesture bar. `SafeAreaView` edges. |
 | Blur | `expo-blur` `BlurView` behind the search, mode control, and sheet | No blur. Surface color from the theme. |
 
-- Tracked trip card (Figma symbol `14:120`, description on the component): title "Commute to Office", message "Bus 1 is 1 min late — leave by 8:04", freshness pill "Live" only when the data is realtime, meta "Bus 1 · arrive 8:27", countdown tile "Leave in / 6 / min". The tile color encodes `watchStatus.state`: onTrack = secondary container, leaveSoon = tertiary container, leaveNow and atRisk = error container. `SavedItinerary.watchStatus` is optional. Use its message and state when present, and `leaveByLabel(leaveBy, new Date())` when a leave-by time exists. Otherwise use `formatClock` and `itineraryFreshness` from plan 016. Do not invent a watch status. Never paint a scheduled time with the Live pill.
+- Tracked trip card (Figma symbol `14:120`, description on the component): title "Commute to Office", message "Bus 1 is 1 min late — leave by 8:04", freshness pill "Live" only when the data is realtime, meta "Bus 1 · arrive 8:27", countdown tile "Leaves in / 6 / minutes" (not "Departs"; @Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)). The tile color encodes `watchStatus.state`: onTrack = secondary container, leaveSoon = tertiary container, leaveNow and atRisk = error container. `SavedItinerary.watchStatus` is optional. Use its message and state when present, and `leaveByLabel(leaveBy, new Date())` when a leave-by time exists. Otherwise use `formatClock` and `itineraryFreshness` from plan 016. Do not invent a watch status. Never paint a scheduled time with the Live pill.
+- **Android Material 3 rules (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484), 2026-11-14).** These apply to every Android screen (plans 020–025); iOS keeps the glass design above.
+  - Use a real Material 3 component library, not hand-styled views: **`react-native-paper`** (MD3 theme, `PaperProvider`) unless a better-maintained Material 3 library for React Native exists; record the choice in the PR. There is no official Google package for React Native.
+  - Material icons everywhere on Android (search, location, modes, Live, filters): `@expo/vector-icons` `MaterialIcons` / `MaterialCommunityIcons` (Paper's default). Roboto is the Android system font; do not override it.
+  - Colors come from the Paper MD3 theme (light and dark), seeded so `useAppColors()` and Paper agree. Do not hand-pick chip or surface colors.
+  - Mode control: a Material 3 connected button group (Paper `SegmentedButtons`) with icons for Transit, Drive, Fly.
+  - Search bar: Paper `Searchbar` with Material icons.
+  - Bottom chips (Home / Office / Gym / Recent): Paper assist `Chip`s in theme colors. These were the worst offenders.
+  - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Use `@gorhom/bottom-sheet` (it needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`).
+  - Tracked trip cards: clearly separated containers (Paper `Card`, elevated or filled) that stand out from the sheet surface, not faint borders.
+  - Countdown tile: "Leaves in / # / minutes" in a Material accent container (the watch-state colors above).
+  - "Live": an M3 Expressive-style pill with a Material icon, only for realtime data.
+  - "Ask agent": an extended FAB (Paper `FAB` with label).
+  - Settings placeholder (until plan 025): Material background, colors and Roboto, matching the mockup's look even while empty.
 - Saved routes drawn on the home map in the file are named "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", with pins Office and Gym. The app does not draw those vectors itself.
 
 ## Commands you will need
@@ -122,7 +135,8 @@ export const modeGroups = {
 **In scope:**
 - `apps/mobile/App.tsx`
 - `apps/mobile/app.json` (`userInterfaceStyle` only)
-- `apps/mobile/package.json` and `package-lock.json` (only `@transit/client-react`, `expo-blur`, and the React Navigation packages in Step 1)
+- `apps/mobile/package.json` and `package-lock.json` (only `@transit/client-react`, `expo-blur`, the React Navigation packages in Step 1, and the Android Material 3 packages: `react-native-paper`, `@expo/vector-icons`, `@gorhom/bottom-sheet`, `react-native-reanimated`, `react-native-gesture-handler`)
+- `apps/mobile/babel.config.js` (only if `react-native-reanimated` needs its plugin on this Expo SDK)
 - `apps/mobile/.env.example` (add `EXPO_PUBLIC_API_MODE=mock`)
 - `apps/mobile/src/theme/appearance.tsx`
 - `apps/mobile/src/theme/colors.ts`
@@ -253,7 +267,7 @@ Plan 018 already provides the mobile unit-test runner. Do not add tests or anoth
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
-- Plans 021–025 replace the placeholder screens. They should import `useAppColors` and the navigation types from this plan.
+- Plans 021–025 replace the placeholder screens. They should import `useAppColors`, the Paper theme and the navigation types from this plan, and follow the Android Material 3 rules in Current state.
 - Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Drive / Fly does not clear the draft's places.
 - The UI-5 peek/half/full wording is intentionally not implemented. See open question 1.
 
