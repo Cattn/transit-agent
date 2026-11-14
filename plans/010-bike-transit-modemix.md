@@ -26,8 +26,8 @@
 
 **Open questions** (answer by number in a comment on #14):
 
-1. @KrakenTheJaken: show bikeshare docks as pins on the map?
-2. Headline results with "bike saves 8 min" style summaries? *(suggested: yes)*
+1. **Decided:** show bikeshare dock pins (roadmap Q8, clarified in chat).
+2. **Decided:** use bike-savings summaries (roadmap Q8, clarified in chat).
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -95,5 +95,7 @@ Add `find_bike_docks({ near: string, need: 'bikes' | 'docks' })` to `agent/tools
 
 ## Open questions for review
 
-- 010-Q1: Show dock availability on the map (dock pins)? It's a maps-team decision. If yes, `@transit/maps` adds a Point layer fed by a separate prop.
-- 010-Q2: Should "bike saves X min" be a headline explanation in results? Proposed: yes, in `summary`.
+**Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** the Q8 “yes” approves **both bikeshare dock pins and “bike saves X min” summaries**. Specific dock styling/availability presentation was not specified.
+
+- ~~010-Q1~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** show bikeshare dock pins. Add a Point layer fed by a separate map prop; rendering stays with the maps team.
+- ~~010-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** use “bike saves X min” summaries derived from actual comparison results; never invent a saving.
