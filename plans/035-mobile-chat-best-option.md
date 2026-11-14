@@ -4,12 +4,12 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: PR #69 is merged; PR #72 must be merged. Compare Current state with `apps/mobile/src/screens/chat/` and `apps/mobile/src/screens/results/` on `main`. On a mismatch, STOP.
+> **Drift check (run first)**: PRs #69 and #72 are merged. Compare Current state with `apps/mobile/src/screens/chat/` and `apps/mobile/src/screens/results/` on `main`. On a mismatch, STOP.
 
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** BLOCKED on #72; #69 is merged
+- **State:** IN PROGRESS (PR #80 open; #69 and #72 merged; Android device proof pending)
 - **Priority:** P1 (MVP polish: the chat should look like the mockup)
 - **Effort:** S
 - **Risk:** LOW (Android chat UI only; no contract or server change)
