@@ -13,7 +13,7 @@
     "build:android": "npx --yes eas-cli@27.10.0 build --platform android --profile development",
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
-    "eas-build-post-install": "npm run build -w @transit/shared",
+    "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/client-react",
     "typecheck": "tsc --noEmit",
     "test": "npm run typecheck"
   },
@@ -25,7 +25,8 @@
     "expo-status-bar": "~58.0.5",
     "react": "19.3.0",
     "react-native": "0.88.1",
-    "react-native-safe-area-context": "~5.11.1"
+    "react-native-safe-area-context": "~5.11.1",
+    "@transit/client-react": "*"
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",
