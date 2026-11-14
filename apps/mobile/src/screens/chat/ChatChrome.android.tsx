@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useRef, useState, type ReactElement } from 'react';
+import { ScrollView, StyleSheet, useWindowDimensions, type ScrollViewInstance } from 'react-native';
 import { Host } from '@expo/ui';
 import {
   AssistChip,
@@ -12,13 +12,14 @@ import {
   ModalBottomSheet,
   OutlinedButton,
   OutlinedTextField,
+  RNHostView,
   Row,
   Text,
   useMaterialColors,
   useNativeState,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { background, clip, fillMaxHeight, fillMaxWidth, imePadding, padding, Shapes, size, verticalScroll, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { background, clip, fillMaxWidth, height, imePadding, padding, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import Close from '../../../assets/icons/close_fill.xml';
 import Send from '../../../assets/icons/send_fill.xml';
 import Tune from '../../../assets/icons/tune_fill.xml';
@@ -28,6 +29,7 @@ import { m3Text } from '../../theme/typography';
 import type { ChatChromeProps, ChatEntry } from './ChatScreen';
 
 const BUBBLE_INSET = 48;
+const SHEET_SHARE = 0.85;
 
 function Bubble({ text, mine, m }: { text: string; mine: boolean; m: MaterialColors }) {
   return (
@@ -42,6 +44,14 @@ function Bubble({ text, mine, m }: { text: string; mine: boolean; m: MaterialCol
         <Text color={mine ? m.onPrimary : m.onSurface} style={m3Text('bodyLarge')}>{text}</Text>
       </Column>
     </Row>
+  );
+}
+
+function Block({ scheme, children }: { scheme: 'light' | 'dark'; children: ReactElement }) {
+  return (
+    <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+      {children}
+    </Host>
   );
 }
 
@@ -81,6 +91,8 @@ function Entry({ entry, m, pending, onSend, onChip }: { entry: ChatEntry; m: Mat
 export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onClose }: ChatChromeProps) {
   const scheme = colors.scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
+  const { height: windowHeight } = useWindowDimensions();
+  const scroll = useRef<ScrollViewInstance>(null);
   const value = useNativeState('');
   const [text, setText] = useState('');
   const canSend = !pending && text.trim().length > 0;
@@ -95,7 +107,7 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
   return (
     <Host matchContents colorScheme={scheme} seedColor={materialSeedColor} style={styles.host}>
       <ModalBottomSheet onDismissRequest={onClose} skipPartiallyExpanded containerColor={m.surfaceContainerLow}>
-        <Column modifiers={[fillMaxWidth(), fillMaxHeight(0.92), imePadding()]}>
+        <Column modifiers={[fillMaxWidth(), height(Math.round(windowHeight * SHEET_SHARE)), imePadding()]}>
           <Row horizontalArrangement={{ spacedBy: 12 }} verticalAlignment="center" modifiers={[fillMaxWidth(), padding(20, 0, 8, 12)]}>
             <Column
               horizontalAlignment="center"
@@ -112,25 +124,43 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
               <Icon source={Close} size={24} contentDescription="Close" />
             </IconButton>
           </Row>
-          <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), weight(1), verticalScroll(), padding(16, 8, 16, 8)]}>
-            {entries.length === 0 ? (
-              <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')}>
-                Tell the agent about your trip, like &quot;cheap, walk at most 10 min, to Harvard&quot;.
-              </Text>
-            ) : null}
-            {entries.map((entry) => <Entry key={entry.id} entry={entry} m={m} pending={pending} onSend={onSend} onChip={onChip} />)}
-            {pending ? (
-              <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
-                <LoadingIndicator modifiers={[size(32, 32)]} />
-                <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Thinking…</Text>
-              </Row>
-            ) : null}
-            {error ? (
-              <Column modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(16)), background(m.errorContainer), padding(14, 10, 14, 10)]}>
-                <Text color={m.onErrorContainer} style={m3Text('bodyMedium')}>{error}</Text>
-              </Column>
-            ) : null}
-          </Column>
+          <RNHostView modifiers={[fillMaxWidth(), weight(1)]}>
+            <ScrollView
+              ref={scroll}
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              keyboardDismissMode="on-drag"
+              onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}
+            >
+              {entries.length === 0 ? (
+                <Block scheme={scheme}>
+                  <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')}>
+                    Tell the agent about your trip, like &quot;cheap, walk at most 10 min, to Harvard&quot;.
+                  </Text>
+                </Block>
+              ) : null}
+              {entries.map((entry) => (
+                <Block key={entry.id} scheme={scheme}>
+                  <Entry entry={entry} m={m} pending={pending} onSend={onSend} onChip={onChip} />
+                </Block>
+              ))}
+              {pending ? (
+                <Block scheme={scheme}>
+                  <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
+                    <LoadingIndicator modifiers={[size(32, 32)]} />
+                    <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Thinking…</Text>
+                  </Row>
+                </Block>
+              ) : null}
+              {error ? (
+                <Block scheme={scheme}>
+                  <Column modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(16)), background(m.errorContainer), padding(14, 10, 14, 10)]}>
+                    <Text color={m.onErrorContainer} style={m3Text('bodyMedium')}>{error}</Text>
+                  </Column>
+                </Block>
+              ) : null}
+            </ScrollView>
+          </RNHostView>
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth(), padding(16, 8, 16, 16)]}>
             <OutlinedTextField
               value={value}
@@ -155,5 +185,8 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
 }
 
 const styles = StyleSheet.create({
-  host: { position: 'absolute' }
+  host: { position: 'absolute' },
+  fullWidth: { width: '100%' },
+  list: { flex: 1 },
+  listContent: { gap: 12, paddingHorizontal: 16, paddingVertical: 8 }
 });
