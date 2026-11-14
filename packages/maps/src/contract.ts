@@ -12,11 +12,9 @@ export interface RouteMapProps {
   selectedItineraryId?: string;
   /**
    * The user chose a route. `candidates` lists every itinerary that was under the pointer.
-   * When several routes overlap, the MAP shows its own small picker at the tap position and
-   * calls this once with the route the user picked, so the app doesn't need a chooser.
-   * (Changed from plan 009's "app shows a chooser"; announced on issue #13.)
    */
   onRouteSelect: (itineraryId: string, candidates: string[]) => void;
+  onDeselect?: () => void;
   /**
    * Tab filter (drive / transit+bike / fly). A trip is shown only if ALL its legs use these modes;
    * otherwise the whole trip is hidden (not just the excluded legs). Undefined = show all.
@@ -25,6 +23,8 @@ export interface RouteMapProps {
   /** Basemap (decision D8). The app passes it; the map never reads env. */
   styleUrl: string;
   userLocation?: LngLat;
+  userHeading?: number;
+  locateKey?: string | number;
   /** Change this value to re-fit the camera to the visible itineraries. */
   fitKey?: string | number;
   /** Extra padding when panels cover part of the map (web side panel, mobile bottom sheet). */
@@ -35,4 +35,7 @@ export interface RouteMapProps {
    * Optional: without it the map computes exactly that itself.
    */
   routeColors?: ReadonlyMap<string, string>;
+  unfocusedColors?: 'grey' | 'trip' | 'mode';
+  variant?: 'saved' | 'choosing';
+  accentColor?: string;
 }

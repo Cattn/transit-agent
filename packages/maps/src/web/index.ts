@@ -3,4 +3,3 @@
  * The app must import 'maplibre-gl/dist/maplibre-gl.css' and call setWorkerUrl() once; see the README.
  */
 export { RouteMap } from './RouteMap.js';
-export { RoutePicker } from './RoutePicker.js';

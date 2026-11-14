@@ -11,26 +11,48 @@
  *
  * Rule from plan 009: the map never fetches, saves, or owns the selection. It only reports clicks
  * through onRouteSelect; the APP decides what is selected and passes it back as selectedItineraryId.
- * The one piece of UI the map does own is the overlap picker (RoutePicker.tsx), because it has to
- * appear at the click position on the map.
+ * Where routes overlap, tapping the same spot again cycles through them (nextRouteToSelect).
  *
  * Setup the APP must do once at startup (see demo/main.tsx and the README):
  *   - import 'maplibre-gl/dist/maplibre-gl.css'
  *   - setWorkerUrl(...) for MapLibre v6, or the map stays blank
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Layer, Map, Marker, Source, type LayerProps, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
-import { boundsOf, uniqueItineraryIds } from '../bounds.js';
-import { assignRouteColors } from '../colors.js';
+import { boundsOf, nextRouteToSelect, uniqueItineraryIds } from '../bounds.js';
 import type { RouteMapProps } from '../contract.js';
-import { interactiveLayerIds, POINT_SOURCE_ID, ROUTE_SOURCE_ID, routeLayers, type RouteLayer } from '../layers.js';
-import { itinerariesToFeatures, itineraryPoints } from '../to-geojson.js';
-import type { Itinerary } from '@transit/shared';
-import { RoutePicker } from './RoutePicker.js';
+import {
+  DEFAULT_ACCENT_COLOR,
+  END_ICON_ID,
+  HIT_LINE_WIDTH,
+  interactiveLayerIds,
+  POINT_SOURCE_ID,
+  ROUTE_SOURCE_ID,
+  routeLayers,
+  TOUCH_HIT_LINE_WIDTH,
+  type RouteLayer
+} from '../layers.js';
+import { itinerariesToFeatures, itineraryPoints, transitLegLabels } from '../to-geojson.js';
+import { addEndIcon } from './end-icon.js';
+import { LegBubble } from './LegBubble.js';
 
 /** Where the camera starts before the first fit (central Boston). */
 const INITIAL_VIEW = { longitude: -71.075, latitude: 42.359, zoom: 13.5 };
 const DEFAULT_PADDING = { top: 40, right: 40, bottom: 40, left: 40 };
+const LEG_BUBBLE_ROOM = 48;
+const COARSE_POINTER = '(pointer: coarse)';
+const ROUTE_TAP_ZOOM_PAUSE_MS = 600;
+const LOCATE_MIN_ZOOM = 15;
+const LOCATION_BLUE = '#2563eb';
+
+function subscribeToPointer(onChange: () => void): () => void {
+  const query = window.matchMedia(COARSE_POINTER);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+const isTouchScreen = () => window.matchMedia(COARSE_POINTER).matches;
+const isTouchScreenOnServer = () => false;
 
 /**
  * Turn one of our layer objects into props for react-map-gl's <Layer>.
@@ -48,66 +70,93 @@ export function RouteMap({
   itineraries,
   selectedItineraryId,
   onRouteSelect,
+  onDeselect,
   visibleModes,
   styleUrl,
   userLocation,
+  userHeading,
+  locateKey,
   fitKey,
   padding = DEFAULT_PADDING,
-  routeColors
+  routeColors,
+  unfocusedColors = 'trip',
+  variant,
+  accentColor
 }: RouteMapProps) {
   // A handle on the underlying map so we can call camera methods like fitBounds().
   const mapRef = useRef<MapRef>(null);
   // Is the mouse over a clickable route right now? Drives the cursor.
   const [hoveringRoute, setHoveringRoute] = useState(false);
-  // Overlap picker as last opened: where, which trips it offers, and which trips/tab were on the map
-  // at the time (null = closed).
-  const [openedPicker, setOpenedPicker] = useState<{
-    longitude: number;
-    latitude: number;
-    ids: string[];
-    forItineraries: Itinerary[];
-    forModes: RouteMapProps['visibleModes'];
-  } | null>(null);
-  // The trip being hovered in the picker. While set, it's drawn as if selected (a live preview).
-  const [previewId, setPreviewId] = useState<string | null>(null);
+  const zoomPause = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // The picker only counts as open while the map still shows the same trips and tab it was opened
-  // for. Worked out during render (no effect needed): new results or another tab close it.
-  const picker =
-    openedPicker && openedPicker.forItineraries === itineraries && openedPicker.forModes === visibleModes
-      ? openedPicker
-      : null;
+  useEffect(() => () => clearTimeout(zoomPause.current), []);
 
-  // What to draw as selected: the picker preview wins, otherwise the app's real selection.
-  // This only changes the drawing; the app's selection doesn't change until you actually pick.
-  const shownSelectedId = (picker ? previewId : null) ?? selectedItineraryId;
-
+  const pauseDoubleTapZoom = () => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    map.doubleClickZoom.disable();
+    clearTimeout(zoomPause.current);
+    zoomPause.current = setTimeout(() => map.doubleClickZoom.enable(), ROUTE_TAP_ZOOM_PAUSE_MS);
+  };
   // Trips → GeoJSON (only recomputed when one of the inputs changes).
   const lines = useMemo(
-    () => itinerariesToFeatures(itineraries, { selectedItineraryId: shownSelectedId, visibleModes, colors: routeColors }),
-    [itineraries, shownSelectedId, visibleModes, routeColors]
+    () => itinerariesToFeatures(itineraries, { selectedItineraryId: selectedItineraryId, visibleModes, colors: routeColors }),
+    [itineraries, selectedItineraryId, visibleModes, routeColors]
   );
   const points = useMemo(
-    () => itineraryPoints(itineraries, { selectedItineraryId: shownSelectedId, visibleModes, colors: routeColors }),
-    [itineraries, shownSelectedId, visibleModes, routeColors]
+    () => itineraryPoints(itineraries, { selectedItineraryId: selectedItineraryId, visibleModes, colors: routeColors }),
+    [itineraries, selectedItineraryId, visibleModes, routeColors]
   );
 
-  const closePicker = useCallback(() => {
-    setOpenedPicker(null);
-    setPreviewId(null);
-  }, []);
-
   // The layer definitions never change, so build them once.
-  const layers = useMemo(() => routeLayers(), []);
+  const touchScreen = useSyncExternalStore(subscribeToPointer, isTouchScreen, isTouchScreenOnServer);
+  const layers = useMemo(
+    () =>
+      routeLayers({
+        hitLineWidth: touchScreen ? TOUCH_HIT_LINE_WIDTH : HIT_LINE_WIDTH,
+        unfocused: unfocusedColors,
+        variant,
+        accentColor
+      }),
+    [touchScreen, unfocusedColors, variant, accentColor]
+  );
+  const legLabels = useMemo(() => {
+    if (variant !== 'choosing') return [];
+    const selected = itineraries.find((it) => it.id === selectedItineraryId);
+    return selected ? transitLegLabels(selected) : [];
+  }, [variant, itineraries, selectedItineraryId]);
   const lineLayers = layers.filter((layer) => layer.source === ROUTE_SOURCE_ID);
   const pointLayers = layers.filter((layer) => layer.source === POINT_SOURCE_ID);
   const clickableLayerIds = useMemo(() => interactiveLayerIds(), []);
 
   // Zoom the camera so every visible route fits on screen.
+  const handleLoad = () => {
+    const map = mapRef.current?.getMap();
+    if (map) {
+      addEndIcon(map);
+      map.on('styleimagemissing', (event: { id: string }) => {
+        if (event.id === END_ICON_ID) addEndIcon(map);
+      });
+    }
+    fitToRoutes();
+  };
+
+  const panToUser = useEffectEvent(() => {
+    const map = mapRef.current;
+    if (!map || !userLocation) return;
+    map.easeTo({ center: userLocation, zoom: Math.max(map.getZoom(), LOCATE_MIN_ZOOM), padding, duration: 600 });
+  });
+
+  useEffect(() => {
+    if (locateKey !== undefined) panToUser();
+  }, [locateKey]);
+
   const fitToRoutes = () => {
     const bounds = boundsOf(itineraries, visibleModes);
     if (!bounds) return; // nothing visible (e.g. the Fly tab with no flights): leave the camera alone
-    mapRef.current?.fitBounds(bounds, { padding, maxZoom: 16, duration: 600 });
+    const room = variant === 'choosing' ? LEG_BUBBLE_ROOM : 0;
+    const fitPadding = { ...padding, left: padding.left + room, right: padding.right + room };
+    mapRef.current?.fitBounds(bounds, { padding: fitPadding, maxZoom: 16, duration: 600 });
   };
 
   // Re-fit whenever the APP changes fitKey (e.g. new search results, the "Re-fit camera" button, a tab change).
@@ -123,30 +172,15 @@ export function RouteMap({
   // several overlapping trips).
   const handleClick = (event: MapLayerMouseEvent) => {
     const ids = uniqueItineraryIds(event.features ?? []); // topmost trip first, no duplicates
-    closePicker(); // any click on the map closes an open picker first
-
-    if (ids.length === 1) {
-      onRouteSelect(ids[0]!, ids); // only one route here: select it straight away
-    } else if (ids.length > 1) {
-      // Several routes overlap here: ask which one, right where the user clicked.
-      setOpenedPicker({ longitude: event.lngLat.lng, latitude: event.lngLat.lat, ids, forItineraries: itineraries, forModes: visibleModes });
+    const next = nextRouteToSelect(ids, selectedItineraryId, itineraries.map((it) => it.id));
+    if (next !== undefined) {
+      pauseDoubleTapZoom();
+      onRouteSelect(next, ids);
+    } else if (selectedItineraryId !== undefined) {
+      onDeselect?.();
     }
     // ids.length === 0: clicked empty map, nothing else to do
   };
-
-  // The colours the lines use (the app's routeColors, else the automatic assignment), so the
-  // picker's circles match the map.
-  const colors = useMemo(() => {
-    const auto = assignRouteColors(itineraries.map((it) => it.id));
-    return new globalThis.Map(itineraries.map((it) => [it.id, routeColors?.get(it.id) ?? auto.get(it.id)!]));
-  }, [itineraries, routeColors]);
-
-  // Look up the full trips for the picker (it needs their colour, duration and summary).
-  const pickerCandidates = useMemo(() => {
-    if (!picker) return [];
-    const byId = new globalThis.Map(itineraries.map((it) => [it.id, it])); // globalThis.Map: `Map` here is react-map-gl's component
-    return picker.ids.map((id) => byId.get(id)).filter((it): it is Itinerary => it !== undefined);
-  }, [picker, itineraries]);
 
   return (
     <Map
@@ -154,7 +188,7 @@ export function RouteMap({
       mapStyle={styleUrl} // basemap chosen by the app (decision D8)
       initialViewState={INITIAL_VIEW}
       style={{ width: '100%', height: '100%' }}
-      onLoad={fitToRoutes} // first fit, once the map is ready (the effect above may run before that)
+      onLoad={handleLoad} // first fit, once the map is ready (the effect above may run before that)
       // Only these layers report clicks/hover. Not the white casing, not the dots.
       interactiveLayerIds={clickableLayerIds}
       onClick={handleClick}
@@ -179,37 +213,28 @@ export function RouteMap({
 
       {/* "You are here". A <Marker> is plain HTML positioned on the map, so normal inline styles work. */}
       {userLocation && (
-        <Marker longitude={userLocation[0]} latitude={userLocation[1]}>
-          <div
-            title="You are here"
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              background: '#2563eb',
-              border: '3px solid #ffffff',
-              boxShadow: '0 0 0 1px rgb(0 0 0 / 0.25), 0 1px 4px rgb(0 0 0 / 0.3)'
-            }}
-          />
+        <Marker
+          longitude={userLocation[0]}
+          latitude={userLocation[1]}
+          rotation={userHeading ?? 0}
+          rotationAlignment="map"
+          pitchAlignment="map"
+        >
+          <svg width={64} height={64} viewBox="-32 -32 64 64" aria-label="You are here" role="img" style={{ overflow: 'visible' }}>
+            {userHeading !== undefined && (
+              <path d="M0 0 L-15 -27 A31 31 0 0 1 15 -27 Z" fill={LOCATION_BLUE} fillOpacity={0.25} />
+            )}
+            <circle r={10} fill="#ffffff" style={{ filter: 'drop-shadow(0 1px 3px rgb(0 0 0 / 0.35))' }} />
+            <circle r={7} fill={LOCATION_BLUE} />
+          </svg>
         </Marker>
       )}
 
-      {/* The overlap picker, pinned to the click point. Picking reports the choice to the app and
-          passes along all the candidates, as the contract says. */}
-      {picker && pickerCandidates.length > 1 && (
-        <Marker longitude={picker.longitude} latitude={picker.latitude} anchor="center" style={{ zIndex: 2 }}>
-          <RoutePicker
-            candidates={pickerCandidates}
-            colors={colors}
-            onPreview={setPreviewId}
-            onClose={closePicker}
-            onPick={(id) => {
-              closePicker();
-              onRouteSelect(id, picker.ids);
-            }}
-          />
+      {legLabels.map((label) => (
+        <Marker key={label.legId} longitude={label.coordinates[0]} latitude={label.coordinates[1]} anchor="center">
+          <LegBubble mode={label.mode} text={label.text} color={accentColor ?? DEFAULT_ACCENT_COLOR} />
         </Marker>
-      )}
+      ))}
     </Map>
   );
 }

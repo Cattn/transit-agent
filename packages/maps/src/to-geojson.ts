@@ -9,8 +9,8 @@
  * Done when: `npx vitest run src/maps/to-geojson.test.ts` passes.
  */
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type { Itinerary, LngLat, Place, TravelMode } from '@transit/shared';
-import { assignRouteColors } from './colors.js';
+import { formatClock, legLabel, type Itinerary, type LngLat, type Place, type TravelMode } from '@transit/shared';
+import { assignRouteColors, MODE_COLORS } from './colors.js';
 
 export type Dash = 'solid' | 'dashed' | 'dotted';
 
@@ -21,6 +21,8 @@ export interface RouteFeatureProps {
   mode: TravelMode;
   /** The trip's colour (FeatureOptions.colors, else assignRouteColors()): one colour for the whole journey. */
   color: string;
+  modeColor: string;
+  mainModeColor: string;
   dash: Dash;
   /** This itinerary is the selected one. */
   selected: boolean;
@@ -53,6 +55,8 @@ export interface RoutePointProps {
   kind: 'origin' | 'destination' | 'transfer';
   name: string;
   color: string;
+  mainModeColor: string;
+  modeColor: string;
   selected: boolean;
   dimmed: boolean;
 }
@@ -102,6 +106,90 @@ const DASH_BY_MODE: Record<TravelMode, Dash> = {
   ferry: 'solid',
   car: 'solid'
 };
+
+function lineLength(coordinates: readonly LngLat[]): number {
+  let total = 0;
+  for (let i = 1; i < coordinates.length; i++) {
+    const [lng0, lat0] = coordinates[i - 1]!;
+    const [lng1, lat1] = coordinates[i]!;
+    const dx = (lng1 - lng0) * Math.cos((((lat0 + lat1) / 2) * Math.PI) / 180);
+    total += Math.hypot(dx, lat1 - lat0);
+  }
+  return total;
+}
+
+const MAX_JOIN_GAP_METERS = 100;
+
+function metersBetween([lng0, lat0]: LngLat, [lng1, lat1]: LngLat): number {
+  const rad = Math.PI / 180;
+  const dLat = (lat1 - lat0) * rad;
+  const dLng = (lng1 - lng0) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat0 * rad) * Math.cos(lat1 * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371000 * Math.asin(Math.sqrt(h));
+}
+
+const FIXED_ROUTE_MODES: ReadonlySet<TravelMode> = new Set(['bus', 'rail', 'ferry', 'flight']);
+
+export function drawnLegLines(itinerary: Itinerary): LngLat[][] {
+  const lines: LngLat[][] = [];
+  itinerary.legs.forEach((leg, i) => {
+    const coordinates = [...(leg.geometry.coordinates as LngLat[])];
+    const previous = lines.at(-1);
+    const previousEnd = previous?.at(-1);
+    const gap = previousEnd ? metersBetween(previousEnd, coordinates[0]!) : 0;
+    if (previous && previousEnd && gap > 0 && gap <= MAX_JOIN_GAP_METERS) {
+      const reachTheStop = FIXED_ROUTE_MODES.has(leg.mode) && !FIXED_ROUTE_MODES.has(itinerary.legs[i - 1]!.mode);
+      if (reachTheStop) previous.push(coordinates[0]!);
+      else coordinates.unshift(previousEnd);
+    }
+    lines.push(coordinates);
+  });
+  return lines;
+}
+
+const LABELLED_MODES: ReadonlySet<TravelMode> = new Set(['bus', 'rail', 'ferry']);
+
+export interface LegLabel {
+  legId: string;
+  mode: TravelMode;
+  text: string;
+  coordinates: LngLat;
+}
+
+function halfwayAlong(line: readonly LngLat[]): LngLat {
+  const steps = line.slice(1).map((point, i) => metersBetween(line[i]!, point));
+  let remaining = steps.reduce((total, step) => total + step, 0) / 2;
+  for (const [i, step] of steps.entries()) {
+    if (remaining <= step && step > 0) {
+      const t = remaining / step;
+      const [lng0, lat0] = line[i]!;
+      const [lng1, lat1] = line[i + 1]!;
+      return [lng0 + (lng1 - lng0) * t, lat0 + (lat1 - lat0) * t];
+    }
+    remaining -= step;
+  }
+  return line[0]!;
+}
+
+export function transitLegLabels(itinerary: Itinerary, timeZone?: string): LegLabel[] {
+  const lines = drawnLegLines(itinerary);
+  return itinerary.legs.flatMap((leg, i) => {
+    if (!LABELLED_MODES.has(leg.mode)) return [];
+    const line = legLabel(leg).replace(/^Bus\s+/i, '');
+    const time = formatClock(leg.departAt, timeZone).replace(/\s?(AM|PM)$/i, '');
+    return [{ legId: leg.id, mode: leg.mode, text: `${line} · ${time}`, coordinates: halfwayAlong(lines[i]!) }];
+  });
+}
+
+export function mainMode(itinerary: Itinerary): TravelMode {
+  const distance = new Map<TravelMode, number>();
+  for (const leg of itinerary.legs) {
+    distance.set(leg.mode, (distance.get(leg.mode) ?? 0) + lineLength(leg.geometry.coordinates as LngLat[]));
+  }
+  let best = itinerary.legs[0]!.mode;
+  for (const [mode, total] of distance) if (total > distance.get(best)!) best = mode;
+  return best;
+}
 
 export function dashForMode(mode: TravelMode): Dash {
   return DASH_BY_MODE[mode];
@@ -223,16 +311,20 @@ export function itinerariesToFeatures(
     const selected = itinerary.id === selectedItineraryId;
     const dimmed = hasSelection && !selected; // only dim when something else is selected
     const color = colorOf(itinerary.id); // one colour for the whole trip
+    const mainModeColor = MODE_COLORS[mainMode(itinerary)];
+    const lines = drawnLegLines(itinerary);
 
-    for (const leg of itinerary.legs) {
+    itinerary.legs.forEach((leg, legIndex) => {
       const feature: RouteFeature = {
         type: 'Feature',
-        geometry: leg.geometry, // already a GeoJSON LineString in [lng, lat] order (plan 002)
+        geometry: { type: 'LineString', coordinates: lines[legIndex]! },
         properties: {
           itineraryId: itinerary.id, // lets a tap on ANY leg select the whole trip
           legId: leg.id,
           mode: leg.mode,
           color,
+          modeColor: MODE_COLORS[leg.mode],
+          mainModeColor,
           dash: dashForMode(leg.mode),
           selected,
           dimmed,
@@ -245,7 +337,7 @@ export function itinerariesToFeatures(
       };
 
       (selected ? selectedFeatures : others).push(feature);
-    }
+    });
   });
 
   return { type: 'FeatureCollection', features: [...others, ...selectedFeatures] };
@@ -279,20 +371,27 @@ export function itineraryPoints(
     const shared = {
       itineraryId: itinerary.id,
       color: colorOf(itinerary.id),
+      mainModeColor: MODE_COLORS[mainMode(itinerary)],
       selected: itinerary.id === selectedItineraryId,
       dimmed: hasSelection && itinerary.id !== selectedItineraryId
     };
 
-    const point = (place: Place, kind: RoutePointProps['kind']): Feature<Point, RoutePointProps> => ({
+    const lines = drawnLegLines(itinerary);
+    const point = (
+      place: Place,
+      kind: RoutePointProps['kind'],
+      coordinates: LngLat,
+      mode: TravelMode
+    ): Feature<Point, RoutePointProps> => ({
       type: 'Feature',
-      geometry: { type: 'Point', coordinates: place.coordinates },
-      properties: { ...shared, kind, name: place.name ?? '' } // name is optional in Place, '' keeps the type simple
+      geometry: { type: 'Point', coordinates },
+      properties: { ...shared, kind, name: place.name ?? '', modeColor: MODE_COLORS[mode] } // name is optional in Place, '' keeps the type simple
     });
 
-    features.push(point(first.from, 'origin'));
+    features.push(point(first.from, 'origin', lines[0]![0]!, first.mode));
     // Transfers: the end of every leg except the last one (that end is the destination).
-    for (const leg of legs.slice(0, -1)) features.push(point(leg.to, 'transfer'));
-    features.push(point(last.to, 'destination'));
+    legs.slice(0, -1).forEach((leg, i) => features.push(point(leg.to, 'transfer', lines[i]!.at(-1)!, legs[i + 1]!.mode)));
+    features.push(point(last.to, 'destination', lines.at(-1)!.at(-1)!, last.mode));
   }
 
   return { type: 'FeatureCollection', features };

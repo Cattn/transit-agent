@@ -3,7 +3,7 @@
  *
  * A "layer" tells MapLibre HOW to draw features from a source: line colour, width, dash, and
  * which features it applies to (filter). These are plain objects (style-spec JSON), so they live
- * in the pure package and both renderers reuse them. Native converts the keys with toRnStyle().
+ * in the pure package and both renderers reuse them.
  *
  * Expressions used below (they run inside MapLibre, once per feature):
  *   ['get', 'color']                 → read the feature's `color` property
@@ -15,11 +15,15 @@
 import {
   CASING_EXTRA_WIDTH,
   DIMMED_OPACITY,
-  LANE_SPACING,
+  FOCUS_INK,
   LINE_WIDTH,
+  LINE_WIDTH_ZOOMED_IN,
+  LANE_SPACING,
   LINE_WIDTH_ZOOMED_OUT,
   SELECTED_LINE_WIDTH,
-  SELECTED_LINE_WIDTH_ZOOMED_OUT
+  SELECTED_LINE_WIDTH_ZOOMED_IN,
+  SELECTED_LINE_WIDTH_ZOOMED_OUT,
+  UNFOCUSED_ROUTE_COLOR
 } from './colors.js';
 import type { Dash } from './to-geojson.js';
 
@@ -29,7 +33,7 @@ export const POINT_SOURCE_ID = 'route-points';
 /** A minimal style-spec layer type. It is compatible with react-map-gl's <Layer {...layer} />. */
 export interface RouteLayer {
   id: string;
-  type: 'line' | 'circle';
+  type: 'line' | 'circle' | 'symbol';
   source: typeof ROUTE_SOURCE_ID | typeof POINT_SOURCE_ID;
   filter?: unknown[];
   layout?: Record<string, unknown>;
@@ -38,6 +42,15 @@ export interface RouteLayer {
 
 const CASING_LAYER_ID = 'route-casing';
 const HIT_LAYER_ID = 'route-hit';
+export const END_ICON_ID = 'route-end-icon';
+export type UnfocusedColors = 'grey' | 'trip' | 'mode';
+export type MapVariant = 'saved' | 'choosing';
+export const DEFAULT_ACCENT_COLOR = '#6750A4';
+export const HOLLOW_START_RING_WIDTH = 3;
+export const ORIGIN_DOT_RADIUS = 6;
+export const DESTINATION_DOT_RADIUS = 9;
+export const TRANSFER_DOT_RADIUS = 4;
+export const MARKER_BORDER_WIDTH = 2;
 
 /**
  * Width of the invisible click target, in pixels. The visible lines are only 3–7 px wide, which is
@@ -46,6 +59,7 @@ const HIT_LAYER_ID = 'route-hit';
  * its neighbour and open the picker.
  */
 export const HIT_LINE_WIDTH = 14;
+export const TOUCH_HIT_LINE_WIDTH = 34;
 
 /** Dash patterns, measured in line widths: [dash length, gap length, ...]. Solid has none. */
 const DASH_PATTERNS: Record<Dash, number[] | undefined> = {
@@ -57,6 +71,7 @@ const DASH_PATTERNS: Record<Dash, number[] | undefined> = {
 /** Zoom levels the widths blend between: 5 ≈ several states on screen, 14 ≈ a neighbourhood. */
 const ZOOMED_OUT = 5;
 const CITY = 14;
+const STREET = 17;
 
 /**
  * Line width by zoom AND selection: thin when zoomed out, full width at city zoom, smoothly in between
@@ -66,27 +81,22 @@ const CITY = 14;
 const LINE_WIDTH_EXPR = [
   'interpolate', ['linear'], ['zoom'],
   ZOOMED_OUT, ['case', ['get', 'selected'], SELECTED_LINE_WIDTH_ZOOMED_OUT, LINE_WIDTH_ZOOMED_OUT],
-  CITY, ['case', ['get', 'selected'], SELECTED_LINE_WIDTH, LINE_WIDTH]
+  CITY, ['case', ['get', 'selected'], SELECTED_LINE_WIDTH, LINE_WIDTH],
+  STREET, ['case', ['get', 'selected'], SELECTED_LINE_WIDTH_ZOOMED_IN, LINE_WIDTH_ZOOMED_IN]
 ];
 
 /** The white border under the selected trip: its line width + CASING_EXTRA_WIDTH, at every zoom. */
 const CASING_WIDTH_EXPR = [
   'interpolate', ['linear'], ['zoom'],
   ZOOMED_OUT, SELECTED_LINE_WIDTH_ZOOMED_OUT + CASING_EXTRA_WIDTH,
-  CITY, SELECTED_LINE_WIDTH + CASING_EXTRA_WIDTH
+  CITY, SELECTED_LINE_WIDTH + CASING_EXTRA_WIDTH,
+  STREET, SELECTED_LINE_WIDTH_ZOOMED_IN + CASING_EXTRA_WIDTH
 ];
 
-/** Fade trips that aren't selected (only while something IS selected; that's what `dimmed` means). */
-const OPACITY_EXPR = ['case', ['get', 'dimmed'], DIMMED_OPACITY, 1];
-
-/**
- * Draw each trip in its own lane: shifted sideways by lane × direction × LANE_SPACING screen pixels.
- * `lane` is the trip's lane (−1, 0, +1, … across the shared reference direction) and `direction` is
- * 1 or -1 depending on which way THIS leg's line runs. MapLibre shifts relative to each line's own
- * direction, so multiplying by `direction` keeps every leg of a trip on the same physical side.
- * Used by every line layer (casing, visible lines, hit line) so they all stay lined up. The
- * start/end/transfer dots are not shifted: those points are shared anyway.
- */
+/** Fade every trip that isn't selected, including when nothing is selected: only the selected trip is in focus. */
+const OPACITY_EXPR = ['case', ['get', 'selected'], 1, DIMMED_OPACITY];
+const SELECTED_ON_TOP = ['case', ['get', 'selected'], 1, 0];
+const DIMMED_WHILE_SELECTING = ['case', ['get', 'dimmed'], DIMMED_OPACITY, 1];
 const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], ['get', 'direction'], LANE_SPACING];
 
 /** One line layer for one dash style. */
@@ -95,7 +105,58 @@ const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], ['get', 'direction'], LANE_SPACI
  * The two halves are separate layers so the selected trip can be drawn after (on top of) every
  * unselected line, whatever their dash styles: line-sort-key only orders lines inside one layer.
  */
-function dashLayer(dash: Dash, which: 'unselected' | 'selected'): RouteLayer {
+function unfocusedColor(unfocused: UnfocusedColors): unknown {
+  if (unfocused === 'mode') return ['get', 'mainModeColor'];
+  return unfocused === 'trip' ? ['get', 'color'] : UNFOCUSED_ROUTE_COLOR;
+}
+
+function markerColor(unfocused: UnfocusedColors): unknown {
+  return unfocused === 'grey' ? ['case', ['get', 'selected'], FOCUS_INK, UNFOCUSED_ROUTE_COLOR] : unfocusedColor(unfocused);
+}
+
+interface Look {
+  selectedLine: unknown;
+  otherLine: unknown;
+  marker: unknown;
+  transferRing: unknown;
+  opacity: unknown;
+  hollowStart?: unknown;
+  accent: string;
+}
+
+function look(unfocused: UnfocusedColors, variant: MapVariant | undefined, accent: string): Look {
+  if (variant === undefined) {
+    return {
+      selectedLine: ['get', 'color'],
+      otherLine: unfocusedColor(unfocused),
+      marker: ['get', 'color'],
+      transferRing: ['get', 'color'],
+      opacity: DIMMED_WHILE_SELECTING,
+      accent
+    };
+  }
+  if (variant === 'choosing') {
+    return {
+      selectedLine: accent,
+      otherLine: UNFOCUSED_ROUTE_COLOR,
+      marker: ['case', ['get', 'selected'], accent, UNFOCUSED_ROUTE_COLOR],
+      transferRing: accent,
+      opacity: 1,
+      hollowStart: ['all', ['==', ['get', 'kind'], 'origin'], ['get', 'selected']],
+      accent
+    };
+  }
+  return {
+    selectedLine: ['get', 'modeColor'],
+    otherLine: unfocusedColor(unfocused),
+    marker: markerColor(unfocused),
+    transferRing: ['get', 'modeColor'],
+    opacity: OPACITY_EXPR,
+    accent
+  };
+}
+
+function dashLayer(dash: Dash, which: 'unselected' | 'selected', style: Look): RouteLayer {
   const pattern = DASH_PATTERNS[dash];
   return {
     id: which === 'selected' ? `route-${dash}-selected` : `route-${dash}`,
@@ -109,10 +170,10 @@ function dashLayer(dash: Dash, which: 'unselected' | 'selected'): RouteLayer {
       'line-sort-key': ['get', 'sortKey'] // higher sortKey draws on top, so the selected trip wins
     },
     paint: {
-      'line-color': ['get', 'color'], // the trip's colour from routeColor()
+      'line-color': ['case', ['get', 'selected'], style.selectedLine, style.otherLine],
       'line-width': LINE_WIDTH_EXPR,
       'line-offset': LANE_OFFSET_EXPR,
-      'line-opacity': OPACITY_EXPR,
+      'line-opacity': style.opacity,
       // Only add a dasharray when there is one. Solid lines simply leave it out.
       ...(pattern ? { 'line-dasharray': pattern } : {})
     }
@@ -131,11 +192,72 @@ function dashLayer(dash: Dash, which: 'unselected' | 'selected'): RouteLayer {
  *      responds to clicks, so you can click near a line rather than exactly on it.
  *   5. points: start, end and transfer dots on top of the lines
  */
-export function routeLayers(): RouteLayer[] {
+const CLASSIC_POINTS: RouteLayer = {
+  id: 'route-points',
+  type: 'circle',
+  source: POINT_SOURCE_ID,
+  paint: {
+    'circle-color': '#ffffff',
+    'circle-stroke-color': ['get', 'color'],
+    'circle-stroke-width': 3,
+    'circle-radius': ['match', ['get', 'kind'], 'transfer', 4, 6],
+    'circle-opacity': DIMMED_WHILE_SELECTING,
+    'circle-stroke-opacity': DIMMED_WHILE_SELECTING
+  }
+};
+
+export function routeLayers({
+  hitLineWidth = HIT_LINE_WIDTH,
+  unfocused = 'trip',
+  variant,
+  accentColor = DEFAULT_ACCENT_COLOR
+}: { hitLineWidth?: number; unfocused?: UnfocusedColors; variant?: MapVariant; accentColor?: string } = {}): RouteLayer[] {
+  const style = look(unfocused, variant, accentColor);
+  const isTransfer = ['==', ['get', 'kind'], 'transfer'];
+  const hollow = (whenHollow: unknown, otherwise: unknown) =>
+    style.hollowStart ? ['case', style.hollowStart, whenHollow, otherwise] : otherwise;
+  const pointLayers: RouteLayer[] = variant === undefined
+    ? [CLASSIC_POINTS]
+    : [
+        {
+          id: 'route-points',
+          type: 'circle',
+          source: POINT_SOURCE_ID,
+          layout: { 'circle-sort-key': SELECTED_ON_TOP },
+          paint: {
+            'circle-color': ['case', isTransfer, '#ffffff', hollow('#ffffff', style.marker)],
+            'circle-stroke-color': ['case', isTransfer, style.transferRing, hollow(style.accent, '#ffffff')],
+            'circle-stroke-width': ['case', isTransfer, ['case', ['get', 'selected'], 2.5, 0], hollow(HOLLOW_START_RING_WIDTH, MARKER_BORDER_WIDTH)],
+            'circle-radius': [
+              'match', ['get', 'kind'],
+              'origin', ORIGIN_DOT_RADIUS,
+              'destination', DESTINATION_DOT_RADIUS,
+              ['case', ['get', 'selected'], TRANSFER_DOT_RADIUS, 0]
+            ],
+            'circle-opacity': style.opacity,
+            'circle-stroke-opacity': style.opacity
+          }
+        },
+        {
+          id: END_ICON_ID,
+          type: 'symbol',
+          source: POINT_SOURCE_ID,
+          filter: ['==', ['get', 'kind'], 'destination'],
+          layout: {
+            'icon-image': END_ICON_ID,
+            'symbol-sort-key': SELECTED_ON_TOP,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true
+          },
+          paint: {
+            'icon-opacity': style.opacity
+          }
+        }
+      ];
   return [
-    dashLayer('solid', 'unselected'),
-    dashLayer('dashed', 'unselected'),
-    dashLayer('dotted', 'unselected'),
+    dashLayer('solid', 'unselected', style),
+    dashLayer('dashed', 'unselected', style),
+    dashLayer('dotted', 'unselected', style),
     {
       id: CASING_LAYER_ID,
       type: 'line',
@@ -145,12 +267,12 @@ export function routeLayers(): RouteLayer[] {
       paint: {
         'line-color': '#ffffff',
         'line-width': CASING_WIDTH_EXPR, // wider than the line, so a white border shows
-        'line-offset': LANE_OFFSET_EXPR // stay under the selected trip's lane
+        'line-offset': LANE_OFFSET_EXPR
       }
     },
-    dashLayer('solid', 'selected'),
-    dashLayer('dashed', 'selected'),
-    dashLayer('dotted', 'selected'),
+    dashLayer('solid', 'selected', style),
+    dashLayer('dashed', 'selected', style),
+    dashLayer('dotted', 'selected', style),
     {
       id: HIT_LAYER_ID,
       type: 'line',
@@ -162,27 +284,14 @@ export function routeLayers(): RouteLayer[] {
       },
       paint: {
         'line-color': '#000000', // any colour; it's never seen
-        'line-width': HIT_LINE_WIDTH,
-        'line-offset': LANE_OFFSET_EXPR, // clicks land where the line is actually drawn
+        'line-width': hitLineWidth,
+        'line-offset': LANE_OFFSET_EXPR,
         // Fully transparent. MapLibre still includes it in click queries, because hit-testing uses
         // the line's geometry and width, not what's visible. (visibility: 'none' WOULD remove it.)
         'line-opacity': 0
       }
     },
-    {
-      id: 'route-points',
-      type: 'circle',
-      source: POINT_SOURCE_ID,
-      paint: {
-        'circle-color': '#ffffff', // white centre…
-        'circle-stroke-color': ['get', 'color'], // …with a ring in the trip's colour
-        'circle-stroke-width': 3,
-        // Start/end dots are bigger than transfer dots.
-        'circle-radius': ['match', ['get', 'kind'], 'transfer', 4, 6],
-        'circle-opacity': OPACITY_EXPR,
-        'circle-stroke-opacity': OPACITY_EXPR
-      }
-    }
+    ...pointLayers
   ];
 }
 
