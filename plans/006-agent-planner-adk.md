@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Changes requested:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) at `1f586f4`. Existing worker is fixing review findings; unmerged.
+- **Status:** **Approved, awaiting merge:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`. All three review findings resolved; live-model quality remains unvalidated.
 - **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 
@@ -219,7 +219,8 @@ Cattn runs the Gemini-enabled server on their own machine. Teammates run their w
 
 ## Maintenance notes
 
-- Review at `1f586f4` requested changes: Clean-install ADK runtime dependency failure (also breaks no-key startup), stale route results after draft edits, and unenforced two-question limit. Fixes stay in PR #38; the existing worker sends the updated head and runtime validation to the primary reviewer. Passing builds/tests do not resolve these reproduced runtime findings.
+- Re-check passed at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`: fresh locked `npm ci`, native ESM ADK import, built-index HTTP health 200/no-key agent 503, completed and in-flight plan invalidation, max two questions, 132 existing tests, and server build. The root production `uuid` workaround was verified. No new tests or live Gemini calls; no remaining reviewed code/runtime blockers. PR #38 remains unmerged; live-model quality is unvalidated.
+- GitHub currently reports this branch as not mergeable against main. Reconcile branch conflicts before any future merge; review approval does not mean the dependency is on main.
 
 - ADK is isolated in `adk-planner.ts`, so switching to `@google/genai` function-calling (D3-B) means rewriting that one file.
 - `InMemorySessionService` loses conversations on restart. That's fine; durable data (profiles, saved trips) lives in SQLite (plan 005).

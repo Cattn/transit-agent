@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Changes requested:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `eccf80c`. Existing worker is fixing review findings; unmerged.
+- **Status:** **Technical re-check passed; merge conflicts remain:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `73a6d892117d686c34b1fe3514bb91f790acfacf`. Reviewer 2 recorded a COMMENT review, not a formal GitHub approval. Existing author is reconciling the branch; any new head needs reviewer 2's re-check. Unmerged.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -197,7 +197,7 @@ const chat = useAgentChat(trip.state, trip.apply);
 
 ## Maintenance notes
 
-- Review at `eccf80c` requested changes: stale-client mutation results after provider switches, loading/pending resets on client switches, and saved-trip loading stuck after a failed mutation supersedes refresh. Fixes stay in PR #47; the existing worker sends the updated head and runtime validation to the primary reviewer. Passing builds/tests do not resolve these reproduced runtime findings.
+- Technical re-check passed at `73a6d892117d686c34b1fe3514bb91f790acfacf`: reviewer 2 independently verified all three P2 fixes with temporary jsdom/renderHook probes, fresh `npm ci`, full `npm run check` (132 existing tests and all builds/smoke), and exact-head CI. No remaining actionable fix-diff findings. GitHub rejected self-APPROVE; [the COMMENT review](https://github.com/Cattn/transit-agent/pull/47#pullrequestreview-5902320464) records the technical pass only. Merge conflicts against main remain; existing author owns reconciliation, preserving concurrent changes. Any updated head requires reviewer 2's re-check through the same sole sender. PR remains unmerged.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
