@@ -9,3 +9,6 @@ dist/
 .DS_Store
 apps/mobile/android/
 apps/mobile/ios/
+*.db
+*.db-*
+apps/server/data/

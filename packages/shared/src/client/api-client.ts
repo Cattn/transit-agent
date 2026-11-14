@@ -10,6 +10,7 @@ import { AgentMessageResponseSchema, type AgentMessageRequest, type AgentMessage
 import { PlaceSearchResponseSchema } from '../domain/place-search.js';
 import type { LngLat, Place } from '../domain/places.js';
 import { SavedItinerarySchema, type SavedItinerary } from '../domain/itinerary.js';
+import { TravelProfileSchema, type TravelProfile, type PutProfileRequest } from '../domain/profile.js';
 import type { TripRequest } from '../domain/trip-draft.js';
 import type { HealthResponse, Section } from '../index.js';
 
@@ -35,7 +36,7 @@ export interface ApiClientOptions {
   fetch?: typeof fetch;
 }
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
 
 interface RequestOptions<T> {
   body?: unknown;
@@ -137,6 +138,18 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
     /** GET /api/itineraries (requires a device id). Newest first. */
     listItineraries: async (): Promise<SavedItinerary[]> =>
       (await request('GET', '/api/itineraries', { schema: SavedItineraryListSchema })).itineraries,
+
+    getProfile: async (): Promise<TravelProfile | undefined> => {
+      try {
+        return await request('GET', '/api/profile', { schema: TravelProfileSchema });
+      } catch (error) {
+        if (error instanceof ApiClientError && error.status === 404) return undefined;
+        throw error;
+      }
+    },
+
+    putProfile: (profile: PutProfileRequest): Promise<TravelProfile> =>
+      request('PUT', '/api/profile', { body: profile, schema: TravelProfileSchema }),
 
     getItinerary: (id: string): Promise<SavedItinerary> =>
       request('GET', itineraryPath(id), { schema: SavedItinerarySchema }),
