@@ -174,7 +174,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
     onToggleLimits: () => setLimitsOpen((open) => !open),
     onClose,
     onReset: () => apply({
-      modes: ['walk', 'bus', 'rail'],
+      modes: draft.modes.includes('flight') ? ['walk', 'bus', 'rail', 'flight'] : ['walk', 'bus', 'rail'],
       preferences: { comfortVsCost: 0.5, transferRisk: 0.3, lateTolerance: 'some', activeTravel: 0.5 },
       constraints: {
         arriveBy: null,
