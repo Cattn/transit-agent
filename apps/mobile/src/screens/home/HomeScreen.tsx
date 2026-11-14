@@ -38,6 +38,10 @@ export interface HomeChromeProps {
   onAskAgent: () => void;
   onOpenSettings: () => void;
   onOpenFilters: () => void;
+  onSearch: () => void;
+  tripsLoading: boolean;
+  tripsError?: string;
+  onRetryTrips: () => void;
   sheetHeight: number;
   onSheetLayout: (height: number) => void;
 }
@@ -62,7 +66,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const foreground = useAppForeground();
   const now = useNow(15_000);
   const { state, apply, reset, request } = useTripDraft();
-  const { items, save } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const [tripsListed, setTripsListed] = useState(false);
+  if (!tripsListed && (items.length > 0 || tripsError || tripsLoading)) setTripsListed(true);
+  const [saveFailed, setSaveFailed] = useState<{ itinerary: Itinerary; request: TripRequest }>();
   const [profile, setProfile] = useState<TravelProfile>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
   const [sheetHeight, setSheetHeight] = useState(0);
@@ -71,6 +78,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
   const [chatBehind, setChatBehind] = useState(false);
   const [filterField, setFilterField] = useState<string>();
+  const [filterSearch, setFilterSearch] = useState<'destination'>();
   const [resultsOpen, setResultsOpen] = useState(false);
   const [agentPlan, setAgentPlan] = useState<{ plan: PlanResponse; draft: TripDraft }>();
   const currentPlan = agentPlan?.draft === state.draft ? agentPlan.plan : undefined;
@@ -116,17 +124,26 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const openFilters = useCallback((field?: string) => {
     setFilterField(field);
+    setFilterSearch(undefined);
+    setSheet('filters');
+  }, []);
+
+  const openSearch = useCallback(() => {
+    setFilterField('destination');
+    setFilterSearch('destination');
     setSheet('filters');
   }, []);
 
   const closeSheet = useCallback(() => {
     setFilterField(undefined);
+    setFilterSearch(undefined);
     setSheet(chatBehind ? 'chat' : undefined);
     setChatBehind(false);
   }, [chatBehind]);
 
   const showRoutes = useCallback(() => {
     setFilterField(undefined);
+    setFilterSearch(undefined);
     setChatBehind(false);
     setSheet(undefined);
     setResultsOpen(true);
@@ -185,7 +202,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
   }, [profile, searchTo, openFilters]);
 
-  const closeResults = useCallback(() => setResultsOpen(false), []);
+  const closeResults = useCallback(() => {
+    setResultsOpen(false);
+    setSaveFailed(undefined);
+  }, []);
 
   useEffect(() => {
     if (!resultsOpen) return;
@@ -212,7 +232,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const routeColors = useMemo(() => assignRouteColors(shownIds ? shownIds.split(' ') : [], savedColors), [shownIds, savedColors]);
 
   const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
-    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => undefined);
+    setSaveFailed(undefined);
+    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
   }, [save, routeColors]);
 
   const padding = { top: MAP_PADDING, right: MAP_PADDING, bottom: sheetHeight, left: MAP_PADDING };
@@ -231,6 +252,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           selectedId={selectedId}
           onSelect={setSelectedId}
           onSave={saveResult}
+          saveError={saveFailed && !savedIds.has(saveFailed.itinerary.id) ? 'Could not save this trip. Check your connection and try again.' : undefined}
+          onRetrySave={() => { if (saveFailed) saveResult(saveFailed.itinerary, saveFailed.request); }}
           onBack={closeResults}
           onSwap={swapPlaces}
           onOpenFilters={() => openFilters()}
@@ -252,6 +275,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onAskAgent={() => setSheet('chat')}
           onOpenSettings={() => navigation.navigate('Settings')}
           onOpenFilters={() => openFilters()}
+          onSearch={openSearch}
+          tripsLoading={!tripsListed || (tripsLoading && items.length === 0 && !tripsError)}
+          tripsError={tripsError ? (items.length ? 'Could not sync saved trips.' : 'Could not load saved trips.') : undefined}
+          onRetryTrips={() => void refreshTrips()}
           sheetHeight={sheetHeight}
           onSheetLayout={setSheetHeight}
         />
@@ -266,6 +293,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           apply={applyUser}
           field={filterField}
           plan={plan}
+          startSearch={filterSearch}
           onClose={closeSheet}
           onShowRoutes={showRoutes}
         />

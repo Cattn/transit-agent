@@ -72,6 +72,7 @@ export interface FiltersScreenProps {
   apply: (patch: TripDraftPatch, source: 'user') => void;
   field?: string;
   plan?: { data?: PlanResponse; loading: boolean };
+  startSearch?: 'destination';
   onClose: () => void;
   onShowRoutes: () => void;
 }
@@ -124,9 +125,9 @@ function countCopy(routes: number, almost: number): { routes: string; almost: st
 
 const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike', car: 'Drive' };
 
-export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, onShowRoutes }: FiltersScreenProps) {
+export function FiltersScreen({ draft, provenance, apply, field, plan, startSearch, onClose, onShowRoutes }: FiltersScreenProps) {
   const [limitsOpen, setLimitsOpen] = useState(() => field?.startsWith('constraints.') ?? false);
-  const [searching, setSearching] = useState<'origin' | 'destination'>();
+  const [searching, setSearching] = useState<'origin' | 'destination' | undefined>(startSearch);
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const live = useRef(true);
@@ -154,6 +155,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
       if (result.ok) {
         apply({ origin: result.place }, 'user');
         setSearching(undefined);
+        if (startSearch && draft.destination && draft.time) onShowRoutes();
         return;
       }
       setNotice(result.reason === 'denied'
@@ -201,8 +203,12 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
       notice,
       onPick: (place) => {
         apply(searching === 'origin' ? { origin: place } : { destination: place }, 'user');
-        setSearching(undefined);
         setNotice(undefined);
+        const origin = searching === 'origin' ? place : draft.origin;
+        const destination = searching === 'destination' ? place : draft.destination;
+        if (startSearch && !origin) { setSearching('origin'); return; }
+        setSearching(undefined);
+        if (startSearch && destination && draft.time) onShowRoutes();
       },
       onUseLocation
     } : undefined,

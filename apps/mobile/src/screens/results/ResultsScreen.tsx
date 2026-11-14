@@ -46,6 +46,8 @@ export interface ResultsChromeProps {
   cards: ResultCard[];
   nearMisses: (NearMissText & { id: string })[];
   canSave: boolean;
+  saveError?: string;
+  onRetrySave: () => void;
   onSelect: (id: string) => void;
   onSave: (id: string) => void;
   onBack: () => void;
@@ -64,6 +66,8 @@ export interface ResultsScreenProps {
   selectedId?: string;
   onSelect: (id: string | undefined) => void;
   onSave: (itinerary: Itinerary, request: TripRequest) => void;
+  saveError?: string;
+  onRetrySave: () => void;
   onBack: () => void;
   onSwap: () => void;
   onOpenFilters: () => void;
@@ -134,6 +138,8 @@ export function ResultsScreen(props: ResultsScreenProps) {
     })),
     nearMisses: message ? [] : nearMisses.map((it) => ({ id: it.id, ...nearMissText(it, timeZone) })),
     canSave: request.ok,
+    saveError: props.saveError,
+    onRetrySave: props.onRetrySave,
     onSelect: (id) => onSelect(id === selectedId ? undefined : id),
     onSave: (id) => {
       const itinerary = itineraries.find((it) => it.id === id);

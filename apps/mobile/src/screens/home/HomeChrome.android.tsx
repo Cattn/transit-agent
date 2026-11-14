@@ -6,7 +6,6 @@ import { Host } from '@expo/ui';
 import {
   AssistChip,
   Column,
-  DockedSearchBar,
   ExtendedFloatingActionButton,
   FilledTonalIconButton,
   FloatingActionButton,
@@ -17,10 +16,11 @@ import {
   SingleChoiceSegmentedButtonRow,
   Surface,
   Text,
+  TextButton,
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { background, clip, fillMaxWidth, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { background, clip, fillMaxWidth, height, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import FitnessCenter from '../../../assets/icons/fitness_center_fill.xml';
@@ -30,6 +30,7 @@ import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Notifications from '../../../assets/icons/notifications_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
+import Warning from '../../../assets/icons/warning_fill.xml';
 import Sensors from '../../../assets/icons/sensors_fill.xml';
 import Settings from '../../../assets/icons/settings_fill.xml';
 import WandShine from '../../../assets/icons/wand_shine_fill.xml';
@@ -154,14 +155,19 @@ export function HomeChrome(props: HomeChromeProps) {
       >
         <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth()]}>
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
-            <DockedSearchBar onQueryChange={() => undefined} modifiers={[weight(1)]}>
-              <DockedSearchBar.LeadingIcon>
-                <Icon source={Search} size={24} contentDescription="Search" />
-              </DockedSearchBar.LeadingIcon>
-              <DockedSearchBar.Placeholder>
-                <Text style={m3Text('bodyLarge')}>Where to?</Text>
-              </DockedSearchBar.Placeholder>
-            </DockedSearchBar>
+            <Surface
+              onClick={props.onSearch}
+              color={m.surfaceContainerHigh}
+              contentColor={m.onSurfaceVariant}
+              shadowElevation={2}
+              shape={Shape.RoundedCorner({ cornerRadii: { topStart: 28, topEnd: 28, bottomStart: 28, bottomEnd: 28 } })}
+              modifiers={[weight(1), height(56)]}
+            >
+              <Row horizontalArrangement={{ spacedBy: 16 }} verticalAlignment="center" modifiers={[fillMaxWidth(), height(56), padding(16, 0, 16, 0)]}>
+                <Icon source={Search} size={24} tint={m.onSurface} contentDescription="Search" />
+                <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')}>Where to?</Text>
+              </Row>
+            </Surface>
             <FilledTonalIconButton onClick={props.onOpenSettings}>
               <Icon source={AccountCircle} size={28} contentDescription="Settings" />
             </FilledTonalIconButton>
@@ -239,6 +245,21 @@ export function HomeChrome(props: HomeChromeProps) {
                 <Text color={m.onSurface} style={m3Text('bodyMedium')} modifiers={[padding(16, 0, 16, 8)]}>{notice}</Text>
               </Host>
             ) : null}
+            {props.tripsError ? (
+              <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                <Row
+                  horizontalArrangement={{ spacedBy: 10 }}
+                  verticalAlignment="center"
+                  modifiers={[fillMaxWidth(), padding(16, 0, 16, 8), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
+                >
+                  <Icon source={Warning} size={18} tint={m.onErrorContainer} />
+                  <Text color={m.onErrorContainer} style={m3Text('bodyMedium')} modifiers={[weight(1)]}>{props.tripsError}</Text>
+                  <TextButton onClick={props.onRetryTrips}>
+                    <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
+                  </TextButton>
+                </Row>
+              </Host>
+            ) : null}
           </View>
           <BottomSheetScrollView
             style={styles.list}
@@ -247,7 +268,9 @@ export function HomeChrome(props: HomeChromeProps) {
           >
             {trips.length ? trips.map((trip) => <TripCard key={trip.id} trip={trip} now={now} m={m} scheme={scheme} />) : (
               <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
-                <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>No tracked trips yet.</Text>
+                <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>
+                  {props.tripsLoading ? 'Loading saved trips…' : props.tripsError ? 'Saved trips are not available right now.' : 'No tracked trips yet.'}
+                </Text>
               </Host>
             )}
           </BottomSheetScrollView>

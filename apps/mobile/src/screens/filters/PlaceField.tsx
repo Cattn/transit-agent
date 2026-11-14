@@ -36,6 +36,7 @@ export function PlaceField({ near, showLocation, locating, notice, colors, onPic
         autoFocus
         autoCapitalize="none"
         autoCorrect={false}
+        clearButtonMode="while-editing"
         value={query}
         onChangeText={setQuery}
         placeholder="Search places"

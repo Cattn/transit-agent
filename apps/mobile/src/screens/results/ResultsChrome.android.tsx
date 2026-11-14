@@ -14,6 +14,7 @@ import {
   Shape,
   Surface,
   Text,
+  TextButton,
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
@@ -281,6 +282,19 @@ export function ResultsChrome(props: ResultsChromeProps) {
                 >
                   <Icon source={Warning} size={18} tint={m.onSurfaceVariant} />
                   <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.warning}</Text>
+                </Row>
+              ) : null}
+              {props.saveError ? (
+                <Row
+                  horizontalArrangement={{ spacedBy: 10 }}
+                  verticalAlignment="center"
+                  modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
+                >
+                  <Icon source={Warning} size={18} tint={m.onErrorContainer} />
+                  <Text color={m.onErrorContainer} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.saveError}</Text>
+                  <TextButton onClick={props.onRetrySave}>
+                    <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
+                  </TextButton>
                 </Row>
               ) : null}
             </Column>

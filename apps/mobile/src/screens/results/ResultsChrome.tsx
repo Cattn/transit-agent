@@ -25,6 +25,11 @@ export function ResultsChrome(props: ResultsChromeProps) {
         <Text accessibilityRole="header" style={[styles.title, { color: colors.onSurface }]}>{props.title}</Text>
         {props.subtitle ? <Text style={{ color: colors.onSurfaceVariant }}>{props.subtitle}</Text> : null}
         {props.warning ? <Text style={{ color: colors.onSurfaceVariant }}>{props.warning}</Text> : null}
+        {props.saveError ? (
+          <Pressable accessibilityRole="button" onPress={props.onRetrySave}>
+            <Text style={{ color: colors.onSurface }}>{`${props.saveError} Tap to retry.`}</Text>
+          </Pressable>
+        ) : null}
         {props.message ? <Text style={{ color: colors.onSurfaceVariant }}>{props.message}</Text> : null}
         {props.cards.map((card) => (
           <ItineraryCard
