@@ -17,7 +17,7 @@
 - **Category**: direction (parallel work)
 - **Planned at**: commit `45f5379`, 2026-11-14
 - **Co-owners**: maps (@KrakenTheJaken) and UI (@Rad1ee @DMFriends) review the palette.
-- **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **Wait for #35 to merge before starting**, then move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted.
+- **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **Wait for #35 to merge before starting**, then move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted **and** #35's allocator has been fixed and re-reviewed. The first review found it swaps colors when the same trips are reordered. **Do not copy the allocator from #35 as-is.**
 
 <!-- help:start -->
 ## Who's on it & how to help
