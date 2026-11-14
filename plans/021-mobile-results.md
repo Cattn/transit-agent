@@ -22,7 +22,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The steps use the defaults below until a question is answered.
+- **Status:** 🔨 **PR #66 open.** 021-Q2–Q4 answered by @DMFriends (2026-11-14, below).
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
@@ -31,9 +31,11 @@
 **Open questions** — **@DMFriends answers these.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
 - ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
-- 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
-- 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
-- 021-Q4: what in this layout should change before it is built?
+- ~~021-Q2~~ **Decided (@DMFriends, 2026-11-14, PR #66):** yes, the selected card expands in the sheet.
+- ~~021-Q3~~ **Decided (@DMFriends, 2026-11-14, PR #66):** yes, one text block for empty, offline and error.
+- ~~021-Q4~~ **Decided (@DMFriends, 2026-11-14, PR #66):** build the frame as drawn, with plan 020's Android Material 3 rules. iOS is built but not checked on a device.
+- **Reaching Results before plan 022 (@DMFriends, 2026-11-14, PR #66):** a Home / Office chip with a saved place sets the destination, a missing time becomes "Leave now", and a missing origin uses the current location; the complete draft opens Results. Mock mode seeds the mock profile with Home and Office places (`src/data/client.ts`) so the chips work without a server.
+- **Route colors (@DMFriends, 2026-11-14, PR #66):** no color swatches and no `color` on Save yet. `assignRouteColors` lives in `@transit/maps`, which the mobile app does not depend on; adding it is left to a later plan.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.

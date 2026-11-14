@@ -47,7 +47,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Device checks remain |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60). Map placeholder until 009 native; iOS not yet checked |
-| 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | TODO (MVP; unblocked) |
+| 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | PR #66 open |
 | 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | Rad1ee | P1 | L | 020 | TODO (MVP; unblocked) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | TODO (MVP; unblocked) |
 | 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020 | TODO (unblocked) |
@@ -73,7 +73,7 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 
 - **@Cattn:** 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
 - **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#13](https://github.com/Cattn/transit-agent/issues/13); #25 is closed)
-- **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44))
+- **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44))
 - **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43))
 
 ## How to contribute

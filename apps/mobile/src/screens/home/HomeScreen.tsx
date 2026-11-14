@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { Place, SavedItinerary, TravelProfile } from '@transit/shared';
+import type { Itinerary, Place, SavedItinerary, TravelProfile, TripDraftPatch, TripRequest } from '@transit/shared';
 import { useApi, useNow, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
@@ -12,6 +12,7 @@ import type { AppColors } from '../../theme/colors';
 import { ChatScreen } from '../chat/ChatScreen';
 import { FiltersScreen } from '../filters/FiltersScreen';
 import { FlyScreen } from '../fly/FlyScreen';
+import { ResultsScreen } from '../results/ResultsScreen';
 import { HomeChrome } from './HomeChrome';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
@@ -42,8 +43,8 @@ export interface HomeChromeProps {
 
 const MAP_PADDING = 16;
 
-function MapSlot({ padding, colors }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors }) {
-  return <View accessibilityLabel="Map" style={[StyleSheet.absoluteFill, { backgroundColor: colors.map, paddingBottom: padding.bottom }]} />;
+function MapSlot({ padding, colors, selectedItineraryId }: { padding: { top: number; right: number; bottom: number; left: number }; colors: AppColors; selectedItineraryId?: string }) {
+  return <View accessibilityLabel="Map" accessibilityValue={{ text: selectedItineraryId }} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map, paddingBottom: padding.bottom }]} />;
 }
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Home'>) {
@@ -51,14 +52,16 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const api = useApi();
   const foreground = useAppForeground();
   const now = useNow(15_000);
-  const { state, apply, reset } = useTripDraft();
-  const { items } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const { state, apply, reset, request } = useTripDraft();
+  const { items, save } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
   const [profile, setProfile] = useState<TravelProfile>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
   const [sheetHeight, setSheetHeight] = useState(0);
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>();
   const edited = useRef(false);
 
   useEffect(() => {
@@ -105,14 +108,48 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     }
   }, [editDraft]);
 
+  const searchTo = useCallback(async (destination: Place) => {
+    const patch: TripDraftPatch = { destination };
+    if (!state.draft.time) patch.time = { type: 'departAt', at: new Date().toISOString() };
+    if (!state.draft.origin) {
+      setLocating(true);
+      const result = await getCurrentPlace();
+      setLocating(false);
+      if (result.ok) patch.origin = result.place;
+    }
+    editDraft(patch);
+    setResultsOpen(true);
+  }, [state.draft.time, state.draft.origin, editDraft]);
+
   const chips = useMemo<SavedPlaceChip[]>(() => {
     const chip = (key: SavedPlaceChip['key'], label: string, place: Place | undefined): SavedPlaceChip => ({
       key,
       label,
-      onPress: () => (place ? editDraft({ destination: place }) : setSheet('filters'))
+      onPress: () => (place ? void searchTo(place) : setSheet('filters'))
     });
     return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
-  }, [profile, editDraft]);
+  }, [profile, searchTo]);
+
+  const closeResults = useCallback(() => {
+    setResultsOpen(false);
+    setSelectedId(undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!resultsOpen) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { closeResults(); return true; });
+    return () => subscription.remove();
+  }, [resultsOpen, closeResults]);
+
+  const swapPlaces = useCallback(() => {
+    editDraft({ origin: state.draft.destination ?? null, destination: state.draft.origin ?? null });
+  }, [state.draft.origin, state.draft.destination, editDraft]);
+
+  const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
+    save({ itinerary, request: tripRequest, watch: true }).catch(() => undefined);
+  }, [save]);
+
+  const savedIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
 
   const watched = items.filter((trip) => trip.watch);
   const padding = { top: MAP_PADDING, right: MAP_PADDING, bottom: sheetHeight, left: MAP_PADDING };
@@ -120,25 +157,42 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <MapSlot padding={padding} colors={colors} />
-      <HomeChrome
-        colors={colors}
-        group={group}
-        onGroupChange={onGroupChange}
-        trips={watched}
-        watchingCount={watched.length}
-        now={now}
-        chips={chips}
-        locating={locating}
-        notice={notice}
-        status={status}
-        onLocate={() => void onLocate()}
-        onAskAgent={() => setSheet('chat')}
-        onOpenSettings={() => navigation.navigate('Settings')}
-        onOpenFilters={() => setSheet('filters')}
-        sheetHeight={sheetHeight}
-        onSheetLayout={setSheetHeight}
-      />
+      <MapSlot padding={padding} colors={colors} selectedItineraryId={selectedId} />
+      {resultsOpen ? (
+        <ResultsScreen
+          colors={colors}
+          draftState={state}
+          request={request}
+          now={now}
+          savedIds={savedIds}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onSave={saveResult}
+          onBack={closeResults}
+          onSwap={swapPlaces}
+          onOpenFilters={() => setSheet('filters')}
+          onSheetLayout={setSheetHeight}
+        />
+      ) : (
+        <HomeChrome
+          colors={colors}
+          group={group}
+          onGroupChange={onGroupChange}
+          trips={watched}
+          watchingCount={watched.length}
+          now={now}
+          chips={chips}
+          locating={locating}
+          notice={notice}
+          status={status}
+          onLocate={() => void onLocate()}
+          onAskAgent={() => setSheet('chat')}
+          onOpenSettings={() => navigation.navigate('Settings')}
+          onOpenFilters={() => setSheet('filters')}
+          sheetHeight={sheetHeight}
+          onSheetLayout={setSheetHeight}
+        />
+      )}
       <Modal visible={sheet !== undefined} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
         <SafeAreaProvider>
           {sheet === 'chat' ? <ChatScreen onClose={closeSheet} /> : null}
