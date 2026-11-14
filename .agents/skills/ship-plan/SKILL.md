@@ -34,6 +34,7 @@ Never invent an answer to a product decision to keep moving.
 ## 4. Validate
 - `npm run check` must pass (lint, typecheck, unit tests, all builds, smoke). Paste the summary into the PR.
 - Anything you couldn't verify (devices, live APIs, credentials) goes in the PR as untested — say so plainly.
+- UI changes need a video (preferred) or screenshots of each changed screen in the PR's "Screenshots / video" section. If you can't capture them (no device or emulator), say so there and in your report so a person adds them before merge.
 
 ## 5. Open the PR
 - Commit messages and PR text: **no AI attribution** (no Co-Authored-By, no "generated with/by").

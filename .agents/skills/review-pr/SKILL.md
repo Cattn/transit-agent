@@ -28,6 +28,7 @@ Look for, in order:
 2. **Scope**: changes outside the plan, or plan steps missing.
 3. **Repo rules**: no new code comments; no removed logging; no new test files (cases belong in an existing test file); matches existing style; no AI attribution in commits.
 4. **Tests**: the plan's verification steps actually covered.
+5. **UI evidence**: a PR that changes any screen must have a video or screenshots of each changed screen in "Screenshots / video". Missing = P2.
 
 Each finding needs a `file:line`, a concrete failure scenario, and a severity (P1 blocks merge, P2 fix before merge, P3 optional). Skip style nits that aren't rule violations. Verify a suspected bug (run it, or read the code path end to end) before reporting it.
 
