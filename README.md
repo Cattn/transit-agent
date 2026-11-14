@@ -29,7 +29,7 @@ Keep reusable types and platform-independent logic in `packages/shared/src`. Eac
 - `npm run android`: open Expo Go on an Android emulator or connected Android phone.
 - `npm run ios`: open an iOS simulator on macOS.
 - `npm run mobile:tunnel`: expose the Expo development server through a tunnel.
-- `npm test`: lint and type-check every workspace. No unit test suite has been added.
+- `npm test`: lint, type-check, and run Vitest unit tests (`packages/shared`, `apps/server`). Run `npm run test:unit` for tests only.
 - `npm run smoke`: build the API and check health, section responses, and CORS without opening a port.
 - `npm run build`: compile shared/server code, build web, and export Android/iOS JavaScript bundles.
 - `npm run check`: run validation, all builds, and API smoke checks.
