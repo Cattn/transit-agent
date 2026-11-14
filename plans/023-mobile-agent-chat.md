@@ -123,7 +123,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above. Manuall
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Do not open a streaming connection in this plan.
-- **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the native `RouteMap` while the chat sheet is open. Follow-up PR after 029, 030, and the native map (009) land.
+- **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the mobile `RouteMap` (plan 009's DOM map) while the chat sheet is open. Follow-up PR after 029, 030, and 009's DOM map land.
 
 - **Chat history (decided 2026-11-14, @Cattn):** not part of this plan. [Plan 034](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) keeps the thread for the app session (in memory, with the agent `sessionId`, not saved across restarts), and returns to the chat after a chip opens Filters. Until then, closing the sheet clears the thread, but the draft changes stay.
 - **Android sheet height:** about 85% of the window, so a strip of the map stays visible above it (@Cattn, 2026-11-14).

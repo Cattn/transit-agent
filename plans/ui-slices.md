@@ -135,4 +135,4 @@ or (b) nothing this detailed (just `ui-direction.md`)? Change, merge or split an
 
 ## Map consumer notes
 
-The web map is merged (`@transit/maps/web`, PR #35); the native map is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4, style 009-Q5) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.
+The web map is merged (`@transit/maps/web`, PR #35); the mobile map (the same web renderer in an Expo DOM component) is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.
