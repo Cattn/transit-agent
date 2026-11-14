@@ -149,6 +149,7 @@ Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/is
 - Booking (needs app-owned confirmation + idempotency).
 - Europe / Eurail "cheapest place to land".
 - Probabilistic transfer risk (needs historical delay data; never show made-up percentages).
+- Persistent per-trip route colors (017-Q2): the same trip keeps one color everywhere it appears, across screens and sessions. Needs maps + saves work; plan after the MVP.
 - Tracking where a car or bike was left (`TripDraft.vehicles` leaves room).
 - Token-by-token agent reply text (the rest of D5-B; plan 029 streams progress only), push notifications (D7-C).
 
