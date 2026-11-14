@@ -1,0 +1,106 @@
+{
+  "verification": {
+    "partial": true,
+    "selection": "First two station_status entries and matching station_information, not the full dataset",
+    "credentialsUsed": false,
+    "requestUrls": [
+      "https://gbfs.lyft.com/gbfs/1.1/bos/en/station_information.json",
+      "https://gbfs.lyft.com/gbfs/1.1/bos/en/station_status.json"
+    ],
+    "retrievedAtApproxUtc": "2026-11-14T07:52:51.581534+00:00"
+  },
+  "station_information": {
+    "data": {
+      "stations": [
+        {
+          "station_id": "f834e75d-0de8-11e7-991c-3863bb43a7d0",
+          "name": "Hayes Square - Vine St at Moulton St",
+          "short_name": "D32026",
+          "lon": -71.056605,
+          "lat": 42.377022,
+          "region_id": "10",
+          "capacity": 19,
+          "rental_uris": {
+            "android": "https://bos.lft.to/lastmile_qr_scan",
+            "ios": "https://bos.lft.to/lastmile_qr_scan"
+          },
+          "legacy_id": "129",
+          "rental_methods": [
+            "KEY",
+            "CREDITCARD"
+          ],
+          "has_kiosk": true,
+          "station_type": "classic",
+          "external_id": "f834e75d-0de8-11e7-991c-3863bb43a7d0",
+          "electric_bike_surcharge_waiver": false,
+          "eightd_station_services": [],
+          "eightd_has_key_dispenser": false
+        },
+        {
+          "station_id": "2113559364250874028",
+          "name": "Washington St at Mina Way",
+          "short_name": "D32077",
+          "lon": -71.17326745767305,
+          "lat": 42.35292339212328,
+          "region_id": "10",
+          "capacity": 15,
+          "rental_uris": {
+            "android": "https://bos.lft.to/lastmile_qr_scan",
+            "ios": "https://bos.lft.to/lastmile_qr_scan"
+          },
+          "legacy_id": "2113559364250874028",
+          "rental_methods": [
+            "KEY",
+            "CREDITCARD"
+          ],
+          "has_kiosk": true,
+          "station_type": "classic",
+          "external_id": "2113559364250874028",
+          "electric_bike_surcharge_waiver": false,
+          "eightd_station_services": [],
+          "eightd_has_key_dispenser": false
+        }
+      ]
+    },
+    "last_updated": 1794642739,
+    "ttl": 60,
+    "version": "1.1"
+  },
+  "station_status": {
+    "data": {
+      "stations": [
+        {
+          "station_id": "f834e75d-0de8-11e7-991c-3863bb43a7d0",
+          "num_bikes_available": 0,
+          "num_bikes_disabled": 0,
+          "num_docks_available": 0,
+          "num_docks_disabled": 0,
+          "is_installed": 0,
+          "is_renting": 0,
+          "is_returning": 0,
+          "last_reported": 86400,
+          "legacy_id": "129",
+          "num_ebikes_available": 0,
+          "eightd_has_available_keys": false
+        },
+        {
+          "station_id": "2113559364250874028",
+          "num_bikes_available": 0,
+          "num_bikes_disabled": 0,
+          "num_docks_available": 0,
+          "num_docks_disabled": 0,
+          "is_installed": 0,
+          "is_renting": 0,
+          "is_returning": 0,
+          "last_reported": 86400,
+          "legacy_id": "2113559364250874028",
+          "num_ebikes_available": 0,
+          "eightd_has_available_keys": false
+        }
+      ]
+    },
+    "last_updated": 1794642739,
+    "ttl": 60,
+    "version": "1.1"
+  }
+}

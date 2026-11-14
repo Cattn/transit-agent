@@ -1,0 +1,27 @@
+{
+  "verification": {
+    "requestUrl": "https://gbfs.lyft.com/gbfs/1.1/bos/en/system_pricing_plans.json",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:53:48.535767+00:00",
+    "credentialsUsed": false,
+    "removedFields": [],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "data": {
+      "plans": [
+        {
+          "plan_id": "EBIKE_SINGLE_RIDE",
+          "name": "EBIKE SINGLE RIDE",
+          "currency": "USD",
+          "price": "3.00",
+          "is_taxable": true,
+          "description": "$3.00 unlock fee, $0.33 per minute."
+        }
+      ]
+    },
+    "last_updated": 1794642798,
+    "ttl": 60,
+    "version": "1.1"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "verification": {
+    "requestUrl": "https://api.transitous.org/api/v1/rentals?min=42.32,-71.15&max=42.40,-71.00&withStations=false&withVehicles=false&withZones=false",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:56:03.223346+00:00",
+    "credentialsUsed": false,
+    "removedFields": [],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "providerGroups": [
+      {
+        "id": "Zeus Scooters",
+        "name": "Zeus Scooters",
+        "providers": [
+          "de-ZeusLudwigsburg",
+          "de-ZeusHeidelberg",
+          "de-ZeusKonstanz",
+          "de-ZeusFreiburg",
+          "de-ZeusPforzheim",
+          "de-ZeusRenningenMalmsheim",
+          "de-ZeusSchwäbischGmünd",
+          "de-ZeusVillingenSchwenningen",
+          "de-ZeusTuttlingen",
+          "de-ZeusNeustadt",
+          "de-ZeusWürzburg"
+        ],
+        "formFactors": [
+          "SCOOTER_STANDING"
+        ]
+      }
+    ],
+    "providers": [
+      {
+        "id": "de-ZeusKonstanz",
+        "name": "Zeus Scooters",
+        "groupId": "Zeus Scooters",
+        "operator": "",
+        "url": "https://zeusscooters.com",
+        "purchaseUrl": "",
+        "bbox": [
+          9.142347,
+          47.65754,
+          9.209425,
+          47.691933
+        ],
+        "vehicleTypes": [
+          {
+            "id": "yimi_plus_3",
+            "name": "",
+            "formFactor": "SCOOTER_STANDING",
+            "propulsionType": "ELECTRIC_ASSIST",
+            "returnConstraint": "NONE",
+            "returnConstraintGuessed": true
+          }
+        ],
+        "formFactors": [
+          "SCOOTER_STANDING"
+        ],
+        "defaultRestrictions": {
+          "vehicleTypeIdxs": [],
+          "rideStartAllowed": true,
+          "rideEndAllowed": true,
+          "rideThroughAllowed": true
+        },
+        "globalGeofencingRules": []
+      }
+    ],
+    "stations": [],
+    "vehicles": [],
+    "zones": []
+  }
+}

@@ -1,0 +1,335 @@
+{
+  "verification": {
+    "derived": true,
+    "sourceFile": "007-transitous.json",
+    "notAProviderResponse": true,
+    "notes": "Illustrative contract mapping only. Fare added as an estimate, risk/violations are placeholders for existing planTrip. Research IDs do not implement durable watch identity. Not Zod-validated; dependencies are absent."
+  },
+  "itinerary": {
+    "id": "research-itinerary-1",
+    "legs": [
+      {
+        "id": "research-leg-1",
+        "mode": "walk",
+        "from": {
+          "name": "START",
+          "coordinates": [
+            -71.0862,
+            42.3625
+          ]
+        },
+        "to": {
+          "name": "Kendall/MIT",
+          "coordinates": [
+            -71.0856,
+            42.362354
+          ],
+          "kind": "stop",
+          "code": "70071"
+        },
+        "departAt": "2026-11-14T14:03:00Z",
+        "arriveAt": "2026-11-14T14:04:00Z",
+        "durationMinutes": 1.0,
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -71.086215,
+              42.362401
+            ],
+            [
+              -71.085679,
+              42.362357
+            ],
+            [
+              -71.085601,
+              42.36235
+            ]
+          ]
+        },
+        "timeSource": "estimated",
+        "distanceMeters": 51.0
+      },
+      {
+        "id": "research-leg-2",
+        "mode": "rail",
+        "from": {
+          "name": "Kendall/MIT",
+          "coordinates": [
+            -71.0856,
+            42.362354
+          ],
+          "kind": "stop",
+          "code": "70071"
+        },
+        "to": {
+          "name": "South Station",
+          "coordinates": [
+            -71.055244,
+            42.352272
+          ],
+          "kind": "stop",
+          "code": "70079"
+        },
+        "departAt": "2026-11-14T14:04:00Z",
+        "arriveAt": "2026-11-14T14:10:00Z",
+        "durationMinutes": 6.0,
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -71.0856,
+              42.362354
+            ],
+            [
+              -71.08523,
+              42.36239
+            ],
+            [
+              -71.08343,
+              42.36213
+            ],
+            [
+              -71.08197,
+              42.36202
+            ],
+            [
+              -71.07972,
+              42.36185
+            ],
+            [
+              -71.07894,
+              42.36181
+            ],
+            [
+              -71.078476,
+              42.361774
+            ],
+            [
+              -71.07753,
+              42.361702
+            ],
+            [
+              -71.076096,
+              42.361614
+            ],
+            [
+              -71.07531,
+              42.36155
+            ],
+            [
+              -71.07365,
+              42.361423
+            ],
+            [
+              -71.07284,
+              42.361347
+            ],
+            [
+              -71.072754,
+              42.36134
+            ],
+            [
+              -71.07236,
+              42.3613
+            ],
+            [
+              -71.07222,
+              42.36129
+            ],
+            [
+              -71.07189,
+              42.361256
+            ],
+            [
+              -71.07136,
+              42.361217
+            ],
+            [
+              -71.07109,
+              42.361195
+            ],
+            [
+              -71.07072,
+              42.36117
+            ],
+            [
+              -71.0706,
+              42.361156
+            ],
+            [
+              -71.07045,
+              42.36114
+            ],
+            [
+              -71.07027,
+              42.361103
+            ],
+            [
+              -71.07003,
+              42.361034
+            ],
+            [
+              -71.06999,
+              42.361015
+            ],
+            [
+              -71.069824,
+              42.360962
+            ],
+            [
+              -71.06966,
+              42.36089
+            ],
+            [
+              -71.069336,
+              42.360737
+            ],
+            [
+              -71.06677,
+              42.35886
+            ],
+            [
+              -71.06586,
+              42.35812
+            ],
+            [
+              -71.06548,
+              42.3579
+            ],
+            [
+              -71.065155,
+              42.35772
+            ],
+            [
+              -71.063934,
+              42.35712
+            ],
+            [
+              -71.06357,
+              42.35695
+            ],
+            [
+              -71.06323,
+              42.356773
+            ],
+            [
+              -71.06267,
+              42.356503
+            ],
+            [
+              -71.06242,
+              42.35638
+            ],
+            [
+              -71.06216,
+              42.356247
+            ],
+            [
+              -71.06052,
+              42.355434
+            ],
+            [
+              -71.06029,
+              42.35532
+            ],
+            [
+              -71.05731,
+              42.353558
+            ],
+            [
+              -71.05698,
+              42.353336
+            ],
+            [
+              -71.05637,
+              42.35308
+            ],
+            [
+              -71.05583,
+              42.35283
+            ],
+            [
+              -71.05529,
+              42.352608
+            ],
+            [
+              -71.05517,
+              42.35256
+            ],
+            [
+              -71.055244,
+              42.352272
+            ]
+          ]
+        },
+        "timeSource": "scheduled",
+        "routeName": "Red Line",
+        "agency": "MBTA"
+      },
+      {
+        "id": "research-leg-3",
+        "mode": "walk",
+        "from": {
+          "name": "South Station",
+          "coordinates": [
+            -71.055244,
+            42.352272
+          ],
+          "kind": "stop",
+          "code": "70079"
+        },
+        "to": {
+          "name": "END",
+          "coordinates": [
+            -71.0552,
+            42.3523
+          ]
+        },
+        "departAt": "2026-11-14T14:10:00Z",
+        "arriveAt": "2026-11-14T14:11:00Z",
+        "durationMinutes": 1.0,
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -71.055244,
+              42.352272
+            ],
+            [
+              -71.0552,
+              42.3523
+            ]
+          ]
+        },
+        "timeSource": "estimated",
+        "distanceMeters": 4.0
+      }
+    ],
+    "departAt": "2026-11-14T14:03:00Z",
+    "arriveAt": "2026-11-14T14:11:00Z",
+    "durationMinutes": 8.0,
+    "transfers": 0,
+    "walkMinutes": 2.0,
+    "cost": {
+      "totalUsd": 2.4,
+      "lines": [
+        {
+          "label": "Subway fare estimate",
+          "usd": 2.4,
+          "estimated": true
+        }
+      ]
+    },
+    "risk": {
+      "level": "low",
+      "reasons": []
+    },
+    "violations": [],
+    "summary": "Walk 1 min \u2192 Red Line \u2192 walk 1 min",
+    "source": {
+      "provider": "transitous",
+      "fetchedAt": "2026-11-14T07:52:08.656131+00:00"
+    }
+  }
+}

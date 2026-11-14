@@ -6,14 +6,14 @@
 >
 > **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/store apps/server/src/providers packages/shared/src/domain/itinerary.ts`
 > Reconciled 2026-11-14: an empty diff is expected. If this prints anything, compare Current state before proceeding.
-> Expected: plans 005 and 007 landed. Confirm `SqliteItineraryStore.listWatched` exists; if not, STOP.
+> Expected: plans 005 and 031 landed. Confirm `SqliteItineraryStore.listWatched` exists; if not, STOP.
 
 ## Status
 
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/007 (real realtime data; can be developed against fixture synthetic delays)
+- **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
 - **Blocked by decisions**: D7 (client polling first; push later)
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
@@ -22,16 +22,16 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Later:** real watch integration waits on #11. Storage (#9) and pure leave-by logic (#21) are merged; reuse them.
+- **Status:** **Later:** real watch integration waits on #57. Storage (#9) and pure leave-by logic (#21) are merged; reuse them.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
-- **Waiting on:** #11 for real realtime data; mode horizon/ramp details remain open.
+- **Waiting on:** #57 for real realtime data; transit watch defaults are recorded below, with detailed scheduling/preferences still to resolve.
 
 **Open questions** (answer by number in a comment on #12) — **@Cattn answers these.**
 
 **Decided:** automatically switch missed trips ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); do not require a confirmation tap.
 
-1. Confirm exact cadence/ramp and preference behavior. Flights: checks 3, 2, and 1 days before departure, then ramp within 24 h ([owner direction](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)); bus ~2 h and rail classification remain separate open details.
+1. Implement the transit direction recorded by Cattn in the plan 007 research thread: one or two checks before the two-hour mark unless overridden, then more frequent checks nearer departure; subway around 1 h, 30, 20 and 10 min with further quick checks/adaptation for issues; commuter rail broadly similar with some earlier checking. Exact early-check times, final ramp, intercity classification and preference storage still need resolution. Flights retain their separate 3/2/1-day and final-24-hour direction; do not apply it to transit.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -61,7 +61,7 @@ min late".
 
 ## Scope
 
-**In scope:** `apps/server/src/watch/watch-job.ts`, `apps/server/src/providers/types.ts` (optional `refresh` method), `apps/server/src/providers/fixture.ts` + real provider from 007 (implement `refresh`), `apps/server/src/store/*` (persist status), `apps/server/src/index.ts` (start/stop job), `.env.example`, tests.
+**In scope:** `apps/server/src/watch/watch-job.ts`, `apps/server/src/providers/types.ts` (optional `refresh` method), `apps/server/src/providers/fixture.ts` + real provider from 031 (implement `refresh`), `apps/server/src/store/*` (persist status), `apps/server/src/index.ts` (start/stop job), `.env.example`, tests.
 **Out of scope:** push notifications (D7-C), client UI.
 
 ## Steps
@@ -75,7 +75,7 @@ dependencies landed, and so apps can tick countdowns locally. Check they're expo
 
 ### Step 3: Provider `refresh`
 
-`RouteProvider` gains optional `refresh?(it: Itinerary, req: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined>`. The real provider (007) re-queries live data for the same trip. If it can't match the same vehicle trip, it returns `undefined`. Fixture: applies `FIXTURE_DELAY_MINUTES` (env, default 0) to bus/rail legs, sets `timeSource: 'realtime'`, and shifts subsequent legs.
+`RouteProvider` gains optional `refresh?(it: Itinerary, req: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined>`. The real provider (031) re-queries live data for the same trip. If it can't match the same vehicle trip, it returns `undefined`. Fixture: applies `FIXTURE_DELAY_MINUTES` (env, default 0) to bus/rail legs, sets `timeSource: 'realtime'`, and shifts subsequent legs.
 
 ### Step 4: Watch job (`watch/watch-job.ts`)
 
@@ -84,10 +84,12 @@ export async function runWatchCycle(deps: { store; providers; now: () => Date; l
 export function startWatchJob(deps, intervalSeconds): { stop(): void }
 ```
 - **Watch horizon depends on mode** (owner direction on [#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6872020176)). Put it in one config table, `watch/horizons.ts`, keyed by the itinerary's anchor leg mode (the first scheduled leg, same as plan 013):
-  - bus: about **2 h**, with checks that **ramp up** (less often far from departure, more often close to it);
+  - bus/default transit (Cattn, plan 007 research thread, 2026-11-14): **one or two checks before the two-hour mark**, unless the user specifies otherwise, then more frequent checks as departure approaches. Early-check times and the exact final ramp were not specified;
   - flight: checks **3, 2, and 1 days** before departure, then a ramp within the last 24 h; inside 24 h, continuous or every few hours by user preference ([owner direction](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)). These are stages, not polling intervals.
-  - rail: depends on the kind of rail (light rail/subway like the Orange Line vs intercity like Amtrak). The contract has a single `rail` mode, so telling them apart needs a hint such as `agency`/`routeName`; how to do that is open.
-  - **Open (008-Q3):** exact intervals, rail classification, and where the monitoring preference is stored. Ask before building this step; do not invent an interval or a contract field.
+  - subway: begin nearer departure, around **1 h**, then roughly **30, 20 and 10 min** before departure, with further quick checks and adjustments if issues occur. These are owner-supplied approximate checkpoints, not a fixed continuous-polling interval.
+  - commuter rail: some earlier checking, but broadly close to the subway pattern. No distinct exact timetable was selected.
+  - intercity rail: not specified by this transit clarification. The contract still has a single `rail` mode; use provider route type/agency metadata to distinguish services rather than assuming commuter rail and Amtrak share a policy.
+  - **Remaining details (008-Q3):** exact early/final check times, issue-driven adjustments, intercity classification and preference selection/storage. Transit direction above is selected; do not reopen it or invent a new fixed interval or contract field. Fetch horizon must include the pre-two-hour checks, not exclude them with a two-hour-only lookup.
 - `listWatched(now, now + maxHorizon)` must cover the flight pre-departure stages as well as each other mode's horizon. Keep only itineraries due under their own mode/stage/preference policy, and skip ones not yet due. A wider flight lookup window does not mean checking every flight on every job tick. For each itinerary, find the provider by `source.provider` and call `refresh` (catch errors per item). Compute the status and persist `watchStatus` and `leaveBy`.
 - When the state becomes `missed`, run `planTrip({ ...request, time: { type: 'departAt', at: now } })` and **automatically switch** the watched trip to the highest-ranked valid result ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)). Persist the replacement itinerary/request and recomputed status together while preserving saved-trip identity, label, and watch setting; the store update must support this without exposing a new client preference. Show what changed in the status message. Do not require a tap. If no valid result exists, keep the missed trip and explain that no replacement is available; never auto-select a near-miss that violates requirements.
 - Never overlap cycles (skip a tick if the previous is still running). `timer.unref()`.
@@ -123,4 +125,4 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 
 - ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
 - ~~008-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** automatically switch missed trips; no confirmation tap.
-- 008-Q3 (open, @Cattn): exact check intervals per mode, how to tell subway from intercity rail, and where the user's monitoring preference lives. Direction so far is in Step 4.
+- 008-Q3 (partly answered by Cattn, 2026-11-14): transit defaults are recorded in Step 4 and plan 007. Exact early/final check times, adaptation rules, intercity treatment and preference storage remain implementation details to resolve; flight policy is separate.

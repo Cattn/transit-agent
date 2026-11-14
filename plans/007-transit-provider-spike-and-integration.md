@@ -1,11 +1,7 @@
 # Plan 007: Replace fixture routes with real transit, walk, bike, and drive routing plus live arrivals for the launch metro
 
-> **Executor instructions**: This plan starts with a **time-boxed spike** (step 1) whose written output
-> must be reviewed by the plan owner before steps 2+. Do not start step 2 until the owner records
-> the D2 decision in `plans/README.md`. Honor STOP conditions. Update the status row when done.
->
-> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/providers apps/server/src/planning`
-> Reconciled 2026-11-14: plan 003 is on this commit. If this prints anything, compare Current state before proceeding. Read `providers/types.ts` — if `RouteProvider` differs from the excerpt below, STOP.
+> **DONE (research).** The spike report is in `plans/research/007-provider-spike.md` and D2 is decided.
+> Implementation is [plan 031](031-transitous-routing.md); do not execute anything here.
 
 ## Status
 
@@ -14,25 +10,22 @@
 - **Risk**: HIGH (external services, quotas, keys, data quality)
 - **Depends on**: plans/003-planning-api-fixture-provider.md
 - **Category**: direction
-- **Blocked by decisions**: D1 (metro, default Boston), D2 (routing engine; decided by this spike)
+- **Blocked by decisions**: D1 Boston, D2 Transitous-first, transit watch direction and morning-return behavior are selected; detailed watch implementation remains with plan 008
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/11
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Research in progress for @Cattn** in the [dedicated research thread](t3-thread://v2/488b75a5-34d6-4ef6-9f50-bbf2d6942b14/mcp:launch:47c6c907a28e722363a5f542b8af2ec3b5ce2cee441f1b97d57d3fdcefa0c625). Report and owner questions will be delivered there. Implementation remains pending the report and D2 decision.
+- **Status:** **DONE.** Research report delivered and D2 selected (Transitous-first) by @Cattn on 2026-11-14. Implementation is [plan 031](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)).
 - **Owner:** @Cattn
 - **Up for grabs?** No. Coordinate any contribution with @Cattn; do not start a competing research or implementation worker.
-- **Waiting on:** @Cattn's research recommendation and D2 decision before implementation; plan 003 / #7 is already merged.
+- **Waiting on:** nothing.
 
-**How to help**
-- **Contribute:** coordinate with @Cattn on #11 before starting related work; the issue is already claimed.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/007-transit-provider-spike-and-integration.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #11`.
-- **Just feedback:** answer the open questions above by number in a comment.
+**Owner decisions**
+1. **D2 selected by Cattn (2026-11-14): Transitous-first** for the hackathon prototype. Public-service eligibility/automation conditions remain applicable; local OTP remains a later alternative, not a second selected engine.
+2. **Watch defaults selected by Cattn (2026-11-14):** unless the user asks otherwise, check once or twice before the two-hour mark, then increasingly often near departure. Subway checks start closer in, around 1 hour, then roughly 30, 20 and 10 minutes before departure, with further quick checks and adjustments when issues arise. Commuter rail gets some earlier checking but broadly follows the subway pattern. Exact early-check times, the final ramp, intercity treatment and preference storage are not specified; do not turn these examples into an invented fixed polling interval. Flight timing is unchanged.
+3. **Return behavior selected by Cattn (2026-11-14):** include first morning service, not a hard 3 AM cutoff. Clearly show the wait duration and actual departure/arrival dates, calling out a long wait or next-day trip. Search only for trips leaving after the user’s requested return time.
 
 <!-- help:end -->
 
@@ -69,62 +62,35 @@ Evaluate these against the table below. Verify **current** pricing/terms from of
 | **C. B (or OTP) + MBTA V3 API** for predictions | Live arrival predictions per stop/route for the watch engine (plan 008) | API key requirement and rate limits; mapping stop IDs between routing results and MBTA stops |
 | **Geocoding**: MapTiler Geocoding, Nominatim (public instance policy), Google Places, Photon | Search box + agent `find_place` | Usage policy (Nominatim forbids heavy/autocomplete use on the public server), key requirement, cost |
 
-The spike doc must include: a recommendation for D2 with reasons; for the chosen option, one **real** sample request/response saved to `apps/server/src/providers/__fixtures__/` (strip any keys); a field-mapping table from the provider response to `Leg`/`Itinerary`; the env vars needed; and the expected monthly cost at 1k plans/day.
-**Verify**: the doc exists and the plan owner has written `D2: <choice>` in `plans/README.md`.
+The spike doc must include: a recommendation for D2 with reasons; a **real**, sanitized sample request/response when publicly accessible without new credentials/payment; field mapping from the provider response to `Leg`/`Itinerary`; proposed env vars; and monthly cost scenarios at 1k plans/day with per-plan routing/geocoding/watch assumptions. Keep research-only samples under `plans/research/samples/`; move selected samples into application fixtures only during later authorized integration.
+**Verify research**: the report and samples exist, distinguish verified facts from estimates/unknowns, and are delivered for owner review. **Separate implementation gate**: the owner selects D2 in the thread and records it in `plans/README.md`; a recommendation does not satisfy that gate.
 
-## Steps 2–7 (after D2 is decided)
+### Research findings (2026-11-14; Transitous-first subsequently selected)
 
-Instructions are written for D2 = A (OTP) with C-style realtime coming from OTP itself. If D2 = B/C, apply the same steps with the provider names swapped. Interfaces and tests stay the same.
+Detailed evidence, mapping example, resource/cost assumptions and sanitized responses are in [the spike report](research/007-provider-spike.md), delivered in the research thread. The report and these plan amendments are currently in the isolated research worktree, not committed or published on main. Rechecked against main at `1062e71`, including `5a80535` and `611d354`. No source/config/test changes or graph deployment were made.
 
-### Step 2: Provider config
+- **Selected prototype (D2):** Transitous-hosted MOTIS for occasional on-demand Boston routing, direct MBTA data for prediction provenance and later watches, existing gazetteer plus occasional Photon search, and direct Bluebikes GBFS for docks. This remains conditional: the repository is private, Transitous permits light prototype testing before publication but otherwise requires open-source/noncommercial use, and automated replanning needs policy clarification or a local engine. The user clarified hackathon usage will be low; 1k plans/day is future sizing, not expected demo traffic. [Transitous policy](https://transitous.org/api/)
+- **Local/full-mode alternative:** OTP + MBTA GTFS/GTFS-RT + Bluebikes GBFS; local MOTIS is also credible. OTP has the strongest documented complete bike/parking composition here. No Boston graph was built or benchmarked. The execution machine reported 15.3 GiB usable RAM and 2.8 GiB free at the check; the report's build/runtime budgets are estimates, not measured requirements. Neither local deployment is an immediate ready fallback.
+- **Other hosted option:** Transitland covers Boston schedules with geometry, but its documented routing realtime currently covers Bay Area operators, so Boston needs an MBTA overlay and connection revalidation. HERE/Navitia/geOps were investigated; unresolved Boston coverage, terms or deployment details prevent recommending them over the verified prototype. [Transitland coverage](https://www.transit.land/documentation/routing-platform/transit-otp/)
+- **Google STOP condition:** standard Routes terms prohibit use with non-Google maps; an MBTA overlay does not clear it. Do not use Google as the default fallback under the settled MapLibre/OpenFreeMap stack. Google Places also restricts map display. [Routes terms §19](https://cloud.google.com/maps-platform/terms/maps-service-terms), [Places policy](https://developers.google.com/maps/documentation/places/web-service/policies)
+- **Observed mapping/freshness:** Transitous returned Boston walk/transit, separate car/bike geometry and late-return results. Its polyline precision was 6. A bus marked `realTime: true` matched MBTA uncertainty 300, which MBTA defines as schedule-based; the router flag alone must not produce a live claim. Preserve feed/trip/service-date/stop identity durably for watches, rather than joining by route name or stop name. Genuine in-service vehicle predictions remain to be demonstrated. [MBTA uncertainty semantics](https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs-realtime.md)
+- **Proposed server-only env names:** `TRANSITOUS_URL`, `ROUTING_USER_AGENT`, `MBTA_API_URL`, optional `MBTA_API_KEY`, `BLUEBIKES_GBFS_URL`, `PHOTON_URL`; alternatively `OTP_URL` or `MOTIS_URL`. D2 is Transitous-first; these variable names remain proposals, not implemented config. Keep fixture as the default, and reuse plan 028's `/api/places` route and gazetteer fallback.
+- **Fallback and retention:** `planTrip` currently combines every supporting provider, so `live,fixture` is not ordered failover. Later integration must make fixture fallback explicitly a demo, label schedule/stale data honestly, and never auto-switch to a hard-constraint near-miss. Shared 24-hour geocoding caching and durable saved outputs require provider-specific permission; map-display permission alone is insufficient. Transitous does not establish Bluebikes routing coverage in the saved rental probe.
 
-`apps/server/src/providers/registry.ts`: `ROUTE_PROVIDERS` env (comma list, default `fixture`), e.g. `otp,fixture`. Builds the provider list for `createServer`. Unknown name → startup error. Add to `.env.example`: `ROUTE_PROVIDERS=fixture`, `OTP_URL=`, plus any keys **as empty placeholders**.
+Cattn selected Transitous-first after reviewing the recommendation. These findings amend the assumptions below; that selection does not request steps 2+ in this research-only thread. Reuse the merged Gemini agent, React hooks, maps, watch calculations and mobile helpers.
 
-### Step 3: `OtpProvider implements RouteProvider` (`providers/otp.ts`)
+## Implementation
 
-- `supports`: request has any of walk/bike/bikeshare/bus/rail/ferry and the origin/destination are inside the configured metro bounding box (`METRO_BBOX` env, lng/lat min/max).
-- `search`: one GraphQL call mapping `TripRequest` → OTP modes (incl. bike-with-transit when `vehicles.ownsBike` and `bike` allowed; rental when `bikeshare` allowed), `time` → date/time + `arriveBy`, `constraints.maxWalkMinutes` → walk distance/limits where supported. Request 5 itineraries.
-- Mapping (put it in `providers/otp-mapping.ts`, a pure function tested against the saved sample): decode leg polylines into [lng, lat] (OTP uses encoded polylines in lat,lng order, so **swap**); `timeSource = leg.realTime ? 'realtime' : (transit ? 'scheduled' : 'estimated')`; `delayMinutes` from the realtime vs scheduled fields; `transferBufferMinutes` = this leg's departure − previous transit leg's arrival; costs from fare fields when present, else the same estimated fare table the fixture uses (move that table to `planning/fares.ts` and import it in both).
-- Timeout 10 s via `AbortSignal.any([signal, AbortSignal.timeout(10_000)])`.
-
-### Step 4: Drive leg provider
-
-Driving needs no realtime. Use OTP's `CAR` mode if the chosen deployment supports it, else Google/MapTiler directions per the spike. Cost = miles ÷ mpg × gas price (constant `GAS_USD_PER_GALLON` env, default 3.20; plan 011 adds a live source) + parking estimate.
-
-### Step 5: Geocoder
-
-`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. If plan 028 has landed, replace that route's body instead of adding a second route. The agent's `find_place` tool switches to the geocoder.
-
-### Step 6: Return-trip check ("can I make it back?")
-
-When `request.returnTime` is set, `planTrip` also asks the provider for the **latest** itinerary back (destination → origin, `arriveBy` = next day 03:00 local, take the itinerary with the latest departure). Add `PlanResponse.lastReturn?: Itinerary` (additive change to the shared schema). If none: warning `"No transit back after <returnTime>"`. (Issue #2: *"if you can make it back (late night trips)"*.)
-
-### Step 7: Tests
-
-- `otp-mapping.test.ts` against the saved real sample: legs count, coordinates swapped correctly (first point near origin), `timeSource` mapping, transfer buffers, `ItinerarySchema.parse` passes.
-- `registry.test.ts`: env parsing, unknown provider error.
-- `plan-trip` test: OTP provider failing (mock throws) + fixture present → still 200 with `warnings: ['otp unavailable']`.
-- No network calls in CI. Live check script `scripts/provider-check.mjs` runs one Boston request against the real provider when `OTP_URL` is set.
+Steps 2–7 moved to [plan 031](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)).
 
 ## Done criteria
 
-- [ ] Spike doc reviewed, D2 recorded
-- [ ] `npm run check` exits 0 offline
-- [ ] With provider env set: `POST /api/plan` with `fixture-request.json` returns ≥ 1 itinerary whose `source.provider` ≠ `fixture` and at least one leg with `timeSource: 'realtime'` during service hours
-- [ ] No API keys in git (`git grep -nI "key=" -- apps/server/src` shows no literal values)
-
-## STOP conditions
-
-- The chosen provider's terms forbid showing its routes on a non-provider basemap (MapLibre) → report; affects D2/D8.
-- Graph build or hosting is infeasible on available machines → report; fall back to D2-C.
-- Realtime data isn't available for the metro → report (it undermines issue #2's core feature).
-
-## Maintenance notes
-
-- Provider responses vary; all mapping lives in `*-mapping.ts` pure functions with real recorded samples as fixtures. When the provider changes format, update the sample and fix the mapper.
-- The fixture provider stays the **default** for UI work and unrelated PRs (decided on #11, to avoid needing or stressing the routing laptop). Real routing is opt-in via `ROUTE_PROVIDERS`. CI must never need the real provider.
+- [x] Spike doc delivered and reviewed by Cattn
+- [x] D2 recorded: Transitous-first, selected by Cattn on 2026-11-14
 
 ## Open questions for review
+
+The help box above records Cattn’s D2, transit-watch defaults and morning-return decisions. Remaining watch scheduling/contract details belong to plan 008; do not ask the owner to reselect the recorded direction.
 
 - ~~007-Q1~~ **Decided:** Boston (D1).
 - ~~007-Q2~~ **Decided on #11:** the routing server (OTP, if chosen) runs on **Cattn's machine** for the demo and real-routing tests. The spike should say how much RAM/disk a Boston graph needs so Cattn can confirm it fits.

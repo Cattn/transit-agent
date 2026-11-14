@@ -1,0 +1,1657 @@
+{
+  "verification": {
+    "requestUrl": "https://api.transitous.org/api/v6/plan?fromPlace=42.3625,-71.0862&toPlace=42.3523,-71.0552&time=2026-11-14T14%3A00%3A00Z&numItineraries=3",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:52:08.656131+00:00",
+    "credentialsUsed": false,
+    "removedFields": [
+      "debugOutput"
+    ],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "requestParameters": {},
+    "from": {
+      "name": "START",
+      "lat": 42.3625,
+      "lon": -71.0862,
+      "vertexType": "NORMAL"
+    },
+    "to": {
+      "name": "END",
+      "lat": 42.3523,
+      "lon": -71.0552,
+      "vertexType": "NORMAL"
+    },
+    "direct": [],
+    "itineraries": [
+      {
+        "duration": 480,
+        "startTime": "2026-11-14T14:03:00Z",
+        "endTime": "2026-11-14T14:11:00Z",
+        "transfers": 0,
+        "id": "ClMhZmZmZmYuRUApkzoBTYTFUcAyEHVzLW1hLU1CVEFfNzAwNzE5k8mpnWEuRUBBaCJseHrFUcBIlNTh1wZQ0NTh1wZaBFdBTEtgAXEAAAAAAADwvwqeAQoIUmVkIExpbmUSIjIwMjYxMTE0XzA4OjUyX3VzLW1hLU1CVEFfNzc5MDk5MjgaEHVzLW1hLU1CVEFfNzAwNzEhk8mpnWEuRUApaCJseHrFUcAyEHVzLW1hLU1CVEFfNzAwNzk59KW3PxctRUBBN1MhHonDUcBI0NTh1wZQuNfh1wZaBlNVQldBWWABaQAAAAAAAPC/cQAAAAAAAAAAClMaEHVzLW1hLU1CVEFfNzAwNzkh9KW3PxctRUApN1MhHonDUcA5vjCZKhgtRUBBT6+UZYjDUcBIuNfh1wZQ9Nfh1wZaBFdBTEtgAWkAAAAAAAAAAA==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:03:00Z",
+              "scheduledDeparture": "2026-11-14T14:03:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:04:00Z",
+              "scheduledArrival": "2026-11-14T14:04:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:03:00Z",
+            "endTime": "2026-11-14T14:04:00Z",
+            "scheduledStartTime": "2026-11-14T14:03:00Z",
+            "scheduledEndTime": "2026-11-14T14:04:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 51.0,
+            "legGeometry": {
+              "points": "aarxoAlgwqfCvAo`@L{C",
+              "precision": 6,
+              "length": 3
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 51.0,
+                "fromLevel": -1.0,
+                "toLevel": -1.0,
+                "osmWay": 236626991,
+                "polyline": {
+                  "points": "aarxoAlgwqfCvAo`@L{C",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Kendall/MIT (Ashmont/Braintree)",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:04:00Z",
+              "scheduledDeparture": "2026-11-14T14:04:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:10:00Z",
+              "scheduledArrival": "2026-11-14T14:10:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "duration": 360,
+            "startTime": "2026-11-14T14:04:00Z",
+            "endTime": "2026-11-14T14:10:00Z",
+            "scheduledStartTime": "2026-11-14T14:04:00Z",
+            "scheduledEndTime": "2026-11-14T14:10:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Braintree",
+            "tripFrom": {
+              "name": "Alewife",
+              "stopId": "us-ma-MBTA_70061",
+              "parentId": "us-ma-MBTA_place-alfcl",
+              "importance": 0.00028211588505655527,
+              "lat": 42.396150000000006,
+              "lon": -71.1407,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T13:52:00Z",
+              "scheduledDeparture": "2026-11-14T13:52:00Z",
+              "stopCode": "70061",
+              "description": "Alewife - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 353 (Main concourse to busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 351 (Main concourse to platform) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Braintree",
+              "stopId": "us-ma-MBTA_70105",
+              "parentId": "us-ma-MBTA_place-brntn",
+              "importance": 0.00013536632468458265,
+              "lat": 42.207423999999996,
+              "lon": -71.00165000000001,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:35:00Z",
+              "scheduledArrival": "2026-11-14T14:35:00Z",
+              "stopCode": "70105",
+              "description": "Braintree - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Braintree Escalator 334 (Red Line platform to paid lobby) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "UNKNOWN_CAUSE",
+                  "causeDetail": "UNKNOWN_CAUSE",
+                  "effect": "OTHER_EFFECT",
+                  "effectDetail": "NOTICE",
+                  "url": "http://www.mbta.com/SpotHeroBraintree",
+                  "headerText": "Braintree Station notice: Premium parking is available at this location. You can buy premium passes and permits using SpotHero.",
+                  "descriptionText": "Affected stations:\r\nBraintree"
+                }
+              ],
+              "modes": [
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Red",
+            "routeUrl": "https://www.mbta.com/schedules/Red",
+            "directionId": "0",
+            "routeColor": "da291c",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_08:52_us-ma-MBTA_77909928",
+            "routeShortName": "",
+            "routeLongName": "Red Line",
+            "tripShortName": "",
+            "displayName": "Red Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:269912:269929",
+            "intermediateStops": [
+              {
+                "name": "Charles/MGH",
+                "stopId": "us-ma-MBTA_70073",
+                "parentId": "us-ma-MBTA_place-chmnl",
+                "importance": 0.0005331707652658224,
+                "lat": 42.361186999999994,
+                "lon": -71.0715,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:06:00Z",
+                "departure": "2026-11-14T14:06:00Z",
+                "scheduledArrival": "2026-11-14T14:06:00Z",
+                "scheduledDeparture": "2026-11-14T14:06:00Z",
+                "stopCode": "70073",
+                "description": "Charles/MGH - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Charles/MGH Escalator 426 (Lobby to Alewife platform) is unavailable due to maintenance.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Park Street",
+                "stopId": "us-ma-MBTA_70075",
+                "parentId": "us-ma-MBTA_place-pktrm",
+                "importance": 0.0005976136890240014,
+                "lat": 42.356396,
+                "lon": -71.06242,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:08:00Z",
+                "departure": "2026-11-14T14:08:00Z",
+                "scheduledArrival": "2026-11-14T14:08:00Z",
+                "scheduledDeparture": "2026-11-14T14:08:00Z",
+                "stopCode": "70075",
+                "description": "Park Street - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY",
+                  "TRAM"
+                ]
+              },
+              {
+                "name": "Downtown Crossing",
+                "stopId": "us-ma-MBTA_70077",
+                "parentId": "us-ma-MBTA_place-dwnxg",
+                "importance": 0.0006074155680835247,
+                "lat": 42.35466999999999,
+                "lon": -71.059425,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:09:00Z",
+                "departure": "2026-11-14T14:09:00Z",
+                "scheduledArrival": "2026-11-14T14:09:00Z",
+                "scheduledDeparture": "2026-11-14T14:09:00Z",
+                "stopCode": "70077",
+                "description": "Downtown Crossing - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Elevator 869 (Alewife platform to Summer Street Concourse) is unavailable due to maintenance through Tuesday, December 1.",
+                    "descriptionText": "The elevator is closed for major equipment upgrades that will significantly improve the long-term reliability of this elevator.\r\n\r\nTo board a Red Line Train: Proceed to the Orange Line Oak Grove Platform at the opposite end of the concourse. Take elevator 998 or 999 to the Red Line passage, then follow signs to Alewife. \r\n  \r\nTo exit the station: Proceed to the north end of the platform to the Orange - Red Line passage. Take Elevator 998 or 999 to the Orange Line Oak Grove platform. Exit the station using the 101 Arch St Elevator on the Summer St concourse.\r\n"
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Escalator 364 (Oak Grove platform to Franklin Street) is unavailable.",
+                    "descriptionText": "If exiting, travel down the concourse and use the elevator located through the glass doors and to the left of the MBTA's CharlieCard store. This elevator will take you to the lobby of 101 Arch Street, located on Summer Street. If boarding, travel to 101 Arch Street (across from Macy's on Summer Street). Take the elevator in the back left corner of the lobby to the concourse. Take a right and find the Oak Grove-bound platform ahead."
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "c~qxoA~`vqfCgAcVfOooBzEgzArIskCnAwo@fA_\\nCcz@nDsxA~Bcp@|FwfBvCsq@LkDnAsWRwGbAsSlAc`@j@{Op@cVZoF^kHhAgJhC_Nd@oAhBkInCgIpHgShtBk_Dfm@{w@vLwVfJiSnd@ikArIwU`JgTzO_b@tFsNhGgOxq@oeBbFkMbmBgyDzLsS~Nce@rNw`@zLw`@~AoF~PrC",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:10:00Z",
+              "departure": "2026-11-14T14:10:00Z",
+              "scheduledArrival": "2026-11-14T14:10:00Z",
+              "scheduledDeparture": "2026-11-14T14:10:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:11:00Z",
+              "scheduledArrival": "2026-11-14T14:11:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:10:00Z",
+            "endTime": "2026-11-14T14:11:00Z",
+            "scheduledStartTime": "2026-11-14T14:10:00Z",
+            "scheduledEndTime": "2026-11-14T14:11:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 4.0,
+            "legGeometry": {
+              "points": "_h~woAvwzofCw@wA",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "_h~woAvwzofCw@wA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 480,
+        "startTime": "2026-11-14T14:10:00Z",
+        "endTime": "2026-11-14T14:18:00Z",
+        "transfers": 0,
+        "id": "ClMhZmZmZmYuRUApkzoBTYTFUcAyEHVzLW1hLU1CVEFfNzAwNzE5k8mpnWEuRUBBaCJseHrFUcBIuNfh1wZQ9Nfh1wZaBFdBTEtgAXEAAAAAAADwvwqeAQoIUmVkIExpbmUSIjIwMjYxMTE0XzA4OjU4X3VzLW1hLU1CVEFfNzc5MDk2NjcaEHVzLW1hLU1CVEFfNzAwNzEhk8mpnWEuRUApaCJseHrFUcAyEHVzLW1hLU1CVEFfNzAwNzk59KW3PxctRUBBN1MhHonDUcBI9Nfh1wZQ3Nrh1wZaBlNVQldBWWABaQAAAAAAAPC/cQAAAAAAAAAAClMaEHVzLW1hLU1CVEFfNzAwNzkh9KW3PxctRUApN1MhHonDUcA5vjCZKhgtRUBBT6+UZYjDUcBI3Nrh1wZQmNvh1wZaBFdBTEtgAWkAAAAAAAAAAA==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:10:00Z",
+              "scheduledDeparture": "2026-11-14T14:10:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:11:00Z",
+              "scheduledArrival": "2026-11-14T14:11:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:10:00Z",
+            "endTime": "2026-11-14T14:11:00Z",
+            "scheduledStartTime": "2026-11-14T14:10:00Z",
+            "scheduledEndTime": "2026-11-14T14:11:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 51.0,
+            "legGeometry": {
+              "points": "aarxoAlgwqfCvAo`@L{C",
+              "precision": 6,
+              "length": 3
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 51.0,
+                "fromLevel": -1.0,
+                "toLevel": -1.0,
+                "osmWay": 236626991,
+                "polyline": {
+                  "points": "aarxoAlgwqfCvAo`@L{C",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Kendall/MIT (Ashmont/Braintree)",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:11:00Z",
+              "scheduledDeparture": "2026-11-14T14:11:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:17:00Z",
+              "scheduledArrival": "2026-11-14T14:17:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "duration": 360,
+            "startTime": "2026-11-14T14:11:00Z",
+            "endTime": "2026-11-14T14:17:00Z",
+            "scheduledStartTime": "2026-11-14T14:11:00Z",
+            "scheduledEndTime": "2026-11-14T14:17:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Ashmont",
+            "tripFrom": {
+              "name": "Alewife",
+              "stopId": "us-ma-MBTA_70061",
+              "parentId": "us-ma-MBTA_place-alfcl",
+              "importance": 0.00028211588505655527,
+              "lat": 42.396150000000006,
+              "lon": -71.1407,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T13:58:00Z",
+              "scheduledDeparture": "2026-11-14T13:58:00Z",
+              "stopCode": "70061",
+              "description": "Alewife - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 353 (Main concourse to busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 351 (Main concourse to platform) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Ashmont",
+              "stopId": "us-ma-MBTA_70093",
+              "parentId": "us-ma-MBTA_place-asmnl",
+              "importance": 0.0005082798888906837,
+              "lat": 42.284508,
+              "lon": -71.063835,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:33:00Z",
+              "scheduledArrival": "2026-11-14T14:33:00Z",
+              "stopCode": "70093",
+              "description": "Ashmont - Red Line - Exit Only",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-26T12:59:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-26T12:59:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Ashmont Escalator 438 (Ashmont platform to Mattapan Line, busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "TRAM",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Red",
+            "routeUrl": "https://www.mbta.com/schedules/Red",
+            "directionId": "0",
+            "routeColor": "da291c",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_08:58_us-ma-MBTA_77909667",
+            "routeShortName": "",
+            "routeLongName": "Red Line",
+            "tripShortName": "",
+            "displayName": "Red Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:268461:268477",
+            "intermediateStops": [
+              {
+                "name": "Charles/MGH",
+                "stopId": "us-ma-MBTA_70073",
+                "parentId": "us-ma-MBTA_place-chmnl",
+                "importance": 0.0005331707652658224,
+                "lat": 42.361186999999994,
+                "lon": -71.0715,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:13:00Z",
+                "departure": "2026-11-14T14:13:00Z",
+                "scheduledArrival": "2026-11-14T14:13:00Z",
+                "scheduledDeparture": "2026-11-14T14:13:00Z",
+                "stopCode": "70073",
+                "description": "Charles/MGH - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Charles/MGH Escalator 426 (Lobby to Alewife platform) is unavailable due to maintenance.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Park Street",
+                "stopId": "us-ma-MBTA_70075",
+                "parentId": "us-ma-MBTA_place-pktrm",
+                "importance": 0.0005976136890240014,
+                "lat": 42.356396,
+                "lon": -71.06242,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:15:00Z",
+                "departure": "2026-11-14T14:15:00Z",
+                "scheduledArrival": "2026-11-14T14:15:00Z",
+                "scheduledDeparture": "2026-11-14T14:15:00Z",
+                "stopCode": "70075",
+                "description": "Park Street - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY",
+                  "TRAM"
+                ]
+              },
+              {
+                "name": "Downtown Crossing",
+                "stopId": "us-ma-MBTA_70077",
+                "parentId": "us-ma-MBTA_place-dwnxg",
+                "importance": 0.0006074155680835247,
+                "lat": 42.35466999999999,
+                "lon": -71.059425,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:16:00Z",
+                "departure": "2026-11-14T14:16:00Z",
+                "scheduledArrival": "2026-11-14T14:16:00Z",
+                "scheduledDeparture": "2026-11-14T14:16:00Z",
+                "stopCode": "70077",
+                "description": "Downtown Crossing - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Elevator 869 (Alewife platform to Summer Street Concourse) is unavailable due to maintenance through Tuesday, December 1.",
+                    "descriptionText": "The elevator is closed for major equipment upgrades that will significantly improve the long-term reliability of this elevator.\r\n\r\nTo board a Red Line Train: Proceed to the Orange Line Oak Grove Platform at the opposite end of the concourse. Take elevator 998 or 999 to the Red Line passage, then follow signs to Alewife. \r\n  \r\nTo exit the station: Proceed to the north end of the platform to the Orange - Red Line passage. Take Elevator 998 or 999 to the Orange Line Oak Grove platform. Exit the station using the 101 Arch St Elevator on the Summer St concourse.\r\n"
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Escalator 364 (Oak Grove platform to Franklin Street) is unavailable.",
+                    "descriptionText": "If exiting, travel down the concourse and use the elevator located through the glass doors and to the left of the MBTA's CharlieCard store. This elevator will take you to the lobby of 101 Arch Street, located on Summer Street. If boarding, travel to 101 Arch Street (across from Macy's on Summer Street). Take the elevator in the back left corner of the lobby to the concourse. Take a right and find the Oak Grove-bound platform ahead."
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "c~qxoA~`vqfCgAcVfOooBzEgzArIskCnAwo@fA_\\nCcz@nDsxA~Bcp@|FwfBvCsq@LkDnAsWRwGbAsSlAc`@j@{Op@cVZoF^kHhAgJhC_Nd@oAhBkInCgIpHgShtBk_Dfm@{w@vLwVfJiSnd@ikArIwU`JgTzO_b@tFsNhGgOxq@oeBbFkMbmBgyDzLsS~Nce@rNw`@zLw`@~AoF~PrC",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:17:00Z",
+              "departure": "2026-11-14T14:17:00Z",
+              "scheduledArrival": "2026-11-14T14:17:00Z",
+              "scheduledDeparture": "2026-11-14T14:17:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:18:00Z",
+              "scheduledArrival": "2026-11-14T14:18:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:17:00Z",
+            "endTime": "2026-11-14T14:18:00Z",
+            "scheduledStartTime": "2026-11-14T14:17:00Z",
+            "scheduledEndTime": "2026-11-14T14:18:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 4.0,
+            "legGeometry": {
+              "points": "_h~woAvwzofCw@wA",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "_h~woAvwzofCw@wA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 480,
+        "startTime": "2026-11-14T14:16:00Z",
+        "endTime": "2026-11-14T14:24:00Z",
+        "transfers": 0,
+        "id": "ClMhZmZmZmYuRUApkzoBTYTFUcAyEHVzLW1hLU1CVEFfNzAwNzE5k8mpnWEuRUBBaCJseHrFUcBIoNrh1wZQ3Nrh1wZaBFdBTEtgAXEAAAAAAADwvwqeAQoIUmVkIExpbmUSIjIwMjYxMTE0XzA5OjA0X3VzLW1hLU1CVEFfNzc5MDk5MjkaEHVzLW1hLU1CVEFfNzAwNzEhk8mpnWEuRUApaCJseHrFUcAyEHVzLW1hLU1CVEFfNzAwNzk59KW3PxctRUBBN1MhHonDUcBI3Nrh1wZQxN3h1wZaBlNVQldBWWABaQAAAAAAAPC/cQAAAAAAAAAAClMaEHVzLW1hLU1CVEFfNzAwNzkh9KW3PxctRUApN1MhHonDUcA5vjCZKhgtRUBBT6+UZYjDUcBIxN3h1wZQgN7h1wZaBFdBTEtgAWkAAAAAAAAAAA==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:16:00Z",
+              "scheduledDeparture": "2026-11-14T14:16:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:17:00Z",
+              "scheduledArrival": "2026-11-14T14:17:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:16:00Z",
+            "endTime": "2026-11-14T14:17:00Z",
+            "scheduledStartTime": "2026-11-14T14:16:00Z",
+            "scheduledEndTime": "2026-11-14T14:17:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 51.0,
+            "legGeometry": {
+              "points": "aarxoAlgwqfCvAo`@L{C",
+              "precision": 6,
+              "length": 3
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 51.0,
+                "fromLevel": -1.0,
+                "toLevel": -1.0,
+                "osmWay": 236626991,
+                "polyline": {
+                  "points": "aarxoAlgwqfCvAo`@L{C",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Kendall/MIT (Ashmont/Braintree)",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70071",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362354,
+              "lon": -71.0856,
+              "level": -1.0,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:17:00Z",
+              "scheduledDeparture": "2026-11-14T14:17:00Z",
+              "stopCode": "70071",
+              "description": "Kendall/MIT - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:23:00Z",
+              "scheduledArrival": "2026-11-14T14:23:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "duration": 360,
+            "startTime": "2026-11-14T14:17:00Z",
+            "endTime": "2026-11-14T14:23:00Z",
+            "scheduledStartTime": "2026-11-14T14:17:00Z",
+            "scheduledEndTime": "2026-11-14T14:23:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Braintree",
+            "tripFrom": {
+              "name": "Alewife",
+              "stopId": "us-ma-MBTA_70061",
+              "parentId": "us-ma-MBTA_place-alfcl",
+              "importance": 0.00028211588505655527,
+              "lat": 42.396150000000006,
+              "lon": -71.1407,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T14:04:00Z",
+              "scheduledDeparture": "2026-11-14T14:04:00Z",
+              "stopCode": "70061",
+              "description": "Alewife - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 353 (Main concourse to busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 351 (Main concourse to platform) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Braintree",
+              "stopId": "us-ma-MBTA_70105",
+              "parentId": "us-ma-MBTA_place-brntn",
+              "importance": 0.00013536632468458265,
+              "lat": 42.207423999999996,
+              "lon": -71.00165000000001,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:48:00Z",
+              "scheduledArrival": "2026-11-14T14:48:00Z",
+              "stopCode": "70105",
+              "description": "Braintree - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Braintree Escalator 334 (Red Line platform to paid lobby) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "UNKNOWN_CAUSE",
+                  "causeDetail": "UNKNOWN_CAUSE",
+                  "effect": "OTHER_EFFECT",
+                  "effectDetail": "NOTICE",
+                  "url": "http://www.mbta.com/SpotHeroBraintree",
+                  "headerText": "Braintree Station notice: Premium parking is available at this location. You can buy premium passes and permits using SpotHero.",
+                  "descriptionText": "Affected stations:\r\nBraintree"
+                }
+              ],
+              "modes": [
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Red",
+            "routeUrl": "https://www.mbta.com/schedules/Red",
+            "directionId": "0",
+            "routeColor": "da291c",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_09:04_us-ma-MBTA_77909929",
+            "routeShortName": "",
+            "routeLongName": "Red Line",
+            "tripShortName": "",
+            "displayName": "Red Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:308582:308599",
+            "intermediateStops": [
+              {
+                "name": "Charles/MGH",
+                "stopId": "us-ma-MBTA_70073",
+                "parentId": "us-ma-MBTA_place-chmnl",
+                "importance": 0.0005331707652658224,
+                "lat": 42.361186999999994,
+                "lon": -71.0715,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:19:00Z",
+                "departure": "2026-11-14T14:19:00Z",
+                "scheduledArrival": "2026-11-14T14:19:00Z",
+                "scheduledDeparture": "2026-11-14T14:19:00Z",
+                "stopCode": "70073",
+                "description": "Charles/MGH - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Charles/MGH Escalator 426 (Lobby to Alewife platform) is unavailable due to maintenance.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Park Street",
+                "stopId": "us-ma-MBTA_70075",
+                "parentId": "us-ma-MBTA_place-pktrm",
+                "importance": 0.0005976136890240014,
+                "lat": 42.356396,
+                "lon": -71.06242,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:21:00Z",
+                "departure": "2026-11-14T14:21:00Z",
+                "scheduledArrival": "2026-11-14T14:21:00Z",
+                "scheduledDeparture": "2026-11-14T14:21:00Z",
+                "stopCode": "70075",
+                "description": "Park Street - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY",
+                  "TRAM"
+                ]
+              },
+              {
+                "name": "Downtown Crossing",
+                "stopId": "us-ma-MBTA_70077",
+                "parentId": "us-ma-MBTA_place-dwnxg",
+                "importance": 0.0006074155680835247,
+                "lat": 42.35466999999999,
+                "lon": -71.059425,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T14:22:00Z",
+                "departure": "2026-11-14T14:22:00Z",
+                "scheduledArrival": "2026-11-14T14:22:00Z",
+                "scheduledDeparture": "2026-11-14T14:22:00Z",
+                "stopCode": "70077",
+                "description": "Downtown Crossing - Red Line - Ashmont/Braintree",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Elevator 869 (Alewife platform to Summer Street Concourse) is unavailable due to maintenance through Tuesday, December 1.",
+                    "descriptionText": "The elevator is closed for major equipment upgrades that will significantly improve the long-term reliability of this elevator.\r\n\r\nTo board a Red Line Train: Proceed to the Orange Line Oak Grove Platform at the opposite end of the concourse. Take elevator 998 or 999 to the Red Line passage, then follow signs to Alewife. \r\n  \r\nTo exit the station: Proceed to the north end of the platform to the Orange - Red Line passage. Take Elevator 998 or 999 to the Orange Line Oak Grove platform. Exit the station using the 101 Arch St Elevator on the Summer St concourse.\r\n"
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Escalator 364 (Oak Grove platform to Franklin Street) is unavailable.",
+                    "descriptionText": "If exiting, travel down the concourse and use the elevator located through the glass doors and to the left of the MBTA's CharlieCard store. This elevator will take you to the lobby of 101 Arch Street, located on Summer Street. If boarding, travel to 101 Arch Street (across from Macy's on Summer Street). Take the elevator in the back left corner of the lobby to the concourse. Take a right and find the Oak Grove-bound platform ahead."
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "c~qxoA~`vqfCgAcVfOooBzEgzArIskCnAwo@fA_\\nCcz@nDsxA~Bcp@|FwfBvCsq@LkDnAsWRwGbAsSlAc`@j@{Op@cVZoF^kHhAgJhC_Nd@oAhBkInCgIpHgShtBk_Dfm@{w@vLwVfJiSnd@ikArIwU`JgTzO_b@tFsNhGgOxq@oeBbFkMbmBgyDzLsS~Nce@rNw`@zLw`@~AoF~PrC",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70079",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:23:00Z",
+              "departure": "2026-11-14T14:23:00Z",
+              "scheduledArrival": "2026-11-14T14:23:00Z",
+              "scheduledDeparture": "2026-11-14T14:23:00Z",
+              "stopCode": "70079",
+              "description": "South Station - Red Line - Ashmont/Braintree",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T14:24:00Z",
+              "scheduledArrival": "2026-11-14T14:24:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T14:23:00Z",
+            "endTime": "2026-11-14T14:24:00Z",
+            "scheduledStartTime": "2026-11-14T14:23:00Z",
+            "scheduledEndTime": "2026-11-14T14:24:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 4.0,
+            "legGeometry": {
+              "points": "_h~woAvwzofCw@wA",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "_h~woAvwzofCw@wA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "previousPageCursor": "EARLIER|1794664800",
+    "nextPageCursor": "LATER|1794665820"
+  }
+}

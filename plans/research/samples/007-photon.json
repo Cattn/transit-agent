@@ -1,0 +1,99 @@
+{
+  "verification": {
+    "requestUrl": "https://photon.komoot.io/api/?q=Kendall%20MIT&lat=42.36&lon=-71.09&limit=3",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:52:52.771147+00:00",
+    "credentialsUsed": false,
+    "removedFields": [],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "osm_type": "N",
+          "osm_id": 5325254494,
+          "osm_key": "railway",
+          "osm_value": "station",
+          "type": "house",
+          "housenumber": "300",
+          "name": "Kendall/MIT",
+          "street": "Main Street",
+          "district": "MIT",
+          "city": "Cambridge",
+          "county": "Middlesex",
+          "state": "MA",
+          "country": "United States",
+          "postcode": "02142",
+          "countrycode": "US"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -71.0857239,
+            42.3624178
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "osm_type": "N",
+          "osm_id": 13130783050,
+          "osm_key": "place",
+          "osm_value": "locality",
+          "type": "locality",
+          "name": "Kendall Square",
+          "district": "MIT",
+          "city": "Cambridge",
+          "county": "Middlesex",
+          "state": "Massachusetts",
+          "country": "United States",
+          "postcode": "02142",
+          "countrycode": "US"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -71.0876102,
+            42.362611
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "osm_type": "R",
+          "osm_id": 13440085,
+          "osm_key": "railway",
+          "osm_value": "platform",
+          "type": "house",
+          "name": "Kendall/MIT (Alewife)",
+          "street": "Kendall Plaza",
+          "district": "MIT",
+          "city": "Cambridge",
+          "county": "Middlesex",
+          "state": "Massachusetts",
+          "country": "United States",
+          "postcode": "02142",
+          "countrycode": "US",
+          "extent": [
+            -71.0865023,
+            42.3625237,
+            -71.084905,
+            42.3623576
+          ]
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -71.0855646,
+            42.3624363
+          ]
+        }
+      }
+    ]
+  }
+}

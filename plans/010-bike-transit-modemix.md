@@ -4,14 +4,14 @@
 > Honor STOP conditions; update the status row when done.
 >
 > **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/providers apps/server/src/agent/tools.ts`
-> Reconciled 2026-11-14: plan 007 has **not** landed. An empty diff is expected. If this prints anything, compare Current state. If D2 ≠ OTP when you start the build steps, read the notes marked "(non-OTP)".
+> Reconciled 2026-11-14: plan 031 has **not** landed. An empty diff is expected. If this prints anything, compare Current state. If D2 ≠ OTP when you start the build steps, read the notes marked "(non-OTP)".
 
 ## Status
 
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: plans/007-transit-provider-spike-and-integration.md
+- **Depends on**: plans/031-transitous-routing.md
 - **Category**: direction
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/14
@@ -19,10 +19,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Later.** Needs #11.
+- **Status:** ⏳ **Later.** Needs #57.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
-- **Waiting on:** #11 (research step: nothing)
+- **Waiting on:** #57 (research step: nothing)
 
 **Open questions** (answer by number in a comment on #14):
 
@@ -52,7 +52,7 @@ make it faster (see modeMix)."* Three distinct trip shapes matter:
 ## Current state
 
 - Contract has modes `bike` and `bikeshare`, `vehicles.ownsBike`, `constraints.maxBikeMinutes`, `preferences.activeTravel`, and `Place.kind: 'bikeDock'` (`packages/shared/src/domain/modes.ts`, `trip-draft.ts`, `places.ts`).
-- `apps/server/src/providers/fixture.ts` emits a `bike-rail` option (`OptionKey`). There is no `gbfs.ts` or `bike-rules.ts`. The real provider (007) has not landed. `apps/server/src/agent/tools.ts` exists (plan 006) and builds ADK `FunctionTool`s such as `find_place`; add the Step 6 tool next to them.
+- `apps/server/src/providers/fixture.ts` emits a `bike-rail` option (`OptionKey`). There is no `gbfs.ts` or `bike-rules.ts`. The real provider (031) has not landed. `apps/server/src/agent/tools.ts` exists (plan 006) and builds ADK `FunctionTool`s such as `find_place`; add the Step 6 tool next to them.
 
 ## Steps
 
@@ -70,7 +70,7 @@ A typed table: `{ agency, routePattern, allowed: 'always' | 'offPeak' | 'never' 
 
 ### Step 4: Mode-mix generation
 
-- **(OTP)** Request the extra OTP mode combinations: bike-to-transit (park & ride), rental, and bike-with-transit. Map the results via the 007 mapper.
+- **(OTP)** Request the extra OTP mode combinations: bike-to-transit (park & ride), rental, and bike-with-transit. Map the results via the 031 mapper.
 - **(non-OTP)** Post-process: for each transit itinerary, try replacing the first and/or last walk leg longer than 8 min with a bike leg (bike speed 250 m/min, with a geometry request to the bike router). Keep the result if it saves ≥ 4 min. Add bikeshare cost and dock checks.
 - Either way: bikeshare legs must have a dock with bikes at the start and a dock with free docks at the end. Otherwise add a risk reason ("Only 1 bike left at Kendall dock (live)").
 

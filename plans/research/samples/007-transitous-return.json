@@ -1,0 +1,3773 @@
+{
+  "verification": {
+    "requestUrl": "https://api.transitous.org/api/v6/plan?fromPlace=42.3523,-71.0552&toPlace=42.3625,-71.0862&time=2026-11-15T08%3A00%3A00Z&arriveBy=true&numItineraries=3",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:56:03.890481+00:00",
+    "credentialsUsed": false,
+    "removedFields": [
+      "debugOutput"
+    ],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "requestParameters": {},
+    "from": {
+      "name": "START",
+      "lat": 42.3523,
+      "lon": -71.0552,
+      "vertexType": "NORMAL"
+    },
+    "to": {
+      "name": "END",
+      "lat": 42.3625,
+      "lon": -71.0862,
+      "vertexType": "NORMAL"
+    },
+    "direct": [],
+    "itineraries": [
+      {
+        "duration": 600,
+        "startTime": "2026-11-15T06:33:00Z",
+        "endTime": "2026-11-15T06:43:00Z",
+        "transfers": 0,
+        "id": "ClMhvjCZKhgtRUApT6+UZYjDUcAyEHVzLW1hLU1CVEFfNzAwODA59KW3PxctRUBBN1MhHonDUcBInKTl1wZQ2KTl1wZaBFdBTEtgAXEAAAAAAAAAAAqVAQoIUmVkIExpbmUSIjIwMjYxMTE0XzI1OjA5X3VzLW1hLU1CVEFfNzc5MTAwMTEaEHVzLW1hLU1CVEFfNzAwODAh9KW3PxctRUApN1MhHonDUcAyEHVzLW1hLU1CVEFfNzAwNzI5r3rAPGQuRUBB965BX3rFUcBI2KTl1wZQ/Kfl1wZaBlNVQldBWWABaQAAAAAAAAAACkoaEHVzLW1hLU1CVEFfNzAwNzIhr3rAPGQuRUAp965BX3rFUcA5ZmZmZmYuRUBBkzoBTYTFUcBI/Kfl1wZQ9Kjl1wZaBFdBTEtgAQ==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:33:00Z",
+              "scheduledDeparture": "2026-11-15T06:33:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70080",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:34:00Z",
+              "scheduledArrival": "2026-11-15T06:34:00Z",
+              "stopCode": "70080",
+              "description": "South Station - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-15T06:33:00Z",
+            "endTime": "2026-11-15T06:34:00Z",
+            "scheduledStartTime": "2026-11-15T06:33:00Z",
+            "scheduledEndTime": "2026-11-15T06:34:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 4.0,
+            "legGeometry": {
+              "points": "wi~woA~tzofCv@vA",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "wi~woA~tzofCv@vA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70080",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:34:00Z",
+              "scheduledDeparture": "2026-11-15T06:34:00Z",
+              "stopCode": "70080",
+              "description": "South Station - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70072",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362434,
+              "lon": -71.085594,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:41:00Z",
+              "scheduledArrival": "2026-11-15T06:41:00Z",
+              "stopCode": "70072",
+              "description": "Kendall/MIT - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 420,
+            "startTime": "2026-11-15T06:34:00Z",
+            "endTime": "2026-11-15T06:41:00Z",
+            "scheduledStartTime": "2026-11-15T06:34:00Z",
+            "scheduledEndTime": "2026-11-15T06:41:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Alewife",
+            "tripFrom": {
+              "name": "Braintree",
+              "stopId": "us-ma-MBTA_70105",
+              "parentId": "us-ma-MBTA_place-brntn",
+              "importance": 0.00013536632468458265,
+              "lat": 42.207423999999996,
+              "lon": -71.00165000000001,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:09:00Z",
+              "scheduledDeparture": "2026-11-15T06:09:00Z",
+              "stopCode": "70105",
+              "description": "Braintree - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T09:20:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Braintree Escalator 334 (Red Line platform to paid lobby) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T19:03:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "UNKNOWN_CAUSE",
+                  "causeDetail": "UNKNOWN_CAUSE",
+                  "effect": "OTHER_EFFECT",
+                  "effectDetail": "NOTICE",
+                  "url": "http://www.mbta.com/SpotHeroBraintree",
+                  "headerText": "Braintree Station notice: Premium parking is available at this location. You can buy premium passes and permits using SpotHero.",
+                  "descriptionText": "Affected stations:\r\nBraintree"
+                }
+              ],
+              "modes": [
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Alewife",
+              "stopId": "us-ma-MBTA_70061",
+              "parentId": "us-ma-MBTA_place-alfcl",
+              "importance": 0.00028211588505655527,
+              "lat": 42.396150000000006,
+              "lon": -71.1407,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:55:00Z",
+              "scheduledArrival": "2026-11-15T06:55:00Z",
+              "stopCode": "70061",
+              "description": "Alewife - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 353 (Main concourse to busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 351 (Main concourse to platform) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Red",
+            "routeUrl": "https://www.mbta.com/schedules/Red",
+            "directionId": "1",
+            "routeColor": "da291c",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_25:09_us-ma-MBTA_77910011",
+            "routeShortName": "",
+            "routeLongName": "Red Line",
+            "tripShortName": "",
+            "displayName": "Red Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:308618:308635",
+            "intermediateStops": [
+              {
+                "name": "Downtown Crossing",
+                "stopId": "us-ma-MBTA_70078",
+                "parentId": "us-ma-MBTA_place-dwnxg",
+                "importance": 0.0006074155680835247,
+                "lat": 42.35476299999999,
+                "lon": -71.05936999999999,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:36:00Z",
+                "departure": "2026-11-15T06:36:00Z",
+                "scheduledArrival": "2026-11-15T06:36:00Z",
+                "scheduledDeparture": "2026-11-15T06:36:00Z",
+                "stopCode": "70078",
+                "description": "Downtown Crossing - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Elevator 869 (Alewife platform to Summer Street Concourse) is unavailable due to maintenance through Tuesday, December 1.",
+                    "descriptionText": "The elevator is closed for major equipment upgrades that will significantly improve the long-term reliability of this elevator.\r\n\r\nTo board a Red Line Train: Proceed to the Orange Line Oak Grove Platform at the opposite end of the concourse. Take elevator 998 or 999 to the Red Line passage, then follow signs to Alewife. \r\n  \r\nTo exit the station: Proceed to the north end of the platform to the Orange - Red Line passage. Take Elevator 998 or 999 to the Orange Line Oak Grove platform. Exit the station using the 101 Arch St Elevator on the Summer St concourse.\r\n"
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Escalator 364 (Oak Grove platform to Franklin Street) is unavailable.",
+                    "descriptionText": "If exiting, travel down the concourse and use the elevator located through the glass doors and to the left of the MBTA's CharlieCard store. This elevator will take you to the lobby of 101 Arch Street, located on Summer Street. If boarding, travel to 101 Arch Street (across from Macy's on Summer Street). Take the elevator in the back left corner of the lobby to the concourse. Take a right and find the Oak Grove-bound platform ahead."
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Park Street",
+                "stopId": "us-ma-MBTA_70076",
+                "parentId": "us-ma-MBTA_place-pktrm",
+                "importance": 0.0005976136890240014,
+                "lat": 42.356396,
+                "lon": -71.06242,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:38:00Z",
+                "departure": "2026-11-15T06:38:00Z",
+                "scheduledArrival": "2026-11-15T06:38:00Z",
+                "scheduledDeparture": "2026-11-15T06:38:00Z",
+                "stopCode": "70076",
+                "description": "Park Street - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY",
+                  "TRAM"
+                ]
+              },
+              {
+                "name": "Charles/MGH",
+                "stopId": "us-ma-MBTA_70074",
+                "parentId": "us-ma-MBTA_place-chmnl",
+                "importance": 0.0005331707652658224,
+                "lat": 42.361262999999994,
+                "lon": -71.0716,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:39:00Z",
+                "departure": "2026-11-15T06:39:00Z",
+                "scheduledArrival": "2026-11-15T06:39:00Z",
+                "scheduledDeparture": "2026-11-15T06:39:00Z",
+                "stopCode": "70074",
+                "description": "Charles/MGH - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Charles/MGH Escalator 426 (Lobby to Alewife platform) is unavailable due to maintenance.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "_h~woAvwzofC_QsCcBbGwLb`@sNv`@_Obe@{LrScmBfyD{EvLyq@neBqGzOuFrN{O~a@aJfTsIvUod@hkAgJhSwLvVgm@zw@itBj_DqHfSoCfIiBjIe@nAiC~MiAfJ_@jH[nFq@bVk@zOmAb`@cAfTSbGoArWMjDwCrq@}FvfB_Cbp@oDrxAoCbz@gA~[oAvo@sIrkC{EfzAgOnoBwAvU",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70072",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362434,
+              "lon": -71.085594,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:41:00Z",
+              "departure": "2026-11-15T06:41:00Z",
+              "scheduledArrival": "2026-11-15T06:41:00Z",
+              "scheduledDeparture": "2026-11-15T06:41:00Z",
+              "stopCode": "70072",
+              "description": "Kendall/MIT - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:43:00Z",
+              "scheduledArrival": "2026-11-15T06:43:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 120,
+            "startTime": "2026-11-15T06:41:00Z",
+            "endTime": "2026-11-15T06:43:00Z",
+            "scheduledStartTime": "2026-11-15T06:41:00Z",
+            "scheduledEndTime": "2026-11-15T06:43:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 102.0,
+            "legGeometry": {
+              "points": "kbrxoAv`vqfCEdAmAf`@Cp@KtCe@|MaAGVuIDaD??@M@M???O@O??@_@???A",
+              "precision": 6,
+              "length": 19
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 99.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 9333051375,
+                "polyline": {
+                  "points": "kbrxoAv`vqfCEdAmAf`@Cp@KtCe@|MaAGVuIDaD",
+                  "precision": 6,
+                  "length": 9
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9333051375,
+                "toOsmNode": 9333051378,
+                "polyline": {
+                  "points": "ygrxoAjiwqfC@M@M",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9333051378,
+                "toOsmNode": 9264077717,
+                "polyline": {
+                  "points": "ugrxoAnhwqfC?O@O",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9264077717,
+                "toOsmNode": 9264077618,
+                "polyline": {
+                  "points": "sgrxoAngwqfC@_@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 9264077618,
+                "polyline": {
+                  "points": "qgrxoAnfwqfC?A",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 600,
+        "startTime": "2026-11-15T06:43:00Z",
+        "endTime": "2026-11-15T06:53:00Z",
+        "transfers": 0,
+        "id": "ClMhvjCZKhgtRUApT6+UZYjDUcAyEHVzLW1hLU1CVEFfNzAwODA59KW3PxctRUBBN1MhHonDUcBI9Kjl1wZQsKnl1wZaBFdBTEtgAXEAAAAAAAAAAAqVAQoIUmVkIExpbmUSIjIwMjYxMTE0XzI1OjI5X3VzLW1hLU1CVEFfNzc5MTAwMDcaEHVzLW1hLU1CVEFfNzAwODAh9KW3PxctRUApN1MhHonDUcAyEHVzLW1hLU1CVEFfNzAwNzI5r3rAPGQuRUBB965BX3rFUcBIsKnl1wZQ1Kzl1wZaBlNVQldBWWABaQAAAAAAAAAACkoaEHVzLW1hLU1CVEFfNzAwNzIhr3rAPGQuRUAp965BX3rFUcA5ZmZmZmYuRUBBkzoBTYTFUcBI1Kzl1wZQzK3l1wZaBFdBTEtgAQ==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:43:00Z",
+              "scheduledDeparture": "2026-11-15T06:43:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70080",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:44:00Z",
+              "scheduledArrival": "2026-11-15T06:44:00Z",
+              "stopCode": "70080",
+              "description": "South Station - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-15T06:43:00Z",
+            "endTime": "2026-11-15T06:44:00Z",
+            "scheduledStartTime": "2026-11-15T06:43:00Z",
+            "scheduledEndTime": "2026-11-15T06:44:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 4.0,
+            "legGeometry": {
+              "points": "wi~woA~tzofCv@vA",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "wi~woA~tzofCv@vA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "South Station",
+              "stopId": "us-ma-MBTA_70080",
+              "parentId": "us-ma-MBTA_place-sstat",
+              "importance": 0.0032826310489326715,
+              "lat": 42.352272,
+              "lon": -71.055244,
+              "level": 0.0,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:44:00Z",
+              "scheduledDeparture": "2026-11-15T06:44:00Z",
+              "stopCode": "70080",
+              "description": "South Station - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-09-01T17:21:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "South Station Escalator 388 (Lobby to CSA area) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "COACH",
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70072",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362434,
+              "lon": -71.085594,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:51:00Z",
+              "scheduledArrival": "2026-11-15T06:51:00Z",
+              "stopCode": "70072",
+              "description": "Kendall/MIT - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 420,
+            "startTime": "2026-11-15T06:44:00Z",
+            "endTime": "2026-11-15T06:51:00Z",
+            "scheduledStartTime": "2026-11-15T06:44:00Z",
+            "scheduledEndTime": "2026-11-15T06:51:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Alewife",
+            "tripFrom": {
+              "name": "Ashmont",
+              "stopId": "us-ma-MBTA_70094",
+              "parentId": "us-ma-MBTA_place-asmnl",
+              "importance": 0.0005082798888906837,
+              "lat": 42.284530000000004,
+              "lon": -71.06372999999999,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:29:00Z",
+              "scheduledDeparture": "2026-11-15T06:29:00Z",
+              "stopCode": "70094",
+              "description": "Ashmont - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-26T12:59:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-26T12:59:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Ashmont Escalator 438 (Ashmont platform to Mattapan Line, busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "TRAM",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Alewife",
+              "stopId": "us-ma-MBTA_70061",
+              "parentId": "us-ma-MBTA_place-alfcl",
+              "importance": 0.00028211588505655527,
+              "lat": 42.396150000000006,
+              "lon": -71.1407,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:05:00Z",
+              "scheduledArrival": "2026-11-15T07:05:00Z",
+              "stopCode": "70061",
+              "description": "Alewife - Red Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T01:48:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 353 (Main concourse to busway) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-05-12T14:55:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Alewife Escalator 351 (Main concourse to platform) is unavailable due to maintenance.",
+                  "descriptionText": ""
+                }
+              ],
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Red",
+            "routeUrl": "https://www.mbta.com/schedules/Red",
+            "directionId": "1",
+            "routeColor": "da291c",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_25:29_us-ma-MBTA_77910007",
+            "routeShortName": "",
+            "routeLongName": "Red Line",
+            "tripShortName": "",
+            "displayName": "Red Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:271513:271529",
+            "intermediateStops": [
+              {
+                "name": "Downtown Crossing",
+                "stopId": "us-ma-MBTA_70078",
+                "parentId": "us-ma-MBTA_place-dwnxg",
+                "importance": 0.0006074155680835247,
+                "lat": 42.35476299999999,
+                "lon": -71.05936999999999,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:46:00Z",
+                "departure": "2026-11-15T06:46:00Z",
+                "scheduledArrival": "2026-11-15T06:46:00Z",
+                "scheduledDeparture": "2026-11-15T06:46:00Z",
+                "stopCode": "70078",
+                "description": "Downtown Crossing - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-09-22T07:00:00Z",
+                        "end": "2026-12-02T08:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Elevator 869 (Alewife platform to Summer Street Concourse) is unavailable due to maintenance through Tuesday, December 1.",
+                    "descriptionText": "The elevator is closed for major equipment upgrades that will significantly improve the long-term reliability of this elevator.\r\n\r\nTo board a Red Line Train: Proceed to the Orange Line Oak Grove Platform at the opposite end of the concourse. Take elevator 998 or 999 to the Red Line passage, then follow signs to Alewife. \r\n  \r\nTo exit the station: Proceed to the north end of the platform to the Orange - Red Line passage. Take Elevator 998 or 999 to the Orange Line Oak Grove platform. Exit the station using the 101 Arch St Elevator on the Summer St concourse.\r\n"
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-30T10:27:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Downtown Crossing Escalator 364 (Oak Grove platform to Franklin Street) is unavailable.",
+                    "descriptionText": "If exiting, travel down the concourse and use the elevator located through the glass doors and to the left of the MBTA's CharlieCard store. This elevator will take you to the lobby of 101 Arch Street, located on Summer Street. If boarding, travel to 101 Arch Street (across from Macy's on Summer Street). Take the elevator in the back left corner of the lobby to the concourse. Take a right and find the Oak Grove-bound platform ahead."
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Park Street",
+                "stopId": "us-ma-MBTA_70076",
+                "parentId": "us-ma-MBTA_place-pktrm",
+                "importance": 0.0005976136890240014,
+                "lat": 42.356396,
+                "lon": -71.06242,
+                "level": -2.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:47:00Z",
+                "departure": "2026-11-15T06:47:00Z",
+                "scheduledArrival": "2026-11-15T06:47:00Z",
+                "scheduledDeparture": "2026-11-15T06:47:00Z",
+                "stopCode": "70076",
+                "description": "Park Street - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY",
+                  "TRAM"
+                ]
+              },
+              {
+                "name": "Charles/MGH",
+                "stopId": "us-ma-MBTA_70074",
+                "parentId": "us-ma-MBTA_place-chmnl",
+                "importance": 0.0005331707652658224,
+                "lat": 42.361262999999994,
+                "lon": -71.0716,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T06:49:00Z",
+                "departure": "2026-11-15T06:49:00Z",
+                "scheduledArrival": "2026-11-15T06:49:00Z",
+                "scheduledDeparture": "2026-11-15T06:49:00Z",
+                "stopCode": "70074",
+                "description": "Charles/MGH - Red Line - Alewife",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-24T11:46:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Charles/MGH Escalator 426 (Lobby to Alewife platform) is unavailable due to maintenance.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "_h~woAvwzofC_QsCcBbGwLb`@sNv`@_Obe@{LrScmBfyD{EvLyq@neBqGzOuFrN{O~a@aJfTsIvUod@hkAgJhSwLvVgm@zw@itBj_DqHfSoCfIiBjIe@nAiC~MiAfJ_@jH[nFq@bVk@zOmAb`@cAfTSbGoArWMjDwCrq@}FvfB_Cbp@oDrxAoCbz@gA~[oAvo@sIrkC{EfzAgOnoBwAvU",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Kendall/MIT",
+              "stopId": "us-ma-MBTA_70072",
+              "parentId": "us-ma-MBTA_place-knncl",
+              "importance": 0.0005331707652658224,
+              "lat": 42.362434,
+              "lon": -71.085594,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:51:00Z",
+              "departure": "2026-11-15T06:51:00Z",
+              "scheduledArrival": "2026-11-15T06:51:00Z",
+              "scheduledDeparture": "2026-11-15T06:51:00Z",
+              "stopCode": "70072",
+              "description": "Kendall/MIT - Red Line - Alewife",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T06:53:00Z",
+              "scheduledArrival": "2026-11-15T06:53:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 120,
+            "startTime": "2026-11-15T06:51:00Z",
+            "endTime": "2026-11-15T06:53:00Z",
+            "scheduledStartTime": "2026-11-15T06:51:00Z",
+            "scheduledEndTime": "2026-11-15T06:53:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 102.0,
+            "legGeometry": {
+              "points": "kbrxoAv`vqfCEdAmAf`@Cp@KtCe@|MaAGVuIDaD??@M@M???O@O??@_@???A",
+              "precision": 6,
+              "length": 19
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 99.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 9333051375,
+                "polyline": {
+                  "points": "kbrxoAv`vqfCEdAmAf`@Cp@KtCe@|MaAGVuIDaD",
+                  "precision": 6,
+                  "length": 9
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9333051375,
+                "toOsmNode": 9333051378,
+                "polyline": {
+                  "points": "ygrxoAjiwqfC@M@M",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9333051378,
+                "toOsmNode": 9264077717,
+                "polyline": {
+                  "points": "ugrxoAnhwqfC?O@O",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236626993,
+                "fromOsmNode": 9264077717,
+                "toOsmNode": 9264077618,
+                "polyline": {
+                  "points": "sgrxoAngwqfC@_@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 9264077618,
+                "polyline": {
+                  "points": "qgrxoAnfwqfC?A",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 2280,
+        "startTime": "2026-11-15T06:55:00Z",
+        "endTime": "2026-11-15T07:33:00Z",
+        "transfers": 1,
+        "id": "CkohvjCZKhgtRUApT6+UZYjDUcAyEHVzLW1hLU1CVEFfNzAwMTg5xaaVQiAtRUBBvHSTGATEUcBIxK7l1wZQnLPl1wZaBFdBTEtgAQqPAQoLT3JhbmdlIExpbmUSIjIwMjYxMTE0XzI1OjQ4X3VzLW1hLU1CVEFfNzkzODk1NTYaEHVzLW1hLU1CVEFfNzAwMTghxaaVQiAtRUApvHSTGATEUcAyEHVzLW1hLU1CVEFfNzAwMTI5ZKn1fqMrRUBBnil0XmPFUcBInLPl1wZQyLXl1wZaBlNVQldBWWABCloaEHVzLW1hLU1CVEFfNzAwMTIhZKn1fqMrRUApnil0XmPFUcAyDnVzLW1hLU1CVEFfMTg4Obml1ZC4K0VAQfonuFhRxVHASMi15dcGUMC25dcGWgRXQUxLYAEKfQoBMRIiMjAyNjExMTRfMjY6MDRfdXMtbWEtTUJUQV83OTMwMjAwOBoOdXMtbWEtTUJUQV8xODghuaXVkLgrRUAp+ie4WFHFUcAyDXVzLW1hLU1CVEFfOTc5p+hILv8tRUBBy74rgv/FUcBIuLfl1wZQ3Lrl1wZaA0JVU2ABCkcaDXVzLW1hLU1CVEFfOTchp+hILv8tRUApy74rgv/FUcA5ZmZmZmYuRUBBkzoBTYTFUcBI3Lrl1wZQrMDl1wZaBFdBTEtgAQ==",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.3523,
+              "lon": -71.0552,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:55:00Z",
+              "scheduledDeparture": "2026-11-15T06:55:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Chinatown",
+              "stopId": "us-ma-MBTA_70018",
+              "parentId": "us-ma-MBTA_place-chncl",
+              "importance": 7.424483919749036e-05,
+              "lat": 42.352546999999994,
+              "lon": -71.06275,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:05:00Z",
+              "scheduledArrival": "2026-11-15T07:05:00Z",
+              "stopCode": "70018",
+              "description": "Chinatown - Orange Line - Forest Hills",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 600,
+            "startTime": "2026-11-15T06:55:00Z",
+            "endTime": "2026-11-15T07:05:00Z",
+            "scheduledStartTime": "2026-11-15T06:55:00Z",
+            "scheduledEndTime": "2026-11-15T07:05:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 678.0,
+            "legGeometry": {
+              "points": "wi~woA~tzofCPvA??iKlE??wApG??_AjE??_Gv\\??wErN??yBxC??gCtD??tD`O|EvV??bJxh@??P~B??dBdG??`AfD??GjB??g@`@ML??NnBi@pS]dU}AtZ??_@D??GdC??IbD??EnA??WtM??KpEi@hTCnKVtOv@dU??IxD??AfB??b@T^vHBXeAR??CnB??AnC??N?lAC@b@??|@fWxA`a@??q@xA??f@hE??VxBFd@??aDG",
+              "precision": 6,
+              "length": 82
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 7755494672,
+                "polyline": {
+                  "points": "wi~woA~tzofCPvA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 23.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 831226183,
+                "fromOsmNode": 7755494672,
+                "toOsmNode": 4776915567,
+                "polyline": {
+                  "points": "ei~woAvwzofCiKlE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 12.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619453,
+                "fromOsmNode": 4776915567,
+                "toOsmNode": 61510574,
+                "polyline": {
+                  "points": "ou~woAd~zofCwApG",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 9.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619453,
+                "fromOsmNode": 61510574,
+                "toOsmNode": 4776915870,
+                "polyline": {
+                  "points": "gx~woAvf{ofC_AjE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 42.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1149179313,
+                "fromOsmNode": 4776915870,
+                "toOsmNode": 4776915822,
+                "polyline": {
+                  "points": "gz~woAbm{ofC_Gv\\",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 24.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619457,
+                "fromOsmNode": 4776915822,
+                "toOsmNode": 7675912687,
+                "polyline": {
+                  "points": "gb_xoAzj|ofCwErN",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 9.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619458,
+                "fromOsmNode": 7675912687,
+                "toOsmNode": 4776915839,
+                "polyline": {
+                  "points": "_i_xoAnz|ofCyBxC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 11.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619458,
+                "fromOsmNode": 4776915839,
+                "toOsmNode": 4776915876,
+                "polyline": {
+                  "points": "yl_xoAh_}ofCgCtD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 57.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1030057027,
+                "fromOsmNode": 4776915876,
+                "toOsmNode": 4777491314,
+                "polyline": {
+                  "points": "aq_xoA~d}ofCtD`O|EvV",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 58.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619459,
+                "fromOsmNode": 4777491314,
+                "toOsmNode": 4777491223,
+                "polyline": {
+                  "points": "md_xoAxl~ofCbJxh@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619459,
+                "fromOsmNode": 4777491223,
+                "toOsmNode": 6470503288,
+                "polyline": {
+                  "points": "iy~woArv_pfCP~B",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 12.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 180104514,
+                "fromOsmNode": 6470503288,
+                "toOsmNode": 13653818894,
+                "polyline": {
+                  "points": "wx~woArz_pfCdBdG",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 8.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 180104514,
+                "fromOsmNode": 13653818894,
+                "toOsmNode": 7755494649,
+                "polyline": {
+                  "points": "qu~woAxb`pfC`AfD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619450,
+                "fromOsmNode": 7755494649,
+                "toOsmNode": 7755494655,
+                "polyline": {
+                  "points": "os~woA`h`pfCGjB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619449,
+                "fromOsmNode": 7755494655,
+                "toOsmNode": 7755494654,
+                "polyline": {
+                  "points": "ws~woAlk`pfCg@`@ML",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 98.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666561,
+                "fromOsmNode": 7755494654,
+                "toOsmNode": 7636322270,
+                "polyline": {
+                  "points": "mu~woA|l`pfCNnBi@pS]dU}AtZ",
+                  "precision": 6,
+                  "length": 5
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666561,
+                "fromOsmNode": 7636322270,
+                "toOsmNode": 7755494634,
+                "polyline": {
+                  "points": "cz~woAzvbpfC_@D",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666555,
+                "fromOsmNode": 7755494634,
+                "toOsmNode": 7636322274,
+                "polyline": {
+                  "points": "c{~woA`wbpfCGdC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666555,
+                "fromOsmNode": 7636322274,
+                "toOsmNode": 7636322267,
+                "polyline": {
+                  "points": "k{~woAf{bpfCIbD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666554,
+                "fromOsmNode": 7636322267,
+                "toOsmNode": 7755494631,
+                "polyline": {
+                  "points": "u{~woAj`cpfCEnA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 19.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666554,
+                "fromOsmNode": 7755494631,
+                "toOsmNode": 7636322282,
+                "polyline": {
+                  "points": "{{~woAzbcpfCWtM",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 105.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666554,
+                "fromOsmNode": 7636322282,
+                "toOsmNode": 7636322228,
+                "polyline": {
+                  "points": "s|~woApqcpfCKpEi@hTCnKVtOv@dU",
+                  "precision": 6,
+                  "length": 6
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 8.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666548,
+                "fromOsmNode": 7636322228,
+                "toOsmNode": 7636322233,
+                "polyline": {
+                  "points": "}{~woAx`fpfCIxD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666548,
+                "fromOsmNode": 7636322233,
+                "toOsmNode": 7636322227,
+                "polyline": {
+                  "points": "g|~woArffpfCAfB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 20.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666547,
+                "fromOsmNode": 7636322227,
+                "toOsmNode": 7636322223,
+                "polyline": {
+                  "points": "i|~woAzifpfCb@T^vHBXeAR",
+                  "precision": 6,
+                  "length": 5
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666546,
+                "fromOsmNode": 7636322223,
+                "toOsmNode": 7636322224,
+                "polyline": {
+                  "points": "g|~woAvufpfCCnB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666546,
+                "fromOsmNode": 7636322224,
+                "toOsmNode": 7636322222,
+                "polyline": {
+                  "points": "k|~woAfyfpfCAnC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619422,
+                "fromOsmNode": 7636322222,
+                "toOsmNode": 7636322220,
+                "polyline": {
+                  "points": "m|~woAv}fpfCN?lAC@b@",
+                  "precision": 6,
+                  "length": 4
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 77.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619422,
+                "fromOsmNode": 7636322220,
+                "toOsmNode": 7636322201,
+                "polyline": {
+                  "points": "my~woAv~fpfC|@fWxA`a@",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 817666541,
+                "fromOsmNode": 7636322201,
+                "toOsmNode": 7636322202,
+                "polyline": {
+                  "points": "ut~woA`yhpfCq@xA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 9.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619421,
+                "fromOsmNode": 7636322202,
+                "toOsmNode": 7636322209,
+                "polyline": {
+                  "points": "gv~woAz{hpfCf@hE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 830619421,
+                "fromOsmNode": 7636322209,
+                "toOsmNode": 7636322124,
+                "polyline": {
+                  "points": "_u~woAdbipfCVxBFd@",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 9.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 7636322124,
+                "polyline": {
+                  "points": "_t~woAdgipfCaDG",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "SUBWAY",
+            "from": {
+              "name": "Chinatown",
+              "stopId": "us-ma-MBTA_70018",
+              "parentId": "us-ma-MBTA_place-chncl",
+              "importance": 7.424483919749036e-05,
+              "lat": 42.352546999999994,
+              "lon": -71.06275,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T07:05:00Z",
+              "scheduledDeparture": "2026-11-15T07:05:00Z",
+              "stopCode": "70018",
+              "description": "Chinatown - Orange Line - Forest Hills",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-11-14T06:45:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-11-14T06:45:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "MAINTENANCE",
+                  "causeDetail": "MAINTENANCE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ELEVATOR_CLOSURE",
+                  "headerText": "Chinatown Elevator 922 (Forest Hills platform to Boylston St, Washington St) is unavailable due to maintenance.",
+                  "descriptionText": "To exit, exit the train at Tufts Medical Center, then take an Oak Grove-bound train to Chinatown and use Chinatown Elevator 876. To board, proceed to the Silver Line SL5 bus stop at Washington St and Essex St, and take an SL5 (Downtown) bus to Tufts Medical Center (stay on bus past the Temple Pl stop). Alternatively, if possible, travel 0.2 miles south on Washington St to Tufts Medical Center."
+                }
+              ],
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "Massachusetts Avenue",
+              "stopId": "us-ma-MBTA_70012",
+              "parentId": "us-ma-MBTA_place-masta",
+              "importance": 7.424483919749036e-05,
+              "lat": 42.34092699999999,
+              "lon": -71.08419,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:10:00Z",
+              "scheduledArrival": "2026-11-15T07:10:00Z",
+              "stopCode": "70012",
+              "description": "Massachusetts Avenue - Orange Line - Forest Hills",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "duration": 300,
+            "startTime": "2026-11-15T07:05:00Z",
+            "endTime": "2026-11-15T07:10:00Z",
+            "scheduledStartTime": "2026-11-15T07:05:00Z",
+            "scheduledEndTime": "2026-11-15T07:10:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Forest Hills",
+            "tripFrom": {
+              "name": "Oak Grove",
+              "stopId": "us-ma-MBTA_70036",
+              "parentId": "us-ma-MBTA_place-ogmnl",
+              "importance": 0.00011177908163517714,
+              "lat": 42.437737,
+              "lon": -71.07087999999999,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T06:48:00Z",
+              "scheduledDeparture": "2026-11-15T06:48:00Z",
+              "stopCode": "70036",
+              "description": "Oak Grove - Orange Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "alerts": [
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2024-06-13T13:04:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2024-06-13T13:04:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "UNKNOWN_CAUSE",
+                  "causeDetail": "UNKNOWN_CAUSE",
+                  "effect": "ACCESSIBILITY_ISSUE",
+                  "effectDetail": "ESCALATOR_CLOSURE",
+                  "headerText": "Oak Grove Escalator 105 (Commuter Rail platform to unpaid lobby) is unavailable.",
+                  "descriptionText": ""
+                },
+                {
+                  "communicationPeriod": [
+                    {
+                      "start": "2026-10-07T19:05:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "impactPeriod": [
+                    {
+                      "start": "2026-10-07T19:05:00Z",
+                      "end": "1970-01-01T00:00:00Z"
+                    }
+                  ],
+                  "cause": "UNKNOWN_CAUSE",
+                  "causeDetail": "UNKNOWN_CAUSE",
+                  "effect": "OTHER_EFFECT",
+                  "effectDetail": "NOTICE",
+                  "url": "http://www.mbta.com/SpotHeroOakGrove",
+                  "headerText": "Oak Grove Station notice: Premium parking is available at this location. You can buy premium passes and permits using SpotHero.",
+                  "descriptionText": "Affected stations:\r\nOak Grove"
+                }
+              ],
+              "modes": [
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Forest Hills",
+              "stopId": "us-ma-MBTA_70001",
+              "parentId": "us-ma-MBTA_place-forhl",
+              "importance": 0.00014964105503167957,
+              "lat": 42.300926,
+              "lon": -71.11413,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:20:00Z",
+              "scheduledArrival": "2026-11-15T07:20:00Z",
+              "stopCode": "70001",
+              "description": "Forest Hills - Orange Line",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "REGIONAL_RAIL",
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_Orange",
+            "routeUrl": "https://www.mbta.com/schedules/Orange",
+            "directionId": "0",
+            "routeColor": "ed8b00",
+            "routeTextColor": "ffffff",
+            "routeType": 1,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_25:48_us-ma-MBTA_79389556",
+            "routeShortName": "",
+            "routeLongName": "Orange Line",
+            "tripShortName": "",
+            "displayName": "Orange Line",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:206905:206924",
+            "intermediateStops": [
+              {
+                "name": "Tufts Medical Center",
+                "stopId": "us-ma-MBTA_70016",
+                "parentId": "us-ma-MBTA_place-tumnl",
+                "importance": 7.424483919749036e-05,
+                "lat": 42.34966299999999,
+                "lon": -71.06392000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:06:00Z",
+                "departure": "2026-11-15T07:06:00Z",
+                "scheduledArrival": "2026-11-15T07:06:00Z",
+                "scheduledDeparture": "2026-11-15T07:06:00Z",
+                "stopCode": "70016",
+                "description": "Tufts Medical Center - Orange Line - Forest Hills",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "SUBWAY"
+                ]
+              },
+              {
+                "name": "Back Bay",
+                "stopId": "us-ma-MBTA_70014",
+                "parentId": "us-ma-MBTA_place-bbsta",
+                "importance": 0.0004477804759517312,
+                "lat": 42.34735,
+                "lon": -71.07572999999998,
+                "level": -1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:08:00Z",
+                "departure": "2026-11-15T07:08:00Z",
+                "scheduledArrival": "2026-11-15T07:08:00Z",
+                "scheduledDeparture": "2026-11-15T07:08:00Z",
+                "stopCode": "70014",
+                "description": "Back Bay - Orange Line - Forest Hills",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-10-11T21:40:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-10-11T21:40:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ELEVATOR_CLOSURE",
+                    "headerText": "Back Bay Elevator 854 (Commuter Rail track 2 to lobby) is unavailable.",
+                    "descriptionText": "To exit, exit the train at Ruggles or Forest Hills, then take an Oak Grove-bound train to Back Bay and use Back Bay Elevator 853. To board the Commuter Rail, use Back Bay Elevator 853 to access the Orange Line platform, then take a Forest Hills-bound train to Ruggles or Forest Hills and transfer to the Commuter Rail. Alternatively, board or exit Commuter Rail trains at South Station. Please see station personnel or a train conductor for assistance. In addition, check the Commuter Rail train schedules for train arrival/departure times at Ruggles and Forest Hills by visiting mbta.com/schedules."
+                  }
+                ],
+                "modes": [
+                  "REGIONAL_RAIL",
+                  "SUBWAY",
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "ey~woAzlipfC`@uMbE\\ds@rIjf@~H`GvBbEjClQrSre@nd@hRtC~ZdFbDrDnyApcEvBpJZvG?nK_Dvo@e@|Se@hkAUbvALnj@CrnARzORr]R`WnAtWzBr\\rBzK?RvBfJz@jCnE|IrE~HnPdUj\\je@j^`g@r}A`qB`InKb[ja@xBbBbNbQbc@fh@nu@~_AzOnU|GzJfJ~M`JbM`Pfb@",
+              "precision": 6,
+              "length": 48
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Massachusetts Avenue",
+              "stopId": "us-ma-MBTA_70012",
+              "parentId": "us-ma-MBTA_place-masta",
+              "importance": 7.424483919749036e-05,
+              "lat": 42.34092699999999,
+              "lon": -71.08419,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:10:00Z",
+              "departure": "2026-11-15T07:10:00Z",
+              "scheduledArrival": "2026-11-15T07:10:00Z",
+              "scheduledDeparture": "2026-11-15T07:10:00Z",
+              "stopCode": "70012",
+              "description": "Massachusetts Avenue - Orange Line - Forest Hills",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY"
+              ]
+            },
+            "to": {
+              "name": "Massachusetts Ave @ Massachusetts Ave Station",
+              "stopId": "us-ma-MBTA_188",
+              "importance": 5.981639787933091e-06,
+              "lat": 42.34157,
+              "lon": -71.08309,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:12:00Z",
+              "scheduledArrival": "2026-11-15T07:12:00Z",
+              "stopCode": "188",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 120,
+            "startTime": "2026-11-15T07:10:00Z",
+            "endTime": "2026-11-15T07:12:00Z",
+            "scheduledStartTime": "2026-11-15T07:10:00Z",
+            "scheduledEndTime": "2026-11-15T07:12:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 128.0,
+            "legGeometry": {
+              "points": "uahwoA~fsqfCkUeZ??gFgH??mHaJ{@aA??c@cA??y@gA??mBiC??jC{Eh@}@",
+              "precision": 6,
+              "length": 16
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 53.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 7128853164,
+                "polyline": {
+                  "points": "uahwoA~fsqfCkUeZ",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "STAIRS",
+                "distance": 18.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 220541945,
+                "fromOsmNode": 7128853164,
+                "toOsmNode": 8385882719,
+                "polyline": {
+                  "points": "axhwoAxkrqfCgFgH",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 27.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 902882023,
+                "fromOsmNode": 8385882719,
+                "toOsmNode": 6821190124,
+                "polyline": {
+                  "points": "i_iwoApbrqfCmHaJ{@aA",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1500053487,
+                "fromOsmNode": 6821190124,
+                "toOsmNode": 9930557335,
+                "polyline": {
+                  "points": "sjiwoAluqqfCc@cA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 485286879,
+                "fromOsmNode": 9930557335,
+                "toOsmNode": 1325750549,
+                "polyline": {
+                  "points": "wkiwoAhsqqfCy@gA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 8.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 485286879,
+                "fromOsmNode": 1325750549,
+                "toOsmNode": 61362231,
+                "polyline": {
+                  "points": "qmiwoA`qqqfCmBiC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 15.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 61362231,
+                "polyline": {
+                  "points": "_qiwoAvlqqfCjC{Eh@}@",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "BUS",
+            "from": {
+              "name": "Massachusetts Ave @ Massachusetts Ave Station",
+              "stopId": "us-ma-MBTA_188",
+              "importance": 5.981639787933091e-06,
+              "lat": 42.34157,
+              "lon": -71.08309,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T07:14:00Z",
+              "scheduledDeparture": "2026-11-15T07:14:00Z",
+              "stopCode": "188",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "77 Massachusetts Ave",
+              "stopId": "us-ma-MBTA_97",
+              "importance": 5.981639787933091e-06,
+              "lat": 42.35935,
+              "lon": -71.09372,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:21:00Z",
+              "scheduledArrival": "2026-11-15T07:21:00Z",
+              "stopCode": "97",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 420,
+            "startTime": "2026-11-15T07:14:00Z",
+            "endTime": "2026-11-15T07:21:00Z",
+            "scheduledStartTime": "2026-11-15T07:14:00Z",
+            "scheduledEndTime": "2026-11-15T07:21:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Harvard",
+            "tripFrom": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-15T07:04:00Z",
+              "scheduledDeparture": "2026-11-15T07:04:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Massachusetts Ave opp Holyoke St",
+              "stopId": "us-ma-MBTA_110",
+              "importance": 5.2000386858708225e-06,
+              "lat": 42.373110000000004,
+              "lon": -71.11765000000001,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:33:00Z",
+              "scheduledArrival": "2026-11-15T07:33:00Z",
+              "stopCode": "110",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_1",
+            "routeUrl": "https://www.mbta.com/schedules/1",
+            "directionId": "0",
+            "routeColor": "ffc72c",
+            "routeTextColor": "000000",
+            "routeType": 3,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_26:04_us-ma-MBTA_79302008",
+            "routeShortName": "1",
+            "routeLongName": "Harvard Square - Nubian Station",
+            "tripShortName": "",
+            "displayName": "1",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:1372000:1372023",
+            "intermediateStops": [
+              {
+                "name": "Massachusetts Ave @ St Botolph St",
+                "stopId": "us-ma-MBTA_89",
+                "importance": 3.000245442308369e-06,
+                "lat": 42.342304,
+                "lon": -71.08412000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:14:00Z",
+                "departure": "2026-11-15T07:14:00Z",
+                "scheduledArrival": "2026-11-15T07:14:00Z",
+                "scheduledDeparture": "2026-11-15T07:14:00Z",
+                "stopCode": "89",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Clearway St",
+                "stopId": "us-ma-MBTA_91",
+                "importance": 3.000245442308369e-06,
+                "lat": 42.345330000000004,
+                "lon": -71.08673999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:16:00Z",
+                "departure": "2026-11-15T07:16:00Z",
+                "scheduledArrival": "2026-11-15T07:16:00Z",
+                "scheduledDeparture": "2026-11-15T07:16:00Z",
+                "stopCode": "91",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Newbury St",
+                "stopId": "us-ma-MBTA_93",
+                "importance": 6.500773451989517e-06,
+                "lat": 42.348003,
+                "lon": -71.08803599999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:17:00Z",
+                "departure": "2026-11-15T07:17:00Z",
+                "scheduledArrival": "2026-11-15T07:17:00Z",
+                "scheduledDeparture": "2026-11-15T07:17:00Z",
+                "stopCode": "93",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Beacon St",
+                "stopId": "us-ma-MBTA_95",
+                "importance": 3.000245442308369e-06,
+                "lat": 42.350773,
+                "lon": -71.08932999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-15T07:18:00Z",
+                "departure": "2026-11-15T07:18:00Z",
+                "scheduledArrival": "2026-11-15T07:18:00Z",
+                "scheduledDeparture": "2026-11-15T07:18:00Z",
+                "stopCode": "95",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "ckiwoAbdqqfCfAbBs@fAcBfDsb@ns@}BrD}Znh@oF|J{^dn@gBbBcEvBguA~f@kDnA{VbKsFxBk\\`Mgb@nPwHtC{OxFcWbL_k@rSgFbBmUfJaWvKeAJyUrIoZjMoUrIuWbKqB|@{MxF{DbBey@nZi_DvmAofDbqAgOzFeDnAaOvFeb@bQePzF_PvHuHdEeE`CiMrIgErD}A_D",
+              "precision": 6,
+              "length": 46
+            },
+            "bikesAllowed": true,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "77 Massachusetts Ave",
+              "stopId": "us-ma-MBTA_97",
+              "importance": 5.981639787933091e-06,
+              "lat": 42.35935,
+              "lon": -71.09372,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:21:00Z",
+              "departure": "2026-11-15T07:21:00Z",
+              "scheduledArrival": "2026-11-15T07:21:00Z",
+              "scheduledDeparture": "2026-11-15T07:21:00Z",
+              "stopCode": "97",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.3625,
+              "lon": -71.0862,
+              "tz": "America/New_York",
+              "arrival": "2026-11-15T07:33:00Z",
+              "scheduledArrival": "2026-11-15T07:33:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 720,
+            "startTime": "2026-11-15T07:21:00Z",
+            "endTime": "2026-11-15T07:33:00Z",
+            "scheduledStartTime": "2026-11-15T07:21:00Z",
+            "scheduledEndTime": "2026-11-15T07:33:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 833.0,
+            "legGeometry": {
+              "points": "{clxoAryerfCn@m@f@c@??hFuE??FE`FsD??M[??s@oC??cBkH??{GsY{AqG??cGmWWcA??iD{N??cDoN??S{@gGuW??}AwGyGgY??eAsE??Mi@??e@V??o@\\??gAj@Kc@??e@_C??oE|B??wHc^GS??Qy@??]{A??eCsK??}Hq]??iAsErDsB??h@G??}AqH??yCiM??cDoN??}D{P??u@_C??g@yB??S{@??_BsB??yAuB??]_B??g@}B??Ka@??uDwO??eCcKJyE??sCgM??qE{R??u@gD??aDkN??AeA??wOoA??sAK??cAG??GbB??CeBgZoBo@E??sEU??}BM",
+              "precision": 6,
+              "length": 116
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 9279372528,
+                "polyline": {
+                  "points": "{clxoAryerfCn@m@f@c@",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 16.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 604752667,
+                "fromOsmNode": 9279372528,
+                "toOsmNode": 9279372522,
+                "polyline": {
+                  "points": "calxoA`werfChFuE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 15.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 604752667,
+                "fromOsmNode": 9279372522,
+                "toOsmNode": 5737576900,
+                "polyline": {
+                  "points": "yykxoAjperfCFE`FsD",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1370916131,
+                "fromOsmNode": 5737576900,
+                "toOsmNode": 2507563237,
+                "polyline": {
+                  "points": "orkxoApjerfCM[",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "STAIRS",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 243332876,
+                "fromOsmNode": 2507563237,
+                "toOsmNode": 981493472,
+                "polyline": {
+                  "points": "}rkxoAtierfCs@oC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 14.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 981493472,
+                "toOsmNode": 2507563210,
+                "polyline": {
+                  "points": "qtkxoAdeerfCcBkH",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 51.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 2507563210,
+                "toOsmNode": 2507563258,
+                "polyline": {
+                  "points": "uwkxoAx{drfC{GsY{AqG",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 38.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 2507563258,
+                "toOsmNode": 4329906115,
+                "polyline": {
+                  "points": "mclxoArxcrfCcGmWWcA",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 23.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 4329906115,
+                "toOsmNode": 4035493186,
+                "polyline": {
+                  "points": "illxoA`~brfCiD{N",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 22.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 4035493186,
+                "toOsmNode": 11769708449,
+                "polyline": {
+                  "points": "sqlxoAdnbrfCcDoN",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 38.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 11769708449,
+                "toOsmNode": 2507563216,
+                "polyline": {
+                  "points": "wvlxoAt~arfCS{@gGuW",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 51.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 2507563216,
+                "toOsmNode": 2507563275,
+                "polyline": {
+                  "points": "s_mxoAbdarfC}AwGyGgY",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 10.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 84473998,
+                "fromOsmNode": 2507563275,
+                "toOsmNode": 2447124026,
+                "polyline": {
+                  "points": "kkmxoAba`rfCeAsE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Infinite Corridor",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236725382,
+                "fromOsmNode": 2447124026,
+                "toOsmNode": 4329135165,
+                "polyline": {
+                  "points": "qmmxoAnz_rfCMi@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 236725382,
+                "fromOsmNode": 4329135165,
+                "toOsmNode": 4329135166,
+                "polyline": {
+                  "points": "_nmxoAdy_rfCe@V",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "STAIRS",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434979488,
+                "fromOsmNode": 4329135166,
+                "toOsmNode": 4329135167,
+                "polyline": {
+                  "points": "eomxoA|y_rfCo@\\",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434979487,
+                "fromOsmNode": 4329135167,
+                "toOsmNode": 9392746176,
+                "polyline": {
+                  "points": "upmxoAzz_rfCgAj@Kc@",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434979487,
+                "fromOsmNode": 9392746176,
+                "toOsmNode": 981493486,
+                "polyline": {
+                  "points": "ismxoAb{_rfCe@_C",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 13.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250989,
+                "fromOsmNode": 981493486,
+                "toOsmNode": 542904258,
+                "polyline": {
+                  "points": "otmxoAbw_rfCoE|B",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 45.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1247717017,
+                "fromOsmNode": 542904258,
+                "toOsmNode": 9392746173,
+                "polyline": {
+                  "points": "_{mxoA`{_rfCwHc^GS",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1247717019,
+                "fromOsmNode": 9392746173,
+                "toOsmNode": 11598806657,
+                "polyline": {
+                  "points": "_enxoAh{~qfCQy@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1247717018,
+                "fromOsmNode": 11598806657,
+                "toOsmNode": 11731505046,
+                "polyline": {
+                  "points": "qenxoAny~qfC]{A",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 18.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1247717018,
+                "fromOsmNode": 11731505046,
+                "toOsmNode": 9287309346,
+                "polyline": {
+                  "points": "ofnxoArv~qfCeCsK",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 44.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43251092,
+                "fromOsmNode": 9287309346,
+                "toOsmNode": 542905403,
+                "polyline": {
+                  "points": "ujnxoA~i~qfC}Hq]",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 21.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43251111,
+                "fromOsmNode": 542905403,
+                "toOsmNode": 4328995181,
+                "polyline": {
+                  "points": "stnxoAlk}qfCiAsErDsB",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43251111,
+                "fromOsmNode": 4328995181,
+                "toOsmNode": 542905536,
+                "polyline": {
+                  "points": "iqnxoAda}qfCh@G",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 14.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43251086,
+                "fromOsmNode": 542905536,
+                "toOsmNode": 1914348522,
+                "polyline": {
+                  "points": "_pnxoA|`}qfC}AqH",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 21.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43251086,
+                "fromOsmNode": 1914348522,
+                "toOsmNode": 542903471,
+                "polyline": {
+                  "points": "}rnxoAjw|qfCyCiM",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 22.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 220083632,
+                "fromOsmNode": 542903471,
+                "toOsmNode": 542903462,
+                "polyline": {
+                  "points": "wwnxoA`i|qfCcDoN",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 26.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 220083632,
+                "fromOsmNode": 542903462,
+                "toOsmNode": 2292050357,
+                "polyline": {
+                  "points": "{|nxoApy{qfC}D{P",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970305,
+                "fromOsmNode": 2292050357,
+                "toOsmNode": 4328995185,
+                "polyline": {
+                  "points": "yboxoAtg{qfCu@_C",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970305,
+                "fromOsmNode": 4328995185,
+                "toOsmNode": 7590916064,
+                "polyline": {
+                  "points": "odoxoAtc{qfCg@yB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970305,
+                "fromOsmNode": 7590916064,
+                "toOsmNode": 4328995184,
+                "polyline": {
+                  "points": "weoxoAz_{qfCS{@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 401634307,
+                "fromOsmNode": 4328995184,
+                "toOsmNode": 9287309320,
+                "polyline": {
+                  "points": "kfoxoA~}zqfC_BsB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 401634307,
+                "fromOsmNode": 9287309320,
+                "toOsmNode": 2292050529,
+                "polyline": {
+                  "points": "kioxoAjzzqfCyAuB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "STAIRS",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 220083643,
+                "fromOsmNode": 2292050529,
+                "toOsmNode": 2292050530,
+                "polyline": {
+                  "points": "eloxoAtvzqfC]_B",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 2292050530,
+                "toOsmNode": 2292050577,
+                "polyline": {
+                  "points": "cmoxoAtszqfCg@}B",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 2292050577,
+                "toOsmNode": 2292048945,
+                "polyline": {
+                  "points": "knoxoAvozqfCKa@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 24.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 2292048945,
+                "toOsmNode": 542902983,
+                "polyline": {
+                  "points": "wnoxoAtnzqfCuDwO",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 27.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 542902983,
+                "toOsmNode": 4328995188,
+                "polyline": {
+                  "points": "mtoxoA|}yqfCeCcKJyE",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 20.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 4328995188,
+                "toOsmNode": 542902771,
+                "polyline": {
+                  "points": "gxoxoA~jyqfCsCgM",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 29.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 43250512,
+                "fromOsmNode": 542902771,
+                "toOsmNode": 542897051,
+                "polyline": {
+                  "points": "{|oxoAv|xqfCqE{R",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970306,
+                "fromOsmNode": 542897051,
+                "toOsmNode": 4039116192,
+                "polyline": {
+                  "points": "mcpxoAzhxqfCu@gD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Escher's Canyon",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 22.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970306,
+                "fromOsmNode": 4039116192,
+                "toOsmNode": 1883217372,
+                "polyline": {
+                  "points": "cepxoArcxqfCaDkN",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Escher's Canyon",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 434970307,
+                "fromOsmNode": 1883217372,
+                "toOsmNode": 4328996291,
+                "polyline": {
+                  "points": "ejpxoAftwqfCAeA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 30.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 845359415,
+                "fromOsmNode": 4328996291,
+                "toOsmNode": 2292105326,
+                "polyline": {
+                  "points": "gjpxoA`rwqfCwOoA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 5.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1526282732,
+                "fromOsmNode": 2292105326,
+                "toOsmNode": 13913091367,
+                "polyline": {
+                  "points": "_{pxoApowqfCsAK",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1526282732,
+                "fromOsmNode": 13913091367,
+                "toOsmNode": 13911105219,
+                "polyline": {
+                  "points": "s}pxoAdowqfCcAG",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1246879056,
+                "fromOsmNode": 13911105219,
+                "toOsmNode": 9632096551,
+                "polyline": {
+                  "points": "w_qxoA|nwqfCGbB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 56.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1047497914,
+                "fromOsmNode": 9632096551,
+                "toOsmNode": 13895173307,
+                "polyline": {
+                  "points": "_`qxoA`rwqfCCeBgZoBo@E",
+                  "precision": 6,
+                  "length": 4
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 12.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1524505568,
+                "fromOsmNode": 13895173307,
+                "toOsmNode": 13895173308,
+                "polyline": {
+                  "points": "{|qxoAdkwqfCsEU",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 13895173308,
+                "polyline": {
+                  "points": "ocrxoAnjwqfC}BM",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "previousPageCursor": "EARLIER|1794724980",
+    "nextPageCursor": "LATER|1794729660"
+  }
+}

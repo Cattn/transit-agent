@@ -19,7 +19,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 4. **Right after the MVP:** **029** (agent reports each step as it happens) + **030** (the map animates: pins, camera, searching line, routes drawing in). This is the owner's "watch the map build the trip" direction, and it makes the ~16 s agent turns (#54) feel live.
 5. **017** badge colors (@DMFriends) can land any time. Screens may hardcode until then.
 
-**After the MVP (full app):** 007 real Boston transit and live arrivals (research running) → 008 auto-watch, 010 bike + transit. Flights: 011 door-to-door on sample fares, then 019 real fares. Then 024 Fly and 025 Settings screens. Later: booking, Europe/Eurail, streaming replies, push notifications.
+**After the MVP (full app):** 031 real Boston transit and live arrivals (research done in 007) → 008 auto-watch, 010 bike + transit. Flights: 011 door-to-door on sample fares, then 019 real fares. Then 024 Fly and 025 Settings screens. Later: booking, Europe/Eurail, streaming replies, push notifications.
 
 ---
 
@@ -33,10 +33,10 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 004 | [Typed client + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (#29) |
 | 005 | [SQLite saves + profiles](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (#31) |
 | 006 | [Gemini planner agent (ADK)](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn | P1 | L | 003–005 | DONE (#38). Live check passed (#51) |
-| 007 | [Real transit routing + live arrivals](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | Cattn | P1 | L | 003 (D2) | IN PROGRESS (research thread; D2 pending) |
-| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 007, 013, 005 | TODO (008-Q3 open) |
+| 007 | [Real transit routing + live arrivals](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | Cattn | P1 | S | 003 | DONE (research; D2 Transitous-first). Implementation → 031 |
+| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | TODO (transit defaults selected; 008-Q3 details remain) |
 | 009 | [Route map: native renderer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web merged in #35; native next) |
-| 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 007 | TODO (step 1 research can start) |
+| 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (fixture steps executable) |
 | 012 | [Mock API client](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (#32) |
 | 013 | ["When do I leave" logic](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | DMFriends | P1 | S | 002 | DONE (#34) |
@@ -57,6 +57,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
 | 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | #52 | TODO (right after MVP) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (native) | TODO (right after MVP) |
+| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
 | — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | DONE (results on #51; fixes in #52) |
 | — | Real place search: geocoder behind `/api/places` + `find_place` (plan 007 step 5, pulled forward) ([#53](https://github.com/Cattn/transit-agent/issues/53)) | Cattn | P1 | S–M | 028 | TODO (MVP; pick a service) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO |
@@ -69,7 +70,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason).
 
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
-- **@Cattn:** D2 routing engine, after the 007 research report ([#11](https://github.com/Cattn/transit-agent/issues/11)) · 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
+- **@Cattn:** 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
 - **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, P4 color policy (with DMFriends), 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
 - **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 017-Q2 unique vs permanent route colors ([#25](https://github.com/Cattn/transit-agent/issues/25))
 - **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 with Cattn ([#25](https://github.com/Cattn/transit-agent/issues/25))
@@ -86,7 +87,9 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 
 ## Plan format
 
-Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. Post-MVP plans 007, 008, 010, and 011 still lack the Commands and Git workflow sections; add them when the plan is picked up (after D2 for 007/008/010).
+Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. Post-MVP plans 031, 008, 010, and 011 still lack the Commands and Git workflow sections; add them when the plan is picked up.
+
+**Keep plans closable.** One plan is one deliverable that can be finished and its issue closed. Research or decision work is its own plan. When a plan finishes but leaves later work, close it and open a new plan for the rest instead of keeping the old one open.
 
 ## Architecture
 
@@ -111,7 +114,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 
 - **Mobile map needs a dev client.** MapLibre React Native does not run in Expo Go. Once 009 lands: `npm run build:android` + `npm run dev:client` in `apps/mobile`.
 - **Route colors:** compute `assignRouteColors` (from `@transit/maps`) once over every trip on screen and pass the same map to `RouteMap.routeColors` and the cards.
-- **008 needs 007** for real live data; its pure logic is already in 013.
+- **008 needs 031** for real live data; its pure logic is already in 013.
 - **011 round trips:** Clovis round-trip search is preferred (optionally compare two one-way searches). Reconcile 019's one-way `FareSearch`/`FareQuote` before building round trips.
 - **Node ≥ 24.13 / npm ≥ 11.8** for everyone (ADK requirement, on main).
 
@@ -122,7 +125,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 | ID | Decision | Outcome | Affects |
 |----|----------|---------|---------|
 | D1 | Launch metro | **Boston** (MBTA + Bluebikes) | 007, 010 |
-| D2 | Transit routing engine | **Open**: decided by the 007 research (OTP self-hosted on Cattn's machine vs Google Routes + MBTA V3) | 007, 008, 010 |
+| D2 | Transit routing engine | **Transitous-first**, selected by Cattn in the research thread on 2026-11-14. Laptop API proxies hosted MOTIS; direct MBTA data qualifies predictions. Public-service eligibility/automation conditions remain; local OTP is a later alternative. | 007, 008, 010 |
 | D3 | LLM framework | **ADK TypeScript + Gemini**; main model Hydrogen (`gemini-4-hydrogen`), configured with `GEMINI_MODEL` on the server; kept after the live check (#51). Runs with `GEMINI_API_KEY` or Vertex AI + Application Default Credentials (location `global`, #52) | 006 |
 | D4 | Identity | **Anonymous device ID** (`x-device-id`) | 003–005 |
 | D5 | Agent reply shape | **JSON**, plus a progress stream (newline-delimited JSON over POST) in plan 029; token-by-token text later | 006, 029 |
@@ -135,7 +138,9 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 
 Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent auto-searches once from/to/time are known and can read but not edit saved trips; missed trips switch automatically; flights checked 3/2/1 days out then more often in the last 24 h (exact cadence open, 008-Q3); bikeshare dock pins and "bike saves X min" both approved; rideshare removed for now; separate transfer-risk and lateness controls; optional display time zone; USD only; no payment screen.
 
-**Open:** D2 (007 research); map behavior P1/P2/P4 and 009-Q5 (#13); palette move and theme scope (#25); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
+Transit defaults (Cattn, plan 007 research thread, 2026-11-14): one or two checks before two hours unless overridden, then ramp nearer departure; subway around 1 h/30/20/10 min with issue-driven adjustments; commuter rail broadly similar with some earlier checking. Include first morning returns and clearly show long waits/next-day dates. Exact early/final scheduling, intercity treatment and preference storage remain with 008-Q3.
+
+**Open:** map behavior P1/P2/P4 and 009-Q5 (#13); palette move and theme scope (#25); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
 
 ## Backlog (deliberately unplanned)
 

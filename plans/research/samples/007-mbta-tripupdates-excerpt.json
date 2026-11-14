@@ -1,0 +1,65 @@
+{
+  "verification": {
+    "requestUrl": "https://cdn.mbta.com/realtime/TripUpdates.json",
+    "partial": true,
+    "selection": "Trip 79300386 only, first three stop updates; original entity count 149",
+    "credentialsUsed": false,
+    "retrievedAtApproxUtc": "2026-11-14T07:52:52.092677+00:00"
+  },
+  "response": {
+    "header": {
+      "timestamp": 1794642770,
+      "gtfs_realtime_version": "2.0",
+      "incrementality": "FULL_DATASET"
+    },
+    "entity": [
+      {
+        "id": "79300386",
+        "trip_update": {
+          "timestamp": 1794642763,
+          "stop_time_update": [
+            {
+              "stop_id": "64",
+              "stop_sequence": 1,
+              "departure": {
+                "time": 1794646200,
+                "uncertainty": 300
+              }
+            },
+            {
+              "stop_id": "1",
+              "stop_sequence": 2,
+              "arrival": {
+                "time": 1794646236,
+                "uncertainty": 300
+              },
+              "departure": {
+                "time": 1794646236,
+                "uncertainty": 300
+              }
+            },
+            {
+              "stop_id": "2",
+              "stop_sequence": 3,
+              "arrival": {
+                "time": 1794646257,
+                "uncertainty": 300
+              },
+              "departure": {
+                "time": 1794646257,
+                "uncertainty": 300
+              }
+            }
+          ],
+          "trip": {
+            "start_time": "03:50:00",
+            "direction_id": 0,
+            "trip_id": "79300386",
+            "route_id": "171",
+            "start_date": "20261114"
+          }
+        }
+      }
+    ]
+  }
+}

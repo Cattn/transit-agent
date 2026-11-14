@@ -1,0 +1,353 @@
+{
+  "verification": {
+    "requestUrl": "https://api-v3.mbta.com/predictions?filter[route]=Red,1,116,117,171&include=stop,trip,route&page[limit]=3",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:52:51.368985+00:00",
+    "credentialsUsed": false,
+    "removedFields": [],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture",
+    "responseHeaders": {
+      "Date": "Sat, 14 Nov 2026 07:52:51 GMT",
+      "Last-Modified": "Sat, 14 Nov 2026 07:52:51 GMT",
+      "X-RateLimit-Limit": "20",
+      "X-RateLimit-Remaining": "19"
+    },
+    "status": 200
+  },
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "arrival_time": null,
+          "arrival_uncertainty": null,
+          "departure_time": "2026-11-14T03:50:00-05:00",
+          "departure_uncertainty": 300,
+          "direction_id": 0,
+          "last_trip": false,
+          "revenue": "REVENUE",
+          "schedule_relationship": null,
+          "status": null,
+          "stop_sequence": 1,
+          "trip_headsign": null,
+          "update_type": null
+        },
+        "id": "prediction-79300386-64-1-171",
+        "relationships": {
+          "route": {
+            "data": {
+              "id": "171",
+              "type": "route"
+            }
+          },
+          "stop": {
+            "data": {
+              "id": "64",
+              "type": "stop"
+            }
+          },
+          "trip": {
+            "data": {
+              "id": "79300386",
+              "type": "trip"
+            }
+          },
+          "vehicle": {
+            "data": null
+          }
+        },
+        "type": "prediction"
+      },
+      {
+        "attributes": {
+          "arrival_time": "2026-11-14T03:50:36-05:00",
+          "arrival_uncertainty": 300,
+          "departure_time": "2026-11-14T03:50:36-05:00",
+          "departure_uncertainty": 300,
+          "direction_id": 0,
+          "last_trip": false,
+          "revenue": "REVENUE",
+          "schedule_relationship": null,
+          "status": null,
+          "stop_sequence": 2,
+          "trip_headsign": null,
+          "update_type": null
+        },
+        "id": "prediction-79300386-1-2-171",
+        "relationships": {
+          "route": {
+            "data": {
+              "id": "171",
+              "type": "route"
+            }
+          },
+          "stop": {
+            "data": {
+              "id": "1",
+              "type": "stop"
+            }
+          },
+          "trip": {
+            "data": {
+              "id": "79300386",
+              "type": "trip"
+            }
+          },
+          "vehicle": {
+            "data": null
+          }
+        },
+        "type": "prediction"
+      },
+      {
+        "attributes": {
+          "arrival_time": "2026-11-14T03:50:57-05:00",
+          "arrival_uncertainty": 300,
+          "departure_time": "2026-11-14T03:50:57-05:00",
+          "departure_uncertainty": 300,
+          "direction_id": 0,
+          "last_trip": false,
+          "revenue": "REVENUE",
+          "schedule_relationship": null,
+          "status": null,
+          "stop_sequence": 3,
+          "trip_headsign": null,
+          "update_type": null
+        },
+        "id": "prediction-79300386-2-3-171",
+        "relationships": {
+          "route": {
+            "data": {
+              "id": "171",
+              "type": "route"
+            }
+          },
+          "stop": {
+            "data": {
+              "id": "2",
+              "type": "stop"
+            }
+          },
+          "trip": {
+            "data": {
+              "id": "79300386",
+              "type": "trip"
+            }
+          },
+          "vehicle": {
+            "data": null
+          }
+        },
+        "type": "prediction"
+      }
+    ],
+    "included": [
+      {
+        "attributes": {
+          "address": null,
+          "at_street": "Ruggles Street",
+          "description": null,
+          "latitude": 42.330957,
+          "location_type": 0,
+          "longitude": -71.082754,
+          "municipality": "Boston",
+          "name": "Washington St opp Ruggles St",
+          "on_street": "Washington Street",
+          "platform_code": null,
+          "platform_name": null,
+          "vehicle_type": 3,
+          "wheelchair_boarding": 1
+        },
+        "id": "1",
+        "links": {
+          "self": "/stops/1"
+        },
+        "relationships": {
+          "facilities": {
+            "links": {
+              "related": "/facilities/?filter[stop]=1"
+            }
+          },
+          "parent_station": {
+            "data": null
+          },
+          "zone": {
+            "data": {
+              "id": "ExpressBus-Downtown",
+              "type": "zone"
+            }
+          }
+        },
+        "type": "stop"
+      },
+      {
+        "attributes": {
+          "color": "FFC72C",
+          "description": "Supplemental Bus",
+          "direction_destinations": [
+            "Logan Airport Terminals",
+            "Nubian Station"
+          ],
+          "direction_names": [
+            "Outbound",
+            "Inbound"
+          ],
+          "fare_class": "Local Bus",
+          "listed_route": true,
+          "long_name": "Logan Airport Terminals - Nubian Station",
+          "short_name": "171",
+          "sort_order": 51710,
+          "text_color": "000000",
+          "type": 3
+        },
+        "id": "171",
+        "links": {
+          "self": "/routes/171"
+        },
+        "relationships": {
+          "agency": {
+            "data": {
+              "id": "1",
+              "type": "agency"
+            }
+          },
+          "line": {
+            "data": {
+              "id": "line-15171",
+              "type": "line"
+            }
+          }
+        },
+        "type": "route"
+      },
+      {
+        "attributes": {
+          "address": null,
+          "at_street": null,
+          "description": null,
+          "latitude": 42.332324,
+          "location_type": 0,
+          "longitude": -71.081252,
+          "municipality": "Boston",
+          "name": "Washington St @ Melnea Cass Blvd",
+          "on_street": "Washington Street",
+          "platform_code": null,
+          "platform_name": null,
+          "vehicle_type": 3,
+          "wheelchair_boarding": 1
+        },
+        "id": "2",
+        "links": {
+          "self": "/stops/2"
+        },
+        "relationships": {
+          "facilities": {
+            "links": {
+              "related": "/facilities/?filter[stop]=2"
+            }
+          },
+          "parent_station": {
+            "data": null
+          },
+          "zone": {
+            "data": {
+              "id": "ExpressBus-Downtown",
+              "type": "zone"
+            }
+          }
+        },
+        "type": "stop"
+      },
+      {
+        "attributes": {
+          "address": null,
+          "at_street": "Washington Street",
+          "description": null,
+          "latitude": 42.329789,
+          "location_type": 0,
+          "longitude": -71.083887,
+          "municipality": "Boston",
+          "name": "Nubian",
+          "on_street": "Busway",
+          "platform_code": null,
+          "platform_name": null,
+          "vehicle_type": 3,
+          "wheelchair_boarding": 1
+        },
+        "id": "64",
+        "links": {
+          "self": "/stops/64"
+        },
+        "relationships": {
+          "facilities": {
+            "links": {
+              "related": "/facilities/?filter[stop]=64"
+            }
+          },
+          "parent_station": {
+            "data": {
+              "id": "place-nubn",
+              "type": "stop"
+            }
+          },
+          "zone": {
+            "data": {
+              "id": "ExpressBus-Downtown",
+              "type": "zone"
+            }
+          }
+        },
+        "type": "stop"
+      },
+      {
+        "attributes": {
+          "bikes_allowed": 1,
+          "block_id": "C47-192",
+          "direction_id": 0,
+          "headsign": "Logan Airport via Andrew",
+          "name": "",
+          "revenue": "REVENUE",
+          "wheelchair_accessible": 1
+        },
+        "id": "79300386",
+        "links": {
+          "self": "/trips/79300386"
+        },
+        "relationships": {
+          "route": {
+            "data": {
+              "id": "171",
+              "type": "route"
+            }
+          },
+          "route_pattern": {
+            "data": {
+              "id": "171-_-0",
+              "type": "route_pattern"
+            }
+          },
+          "service": {
+            "data": {
+              "id": "BUS20264-sbc46w16-Saturday-01",
+              "type": "service"
+            }
+          },
+          "shape": {
+            "data": {
+              "id": "1710033",
+              "type": "shape"
+            }
+          }
+        },
+        "type": "trip"
+      }
+    ],
+    "jsonapi": {
+      "version": "1.0"
+    },
+    "links": {
+      "first": "https://api-v3.mbta.com/predictions?filter[route]=Red%2C1%2C116%2C117%2C171&include=stop%2Ctrip%2Croute&page[limit]=3&page[offset]=0",
+      "last": "https://api-v3.mbta.com/predictions?filter[route]=Red%2C1%2C116%2C117%2C171&include=stop%2Ctrip%2Croute&page[limit]=3&page[offset]=15",
+      "next": "https://api-v3.mbta.com/predictions?filter[route]=Red%2C1%2C116%2C117%2C171&include=stop%2Ctrip%2Croute&page[limit]=3&page[offset]=3"
+    }
+  }
+}

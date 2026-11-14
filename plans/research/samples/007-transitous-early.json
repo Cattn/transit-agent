@@ -1,0 +1,2487 @@
+{
+  "verification": {
+    "requestUrl": "https://api.transitous.org/api/v6/plan?fromPlace=42.329789,-71.083887&toPlace=42.362,-71.018&time=2026-11-14T08%3A40%3A00Z&numItineraries=3",
+    "method": "GET",
+    "retrievedAtApproxUtc": "2026-11-14T07:53:47.725566+00:00",
+    "credentialsUsed": false,
+    "removedFields": [
+      "debugOutput"
+    ],
+    "purpose": "Research-only snapshot; public landmark coordinates; not an application fixture"
+  },
+  "response": {
+    "requestParameters": {},
+    "from": {
+      "name": "START",
+      "lat": 42.329789,
+      "lon": -71.083887,
+      "vertexType": "NORMAL"
+    },
+    "to": {
+      "name": "END",
+      "lat": 42.362,
+      "lon": -71.018,
+      "vertexType": "NORMAL"
+    },
+    "direct": [],
+    "itineraries": [
+      {
+        "duration": 1620,
+        "startTime": "2026-11-14T08:49:00Z",
+        "endTime": "2026-11-14T09:16:00Z",
+        "transfers": 0,
+        "id": "CkchT8qkhjYqRUAp0GOUZ17FUcAyDXVzLW1hLU1CVEFfNjQ5IEYIjzYqRUBB/+cwX17FUcBI/MDg1wZQuMHg1wZaBFdBTEtgAQqKAQoDMTcxEiIyMDI2MTExNF8wMzo1MF91cy1tYS1NQlRBXzc5MzAwMzg2Gg11cy1tYS1NQlRBXzY0ISBGCI82KkVAKf/nMF9exVHAMhB1cy1tYS1NQlRBXzE3MDkzOdnw9EpZLkVAQdv+lZUmwVHASLjB4NcGUKTL4NcGWgNCVVNgAXEAAAAAAADwPwpTGhB1cy1tYS1NQlRBXzE3MDkzIdnw9EpZLkVAKdv+lZUmwVHAOXWTGARWLkVAQf7UeOkmwVHASJTN4NcGUNDN4NcGWgRXQUxLYAFpAAAAAAAA8D8=",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.329789,
+              "lon": -71.083887,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T08:49:00Z",
+              "scheduledDeparture": "2026-11-14T08:49:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T08:50:00Z",
+              "scheduledArrival": "2026-11-14T08:50:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T08:49:00Z",
+            "endTime": "2026-11-14T08:50:00Z",
+            "scheduledStartTime": "2026-11-14T08:49:00Z",
+            "scheduledEndTime": "2026-11-14T08:50:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 0.0,
+            "legGeometry": {
+              "points": "yjrvoA|urqfCAC",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "yjrvoA|urqfCAC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "BUS",
+            "from": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T08:50:00Z",
+              "scheduledDeparture": "2026-11-14T08:50:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "PREDICTED",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Terminal B Stop 2 - Arrivals Level",
+              "stopId": "us-ma-MBTA_17093",
+              "importance": 0.0002574642712716013,
+              "lat": 42.362100000000005,
+              "lon": -71.01798000000001,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:15:00Z",
+              "scheduledArrival": "2026-11-14T09:11:00Z",
+              "stopCode": "17093",
+              "description": "Terminal B Stop 2 - Silver Line - SL1 South Station",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "PREDICTED",
+              "departureTimestampReason": "PREDICTED",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 1500,
+            "startTime": "2026-11-14T08:50:00Z",
+            "endTime": "2026-11-14T09:15:00Z",
+            "scheduledStartTime": "2026-11-14T08:50:00Z",
+            "scheduledEndTime": "2026-11-14T09:11:00Z",
+            "realTime": true,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Logan Airport via Andrew",
+            "tripFrom": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T08:50:00Z",
+              "scheduledDeparture": "2026-11-14T08:50:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "PREDICTED",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Airport",
+              "stopId": "us-ma-MBTA_7096",
+              "parentId": "us-ma-MBTA_place-aport",
+              "importance": 0.0008478339877910912,
+              "lat": 42.3745,
+              "lon": -71.02954,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:21:00Z",
+              "scheduledArrival": "2026-11-14T09:18:00Z",
+              "scheduledTrack": "2",
+              "track": "2",
+              "stopCode": "7096",
+              "description": "Airport - Busway Berth 2",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "PREDICTED",
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_171",
+            "routeUrl": "https://www.mbta.com/schedules/171",
+            "directionId": "0",
+            "routeColor": "ffc72c",
+            "routeTextColor": "000000",
+            "routeType": 3,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_03:50_us-ma-MBTA_79300386",
+            "routeShortName": "171",
+            "routeLongName": "Logan Airport Terminals - Nubian Station",
+            "tripShortName": "",
+            "displayName": "171",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:1630231:1630246",
+            "intermediateStops": [
+              {
+                "name": "Washington St opp Ruggles St",
+                "stopId": "us-ma-MBTA_1",
+                "importance": 1.3851302355760708e-05,
+                "lat": 42.330956,
+                "lon": -71.08275599999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:50:00Z",
+                "departure": "2026-11-14T08:50:00Z",
+                "scheduledArrival": "2026-11-14T08:51:00Z",
+                "scheduledDeparture": "2026-11-14T08:51:00Z",
+                "stopCode": "1",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Washington St @ Melnea Cass Blvd",
+                "stopId": "us-ma-MBTA_2",
+                "importance": 2.6655636247596703e-05,
+                "lat": 42.332325000000004,
+                "lon": -71.08125000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:50:00Z",
+                "departure": "2026-11-14T08:50:00Z",
+                "scheduledArrival": "2026-11-14T08:51:00Z",
+                "scheduledDeparture": "2026-11-14T08:51:00Z",
+                "stopCode": "2",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Melnea Cass Blvd @ Harrison Ave",
+                "stopId": "us-ma-MBTA_6",
+                "importance": 1.1027968866983429e-05,
+                "lat": 42.332016,
+                "lon": -71.07957499999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:51:00Z",
+                "departure": "2026-11-14T08:51:00Z",
+                "scheduledArrival": "2026-11-14T08:52:00Z",
+                "scheduledDeparture": "2026-11-14T08:52:00Z",
+                "stopCode": "6",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "91 E Concord St",
+                "stopId": "us-ma-MBTA_5089",
+                "importance": 3.992110123363091e-06,
+                "lat": 42.33556,
+                "lon": -71.072266,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:54:00Z",
+                "departure": "2026-11-14T08:54:00Z",
+                "scheduledArrival": "2026-11-14T08:54:00Z",
+                "scheduledDeparture": "2026-11-14T08:54:00Z",
+                "stopCode": "5089",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Albany St",
+                "stopId": "us-ma-MBTA_855",
+                "importance": 9.973749911296181e-06,
+                "lat": 42.33325,
+                "lon": -71.07329,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:57:00Z",
+                "departure": "2026-11-14T08:57:00Z",
+                "scheduledArrival": "2026-11-14T08:55:00Z",
+                "scheduledDeparture": "2026-11-14T08:55:00Z",
+                "stopCode": "855",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Island St",
+                "stopId": "us-ma-MBTA_8",
+                "importance": 3.0103960853011813e-06,
+                "lat": 42.33088299999999,
+                "lon": -71.07042999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:58:00Z",
+                "departure": "2026-11-14T08:58:00Z",
+                "scheduledArrival": "2026-11-14T08:56:00Z",
+                "scheduledDeparture": "2026-11-14T08:56:00Z",
+                "stopCode": "8",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Theo Glynn Way @ Newmarket Sq",
+                "stopId": "us-ma-MBTA_10",
+                "importance": 2.9929949505458353e-06,
+                "lat": 42.330555000000004,
+                "lon": -71.06878999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:58:00Z",
+                "departure": "2026-11-14T08:58:00Z",
+                "scheduledArrival": "2026-11-14T08:56:00Z",
+                "scheduledDeparture": "2026-11-14T08:56:00Z",
+                "stopCode": "10",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Southampton St @ Newmarket Sq",
+                "stopId": "us-ma-MBTA_10010",
+                "importance": 2.417307541691116e-06,
+                "lat": 42.33086399999999,
+                "lon": -71.06424000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T08:59:00Z",
+                "departure": "2026-11-14T08:59:00Z",
+                "scheduledArrival": "2026-11-14T08:57:00Z",
+                "scheduledDeparture": "2026-11-14T08:57:00Z",
+                "stopCode": "10010",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Andrew",
+                "stopId": "us-ma-MBTA_13",
+                "parentId": "us-ma-MBTA_place-andrw",
+                "importance": 0.0004917284823022783,
+                "lat": 42.329964,
+                "lon": -71.05762500000002,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:01:00Z",
+                "departure": "2026-11-14T09:01:00Z",
+                "scheduledArrival": "2026-11-14T08:59:00Z",
+                "scheduledDeparture": "2026-11-14T08:59:00Z",
+                "stopCode": "13",
+                "description": "Andrew - Busway",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2023-03-22T14:20:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2023-03-22T14:20:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Andrew Escalator 123 (Ashmont/Braintree platform to busway) is unavailable until further notice, pending replacement.",
+                    "descriptionText": ""
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-05-07T14:13:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-05-07T14:13:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Andrew Escalator 124 (Ashmont/Braintree platform to busway) is unavailable.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY",
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal A",
+                "stopId": "us-ma-MBTA_17091",
+                "importance": 6.90970000505331e-06,
+                "lat": 42.364613,
+                "lon": -71.02086,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:13:00Z",
+                "departure": "2026-11-14T09:13:00Z",
+                "scheduledArrival": "2026-11-14T09:10:00Z",
+                "scheduledDeparture": "2026-11-14T09:10:00Z",
+                "stopCode": "17091",
+                "description": "Terminal A - Silver Line - SL1 South Station",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal B Stop 1 - Arrivals Level",
+                "stopId": "us-ma-MBTA_27092",
+                "importance": 0.0002574642712716013,
+                "lat": 42.362100000000005,
+                "lon": -71.01882,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:14:00Z",
+                "departure": "2026-11-14T09:14:00Z",
+                "scheduledArrival": "2026-11-14T09:10:00Z",
+                "scheduledDeparture": "2026-11-14T09:10:00Z",
+                "stopCode": "27092",
+                "description": "Terminal B Stop 1 - Silver Line - SL1 South Station",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "PREDICTED",
+                "departureTimestampReason": "PREDICTED",
+                "modes": [
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "{jrvoAxurqfCwBIvBce@wQkC{KoAkKyAiHyAaJiDcI}JqCsCuRqT}VyZuJcL}SkRoDsDqCkCsCwBmG_D}I{EbKsSjIkQjHcQfIsTjDgKbBcFeCoFsVka@}T{b@uYce@}J{PuI_NaNgTwZsg@oKoPoKoOsNsTyCoEiLcR{K_NuJ_NoTc[yXc`@eC_D|r@w~@zGgJn]sc@~SzZdDnFlb@rq@dWfc@tEbGzKyPpQuWpWka@bBoKjRcVfJ{OrI{JjLmLjZuW~FoF`d@c`@|KsIhBwKDkDe@gEcFoO_D{FiGcLoAwBoGgJyHwGaGiDeKcGuKcGkHeP_AkCvIkp@vLybAbMmcAzE_c@lFce@rAkLd@_DTwBXcBbB{Of@oFbLk_AR{@fEg^hDg]lFwa@xGot@l@oEnMw~@oRf@sAcB_@qEEm[?cj@yH?cF?k]?gTRai@Ze`@r@_]F_d@^sHSm`AnAuTSelCnBcQwDqGwAkHmB_R`HgIbBkT?oP?{E?wYR_m@SeTGmOwCal@?}B~HcJfh@gLds@qJpm@aBfJ{Fb`@{Fb[eJbj@kF~\\e\\oPmb@wVuA~HgY{JoQ{EgJ_Do]sMsFcCuEsDcF_IaA_D_AoFW{DN}Jd@ua@?wPu@aSoBaWcCsSgMsv@}Ow~@iMsv@eo@{cEyGwe@oDoZgCc`@kAkj@G_h@Toh@m@kXkAgYiCk]}Dc_@{BkWgBi]WiSVc[jA_XrCc[`E_X`i@kjC`FcVfIy_@tFm[rEwf@t@_Rd@sSO{SyBkl@eE_g@gDgXqG_^kFcVgJc[qJkW_]wy@gOw[qTka@g^_l@_Xe_@aNePgNcPuOgPiR_RwRgPcTwQwQwLgSkMq\\wQse@kWicGs_DiXkMiMeFoMeFyMoFyL{EoX_IaMuCc\\mGcP_DkmBgYos@wK}YwDk]sC_v@gEqGS{PSqMGo^jAkO|@_T`CoN~BsMbC{uAv\\o_@jG}IvBuJfEgCbB_DvCyDvFeDbGcGlQwAhI{@vG[zJ?fEVbF\\~DbAvGzAbGhBnFrCzEbGvGnBbB~BnAzFbBrGz@bHIjC]xD{@lDoAxCwBfCwB`ImLpBeEnC_JtZofAV{@vCsJtc@wwAlDcLdAgExBoKn@gElSw~@|@wCjA_C`BwBlBgAfEcAjIRvCS`CeAhB}DbBgErb@cmAnFgOrFcQbB{FbA_HVsDGoFl@{El@iDjFmLje@cL~vAoZxu@{OpB{@lAwBbA_D\\sDC_DS_DcBgFkCgCsDgAgB?al@rMa@{D",
+              "precision": 6,
+              "length": 305
+            },
+            "bikesAllowed": true,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Terminal B Stop 2 - Arrivals Level",
+              "stopId": "us-ma-MBTA_17093",
+              "importance": 0.0002574642712716013,
+              "lat": 42.362100000000005,
+              "lon": -71.01798000000001,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:15:00Z",
+              "departure": "2026-11-14T09:15:00Z",
+              "scheduledArrival": "2026-11-14T09:11:00Z",
+              "scheduledDeparture": "2026-11-14T09:15:00Z",
+              "stopCode": "17093",
+              "description": "Terminal B Stop 2 - Silver Line - SL1 South Station",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "PREDICTED",
+              "departureTimestampReason": "PREDICTED",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.362,
+              "lon": -71.018,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:16:00Z",
+              "scheduledArrival": "2026-11-14T09:16:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T09:15:00Z",
+            "endTime": "2026-11-14T09:16:00Z",
+            "scheduledStartTime": "2026-11-14T09:15:00Z",
+            "scheduledEndTime": "2026-11-14T09:16:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 10.0,
+            "legGeometry": {
+              "points": "{mqxoAx`rmfCtDy@",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 10.0,
+                "fromLevel": 1.0,
+                "toLevel": 1.0,
+                "osmWay": 976729381,
+                "polyline": {
+                  "points": "{mqxoAx`rmfCtDy@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Terminal B - arrivals",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 1380,
+        "startTime": "2026-11-14T09:19:00Z",
+        "endTime": "2026-11-14T09:42:00Z",
+        "transfers": 0,
+        "id": "CkchT8qkhjYqRUAp0GOUZ17FUcAyDXVzLW1hLU1CVEFfNjQ5IEYIjzYqRUBB/+cwX17FUcBIhM/g1wZQwM/g1wZaBFdBTEtgAQqKAQoDMTcxEiIyMDI2MTExNF8wNDoyMF91cy1tYS1NQlRBXzc5MzAwMzkwGg11cy1tYS1NQlRBXzY0ISBGCI82KkVAKf/nMF9exVHAMhB1cy1tYS1NQlRBXzE3MDkzOdnw9EpZLkVAQdv+lZUmwVHASMDP4NcGUKzZ4NcGWgNCVVNgAXEAAAAAAADwPwpTGhB1cy1tYS1NQlRBXzE3MDkzIdnw9EpZLkVAKdv+lZUmwVHAOXWTGARWLkVAQf7UeOkmwVHASKzZ4NcGUOjZ4NcGWgRXQUxLYAFpAAAAAAAA8D8=",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.329789,
+              "lon": -71.083887,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:19:00Z",
+              "scheduledDeparture": "2026-11-14T09:19:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:20:00Z",
+              "scheduledArrival": "2026-11-14T09:20:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T09:19:00Z",
+            "endTime": "2026-11-14T09:20:00Z",
+            "scheduledStartTime": "2026-11-14T09:19:00Z",
+            "scheduledEndTime": "2026-11-14T09:20:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 0.0,
+            "legGeometry": {
+              "points": "yjrvoA|urqfCAC",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "yjrvoA|urqfCAC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "BUS",
+            "from": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:20:00Z",
+              "scheduledDeparture": "2026-11-14T09:20:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Terminal B Stop 2 - Arrivals Level",
+              "stopId": "us-ma-MBTA_17093",
+              "importance": 0.0002574642712716013,
+              "lat": 42.362100000000005,
+              "lon": -71.01798000000001,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:41:00Z",
+              "scheduledArrival": "2026-11-14T09:41:00Z",
+              "stopCode": "17093",
+              "description": "Terminal B Stop 2 - Silver Line - SL1 South Station",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 1260,
+            "startTime": "2026-11-14T09:20:00Z",
+            "endTime": "2026-11-14T09:41:00Z",
+            "scheduledStartTime": "2026-11-14T09:20:00Z",
+            "scheduledEndTime": "2026-11-14T09:41:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Logan Airport via Andrew",
+            "tripFrom": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:20:00Z",
+              "scheduledDeparture": "2026-11-14T09:20:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Airport",
+              "stopId": "us-ma-MBTA_7096",
+              "parentId": "us-ma-MBTA_place-aport",
+              "importance": 0.0008478339877910912,
+              "lat": 42.3745,
+              "lon": -71.02954,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:48:00Z",
+              "scheduledArrival": "2026-11-14T09:48:00Z",
+              "scheduledTrack": "2",
+              "track": "2",
+              "stopCode": "7096",
+              "description": "Airport - Busway Berth 2",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "SUBWAY",
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_171",
+            "routeUrl": "https://www.mbta.com/schedules/171",
+            "directionId": "0",
+            "routeColor": "ffc72c",
+            "routeTextColor": "000000",
+            "routeType": 3,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_04:20_us-ma-MBTA_79300390",
+            "routeShortName": "171",
+            "routeLongName": "Logan Airport Terminals - Nubian Station",
+            "tripShortName": "",
+            "displayName": "171",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:1630247:1630262",
+            "intermediateStops": [
+              {
+                "name": "Washington St opp Ruggles St",
+                "stopId": "us-ma-MBTA_1",
+                "importance": 1.3851302355760708e-05,
+                "lat": 42.330956,
+                "lon": -71.08275599999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:21:00Z",
+                "departure": "2026-11-14T09:21:00Z",
+                "scheduledArrival": "2026-11-14T09:21:00Z",
+                "scheduledDeparture": "2026-11-14T09:21:00Z",
+                "stopCode": "1",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Washington St @ Melnea Cass Blvd",
+                "stopId": "us-ma-MBTA_2",
+                "importance": 2.6655636247596703e-05,
+                "lat": 42.332325000000004,
+                "lon": -71.08125000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:21:00Z",
+                "departure": "2026-11-14T09:21:00Z",
+                "scheduledArrival": "2026-11-14T09:21:00Z",
+                "scheduledDeparture": "2026-11-14T09:21:00Z",
+                "stopCode": "2",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Melnea Cass Blvd @ Harrison Ave",
+                "stopId": "us-ma-MBTA_6",
+                "importance": 1.1027968866983429e-05,
+                "lat": 42.332016,
+                "lon": -71.07957499999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:22:00Z",
+                "departure": "2026-11-14T09:22:00Z",
+                "scheduledArrival": "2026-11-14T09:22:00Z",
+                "scheduledDeparture": "2026-11-14T09:22:00Z",
+                "stopCode": "6",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "91 E Concord St",
+                "stopId": "us-ma-MBTA_5089",
+                "importance": 3.992110123363091e-06,
+                "lat": 42.33556,
+                "lon": -71.072266,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:24:00Z",
+                "departure": "2026-11-14T09:24:00Z",
+                "scheduledArrival": "2026-11-14T09:24:00Z",
+                "scheduledDeparture": "2026-11-14T09:24:00Z",
+                "stopCode": "5089",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Albany St",
+                "stopId": "us-ma-MBTA_855",
+                "importance": 9.973749911296181e-06,
+                "lat": 42.33325,
+                "lon": -71.07329,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:25:00Z",
+                "departure": "2026-11-14T09:25:00Z",
+                "scheduledArrival": "2026-11-14T09:25:00Z",
+                "scheduledDeparture": "2026-11-14T09:25:00Z",
+                "stopCode": "855",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Island St",
+                "stopId": "us-ma-MBTA_8",
+                "importance": 3.0103960853011813e-06,
+                "lat": 42.33088299999999,
+                "lon": -71.07042999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:26:00Z",
+                "departure": "2026-11-14T09:26:00Z",
+                "scheduledArrival": "2026-11-14T09:26:00Z",
+                "scheduledDeparture": "2026-11-14T09:26:00Z",
+                "stopCode": "8",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Theo Glynn Way @ Newmarket Sq",
+                "stopId": "us-ma-MBTA_10",
+                "importance": 2.9929949505458353e-06,
+                "lat": 42.330555000000004,
+                "lon": -71.06878999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:26:00Z",
+                "departure": "2026-11-14T09:26:00Z",
+                "scheduledArrival": "2026-11-14T09:26:00Z",
+                "scheduledDeparture": "2026-11-14T09:26:00Z",
+                "stopCode": "10",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Southampton St @ Newmarket Sq",
+                "stopId": "us-ma-MBTA_10010",
+                "importance": 2.417307541691116e-06,
+                "lat": 42.33086399999999,
+                "lon": -71.06424000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:27:00Z",
+                "departure": "2026-11-14T09:27:00Z",
+                "scheduledArrival": "2026-11-14T09:27:00Z",
+                "scheduledDeparture": "2026-11-14T09:27:00Z",
+                "stopCode": "10010",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Andrew",
+                "stopId": "us-ma-MBTA_13",
+                "parentId": "us-ma-MBTA_place-andrw",
+                "importance": 0.0004917284823022783,
+                "lat": 42.329964,
+                "lon": -71.05762500000002,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:29:00Z",
+                "departure": "2026-11-14T09:29:00Z",
+                "scheduledArrival": "2026-11-14T09:29:00Z",
+                "scheduledDeparture": "2026-11-14T09:29:00Z",
+                "stopCode": "13",
+                "description": "Andrew - Busway",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "alerts": [
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2023-03-22T14:20:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2023-03-22T14:20:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "MAINTENANCE",
+                    "causeDetail": "MAINTENANCE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Andrew Escalator 123 (Ashmont/Braintree platform to busway) is unavailable until further notice, pending replacement.",
+                    "descriptionText": ""
+                  },
+                  {
+                    "communicationPeriod": [
+                      {
+                        "start": "2026-05-07T14:13:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "impactPeriod": [
+                      {
+                        "start": "2026-05-07T14:13:00Z",
+                        "end": "1970-01-01T00:00:00Z"
+                      }
+                    ],
+                    "cause": "UNKNOWN_CAUSE",
+                    "causeDetail": "UNKNOWN_CAUSE",
+                    "effect": "ACCESSIBILITY_ISSUE",
+                    "effectDetail": "ESCALATOR_CLOSURE",
+                    "headerText": "Andrew Escalator 124 (Ashmont/Braintree platform to busway) is unavailable.",
+                    "descriptionText": ""
+                  }
+                ],
+                "modes": [
+                  "SUBWAY",
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal A",
+                "stopId": "us-ma-MBTA_17091",
+                "importance": 6.90970000505331e-06,
+                "lat": 42.364613,
+                "lon": -71.02086,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:40:00Z",
+                "departure": "2026-11-14T09:40:00Z",
+                "scheduledArrival": "2026-11-14T09:40:00Z",
+                "scheduledDeparture": "2026-11-14T09:40:00Z",
+                "stopCode": "17091",
+                "description": "Terminal A - Silver Line - SL1 South Station",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal B Stop 1 - Arrivals Level",
+                "stopId": "us-ma-MBTA_27092",
+                "importance": 0.0002574642712716013,
+                "lat": 42.362100000000005,
+                "lon": -71.01882,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:40:00Z",
+                "departure": "2026-11-14T09:40:00Z",
+                "scheduledArrival": "2026-11-14T09:40:00Z",
+                "scheduledDeparture": "2026-11-14T09:40:00Z",
+                "stopCode": "27092",
+                "description": "Terminal B Stop 1 - Silver Line - SL1 South Station",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "{jrvoAxurqfCwBIvBce@wQkC{KoAkKyAiHyAaJiDcI}JqCsCuRqT}VyZuJcL}SkRoDsDqCkCsCwBmG_D}I{EbKsSjIkQjHcQfIsTjDgKbBcFeCoFsVka@}T{b@uYce@}J{PuI_NaNgTwZsg@oKoPoKoOsNsTyCoEiLcR{K_NuJ_NoTc[yXc`@eC_D|r@w~@zGgJn]sc@~SzZdDnFlb@rq@dWfc@tEbGzKyPpQuWpWka@bBoKjRcVfJ{OrI{JjLmLjZuW~FoF`d@c`@|KsIhBwKDkDe@gEcFoO_D{FiGcLoAwBoGgJyHwGaGiDeKcGuKcGkHeP_AkCvIkp@vLybAbMmcAzE_c@lFce@rAkLd@_DTwBXcBbB{Of@oFbLk_AR{@fEg^hDg]lFwa@xGot@l@oEnMw~@oRf@sAcB_@qEEm[?cj@yH?cF?k]?gTRai@Ze`@r@_]F_d@^sHSm`AnAuTSelCnBcQwDqGwAkHmB_R`HgIbBkT?oP?{E?wYR_m@SeTGmOwCal@?}B~HcJfh@gLds@qJpm@aBfJ{Fb`@{Fb[eJbj@kF~\\e\\oPmb@wVuA~HgY{JoQ{EgJ_Do]sMsFcCuEsDcF_IaA_D_AoFW{DN}Jd@ua@?wPu@aSoBaWcCsSgMsv@}Ow~@iMsv@eo@{cEyGwe@oDoZgCc`@kAkj@G_h@Toh@m@kXkAgYiCk]}Dc_@{BkWgBi]WiSVc[jA_XrCc[`E_X`i@kjC`FcVfIy_@tFm[rEwf@t@_Rd@sSO{SyBkl@eE_g@gDgXqG_^kFcVgJc[qJkW_]wy@gOw[qTka@g^_l@_Xe_@aNePgNcPuOgPiR_RwRgPcTwQwQwLgSkMq\\wQse@kWicGs_DiXkMiMeFoMeFyMoFyL{EoX_IaMuCc\\mGcP_DkmBgYos@wK}YwDk]sC_v@gEqGS{PSqMGo^jAkO|@_T`CoN~BsMbC{uAv\\o_@jG}IvBuJfEgCbB_DvCyDvFeDbGcGlQwAhI{@vG[zJ?fEVbF\\~DbAvGzAbGhBnFrCzEbGvGnBbB~BnAzFbBrGz@bHIjC]xD{@lDoAxCwBfCwB`ImLpBeEnC_JtZofAV{@vCsJtc@wwAlDcLdAgExBoKn@gElSw~@|@wCjA_C`BwBlBgAfEcAjIRvCS`CeAhB}DbBgErb@cmAnFgOrFcQbB{FbA_HVsDGoFl@{El@iDjFmLje@cL~vAoZxu@{OpB{@lAwBbA_D\\sDC_DS_DcBgFkCgCsDgAgB?al@rMa@{D",
+              "precision": 6,
+              "length": 305
+            },
+            "bikesAllowed": true,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Terminal B Stop 2 - Arrivals Level",
+              "stopId": "us-ma-MBTA_17093",
+              "importance": 0.0002574642712716013,
+              "lat": 42.362100000000005,
+              "lon": -71.01798000000001,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:41:00Z",
+              "departure": "2026-11-14T09:41:00Z",
+              "scheduledArrival": "2026-11-14T09:41:00Z",
+              "scheduledDeparture": "2026-11-14T09:41:00Z",
+              "stopCode": "17093",
+              "description": "Terminal B Stop 2 - Silver Line - SL1 South Station",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.362,
+              "lon": -71.018,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:42:00Z",
+              "scheduledArrival": "2026-11-14T09:42:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T09:41:00Z",
+            "endTime": "2026-11-14T09:42:00Z",
+            "scheduledStartTime": "2026-11-14T09:41:00Z",
+            "scheduledEndTime": "2026-11-14T09:42:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 10.0,
+            "legGeometry": {
+              "points": "{mqxoAx`rmfCtDy@",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 10.0,
+                "fromLevel": 1.0,
+                "toLevel": 1.0,
+                "osmWay": 976729381,
+                "polyline": {
+                  "points": "{mqxoAx`rmfCtDy@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Terminal B - arrivals",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 2820,
+        "startTime": "2026-11-14T09:34:00Z",
+        "endTime": "2026-11-14T10:21:00Z",
+        "transfers": 1,
+        "id": "CkchT8qkhjYqRUAp0GOUZ17FUcAyDXVzLW1hLU1CVEFfNjQ5IEYIjzYqRUBB/+cwX17FUcBIiNbg1wZQxNbg1wZaBFdBTEtgAQp8CgExEiIyMDI2MTExNF8wNDozNV91cy1tYS1NQlRBXzc5MzAxMjAwGg11cy1tYS1NQlRBXzY0ISBGCI82KkVAKf/nMF9exVHAMg11cy1tYS1NQlRBXzkzOXf0v1yLLEVAQbg3v2GixVHASMTW4NcGUJTc4NcGWgNCVVNgAQpaGg11cy1tYS1NQlRBXzkzIXf0v1yLLEVAKbg3v2GixVHAMhF1cy1tYS1NYXNzcG9ydF9CQjnTFWwjnixFQEGlFHR7ScVRwEiU3ODXBlDA3uDXBloEV0FMS2ABCqABCgJCQhI0MjAyNjExMTRfMDU6MDBfdXMtbWEtTWFzc3BvcnRfdF82MTg2MTE4X2JfODcyOTBfdG5fMRoRdXMtbWEtTWFzc3BvcnRfQkIh0xVsI54sRUAppRR0e0nFUcAyEXVzLW1hLU1hc3Nwb3J0XzkyOUOn591YLkVAQVfsL7snwVHASKDi4NcGUNDr4NcGWgNCVVNgAXEAAAAAAADwPwpUGhF1cy1tYS1NYXNzcG9ydF85MiFDp+fdWC5FQClX7C+7J8FRwDl1kxgEVi5FQEH+1HjpJsFRwEjQ6+DXBlCM7ODXBloEV0FMS2ABaQAAAAAAAPA/",
+        "legs": [
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "START",
+              "lat": 42.329789,
+              "lon": -71.083887,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:34:00Z",
+              "scheduledDeparture": "2026-11-14T09:34:00Z",
+              "vertexType": "NORMAL"
+            },
+            "to": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:35:00Z",
+              "scheduledArrival": "2026-11-14T09:35:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T09:34:00Z",
+            "endTime": "2026-11-14T09:35:00Z",
+            "scheduledStartTime": "2026-11-14T09:34:00Z",
+            "scheduledEndTime": "2026-11-14T09:35:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 0.0,
+            "legGeometry": {
+              "points": "yjrvoA|urqfCAC",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "polyline": {
+                  "points": "yjrvoA|urqfCAC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "BUS",
+            "from": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:35:00Z",
+              "scheduledDeparture": "2026-11-14T09:35:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Massachusetts Ave @ Newbury St",
+              "stopId": "us-ma-MBTA_93",
+              "importance": 6.500773451989517e-06,
+              "lat": 42.348003,
+              "lon": -71.08803599999999,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:47:00Z",
+              "scheduledArrival": "2026-11-14T09:47:00Z",
+              "stopCode": "93",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 720,
+            "startTime": "2026-11-14T09:35:00Z",
+            "endTime": "2026-11-14T09:47:00Z",
+            "scheduledStartTime": "2026-11-14T09:35:00Z",
+            "scheduledEndTime": "2026-11-14T09:47:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "Harvard",
+            "tripFrom": {
+              "name": "Nubian",
+              "stopId": "us-ma-MBTA_64",
+              "parentId": "us-ma-MBTA_place-nubn",
+              "importance": 5.3634645155398175e-05,
+              "lat": 42.32979,
+              "lon": -71.083885,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T09:35:00Z",
+              "scheduledDeparture": "2026-11-14T09:35:00Z",
+              "stopCode": "64",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NOT_ALLOWED",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Massachusetts Ave opp Holyoke St",
+              "stopId": "us-ma-MBTA_110",
+              "importance": 5.2000386858708225e-06,
+              "lat": 42.373110000000004,
+              "lon": -71.11765000000001,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:59:00Z",
+              "scheduledArrival": "2026-11-14T09:59:00Z",
+              "stopCode": "110",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-MBTA_1",
+            "routeUrl": "https://www.mbta.com/schedules/1",
+            "directionId": "0",
+            "routeColor": "ffc72c",
+            "routeTextColor": "000000",
+            "routeType": 3,
+            "agencyName": "MBTA",
+            "agencyUrl": "http://www.mbta.com",
+            "agencyFareUrl": "https://www.mbta.com/fares",
+            "agencyId": "1",
+            "tripId": "20261114_04:35_us-ma-MBTA_79301200",
+            "routeShortName": "1",
+            "routeLongName": "Harvard Square - Nubian Station",
+            "tripShortName": "",
+            "displayName": "1",
+            "cancelled": false,
+            "source": "us-ma_MBTA.gtfs.zip/stop_times.txt:1320173:1320196",
+            "intermediateStops": [
+              {
+                "name": "Washington St opp Ruggles St",
+                "stopId": "us-ma-MBTA_1",
+                "importance": 1.3851302355760708e-05,
+                "lat": 42.330956,
+                "lon": -71.08275599999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:35:00Z",
+                "departure": "2026-11-14T09:35:00Z",
+                "scheduledArrival": "2026-11-14T09:35:00Z",
+                "scheduledDeparture": "2026-11-14T09:35:00Z",
+                "stopCode": "1",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Washington St @ Melnea Cass Blvd",
+                "stopId": "us-ma-MBTA_2",
+                "importance": 2.6655636247596703e-05,
+                "lat": 42.332325000000004,
+                "lon": -71.08125000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:36:00Z",
+                "departure": "2026-11-14T09:36:00Z",
+                "scheduledArrival": "2026-11-14T09:36:00Z",
+                "scheduledDeparture": "2026-11-14T09:36:00Z",
+                "stopCode": "2",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Melnea Cass Blvd @ Harrison Ave",
+                "stopId": "us-ma-MBTA_6",
+                "importance": 1.1027968866983429e-05,
+                "lat": 42.332016,
+                "lon": -71.07957499999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:37:00Z",
+                "departure": "2026-11-14T09:37:00Z",
+                "scheduledArrival": "2026-11-14T09:37:00Z",
+                "scheduledDeparture": "2026-11-14T09:37:00Z",
+                "stopCode": "6",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Albany St opp Randall St",
+                "stopId": "us-ma-MBTA_10003",
+                "importance": 7.586894298583502e-06,
+                "lat": 42.331593,
+                "lon": -71.07624,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:38:00Z",
+                "departure": "2026-11-14T09:38:00Z",
+                "scheduledArrival": "2026-11-14T09:38:00Z",
+                "scheduledDeparture": "2026-11-14T09:38:00Z",
+                "stopCode": "10003",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Albany St",
+                "stopId": "us-ma-MBTA_57",
+                "importance": 9.973749911296181e-06,
+                "lat": 42.33382399999999,
+                "lon": -71.07354,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:39:00Z",
+                "departure": "2026-11-14T09:39:00Z",
+                "scheduledArrival": "2026-11-14T09:39:00Z",
+                "scheduledDeparture": "2026-11-14T09:39:00Z",
+                "stopCode": "57",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Harrison Ave",
+                "stopId": "us-ma-MBTA_58",
+                "importance": 5.981639787933091e-06,
+                "lat": 42.33495,
+                "lon": -71.07493,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:40:00Z",
+                "departure": "2026-11-14T09:40:00Z",
+                "scheduledArrival": "2026-11-14T09:40:00Z",
+                "scheduledDeparture": "2026-11-14T09:40:00Z",
+                "stopCode": "58",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Washington St",
+                "stopId": "us-ma-MBTA_10590",
+                "importance": 2.209798913099803e-05,
+                "lat": 42.336876,
+                "lon": -71.07724,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:41:00Z",
+                "departure": "2026-11-14T09:41:00Z",
+                "scheduledArrival": "2026-11-14T09:41:00Z",
+                "scheduledDeparture": "2026-11-14T09:41:00Z",
+                "stopCode": "10590",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Tremont St",
+                "stopId": "us-ma-MBTA_87",
+                "importance": 5.981639787933091e-06,
+                "lat": 42.339459999999995,
+                "lon": -71.08036,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:43:00Z",
+                "departure": "2026-11-14T09:43:00Z",
+                "scheduledArrival": "2026-11-14T09:43:00Z",
+                "scheduledDeparture": "2026-11-14T09:43:00Z",
+                "stopCode": "87",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Massachusetts Ave Station",
+                "stopId": "us-ma-MBTA_188",
+                "importance": 5.981639787933091e-06,
+                "lat": 42.34157,
+                "lon": -71.08309,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:44:00Z",
+                "departure": "2026-11-14T09:44:00Z",
+                "scheduledArrival": "2026-11-14T09:44:00Z",
+                "scheduledDeparture": "2026-11-14T09:44:00Z",
+                "stopCode": "188",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ St Botolph St",
+                "stopId": "us-ma-MBTA_89",
+                "importance": 3.000245442308369e-06,
+                "lat": 42.342304,
+                "lon": -71.08412000000001,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:44:00Z",
+                "departure": "2026-11-14T09:44:00Z",
+                "scheduledArrival": "2026-11-14T09:44:00Z",
+                "scheduledDeparture": "2026-11-14T09:44:00Z",
+                "stopCode": "89",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Massachusetts Ave @ Clearway St",
+                "stopId": "us-ma-MBTA_91",
+                "importance": 3.000245442308369e-06,
+                "lat": 42.345330000000004,
+                "lon": -71.08673999999999,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T09:46:00Z",
+                "departure": "2026-11-14T09:46:00Z",
+                "scheduledArrival": "2026-11-14T09:46:00Z",
+                "scheduledDeparture": "2026-11-14T09:46:00Z",
+                "stopCode": "91",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "{jrvoAxurqfCwBIvBce@wQkC{KoAkKyAiHyAaJiDcI}JqCsCuRqT}VyZuJcL}SkRoDsDqCkCsCwBmG_D}I{EbKsSjIkQjHcQfIsTjDgKbBcFjIkVzNoj@fPku@jG{]sBgFaWce@aCgEcQo_@qQs]aN_WwRgYkV{ZcQkWuEcGeJvLifA~sAgD~DmgApyA}TfYcR`Wqa@ni@g]zc@my@reAqTrXgJzJoEfEg^n_@sUnUiHfJsKzOeIzOah@n}@yCnFs@fAcBfDsb@ns@}BrD}Znh@oF|J{^dn@gBbBcEvBguA~f@kDnA{VbKsFxBk\\`Mgb@nPwHtC{OxFcWbL_k@rSYkB",
+              "precision": 6,
+              "length": 78
+            },
+            "bikesAllowed": true,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Massachusetts Ave @ Newbury St",
+              "stopId": "us-ma-MBTA_93",
+              "importance": 6.500773451989517e-06,
+              "lat": 42.348003,
+              "lon": -71.08803599999999,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:47:00Z",
+              "departure": "2026-11-14T09:47:00Z",
+              "scheduledArrival": "2026-11-14T09:47:00Z",
+              "scheduledDeparture": "2026-11-14T09:47:00Z",
+              "stopCode": "93",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "800 Boylston Street",
+              "stopId": "us-ma-Massport_BB",
+              "importance": 6.3311126723419875e-06,
+              "lat": 42.348576,
+              "lon": -71.08261,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T09:52:00Z",
+              "scheduledArrival": "2026-11-14T09:52:00Z",
+              "stopCode": "BB",
+              "vertexType": "TRANSIT",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 300,
+            "startTime": "2026-11-14T09:47:00Z",
+            "endTime": "2026-11-14T09:52:00Z",
+            "scheduledStartTime": "2026-11-14T09:47:00Z",
+            "scheduledEndTime": "2026-11-14T09:52:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 538.0,
+            "legGeometry": {
+              "points": "s`vwoAdzzqfCGy@??OkB??JE??{D{U??o@sD??a]soB??RI??nPaH??j@W??j@U??fQcHBADA??YaA??WcB??a@mC??E[??FC??UkA??v@Y??rBw@??jCaA??j@S??iAqG??aDiQMu@A}@VcC??T{B?a@Cg@_Hs_@??eBuJsBsLSi@[[_B_A_@_@Qm@Ou@??sBeL??gFgY??_@yBa@yB??I]",
+              "precision": 6,
+              "length": 74
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 2.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "toOsmNode": 13816230589,
+                "polyline": {
+                  "points": "s`vwoAdzzqfCGy@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1312242235,
+                "fromOsmNode": 13816230589,
+                "toOsmNode": 3990569297,
+                "polyline": {
+                  "points": "{`vwoAjxzqfCOkB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Newbury Street",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1511777040,
+                "fromOsmNode": 3990569297,
+                "toOsmNode": 13816230570,
+                "polyline": {
+                  "points": "kavwoA~tzqfCJE",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 32.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 474876530,
+                "fromOsmNode": 13816230570,
+                "toOsmNode": 7619114126,
+                "polyline": {
+                  "points": "_avwoAxtzqfC{D{U",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 8.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 474876530,
+                "fromOsmNode": 7619114126,
+                "toOsmNode": 7846627538,
+                "polyline": {
+                  "points": "{fvwoA|}yqfCo@sD",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 157.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 840929008,
+                "fromOsmNode": 7846627538,
+                "toOsmNode": 3990569307,
+                "polyline": {
+                  "points": "khvwoAhxyqfCa]soB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 825086757,
+                "fromOsmNode": 3990569307,
+                "toOsmNode": 7846627503,
+                "polyline": {
+                  "points": "mfwwoAtgvqfCRI",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 33.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 825086757,
+                "fromOsmNode": 7846627503,
+                "toOsmNode": 7704120000,
+                "polyline": {
+                  "points": "yewwoAjgvqfCnPaH",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 825086756,
+                "fromOsmNode": 7704120000,
+                "toOsmNode": 6540728516,
+                "polyline": {
+                  "points": "itvwoAh~uqfCj@W",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 825086756,
+                "fromOsmNode": 6540728516,
+                "toOsmNode": 7704119999,
+                "polyline": {
+                  "points": "}rvwoAp}uqfCj@U",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 35.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 696501071,
+                "fromOsmNode": 7704119999,
+                "toOsmNode": 3990569301,
+                "polyline": {
+                  "points": "qqvwoAz|uqfCfQcHBADA",
+                  "precision": 6,
+                  "length": 4
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1484173679,
+                "fromOsmNode": 3990569301,
+                "toOsmNode": 12432236542,
+                "polyline": {
+                  "points": "__vwoArsuqfCYaA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 4.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1343631703,
+                "fromOsmNode": 12432236542,
+                "toOsmNode": 7505047931,
+                "polyline": {
+                  "points": "y_vwoApquqfCWcB",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 6.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1343631703,
+                "fromOsmNode": 7505047931,
+                "toOsmNode": 12432236543,
+                "polyline": {
+                  "points": "q`vwoAlnuqfCa@mC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1483581409,
+                "fromOsmNode": 12432236543,
+                "toOsmNode": 7704120004,
+                "polyline": {
+                  "points": "savwoA~iuqfCE[",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 0.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1344666015,
+                "fromOsmNode": 7704120004,
+                "toOsmNode": 3990569303,
+                "polyline": {
+                  "points": "yavwoAbiuqfCFC",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181246,
+                "fromOsmNode": 3990569303,
+                "toOsmNode": 12439977083,
+                "polyline": {
+                  "points": "qavwoA~huqfCUkA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1483581408,
+                "fromOsmNode": 12439977083,
+                "toOsmNode": 12432236572,
+                "polyline": {
+                  "points": "gbvwoArfuqfCv@Y",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 7.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1343631707,
+                "fromOsmNode": 12432236572,
+                "toOsmNode": 11946095692,
+                "polyline": {
+                  "points": "o`vwoAxeuqfCrBw@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 8.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1343631707,
+                "fromOsmNode": 11946095692,
+                "toOsmNode": 12439977082,
+                "polyline": {
+                  "points": "{|uwoA`duqfCjCaA",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 3.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 1483581407,
+                "fromOsmNode": 12439977082,
+                "toOsmNode": 3990569304,
+                "polyline": {
+                  "points": "oxuwoA~auqfCj@S",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 12.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 3990569304,
+                "toOsmNode": 7804005239,
+                "polyline": {
+                  "points": "cwuwoAjauqfCiAqG",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 36.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 7804005239,
+                "toOsmNode": 7804005238,
+                "polyline": {
+                  "points": "myuwoAxxtqfCaDiQMu@A}@VcC",
+                  "precision": 6,
+                  "length": 5
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 54.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 7804005238,
+                "toOsmNode": 1399777036,
+                "polyline": {
+                  "points": "g~uwoAv~sqfCT{B?a@Cg@_Hs_@",
+                  "precision": 6,
+                  "length": 5
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 52.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 1399777036,
+                "toOsmNode": 7597262842,
+                "polyline": {
+                  "points": "ufvwoA|wrqfCeBuJsBsLSi@[[_B_A_@_@Qm@Ou@",
+                  "precision": 6,
+                  "length": 9
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 18.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 7597262842,
+                "toOsmNode": 7597262838,
+                "polyline": {
+                  "points": "atvwoAhvqqfCsBeL",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 37.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 7597262838,
+                "toOsmNode": 7597262845,
+                "polyline": {
+                  "points": "uwvwoAbiqqfCgFgY",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 11.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "osmWay": 805181243,
+                "fromOsmNode": 7597262845,
+                "toOsmNode": 7774760059,
+                "polyline": {
+                  "points": "}~vwoAznpqfC_@yBa@yB",
+                  "precision": 6,
+                  "length": 3
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              },
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 1.0,
+                "fromLevel": 0.0,
+                "toLevel": 0.0,
+                "fromOsmNode": 7774760059,
+                "polyline": {
+                  "points": "_awwoAfgpqfCI]",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          },
+          {
+            "mode": "BUS",
+            "from": {
+              "name": "800 Boylston Street",
+              "stopId": "us-ma-Massport_BB",
+              "importance": 6.3311126723419875e-06,
+              "lat": 42.348576,
+              "lon": -71.08261,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T10:00:00Z",
+              "scheduledDeparture": "2026-11-14T10:00:00Z",
+              "stopCode": "BB",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "Terminal B Stop 2 – LEX Drop Off",
+              "stopId": "us-ma-Massport_92",
+              "importance": 6.186682730913162e-05,
+              "lat": 42.362086999999995,
+              "lon": -71.01805,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T10:20:00Z",
+              "scheduledArrival": "2026-11-14T10:20:00Z",
+              "stopCode": "92",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "duration": 1200,
+            "startTime": "2026-11-14T10:00:00Z",
+            "endTime": "2026-11-14T10:20:00Z",
+            "scheduledStartTime": "2026-11-14T10:00:00Z",
+            "scheduledEndTime": "2026-11-14T10:20:00Z",
+            "realTime": false,
+            "scheduled": true,
+            "interlineWithPreviousLeg": false,
+            "headsign": "AIRPORT",
+            "tripFrom": {
+              "name": "800 Boylston Street",
+              "stopId": "us-ma-Massport_BB",
+              "importance": 6.3311126723419875e-06,
+              "lat": 42.348576,
+              "lon": -71.08261,
+              "tz": "America/New_York",
+              "departure": "2026-11-14T10:00:00Z",
+              "scheduledDeparture": "2026-11-14T10:00:00Z",
+              "stopCode": "BB",
+              "vertexType": "TRANSIT",
+              "pickupType": "NORMAL",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "tripTo": {
+              "name": "Terminal E – LEX Drop Off",
+              "stopId": "us-ma-Massport_94",
+              "importance": 3.093341365456581e-05,
+              "lat": 42.369034,
+              "lon": -71.01917,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T10:30:00Z",
+              "scheduledArrival": "2026-11-14T10:30:00Z",
+              "stopCode": "94",
+              "vertexType": "TRANSIT",
+              "pickupType": "NOT_ALLOWED",
+              "dropoffType": "NORMAL",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "routeId": "us-ma-Massport_32511",
+            "routeUrl": "https://www.massport.com/logan-airport/to-from-logan/transportation-options/logan-express/back-bay/",
+            "directionId": "1",
+            "routeColor": "e0592a",
+            "routeTextColor": "ffffff",
+            "routeType": 3,
+            "agencyName": "Logan Express",
+            "agencyUrl": "https://massport.com/",
+            "agencyFareUrl": "",
+            "agencyId": "2274",
+            "tripId": "20261114_05:00_us-ma-Massport_t_6186118_b_87290_tn_1",
+            "routeShortName": "BB",
+            "routeLongName": "Back Bay",
+            "tripShortName": "",
+            "displayName": "BB",
+            "cancelled": false,
+            "source": "us-ma_Massport.gtfs.zip/stop_times.txt:18138:18148",
+            "intermediateStops": [
+              {
+                "name": "Dartmouth Street opposite Back Bay Station",
+                "stopId": "us-ma-Massport_BBMBTA",
+                "importance": 1.3620737263408955e-05,
+                "lat": 42.347359999999995,
+                "lon": -71.07611,
+                "level": -1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T10:01:00Z",
+                "departure": "2026-11-14T10:01:00Z",
+                "scheduledArrival": "2026-11-14T10:01:00Z",
+                "scheduledDeparture": "2026-11-14T10:01:00Z",
+                "stopCode": "BBMBTA",
+                "vertexType": "TRANSIT",
+                "pickupType": "NORMAL",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal A – LEX Drop Off",
+                "stopId": "us-ma-Massport_90",
+                "importance": 3.093341365456581e-05,
+                "lat": 42.365063,
+                "lon": -71.021904,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T10:15:00Z",
+                "departure": "2026-11-14T10:15:00Z",
+                "scheduledArrival": "2026-11-14T10:15:00Z",
+                "scheduledDeparture": "2026-11-14T10:15:00Z",
+                "stopCode": "90",
+                "vertexType": "TRANSIT",
+                "pickupType": "NOT_ALLOWED",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              },
+              {
+                "name": "Terminal B Stop 1 – LEX Drop Off",
+                "stopId": "us-ma-Massport_91",
+                "importance": 6.186682730913162e-05,
+                "lat": 42.362656,
+                "lon": -71.01906600000001,
+                "level": 1.0,
+                "tz": "America/New_York",
+                "arrival": "2026-11-14T10:18:00Z",
+                "departure": "2026-11-14T10:18:00Z",
+                "scheduledArrival": "2026-11-14T10:18:00Z",
+                "scheduledDeparture": "2026-11-14T10:18:00Z",
+                "stopCode": "91",
+                "vertexType": "TRANSIT",
+                "pickupType": "NOT_ALLOWED",
+                "dropoffType": "NORMAL",
+                "cancelled": false,
+                "arrivalTimestampReason": "NO_RT_DATA",
+                "departureTimestampReason": "NO_RT_DATA",
+                "modes": [
+                  "BUS"
+                ]
+              }
+            ],
+            "legGeometry": {
+              "points": "_awwoAbfpqfCuDbBaAwGYoA{@{EeAyFkFm[sMwt@SoA{@oFwL{q@cDoQ]mBu@qEvCoAtZcL`CcA`MsEpB{@F?r@g@b@GRKjEcB~A{@zN{EnGkCrB{@pB{@jAg@rAS|@g@t@Kz@Gt@Sf@?b@?cAwB{AsDw@wBs@wB{@sDkAcG}@{E{@{FaCoOiBsNqCgTkBkMEoFLiDf@aCDg@^oAhAwB|AoApk@eU~CeAnCoA~DcBdJiItFyBjHsCjW{J`YoKlEwBxAg@HID?l@IjG_CfSkIhB{@pBq@jB}@bPaGnJ}DjLgErDoAjCoAfSkH`B{@hMoFfCgArBo@`a@sNhA_@~@[xB{@pBg@t@SXSf@]n@]pCgDzFcH|AwBtH{JlLsNz@oAhAcBd@g@nEoF~GsI|TgYd@g@xBkDxAwAv@oAbFcGbAcBf@cBTcBnDoU`BgJpCwL`AkGf@wCvCkHZwBvFcVfAgEnAwGnD{OfBsIn@_Dd@}D|@eEzEcWVkHTwGd@kCzP_v@~Ic`@`CoK`HwZzLoj@R{@bBwGoCcGsB{E]{@sAwBiRc[{Xgc@eMoPpGwe@RkCKwBUmBaAaCcBwBsDgEeCwByDkCgCoAkiAkf@kFcBeEmBag@yP{SgJoUoK_DwAgd@kScFwBqBcBoDcBcG{DuHoGyHwGiGcGuFcGuEcGuEmGeEuH{DiIoE}I_E{JwCqJsC}JkCgMsBgKgBoKcBmLg_BadKaF{^oCoZ}@gT[_SoE{hBsAc\\qBsXmOcrAcBsSu@eUUka@n@uMf@wL~@oLjA_MbBoKhBwLdCcMjCiM~CyLrDgNjC{JhDoKhDwLrDkMrDwMrDiMdDuMfDkMzAaHrAmGrAwGjAcGjAwGhAkGfAcHbA}It@aGt@kIj@_If@wGZ_I^kHN_IFkH?mG?uHGkHG_ISkHSwGk@_J}@kL{@cLiA_McBwNsBgNqBcLyBeK_CqJyC{JgEkMsEkM{GkRyGcQsHcQwGgOiGkMeHgOyI{OyHiNaHmLuHkMkHoKcK_O{KeOuFaHcFcGcGaHkFaGyGwHwFoFuHkHoHsHeIcH_I_HiIoGwIkHiH{EiH{EmIoF{H{E{NgIoLoGcjH_xDkLwFsJsEsMoFkM{EgEcBsGkC{L{EwHwBuNgEaMuCcLaC_OkCeP_Dip@gJow@wLcZ{E{McBwMkCcLoAcM{AoLkAwOgAaQ{@qL{@}Ks@oI[qGS_QSeMGmOZyMn@_NfAoIz@iHz@aGz@aInAkIbByN~CyCz@}InB{o@nOY?kIrDeEnAoDz@yWjH_Dz@kCz@kCxAsClBgCjCaC`C}BtC_B~CgBrDoA~CcArDcAfEu@~D]dE]pEIzEHfETzEZfEn@fEfAfEhArDzAjC|AjCbBvBbBbBzBbB`CvAhC|@hCp@fCJ`CFhCGfCKxBq@~B}@zBcArBcBbBcBhB_C|AcCnAwBnKsS~BoFhB{EjFiNn]}`AhSco@fBcGbBcGvBgJvAoFrAyFrAaHpVogAt@kCz@cBdAoAtA{@nA]bB?dA?~HHxAIdAq@p@oAfAaC|@uC`F_NdAsCli@o|ArAwCvAkB`EcGtAuC\\eAd@wBJ{@R{@?cBImBm@mG?cBFoAVcB\\{@l@g@`BoAzL_D~MkChWcGzS{EbB]`JmBfCg@hM_DrO_DfPsDfN_Dt@SxBcBrAkBl@cCL_DMgE_@_Du@kC{@kBcBgAcBq@_C]KRgPrDqGxAGmB",
+              "precision": 6,
+              "length": 441
+            },
+            "bikesAllowed": false,
+            "wheelchairAccessible": "ACCESSIBLE",
+            "reservation": "NONE",
+            "alternatives": []
+          },
+          {
+            "mode": "WALK",
+            "from": {
+              "name": "Terminal B Stop 2 – LEX Drop Off",
+              "stopId": "us-ma-Massport_92",
+              "importance": 6.186682730913162e-05,
+              "lat": 42.362086999999995,
+              "lon": -71.01805,
+              "level": 1.0,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T10:20:00Z",
+              "departure": "2026-11-14T10:20:00Z",
+              "scheduledArrival": "2026-11-14T10:20:00Z",
+              "scheduledDeparture": "2026-11-14T10:20:00Z",
+              "stopCode": "92",
+              "vertexType": "TRANSIT",
+              "cancelled": false,
+              "arrivalTimestampReason": "NO_RT_DATA",
+              "departureTimestampReason": "NO_RT_DATA",
+              "modes": [
+                "BUS"
+              ]
+            },
+            "to": {
+              "name": "END",
+              "lat": 42.362,
+              "lon": -71.018,
+              "tz": "America/New_York",
+              "arrival": "2026-11-14T10:21:00Z",
+              "scheduledArrival": "2026-11-14T10:21:00Z",
+              "vertexType": "NORMAL"
+            },
+            "duration": 60,
+            "startTime": "2026-11-14T10:20:00Z",
+            "endTime": "2026-11-14T10:21:00Z",
+            "scheduledStartTime": "2026-11-14T10:20:00Z",
+            "scheduledEndTime": "2026-11-14T10:21:00Z",
+            "realTime": false,
+            "scheduled": false,
+            "distance": 10.0,
+            "legGeometry": {
+              "points": "{mqxoAx`rmfCtDy@",
+              "precision": 6,
+              "length": 2
+            },
+            "steps": [
+              {
+                "relativeDirection": "CONTINUE",
+                "distance": 10.0,
+                "fromLevel": 1.0,
+                "toLevel": 1.0,
+                "osmWay": 976729381,
+                "polyline": {
+                  "points": "{mqxoAx`rmfCtDy@",
+                  "precision": 6,
+                  "length": 2
+                },
+                "streetName": "Terminal B - arrivals",
+                "exit": "",
+                "stayOn": false,
+                "area": false,
+                "toll": false,
+                "elevationUp": 0,
+                "elevationDown": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "previousPageCursor": "EARLIER|1794645600",
+    "nextPageCursor": "LATER|1794648900"
+  }
+}
