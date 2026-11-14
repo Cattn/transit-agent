@@ -16,7 +16,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | # | Plan | Who | State |
 |---|------|-----|-------|
 | 1 | **009** DOM map: `@transit/maps/web` in a `'use dom'` component, mounted in Home's `MapSlot` | KrakenTheJaken | Not started. **Longest pole:** Android shows no map until it lands |
-| 2 | **021** Results sheet + Save | DMFriends | PR #66: changes requested and conflicts with #67. Rebase, Material fixes, filled mode control; the route-color dot is Cattn's call |
+| 2 | **021** Results sheet + Save | DMFriends | PR #66: approved at `1b0604c`; full check passed, awaiting user merge |
 | 3 | **022** Filters full sheet | Cattn (from Rad1ee) | Unblocked |
 | 4 | **034** Keep the chat for the session | Cattn | Unblocked (S) |
 | 5 | **035** Android MVP check against the real server | Cattn | After 1–4 |
@@ -37,7 +37,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | Plan | Title | Who | Pri | Effort | Depends on | Status |
 |------|-------|-----|-----|--------|------------|--------|
 | 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web #35, saved colors #65; DOM renderer next). **MVP** |
-| 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | IN PROGRESS (PR #66: changes requested, rebase on #67). **MVP** |
+| 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | DONE (#66) |
 | 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | Cattn | P1 | L | 020 | TODO (reassigned from Rad1ee). **MVP** |
 | 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | TODO (unblocked). **MVP** |
 | 035 | [Android MVP check against the real server](035-android-mvp-check.md) (tracked on [#17](https://github.com/Cattn/transit-agent/issues/17), no separate issue) | Cattn | P1 | S | 009, 021, 022, 034 | TODO. **MVP milestone** |
@@ -47,7 +47,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | TODO (008-Q3 details remain) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
-| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020 | TODO (after 021) |
+| 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (unblocked; 021 merged) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (fixture steps executable) |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | KrakenTheJaken | P2 | L | 020 | TODO (reassigned from Rad1ee; after 030) |
