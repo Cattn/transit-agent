@@ -23,12 +23,12 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Up for grabs:** #22 / PR #30 is merged. Round-trip preference and optional two-one-way comparison are decided; reconcile round-trip interfaces before implementing.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Server-side; needs judgment and live network access (use a strong coding model). Starts with a 2-hour research step.
+- **Status:** **Assigned to @Cattn.** #22 / PR #30 is merged. Round-trip preference and optional two-one-way comparison are decided; reconcile round-trip interfaces before implementing.
+- **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Waiting on:** nothing for the existing research; round-trip provider/composer contract reconciliation before round-trip implementation.
 
-**Open questions** (answer by number in a comment on #28):
+**Open questions** (answer by number in a comment on #28) — **@Cattn answers these.**
 
 1. @Cattn: do you know whether Clovis's page HTML includes all flights, or only Google's top group? (Step 1 finds out either way.)
 **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245), clarified by @Cattn in chat on 2026-11-14):** prefer Clovis round-trip search. Optionally compare two one-way searches; do not substitute those for the preferred round-trip search.

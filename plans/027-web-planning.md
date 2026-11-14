@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, once 026 is on the branch you are using.
+- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
 - **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `027-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Rad1ee answers these.** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
 - 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
 - ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".

@@ -22,10 +22,14 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs (fixture integration).** #7 and #22 are merged. Reuse the existing airports, drive costs, and sample fares; real ground routing remains plan 007.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes, for fixture integration. Real fare integration follows plan 019.
+- **Status:** **Assigned to @DMFriends (fixture integration first).** #7 and #22 are merged. Reuse the existing airports, drive costs, and sample fares; real ground routing remains plan 007.
+- **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing for fixture integration. Real prices: #28; real ground routing: #11.
+
+**Open questions** (answer by number in a comment on #15) — **@Cattn answers this.**
+
+- 011-Q3: Europe / Eurail stays in the backlog for v1? *(proposed: yes)*
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.

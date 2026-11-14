@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Build with the defaults until a question is answered.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI.
+- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
 - **Waiting on:** The home shell. Not on the server.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `022-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Rad1ee answers these.** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
 
 - 022-Q1: iOS form sheet and Android full sheet, as drawn? *(proposed: yes)*
 - 022-Q2: keep each screen's own strictness words? *(proposed: yes)*

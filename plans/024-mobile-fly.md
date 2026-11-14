@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Do not start plan 011 from this screen.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI.
+- **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** The home shell. Not on flight prices.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `024-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@DMFriends answers these.** Reply as `024-Q1: ...`. Use the proposed defaults until answered.
 
 - 024-Q1: empty state until the data has a flight, rather than painted sample cards? *(proposed: yes)*
 - 024-Q2: show a rail-only result in this list, labeled from `routeName`? *(proposed: yes)*

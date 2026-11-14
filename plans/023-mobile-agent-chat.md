@@ -22,11 +22,12 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI. The Gemini agent (plan 006) is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
+- **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Cattn before starting related work.
+- **Agent:** plan 006 is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
 - **Waiting on:** The home shell. Not on `GEMINI_API_KEY`.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `023-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers Q1–Q2; @Rad1ee answers Q3 (design).** Reply as `023-Q1: ...`. Use the proposed defaults until answered.
 
 - 023-Q1: render live agent replies instead of the sample sentences? *(proposed: yes)*
 - 023-Q2: buttons only when `questions[].options` exists? *(proposed: yes)*

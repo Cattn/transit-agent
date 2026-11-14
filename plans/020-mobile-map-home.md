@@ -26,11 +26,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft.** Feedback welcome before or during the build. Reuse merged 015 (hooks) and 018 (platform helpers); the native map is @KrakenTheJaken's plan 009.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI. The map drawing stays with @KrakenTheJaken.
+- **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `020-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@DMFriends answers these.** Reply as `020-Q1: ...`. Use the proposed defaults until answered.
 
 - 020-Q1: follow this Figma pass (separate home sheet) rather than UI-5's one three-detent sheet? *(proposed: yes)*
 - 020-Q2: tracked trips first, or the search field? *(proposed: tracked trips, as drawn)*

@@ -23,11 +23,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The steps use the defaults below until a question is answered.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, once 020 is on the branch you are using.
+- **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Plan 020's home shell. Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `021-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@DMFriends answers these.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
 - ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
 - 021-Q2: expand the selected card in the sheet? *(proposed: yes)*

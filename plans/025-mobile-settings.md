@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Several rows are drawn but have no field to save. Those stay visible and unsaved until the questions below are answered.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI.
+- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
 - **Waiting on:** The home shell. Plan 018 is merged in #37; reuse its persistent device-id storage.
 
-**Open questions** — @Rad1ee @DMFriends: reply as `025-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Rad1ee answers these.** Reply as `025-Q1: ...`. Use the proposed defaults until answered.
 
 - 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
 - 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*

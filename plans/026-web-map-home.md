@@ -22,11 +22,11 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
-- **Owner:** Nobody yet. Suggested: @Rad1ee @DMFriends
-- **Up for grabs?** Yes, for UI. Map drawing stays with @KrakenTheJaken.
+- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
 - **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. **This is the first MVP screen** (see `plans/README.md`).
 
-**Open questions** — @Rad1ee @DMFriends: reply as `026-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Rad1ee answers these.** Reply as `026-Q1: ...`. Use the proposed defaults until answered.
 
 - 026-Q1: two panels, as drawn, rather than one combined side panel? *(proposed: yes)*
 - 026-Q2: settings button does not navigate yet? *(proposed: yes)*

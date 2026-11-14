@@ -23,11 +23,11 @@
 ## Who's on it & how to help
 
 - **Status:** **Later:** real watch integration waits on #11. Storage (#9) and pure leave-by logic (#21) are merged; reuse them.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes, once its dependencies land.
+- **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
+- **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Waiting on:** #11 for real realtime data; mode horizon/ramp details remain open.
 
-**Open questions** (answer by number in a comment on #12):
+**Open questions** (answer by number in a comment on #12) — **@Cattn answers these.**
 
 **Decided:** automatically switch missed trips ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); do not require a confirmation tap.
 
