@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Technical re-check passed; merge conflicts remain:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `73a6d892117d686c34b1fe3514bb91f790acfacf`. Reviewer 2 recorded a COMMENT review, not a formal GitHub approval. Existing author is reconciling the branch; any new head needs reviewer 2's re-check. Unmerged.
+- **Status:** **Re-check pending after main integration:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8`. Branch conflicts resolved; GitHub reports mergeable. Reviewer 2 has the sole updated-head packet. Unmerged; prior technical pass was a COMMENT review at `73a6d89`.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -197,7 +197,7 @@ const chat = useAgentChat(trip.state, trip.apply);
 
 ## Maintenance notes
 
-- Technical re-check passed at `73a6d892117d686c34b1fe3514bb91f790acfacf`: reviewer 2 independently verified all three P2 fixes with temporary jsdom/renderHook probes, fresh `npm ci`, full `npm run check` (132 existing tests and all builds/smoke), and exact-head CI. No remaining actionable fix-diff findings. GitHub rejected self-APPROVE; [the COMMENT review](https://github.com/Cattn/transit-agent/pull/47#pullrequestreview-5902320464) records the technical pass only. Merge conflicts against main remain; existing author owns reconciliation, preserving concurrent changes. Any updated head requires reviewer 2's re-check through the same sole sender. PR remains unmerged.
+- Main integration at `3c1f2abf16384b2496dcaa8feabe996f0ee98ea8` normally merged main `33a4220` into reviewed `73a6d89`, preserving maps builds/watch/demo, client-react wiring, and concurrent changes. Hook source is unchanged. Author reports fresh `npm ci` and full `npm run check` passing (320 existing tests, typechecks, package/server/web builds, Android/iOS exports, smoke), React deduped to 19.3.0, and clean checkout. GitHub reports mergeable; reviewer 2's updated-head re-check is pending. Prior technical pass at `73a6d89` was a COMMENT, not formal GitHub approval. PR remains unmerged.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
