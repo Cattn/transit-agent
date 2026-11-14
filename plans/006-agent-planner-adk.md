@@ -14,7 +14,7 @@
 - **Risk**: MED (new external dependency and model behaviour; mitigated by keeping ADK behind one module and testing with a fake agent)
 - **Depends on**: plans/003, plans/004 (needs `TripDraftPatchSchema`); plan 005 optional (profile defaults)
 - **Category**: direction
-- **Blocked by decisions**: D3 (ADK vs direct `@google/genai`), D5 (request/response, no streaming) — defaults assumed
+- **Decisions**: D3-A (ADK TypeScript + Gemini) and D5-A (request/response JSON) are decided. D5-B (SSE streaming) is a **planned later follow-up**: out of scope here, but don't design it out (see Maintenance notes).
 - **Planned at**: commit `c9e33cc`, 2026-11-13
 - **Issue**: https://github.com/Cattn/transit-agent/issues/10
 
@@ -95,7 +95,7 @@ apps/server/src/routes/agent.ts
 scripts/agent-eval.mjs                   optional live check, NOT run in CI
 tests beside each module
 ```
-**Out of scope:** booking, streaming (D5-B), clients' chat UI (UI team), real geocoding/routing (plan 007).
+**Out of scope:** booking, streaming (D5-B, planned as a later follow-up), clients' chat UI (UI team), real geocoding/routing (plan 007).
 
 ## Steps
 
@@ -200,6 +200,7 @@ Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory to
 - ADK is isolated in `adk-planner.ts`, so switching to `@google/genai` function-calling (D3-B) means rewriting that one file.
 - `InMemorySessionService` loses conversations on restart. That's fine; durable data (profiles, saved trips) lives in SQLite (plan 005).
 - New provider capabilities (flights, bikeshare) become new tools here, plus one instruction line each.
+- **Planned follow-up: streaming (D5-B).** Keep `PlannerAgent.respond()` returning the final `AgentMessageResponse`, and keep the turn's patch, questions and plan in the per-turn `TurnContext`. Streaming then adds a second endpoint (e.g. `POST /api/agent/messages/stream`, server-sent events: `reply-delta`, `draft-patch`, `questions`, `plan`, `done` with the same final object) and a client `agentStream()` method (plan 004 maintenance notes), without changing this endpoint.
 
 ## Open questions for review
 

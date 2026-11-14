@@ -14,7 +14,7 @@
 - **Risk**: MED (`node:sqlite` stability flag varies by Node version — see step 1)
 - **Depends on**: plans/003-planning-api-fixture-provider.md, plans/004-client-sdk-and-trip-draft.md (`TripDraftPatchSchema`)
 - **Category**: direction
-- **Blocked by decisions**: D4 (device-id identity), D6 (SQLite) — recommended defaults assumed
+- **Decisions**: D4-A (device-id identity) and D6-A (`node:sqlite` file) are both decided.
 - **Planned at**: commit `c9e33cc`, 2026-11-13
 - **Issue**: https://github.com/Cattn/transit-agent/issues/9
 

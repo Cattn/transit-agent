@@ -201,7 +201,7 @@ Recommend (not mandate) TanStack Query or a small `useReducer` in each app.
 
 ## Maintenance notes
 
-- If streaming agent replies arrive (D5-B), add an `agentStream()` method; keep `applyDraftPatch` as the only way patches reach state.
+- Streaming agent replies (D5-B) are a planned follow-up: add an `agentStream()` method then; keep `applyDraftPatch` as the only way patches reach state.
 - Provenance is what makes the agent's interpretation correctable ("agent set max walk 15 min — tap to edit"). Don't drop it in UI refactors.
 
 ## Open questions for review

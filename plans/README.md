@@ -90,7 +90,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | IN REVIEW (PR #27) |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | IN REVIEW (PR #29) |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | 🟢 up for grabs | P1 | M | 003, 004 | TODO |
-| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 (D3, D5) | TODO |
+| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 | TODO |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
 | 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs **now** | P1 | M | 002 (D8, D9) | TODO |
@@ -160,12 +160,15 @@ transit data (007) can land afterwards without any client changes.
 
 ## Open decisions
 
-### Decided (2026-11-13, @Cattn)
+### Decided (@Cattn)
 
 - **D1 → A, Boston.** MBTA + Bluebikes are the first data integrations (plans 007, 010).
 - **D4 → A, anonymous device ID.** Sent as the `x-device-id` header (plans 003–005).
 - **Hosting (005-Q2) → laptop / local for the demo.** SQLite on disk (D6-A) is fine. Self-hosted OpenTripPlanner (D2-A) is feasible if a laptop has a few GB of RAM to spare. The #11 spike still makes the final D2 call.
 - **006-Q1 → auto-search.** The agent calls `search_routes` as soon as from, to and time are known.
+- **D3 → A, ADK TypeScript + Gemini** (2026-11-14, [#17](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6871769429)).
+- **D5 → A for now: request/response JSON.** Streaming (B, SSE) is a **planned later follow-up**, not part of plan 006's first version. Plan 006 maintenance notes describe how to add it (2026-11-14, #17).
+- **D6 → A, `node:sqlite` file** (2026-11-14, #17).
 - **Removed:** the payment-plan screen (former D12). The project isn't pursuing that track.
 
 
@@ -183,10 +186,10 @@ transit data (007) can land afterwards without any client changes.
 |----|----------|---------|---------------------|---------|
 | D1 | Launch metro for commute/bike | A Boston (MBTA + Bluebikes) · B New Haven/CT Transit · C NYC | **A Boston.** The notes mention Boston, and MBTA has a public realtime API. Bluebikes publishes GBFS. Verify current terms in the 007 spike. | 007, 010 |
 | D2 | Transit routing engine | A Self-hosted OpenTripPlanner (GTFS + GTFS-RT + GBFS) · B Google Routes API (transit) · C B for routing + agency API (MBTA V3) for realtime | **Decide in the 007 spike.** Lean A if someone can host a JVM with a few GB of RAM, because it is the only option that natively mixes bike and transit. Otherwise C. | 007, 008, 010 |
-| D3 | LLM framework | A ADK TS (`@google/adk`) + Gemini · B `@google/genai` direct function-calling | **A**, per the earlier thread. Plan 006 keeps ADK behind one module (`agent/planner.ts`) so B stays a one-file swap. | 006 |
+| D3 | LLM framework | A ADK TS (`@google/adk`) + Gemini · B `@google/genai` direct function-calling | **Decided: A** (2026-11-14). Plan 006 keeps ADK behind one module so B stays a one-file swap. | 006 |
 | D4 | Identity for a hackathon build | A Anonymous device ID header (`x-device-id`) · B Real auth (Firebase/Clerk/Supabase) | **A.** Profiles and saved routes key off a random ID that each client generates and stores. Replace it with real auth later. | 005 |
-| D5 | Agent turn shape | A Request/response JSON · B Server-sent events (streaming) | **A first.** Streaming is a later improvement on the same endpoint. | 006, 004 |
-| D6 | Database | A `node:sqlite` file (no native build) · B Postgres (hosted) | **A.** It's zero-setup on Windows. The store sits behind repository functions, so switching later touches only `apps/server/src/store/`. | 005 |
+| D5 | Agent turn shape | A Request/response JSON · B Server-sent events (streaming) | **Decided: A now, B (SSE) planned later** (2026-11-14). | 006, 004 |
+| D6 | Database | A `node:sqlite` file (no native build) · B Postgres (hosted) | **Decided: A** (2026-11-14). Zero-setup on Windows; the store sits behind repository functions, so switching later touches only `apps/server/src/store/`. | 005 |
 | D7 | How clients learn of watch updates | A Poll `GET /api/itineraries` every 30–60 s · B SSE · C Expo push notifications | **A now, C later.** Push needs EAS credentials and a deployed server. | 008 |
 | D8 | Basemap tiles | A MapTiler (free tier, key) · B OpenFreeMap / Protomaps (no key) · C Stadia | **Maps team decides.** The contract in 009 hides it behind a `styleUrl` prop. | 009 |
 | D9 | Map package location | A `packages/maps` with `/web` and `/native` subpath exports · B Map code inside each app | **A**, per the map-architecture thread. | 009 |
@@ -221,7 +224,7 @@ transit data (007) can land afterwards without any client changes.
   historical delay data we don't have. Don't display made-up percentages.
 - **Tracking where your car/bike is left between trips** (from the map thread). The `TripDraft`
   in 002 has `vehicles` fields so this can be added without reshaping.
-- **Streaming agent responses (D5-B), push notifications (D7-C).**
+- **Streaming agent responses (D5-B): planned**, the owner wants it after plan 006's request/response version (see 006 maintenance notes). **Push notifications (D7-C).**
 
 ## Findings considered and rejected
 
