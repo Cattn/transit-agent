@@ -14,7 +14,7 @@
 - **Effort**: L
 - **Risk**: MED
 - **Depends on**: plans/020-mobile-map-home.md. Plan 021's Filters chip should open this screen. You may stub that chip if 021 has not merged: Home gets a temporary "Filters" text button.
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/46
 
@@ -26,12 +26,12 @@
 - **Up for grabs?** Yes, for UI.
 - **Waiting on:** The home shell. Not on the server.
 
-**Open questions** (answer `022-Q2: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `022-Q1: ...`. Use the proposed defaults until answered.
 
-1. iOS is a form sheet. Android is a full-height bottom sheet. UI-5 called both the "full" detent of one sheet. *(proposed: follow this Figma pass. Do not edit `plans/ui-direction.md`.)*
-2. iOS strictness labels in the filter sheet are "On time" / "Bit late OK" / "Flexible". Settings uses "A little late is OK" on Android and "Bit late OK" on iOS for the same `some` value. *(proposed: keep each screen's own words, all mapped to `strict` / `some` / `flexible`)*
-3. There is no separate place-search frame. From and To open a list inside this sheet. *(proposed: keep it inside the sheet)*
-4. Which of these controls feel wrong for a first build? Say so on the issue. The list will be edited here.
+- 022-Q1: iOS form sheet and Android full sheet, as drawn? *(proposed: yes)*
+- 022-Q2: keep each screen's own strictness words? *(proposed: yes)*
+- 022-Q3: place search stays inside this sheet? *(proposed: yes)*
+- 022-Q4: which controls should change before a first build?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -66,7 +66,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
   - "Show routes" is the bottom button.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
-- Place search: From and To open a list. Use `searchPlaces` on the mock client, or `usePlaceSearch` if plan 015 exported it. Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, and only if `apps/mobile/src/platform/location.ts` exists (plan 018, decided: never at launch). If the file is missing, the row stays "Current location" from the draft and does not request permission.
+- Place search: From and To open a list. Use `searchPlaces` on the mock client, or `usePlaceSearch` if plan 015 exported it. Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, (plan 018, merged in #37; never at launch). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
 
 ## Commands you will need
 
@@ -103,7 +103,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle, the sections in Current state, `Switch` from `react-native` for step-free access, and sliders built with React Native's community is not installed. Use a `Slider` only if `@react-native-community/slider` is already a dependency. It is not, at `bd41542`. Install it with `npx expo install @react-native-community/slider` in `apps/mobile`. One slider component, used by both platforms.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle, the sections in Current state, `Switch` from `react-native` for step-free access, and `Slider` from `@react-native-community/slider`. If it is not already installed, install it with `npx expo install @react-native-community/slider` in `apps/mobile`. One slider component, used by both platforms.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -119,7 +119,7 @@ Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS
 
 ## Test plan
 
-No new runner. Typecheck is the gate.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -137,6 +137,8 @@ No new runner. Typecheck is the gate.
 - The filters frame in Figma no longer says "form sheet" on iOS or "full sheet" on Android.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - New optional constraints stay `null` when cleared.
 - The agent chip is provenance. Do not store a second "set by agent" flag.

@@ -7,7 +7,7 @@
 > in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat bd41542..HEAD -- apps/mobile/src/screens/results apps/mobile/src/screens/home packages/shared/src/client/mock`
-> Plan 020 must already have created `apps/mobile/src/screens/results/ResultsScreen.tsx`. If that file does not exist, STOP. Plan 016's formatters may have merged (PR #36). Use them if they are exported.
+> Plan 020 must already have created `apps/mobile/src/screens/results/ResultsScreen.tsx`. If that file does not exist, STOP. Plan 016 formatters merged in #36. Import them from `@transit/shared`.
 
 ## Status
 
@@ -15,7 +15,7 @@
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/020-mobile-map-home.md
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/40
 
@@ -27,12 +27,12 @@
 - **Up for grabs?** Yes, once 020 is on the branch you are using.
 - **Waiting on:** Plan 020's home shell. Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
 
-**Open questions** (answer `021-Q2: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
-1. The card sample says "Low risk" (`14:136`). Plan 016, decided on #24, uses "Safe" / "Some risk" / "Tight". *(proposed: use 016's words)*
-2. Figma has no trip-detail screen. *(proposed: expand the selected card inside the sheet)*
-3. Empty, offline, and error states are not drawn. *(proposed: one text block, using the mock's warning string when it has one)*
-4. Anything in this results layout you want changed before it is built? Name the frame. The plan will be edited. Do not fork it.
+- ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
+- 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
+- 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
+- 021-Q4: what in this layout should change before it is built?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -59,7 +59,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
   - Trip header: back, "Current location", "Office · 200 Clarendon St", a swap control.
   - Chips: "Arrive by 9:00", an agent chip "Agent: walk ≤ 15 min", "Cheaper", and "Filters".
   - Header "3 routes" is the count of `plan.itineraries`, not a constant. Subtitle "Leave now · arrive by 9:00 AM" comes from the draft time.
-  - "updated 20s ago" is `formatAge(source.fetchedAt)` when plan 016 is merged. Otherwise `Intl.RelativeTimeFormat` is not required: show "updated just now" only when `fetchedAt` is under 10 seconds, and otherwise "updated Nm ago" from the timestamp. A scheduled itinerary still must not say Live.
+  - "updated 20s ago" is `formatAge(source.fetchedAt, new Date())` from plan 016 (merged in #36). A scheduled itinerary still must not say Live.
   - Warning banner. The mock can return `warnings`. The frame's sample sentence is "Green Line realtime unavailable — showing timetable". Render `plan.warnings[0]` when present.
   - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. A route-color swatch is a 8 pt circle using `routeColor(id)` if that export exists, otherwise omit the circle. Do not invent a palette in `packages/shared`.
   - "Almost works" then a dimmed row. Sample: "Walk the whole way · 8:04 – 8:49" and "45 min walk — breaks your 15 min limit". Bind this to `plan.nearMisses` and `violations[0]`.
@@ -72,7 +72,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 | Chips | Agent chip uses the indigo accent. User chips are neutral. | Material chips. The agent chip includes the sparkle icon. |
 | Card | Same fields. SF symbols for walk and bus. | Material icons. The bus leg is a primary-container chip. |
 
-- Selecting a card sets `selectedItineraryId` on the map slot from plan 020. Tapping the same route on the map selects the card. There is no separate trip-detail frame in Figma. Expanding a selected card lists `leg.routeName` or the mode, `formatClock` times when 016 exists, and `legFreshness`. Do not add a new stack route.
+- Selecting a card sets `selectedItineraryId` on the map slot from plan 020. Tapping the same route on the map selects the card. There is no separate trip-detail frame in Figma. Expanding a selected card lists `leg.routeName` or the mode, `formatClock` times from plan 016, and `legFreshness`. Do not add a new stack route.
 - `createMockApiClient` (plan 012) scenarios: `normal`, `empty`, `nearMissOnly`, `serverError`, `offline`. The empty scenario's warning is the string `No routes found for this trip` (`packages/shared/src/client/mock/mock-client.ts`). Render `plan.warnings[0]` for that case. For `offline`, show "You are offline". For `serverError`, show the `ApiClientError.message`. Figma does not draw those three. Use one text block in the sheet, not a new frame.
 - Save: a text button "Save" on the expanded card calls `saveItinerary({ itinerary, request, watch: true })` on the mock client. The request is `toTripRequest(draft)` when that returns a request. If the draft is incomplete, disable Save.
 
@@ -104,7 +104,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 
 ### Step 1: Run a search from the draft
 
-When origin, destination, and time are all set, call `planTrip` on the mock client (or `usePlanTrip` if `@transit/client-react` exports it). Store the latest response only. A newer call cancels the older one with a ref counter, the same rule as plan 015 step 4.
+When origin, destination, and time are all set, call `planTrip` on the mock client (or `usePlanTrip` if `@transit/client-react` exports it). Store the latest response only. A request counter ignores stale responses from older calls, the same rule as plan 015 step 4.
 
 The home search field does not run this search. The Filters "Show routes" button (plan 022) and a completed draft do. If the draft is incomplete, Results shows "Add where and when" and does not call `planTrip`.
 
@@ -114,12 +114,7 @@ The home search field does not run this search. The Filters "Show routes" button
 
 Render `itineraries` and `nearMisses` with the card fields above. Freshness text:
 
-- If `legFreshness` is exported from `@transit/shared`, use it for each transit leg and `itineraryFreshness` for the card.
-- If not, a card is "Live" only when some leg has `timeSource === 'realtime'`. Otherwise the label is "Scheduled (not live)". Do not import a local copy into `packages/shared`.
-
-Cost: if any `cost.lines` entry has `estimated: true`, prefix `~`. Use `formatCost` when it is exported.
-
-Risk: `riskBadge` when exported (low → "Safe", medium → "Some risk", high → "Tight"). Otherwise those three words, not "Low risk".
+Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -135,7 +130,7 @@ Swap exchanges origin and destination through `applyDraftPatch` with source `'us
 
 ## Test plan
 
-No new test runner. Typecheck is the gate.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -153,20 +148,22 @@ No new test runner. Typecheck is the gate.
 
 ## Maintenance notes
 
-- If plan 009 proposal P1 is accepted, the map will not return `candidates`. Until then, if `onRouteSelect` provides a second argument and its length is greater than 1, show a short list of those ids. Do not build a second chooser inside the map.
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
+
+- The merged map handles overlaps internally and still calls `onRouteSelect(id, candidates)`. Select the returned id; do not add a second chooser or remove `candidates` from the contract. P1 remains a product question on #13.
 - Empty, offline, and error copy is not in Figma. Keep it one text block.
 
 ## Open questions for review
 
-- 021-Q1: risk words from plan 016 ("Safe" / "Some risk" / "Tight") rather than the sample "Low risk"? *(proposed: yes)*
+- ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
 - 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
 - 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
 - 021-Q4: what in this layout should change before it is built?
 
 ## Map consumer handoff (PR #35 re-review, 2026-11-14)
 
-PR #35 is approved at `082892f` but unmerged; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
+PR #35 merged at `619fc44` after approval at `082892f`; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
 
-When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; merge and product acceptance still apply.
+When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; product acceptance still applies.
 
 Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.

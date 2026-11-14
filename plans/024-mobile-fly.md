@@ -14,7 +14,7 @@
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/020-mobile-map-home.md. Data for real fares is plan 011, which is not on main. This screen must work with whatever `planTrip` returns today.
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/44
 
@@ -26,17 +26,17 @@
 - **Up for grabs?** Yes, for UI.
 - **Waiting on:** The home shell. Not on flight prices.
 
-**Open questions** (answer `024-Q1: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `024-Q1: ...`. Use the proposed defaults until answered.
 
-1. `mockItineraries` does not emit a `flight` leg, so the four sample cards cannot be filled from data. *(proposed: show the sheet chrome and the sentence "Door-to-door options are not in the sample data yet". Do not hard-code Logan, PVD, MHT, or a $131 fare.)*
-2. Plan 011 decided an Amtrak-instead option (yes, #15). *(proposed: when a result has a rail leg and no flight leg, show it in this list with its `routeName`. Do not label it "Amtrak" unless the data says so.)*
-3. The sample card (`2006:733`) is the field order for a real flight itinerary: code, title, total time, a breakdown line, a cost line, a tag, and a total. *(proposed: map those slots from the itinerary when one exists. Leave a slot blank rather than invent text.)*
-4. What should this screen drop or wait on? Comment here. This file will be edited. Do not open a second fly plan.
+- 024-Q1: empty state until the data has a flight, rather than painted sample cards? *(proposed: yes)*
+- 024-Q2: show a rail-only result in this list, labeled from `routeName`? *(proposed: yes)*
+- 024-Q3: use component `2006:733` as field order only? *(proposed: yes)*
+- 024-Q4: what should wait for a later Figma pass?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
 - **With a coding agent:** pull `main`, then:
-  > Read `plans/024-mobile-fly.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. If an issue comment contradicts a step, follow the comment.
+  > Read `plans/024-mobile-fly.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. When an answered question changes a step, update this same plan before building.
 - **Just feedback:** answer by question number, or name the frame that feels wrong.
 
 <!-- help:end -->
@@ -56,7 +56,7 @@ Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to t
   - Trip line "Boston → Washington, DC" and "Fri, Nov 20 · arrive by 2:00 PM" are the sample. Bind the title to origin and destination names, and the subtitle to the draft time. If either place is missing, show "Add where and when".
   - Android title "Door-to-door, all options". iOS title "Door-to-Door". Subtitle on both: "Includes getting to the airport, security and parking".
   - Sort chips: Total time, Total cost, Fewest legs. Sort the array you already have. Do not search again.
-  - Footer. Android: "~ fares are estimates from sample data · checked 2 min ago". iOS: "~ fares are estimates from sample data · 2 min ago". Show the "~" sentence only when some `cost.lines` entry has `estimated: true`, or when the list is the empty state above. The "2 min" is `formatAge` when plan 016 is merged. Otherwise compute it from `source.fetchedAt`.
+  - Footer. Android: "~ fares are estimates from sample data · checked 2 min ago". iOS: "~ fares are estimates from sample data · 2 min ago". Show the "~" sentence only when some `cost.lines` entry has `estimated: true`, or when the list is the empty state above. Use `formatAge(source.fetchedAt, new Date())` from plan 016. Hide the age when no itinerary exists; do not show a checked time on an empty state.
 - iOS vs Android: iOS glass sheet and grabber. Android Material sheet and drag handle. Same list.
 - Component `2006:733` default props, for field order only: code "BOS", title "Fly from Logan", total time "4h 05m", breakdown "Blue Line 25m · airport buffer 1h 15m · flight 1h 35m · Metro 25m", cost "fare $129 + T $2.40", tag "Best overall", total "~$131". Those strings are the draft's example. They are not mock data.
 - `modeGroups.fly` is `['walk', 'car', 'rail', 'bus', 'flight']` (`packages/shared/src/domain/modes.ts`).
@@ -100,7 +100,7 @@ iOS uses `BlurView`. Android uses the theme surface. Sort chips reorder the same
 
 ## Test plan
 
-No new test runner. Typecheck is the gate.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -116,6 +116,8 @@ No new test runner. Typecheck is the gate.
 - The fly frame was removed from Figma. Stop and say so, so this plan can be rewritten.
 
 ## Maintenance notes
+
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - When plan 011 lands, this screen should start showing real itineraries without a new layout plan, unless the frame has changed. If the frame has changed, edit this file first.
 - Amtrak stays a ground competitor from the data, matching the #15 decision. Do not drop that when the visual is redrawn.

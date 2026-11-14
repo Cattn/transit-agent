@@ -22,10 +22,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Later.** Needs #7 and #22. Airports, drive costs and sample fares moved to #22, which can start now.
+- **Status:** 🟢 **Up for grabs (fixture integration).** #7 and #22 are merged. Reuse the existing airports, drive costs, and sample fares; real ground routing remains plan 007.
 - **Owner:** Nobody yet
-- **Up for grabs?** Yes, once #7 and #22 land.
-- **Waiting on:** #7, #22
+- **Up for grabs?** Yes, for fixture integration. Real fare integration follows plan 019.
+- **Waiting on:** Nothing for fixture integration. Real prices: #28; real ground routing: #11.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -51,7 +51,7 @@ Fare data is a replaceable input.
 
 - Contract supports `flight` legs, `Place.kind: 'airport'` with IATA `code`, cost lines with `estimated` flags, and `vehicles.carMpg` (`packages/shared/src/domain/`).
 - `planTrip` in `apps/server/src/planning/plan-trip.ts` merges results from every provider whose `supports()` is true. `rank.ts` trades cost against comfort via `comfortVsCost`.
-- No `apps/server/src/flights/` on main. Plan 014 (airports, drive cost, sample fares) is approved in PR #30 and not merged. Steps 1–3 still say STOP if those files are missing.
+- `apps/server/src/flights/` is on main. Plan 014 (airports, drive cost, sample fares) merged in PR #30. Reuse those modules. Steps 1–3 still say STOP if those files are missing.
 
 ## Steps
 

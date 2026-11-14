@@ -14,7 +14,7 @@
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: plans/026-web-map-home.md
-- **Category**: direction
+- **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/45
 
@@ -26,18 +26,18 @@
 - **Up for grabs?** Yes, once 026 is on the branch you are using.
 - **Waiting on:** The web home shell.
 
-**Open questions** (answer `027-Q1: ...` on the issue):
+**Open questions** — @Rad1ee @DMFriends: reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
-1. "All filters" is drawn. A filters page is not. *(proposed: the chip is visible and does not open a new page. When a web filters frame exists, this plan gets a step for it)*
-2. The floating card says "Bus 1 live · $1.70 · low risk". Plan 016's words are "Safe" / "Some risk" / "Tight", and "Live" only for realtime. *(proposed: use 016 when it is merged, and never say Live for a scheduled trip)*
-3. "Share" has no share model. *(proposed: show the button, and do nothing except copy the itinerary summary to the clipboard)*
-4. Quick replies on this frame are "Yes, watch it", "Only if delayed", "No thanks". The mock's questions usually have no options. *(proposed: show these three only as the empty-thread example is replaced by a real `questions[].options` list. "Yes, watch it" calls `saveItinerary` with `watch: true` when a result is selected. The other two send their label as the next message)*
-5. What in this planning frame should change first? Comment here. The file will be edited.
+- 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
+- ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
+- 027-Q3: Share copies the summary and does nothing else? *(proposed: yes)*
+- 027-Q4: quick replies come from the agent response, and "Yes, watch it" saves with `watch: true`? *(proposed: yes)*
+- 027-Q5: what in this frame should change first?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
 - **With a coding agent:** pull `main`, then:
-  > Read `plans/027-web-planning.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. If an issue comment contradicts a step, follow the comment.
+  > Read `plans/027-web-planning.md` and follow it step by step. Only change files under Scope. Stop on a STOP condition. Don't push. When an answered question changes a step, update this same plan before building.
 - **Just feedback:** answer by question number.
 
 <!-- help:end -->
@@ -105,7 +105,7 @@ When origin, destination, and time are set, call `planTrip` on the mock client. 
 
 ### Step 2: List, card, thread
 
-Render the left panel and the map card from Current state. Freshness uses `itineraryFreshness` and `legFreshness` when those exports exist. Otherwise "Live" only for `timeSource === 'realtime'`, and "Scheduled (not live)" otherwise. Risk uses `riskBadge` when it exists. Otherwise low → "Safe", medium → "Some risk", high → "Tight".
+Render the left panel and the map card from Current state. Use `itineraryFreshness`, `legFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
 The agent thread uses the same send path as plan 026.
 
@@ -113,7 +113,7 @@ The agent thread uses the same send path as plan 026.
 
 ## Test plan
 
-No new runner. Typecheck is the gate.
+Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
@@ -131,13 +131,15 @@ No new runner. Typecheck is the gate.
 
 ## Maintenance notes
 
+When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
+
 - A later web filters frame should become its own short plan, or a new step here after the question is answered. Do not copy the mobile form sheet onto the web and call it done.
 - The sample agent sentences are the draft's example. The screen shows `response.reply`.
 
 ## Open questions for review
 
 - 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
-- 027-Q2: plan 016's risk and freshness words? *(proposed: yes)*
+- ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
 - 027-Q3: Share copies the summary and does nothing else? *(proposed: yes)*
 - 027-Q4: quick replies come from the agent response, and "Yes, watch it" saves with `watch: true`? *(proposed: yes)*
 - 027-Q5: what in this frame should change first?
