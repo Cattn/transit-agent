@@ -110,7 +110,7 @@ Render the left panel and the map card from Current state. Use `itineraryFreshne
 
 The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook plan 026 uses. When `lastPlan` changes, show it in the left panel.
 
-**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. Both are on main (017 step 4 in #61, 009 step 5 in #65). Use the same `savedColors` plan 026 builds, so a trip keeps its color from results to Tracked trips.
+**Route colors (@Cattn on PR #66, 2026-11-14):** distinct colors are for **saved trips** (017-Q2: a saved trip keeps one color on Home, in Tracked trips and on the map). Search results are not saved trips: result cards and their routes look **exactly like Figma frame for web planning**, with no added color dot, swatch or edge. When the user saves a result, give it its permanent color then: `assignRouteColors([...saved.map((s) => s.id), itinerary.id], savedColors)` and save with `color` set to the new trip's entry. Both are on main (017 step 4 in #61, 009 step 5 in #65). Use the same `savedColors` plan 026 builds, so a trip keeps its color from results to Tracked trips.
 
 **Verify**: `npm run lint` → exit 0
 

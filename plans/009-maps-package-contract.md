@@ -184,7 +184,7 @@ Do not close #13 or mark all of 009 done just because the bundle builds. Keep ac
 
 - **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; mobile gets the same through the DOM map. Do not drop that argument without agreement.
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
-- **P4 / #25 — color policy:** decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14), done in step 5. Palette ownership in shared is still open (017-Q1).
+- **P4 / #25 — color policy:** decided: **permanent colors per saved trip** (@Cattn, 017-Q2 on #25, 2026-11-14; clarified on PR #66: search results follow the mockup, no extra colors), done in step 5. Palette ownership in shared is still open (017-Q1).
 - ~~009-Q5~~ **Answered (2026-11-14):** the same OpenFreeMap style URL works on web and mobile, since mobile runs the web renderer. Keep `styleUrl` configurable.
 
 ## Follow-ups after mobile parity

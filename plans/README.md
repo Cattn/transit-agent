@@ -83,7 +83,7 @@ Open plans come first, in working order; DONE plans follow by number. Status val
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
 - **@Cattn, decisions blocking work now:**
-  1. **#66 route-color dot on result cards** (blocks 021): color the leg chip instead, a thin colored card edge, or no route color on cards.
+  1. ~~#66 route-color dot~~ **Decided:** no dot; result cards match the Figma exactly, and colors are for saved trips.
   2. **iOS in `npm run check`:** keep exporting the iOS bundle so iOS keeps working (recommended; iOS runs fine, it just gets no iOS-specific design), or drop it.
   3. **018 Android location / deep-link checks:** retry in Expo Go first (recommended), or keep them as a dev-build step.
 - **@Cattn, design (taken over from @Rad1ee):** 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 023-Q3 ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · the 030 look ([#56](https://github.com/Cattn/transit-agent/issues/56)) · 026/027 when someone picks web up.
@@ -131,7 +131,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 ## Dependency notes
 
 - **Mobile map runs in Expo Go.** Plan 009 renders `@transit/maps/web` in an Expo DOM component (`'use dom'`), so the map needs no dev build, EAS build, or config plugin. The web renderer is also the mobile one: map changes for web (026, 027, 030) show up on Android too.
-- **Route colors:** compute `assignRouteColors(ids, savedColors)` (from `@transit/maps`) once over every trip on screen, where `savedColors` comes from `SavedItinerary.color`, and pass the same map to `RouteMap.routeColors` and the cards. Save sends the trip's current color. `SavedItinerary.color` (#61) and the two-argument `assignRouteColors` (#65) are on main.
+- **Route colors are for saved trips only** (@Cattn, PR #66, 2026-11-14). Each saved trip has one permanent color (`SavedItinerary.color`) on Home, Tracked trips and the map; compute it with `assignRouteColors(ids, savedColors)` from `@transit/maps` when the trip is saved. Search results and their cards look exactly like the Figma frames, with no added color dots. `SavedItinerary.color` (#61) and the two-argument `assignRouteColors` (#65) are on main.
 - **008 needs 031** for real live data; its pure logic is already in 013.
 - **011 round trips:** Clovis round-trip search is preferred (optionally compare two one-way searches). Reconcile 019's one-way `FareSearch`/`FareQuote` before building round trips.
 - **Node ≥ 24.13 / npm ≥ 11.8** for everyone (ADK requirement, on main).
@@ -158,7 +158,7 @@ Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent a
 
 Transit defaults (Cattn, plan 007 research thread, 2026-11-14): one or two checks before two hours unless overridden, then ramp nearer departure; subway around 1 h/30/20/10 min with issue-driven adjustments; commuter rail broadly similar with some earlier checking. Include first morning returns and clearly show long waits/next-day dates. Exact early/final scheduling, intercity treatment and preference storage remain with 008-Q3.
 
-Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per trip, not reassigned per screen (017-Q2, settles 009 P4's color policy). Planned before the MVP: storage in 017 step 4, `assignRouteColors(ids, savedColors)` in 009 step 5, screens in 021 / 026 / 027.
+Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per **saved** trip, not reassigned per screen (017-Q2, settles 009 P4's color policy). Clarified on PR #66: "routes" meant saved trips; search results get no color dots and follow the mockup exactly. Planned before the MVP: storage in 017 step 4, `assignRouteColors(ids, savedColors)` in 009 step 5, screens in 021 / 026 / 027.
 
 iOS parked (Cattn, 2026-11-14): Android is the design target; iOS parts of plans live in each plan's Backlog: iOS section. iOS still runs (Cattn, 2026-11-14): Android-only Compose screens keep a plain fallback file so the app works on iOS without iOS-specific design.
 
