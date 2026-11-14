@@ -18,6 +18,20 @@ try {
     headers: { origin: 'http://localhost:5173', 'access-control-request-method': 'GET' }
   });
   assert.equal(cors.headers['access-control-allow-origin'], 'http://localhost:5173');
+
+  const plan = await app.inject({
+    method: 'POST',
+    url: '/api/plan',
+    payload: {
+      origin: { name: 'Boston Common', coordinates: [-71.0656, 42.355], kind: 'poi' },
+      destination: { name: 'Harvard Square', coordinates: [-71.119, 42.3736], kind: 'poi' },
+      time: { type: 'departAt', at: '2026-11-16T08:00:00-05:00' },
+      modes: ['walk', 'bus', 'rail', 'bike', 'car'],
+      vehicles: { ownsBike: true, ownsCar: true }
+    }
+  });
+  assert.equal(plan.statusCode, 200);
+  assert.ok(plan.json().itineraries.length > 0);
   console.log('API smoke checks passed.');
 } finally {
   await app.close();
