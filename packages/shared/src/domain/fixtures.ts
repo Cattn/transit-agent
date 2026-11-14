@@ -29,8 +29,7 @@ export const sampleItinerary: Itinerary = {
       timeSource: 'realtime',
       routeName: 'Bus 1',
       agency: 'MBTA',
-      delayMinutes: 1,
-      transferBufferMinutes: 4
+      delayMinutes: 1
     },
     {
       id: 'leg-3',
@@ -51,7 +50,7 @@ export const sampleItinerary: Itinerary = {
   transfers: 0,
   walkMinutes: 11,
   cost: { totalUsd: 1.7, lines: [{ label: 'Fare', usd: 1.7, estimated: false }] },
-  risk: { level: 'medium', reasons: ['4 min transfer at Park St (scheduled times)'] },
+  risk: { level: 'low', reasons: [] },
   violations: [],
   summary: 'Walk 6 min → Bus 1 → walk 5 min',
   source: { provider: 'fixture', fetchedAt: '2026-11-13T07:55:00-05:00' }
