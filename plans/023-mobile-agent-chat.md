@@ -21,17 +21,17 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
+- **Status:** ✅ **DONE in PR #67** (merged as `59968d1`, 2026-11-14; Android checked on a Pixel 10). Follow-ups: chat kept for the session → plan 034 (#68); Filters opening on the tapped field → plan 022; 023-Q3 (sheet design) is @Cattn's call. First draft, after plan 020. Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Agent:** plan 006 is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on `GEMINI_API_KEY`.
 
-**Open questions** — **@Cattn answers Q1–Q2; @Rad1ee answers Q3 (design).** Reply as `023-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers Q3 (design).** Reply as `023-Q3: ...`. Q1–Q2 were answered by @Cattn on 2026-11-14 (PR #67).
 
-- 023-Q1: render live agent replies instead of the sample sentences? *(proposed: yes)*
-- 023-Q2: buttons only when `questions[].options` exists? *(proposed: yes)*
+- ~~023-Q1: render live agent replies instead of the sample sentences?~~ **Answered:** live agent replies are not the default on main for now. The app keeps the mock client by default (`EXPO_PUBLIC_API_MODE` unset), so the chat shows mock replies. Live replies are only for local testing with `EXPO_PUBLIC_API_MODE=server`. The sheet renders whatever reply comes back and never shows sample sentences.
+- ~~023-Q2: buttons only when `questions[].options` exists?~~ **Answered:** yes. Without `options`, show `questions[].question` as text.
 - 023-Q3: changes you want in the sheet before it is built?
 
 **How to help**
@@ -123,7 +123,10 @@ Do not add tests or a runner. Run the typecheck and lint commands above. Manuall
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Do not open a streaming connection in this plan.
-- **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the native `RouteMap` while the chat sheet is open. Follow-up PR after 029, 030, and the native map (009) land.
+- **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the mobile `RouteMap` (plan 009's DOM map) while the chat sheet is open. Follow-up PR after 029, 030, and 009's DOM map land.
+
+- **Chat history (decided 2026-11-14, @Cattn):** not part of this plan. [Plan 034](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) keeps the thread for the app session (in memory, with the agent `sessionId`, not saved across restarts), and returns to the chat after a chip opens Filters. Until then, closing the sheet clears the thread, but the draft changes stay.
+- **Android sheet height:** about 85% of the window, so a strip of the map stays visible above it (@Cattn, 2026-11-14).
 
 ## Open questions for review
 

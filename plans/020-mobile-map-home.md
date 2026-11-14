@@ -17,7 +17,7 @@
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: none to start. Uses merged plans 004, 012, 013, 015, 016, 018. Mounts the native map from 009 when `@transit/maps/native` exists; until then a placeholder.
+- **Depends on**: none to start. Uses merged plans 004, 012, 013, 015, 016, 018. Plan 009 mounts its DOM map (`@transit/maps/web` in an Expo `'use dom'` component) in `MapSlot`; until then a placeholder.
 - **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `1e8328a` (015 hooks merged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/39
@@ -25,10 +25,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go. iOS is in the backlog.
+- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder (`MapSlot`) until @KrakenTheJaken's plan 009 ships its DOM map; Expo Go keeps working. Android checked on a phone in Expo Go. iOS is in the backlog.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
+- **Waiting on:** Nothing. Plan 009 replaces the `MapSlot` placeholder with its DOM map. Do not block on the map package.
 
 **Open questions** — **@DMFriends answers these.** Reply as `020-Q1: ...`. Use the proposed defaults until answered.
 
@@ -110,7 +110,7 @@ export const modeGroups = {
   - Use **Expo UI Jetpack Compose** (`@expo/ui/jetpack-compose`, `npx expo install @expo/ui`): Expo's library that renders Google's real Material 3 Compose components (@Cattn chose it over `react-native-paper`, 2026-11-14; docs: https://docs.expo.dev/versions/latest/sdk/ui/jetpack-compose/index.md). It is beta and works in Expo Go. Every Compose component sits inside a `Host` imported from the `@expo/ui` root, not the sub-package. `@expo/ui/jetpack-compose` crashes on iOS, so Compose code lives only in `.android.tsx` files (or behind `Platform.OS`). Inside a `Host`, lay out with Compose `Row` / `Column`, not flexbox. Don't put `matchContents` on the same axis as a scrolling list.
   - Material icons everywhere on Android (search, location, modes, Live, filters): Compose `Icon` with Material Symbols from `@expo/material-symbols`. Roboto is the Android system font; do not override it.
   - Colors come from the Material theme: `Host` `colorScheme` follows `useAppColors()` (light / dark / system) with one `seedColor`, and `useMaterialColors()` gives the same palette to any non-Compose view. Do not hand-pick chip or surface colors.
-  - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly.
+  - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly. Anything that floats over the map (mode control, chips, buttons) sits on a filled or elevated Material surface, never transparent, so the map can't make it unreadable (@Cattn on #66, 2026-11-14).
   - Search bar: `DockedSearchBar` (or `SearchBar`) with Material icons.
   - Bottom chips (Home / Office / Gym / Settings, per 020-Q5): `AssistChip`s in theme colors. These were the worst offenders.
   - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo's drop-in `@expo/ui/community/bottom-sheet` (same API as `@gorhom/bottom-sheet`) first; the universal `BottomSheet` is a present/dismiss sheet, so it fits modals like chat, not this persistent sheet. If the drop-in can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
@@ -268,6 +268,7 @@ Plan 018 already provides the mobile unit-test runner. Do not add tests or anoth
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
+- The map: plan 009 renders `@transit/maps/web` in an Expo DOM component inside `MapSlot` (decided 2026-11-14), not a native `@transit/maps/native`. No dev client is needed; Expo Go keeps working. Step 4's native wording above is the original plan.
 - Plans 021–025 replace the placeholder screens. They should import `useAppColors`, the Material theme setup (`Host` seed color) and the navigation types from this plan, and follow the Android Material 3 rules in Current state.
 - Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Drive / Fly does not clear the draft's places.
 - The UI-5 peek/half/full wording is intentionally not implemented. See open question 1.

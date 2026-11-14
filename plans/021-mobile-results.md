@@ -22,20 +22,18 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔨 **PR #66 open.** 021-Q2–Q4 answered by @DMFriends (2026-11-14, below).
+- **Status:** **MVP, in progress: [PR #66](https://github.com/Cattn/transit-agent/pull/66)** (changes requested; rebase on #67 per Step 1's "Agent plan" note; filled or elevated mode control; Material error color for Tight). The route-color dot waits on @Cattn. The steps use the defaults below until a question is answered.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
+- **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Map drawing stays with @KrakenTheJaken: plan 009 mounts its DOM map (`@transit/maps/web` in an Expo `'use dom'` component) in Home's `MapSlot`, and Expo Go keeps working. This plan only sets `selectedItineraryId`.
 
-**Open questions** — **@DMFriends answers these.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design); @DMFriends may propose answers.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
 - ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
-- ~~021-Q2~~ **Decided (@DMFriends, 2026-11-14, PR #66):** yes, the selected card expands in the sheet.
-- ~~021-Q3~~ **Decided (@DMFriends, 2026-11-14, PR #66):** yes, one text block for empty, offline and error.
-- ~~021-Q4~~ **Decided (@DMFriends, 2026-11-14, PR #66):** build the frame as drawn, with plan 020's Android Material 3 rules. iOS is now in the backlog: `ResultsChrome.tsx` is the plain fallback from Step 3.
-- **Reaching Results before plan 022 (@DMFriends, 2026-11-14, PR #66):** a Home / Office chip with a saved place sets the destination, a missing time becomes "Leave now", and a missing origin uses the current location; the complete draft opens Results. Mock mode seeds the mock profile with Home and Office places (`src/data/client.ts`) so the chips work without a server.
-- **Route colors ([PR #66 review](https://github.com/Cattn/transit-agent/pull/66#pullrequestreview-5905972622), 2026-11-14):** done as Step 2 says. The mobile app depends on `@transit/maps` (`package.json`, lockfile and the EAS post-install build); `assignRouteColors(ids, savedColors)` runs once in Home over the trips on screen, and the same map goes to the map slot and `color` on Save. Cards have no color swatch: @Cattn ([PR #66 review](https://github.com/Cattn/transit-agent/pull/66#pullrequestreview-5906125257), 2026-11-14) asked for the Figma card as drawn, which has none.
+- 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
+- 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
+- 021-Q4: what in this layout should change before it is built?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -110,6 +108,8 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
 When origin, destination, and time are all set, call `run(request)` from `usePlanTrip()` (`@transit/client-react`, merged in #47). The hook already ignores stale responses. Use the client from plan 020's `src/data/client.ts`; do not create another client.
 
 The home search field does not run this search. The Filters "Show routes" button (plan 022) and a completed draft do. If the draft is incomplete, Results shows "Add where and when" and does not call `planTrip`.
+
+**Agent plan (plan 023, merged in #67):** `HomeScreen` already holds `currentPlan`: the agent's plan, valid only while `state.draft` is the same object it was made for. When it is set, Results, the route colors and `MapSlot` use it instead of calling `planTrip` again. Keep one draft/apply path, including Home's `applyAgent` wrapper (an agent edit counts as "edited", so a late profile load can't overwrite it). Keep `ChatScreen` mounted outside the Filters/Fly RN `Modal`, with its props `draft`, `apply`, `onPlan(plan, draft)`, `onOpenFilters`, `onClose`.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 

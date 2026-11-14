@@ -9,7 +9,7 @@
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** TODO (waits on plan 023, PR #67)
+- **State:** TODO (plan 023 merged in #67, `59968d1`)
 - **Priority:** P1 (MVP polish: losing the conversation on a chip tap feels broken)
 - **Effort:** S
 - **Risk:** LOW (mobile-only state move; no contract or server change)

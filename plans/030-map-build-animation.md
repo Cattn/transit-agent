@@ -5,14 +5,14 @@
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat 043cbe6..HEAD -- packages/maps/src`
-> If this prints anything (for example the native renderer from plan 009), compare Current state with the live code before editing.
+> If this prints anything (for example plan 009's touch-sized hit area), compare Current state with the live code before editing.
 
 ## Status
 
 - **Priority**: P1 (right after the MVP check)
-- **Effort**: M (web); native adds S after plan 009's native renderer exists
+- **Effort**: M (web renderer only; mobile gets it through plan 009's DOM map)
 - **Risk**: MED (animation performance; keeping the map's existing selection/fit behavior intact)
-- **Depends on**: none to start the pure layer and the web renderer (they use `@transit/maps/samples` and a scripted demo). Live use needs plan 029's `progress` state. Native needs plan 009's `@transit/maps/native`.
+- **Depends on**: none to start the pure layer and the web renderer (they use `@transit/maps/samples` and a scripted demo). Live use needs plan 029's `progress` state. Mobile needs plan 009's DOM map (`@transit/maps/web` in an Expo `'use dom'` component), which runs this same web renderer on Android.
 - **Category**: direction
 - **Planned at**: commit `043cbe6`, 2026-11-14
 - **Issue**: https://github.com/Cattn/transit-agent/issues/56
@@ -23,9 +23,9 @@
 - **Owner:** @KrakenTheJaken (maps)
 - **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work.
 - **Waiting on:** nothing for the pure layer and web demo. Plan 029 (@Cattn) provides the live events.
-- **Order for Kraken:** 009 native renderer → 027 web results → this plan (web, then native).
+- **Order for Kraken:** 009 DOM map (MVP) → this plan (web renderer only; Android gets it through the DOM map) → 025 Settings → 027 web results if still open.
 
-**Open questions** (answer by number in a comment on #56) — **@KrakenTheJaken answers these; @Rad1ee reviews the look.**
+**Open questions** (answer by number in a comment on #56) — **@KrakenTheJaken answers these; @Cattn reviews the look.**
 
 - 030-Q1: total time to draw all routes once they arrive? *(proposed: about 1.2 s; each route takes 600 ms, starting 150 ms apart)*
 - 030-Q2: while searching, show a moving dashed line from origin to destination? *(proposed: yes; it disappears when real routes start drawing)*
@@ -78,7 +78,7 @@ The owner's direction: while the AI drafts a trip, the map should show it being 
 
 ## Scope
 
-**In scope:** `packages/maps/src/contract.ts` (one optional prop), `packages/maps/src/build-preview.ts` (create), `packages/maps/src/build-preview.test.ts` (create), `packages/maps/src/web/RouteMap.tsx`, `packages/maps/src/index.ts`, `packages/maps/demo/*` (a scripted "agent building" scenario), `packages/maps/README.md`. After plan 009 lands: `packages/maps/src/native/*`.
+**In scope:** `packages/maps/src/contract.ts` (one optional prop), `packages/maps/src/build-preview.ts` (create), `packages/maps/src/build-preview.test.ts` (create), `packages/maps/src/web/RouteMap.tsx`, `packages/maps/src/index.ts`, `packages/maps/demo/*` (a scripted "agent building" scenario), `packages/maps/README.md`. No native files: mobile shows the web renderer through plan 009's DOM map.
 **Out of scope:** `packages/shared/**` and `packages/client-react/**` (plan 029), app screens (027 and 023 wire it in), server code, `line-gradient` styling (incompatible with the dashed walk/bike/flight lines).
 
 ## Git workflow
@@ -138,11 +138,13 @@ In `packages/maps/README.md`, add a short "Animating while the agent works" sect
 
 **Verify**: `npm test` → exit 0
 
-### Step 5 (after plan 009 ships `@transit/maps/native`): native
+### Step 5 (after plan 009's DOM map is on main): check on Android
 
-Use the same pure helpers. Update the native shape sources from a `requestAnimationFrame` loop in the same way. If per-frame updates stutter on a mid-range Android device, fall back to drawing one whole leg at a time (no partial legs), and say so in the PR.
+On mobile, the agent's plan reaches the map through Home's `currentPlan` (plan 023, #67); a real consumer should read it from there.
 
-**Verify**: on a rebuilt Android dev client, the demo trip draws in. Record the device and result in the PR. Native means Android; iOS is in the backlog.
+No mobile code: the DOM map runs this web renderer, and `buildPreview` is plain JSON, so it crosses the DOM boundary as is. With a temporary consumer (not committed) passing the Step 3 script to the mobile `RouteMap`, check the draw-in in Expo Go on an Android phone. If it stutters on a mid-range Android device, fall back in the web renderer to drawing one whole leg at a time (no partial legs), and say so in the PR.
+
+**Verify**: in Expo Go on Android, the demo trip draws in. Record the device and result in the PR. iOS is in the backlog.
 
 ## Done criteria
 
@@ -163,9 +165,10 @@ Use the same pure helpers. Update the native shape sources from a `requestAnimat
 - Apps wire it in: plan 027 (web results, @KrakenTheJaken) and plan 023 (mobile chat, @Cattn) pass `buildPreview` built from `useAgentChat().progress`.
 - Saved trips already on the map are not re-animated; only the new search results draw in.
 - Real routing (plan 007) changes only the geometry, not this animation.
+- The web renderer is also the mobile map (plan 009's Expo DOM component), so this animation and any later change to it show up on Android too.
 
 ## Backlog: iOS
 
 iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
 
-- After plan 009's iOS backlog item is done, check the draw-in on a rebuilt iOS dev client with the same pure helpers.
+- When iOS is picked up, check the draw-in in Expo Go on an iPhone (plan 009's DOM map already runs there).

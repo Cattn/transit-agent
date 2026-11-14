@@ -16,14 +16,11 @@ Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature note
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress** by the UI team.
-- **Owner:** @Rad1ee @DMFriends
-- **Up for grabs?** Owned by the UI team. Not a step-by-step plan.
+- **Status:** Living reference. The screen plans 020–027 are where UI work is specified; when this doc and a plan disagree, the plan wins.
+- **Design feedback:** @Cattn (2026-11-14; @Rad1ee is inactive). Builders: @DMFriends (mobile screens), @KrakenTheJaken (map).
+- **Up for grabs?** Not a step-by-step plan.
 
-**Open questions** (answer by number in a comment on #16):
-
-1. @Rad1ee: anything you'd change in the layout DMFriends chose (map as home, mode slider, chat side panel on web)?
-2. @Rad1ee @DMFriends: is the slice format in `plans/ui-slices.md` useful? (See the comment below for what it is.)
+**Open questions:** none. The layout (map as home, mode slider, chat sheet on mobile, side panel on web) is settled; the slice format was replaced by plans 020–027.
 
 <!-- help:end -->
 
@@ -80,7 +77,7 @@ Each `Itinerary` row: `summary`, depart → arrive, duration, `cost.totalUsd` (s
 
 ## Map (UI-5) — owned by maps teammate, mounted by UI
 
-- Mount `RouteMap` from `@transit/maps/web` or `/native` (plan 009). Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the mode slider), `styleUrl`, and `padding` (so routes aren't hidden under panels).
+- Mount `RouteMap` from `@transit/maps/web` (web) or, on mobile, plan 009's Expo DOM wrapper around it. Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the mode slider), `styleUrl`, and `padding` (so routes aren't hidden under panels).
 - **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser. *(The merged web map has its own overlap chooser and still reports `candidates`. Who owns the chooser is plan 009 decision P1.)*
 - Web: map fills the screen with a ~400 px side panel (filters, results, and the permanent chat). Mobile: full-screen map with a bottom sheet (peek = summary, half = results, full = filters).
 - Until plan 009 lands, render a placeholder list using `sampleItinerary` from `@transit/shared`.
@@ -100,7 +97,7 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 - **Android = Material 3 for real** (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)): Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`), Material Symbols icons, theme colors, Roboto, connected button group for modes, extended FAB for Ask agent, draggable sheet. Details in plan 020's Current state.
 - **iOS is parked** (@Cattn, 2026-11-14). Each mobile plan keeps its iOS design in a "Backlog: iOS" section. Compose code still lives only in `.android.tsx` files, because `@expo/ui/jetpack-compose` crashes on iOS and the iOS export still runs in `npm run build:mobile`.
 
-- **Mobile testing changes once maps land.** MapLibre needs the EAS dev client (`npm run build:android`, then `npm run dev:client` in `apps/mobile`). Expo Go stops working.
+- **Mobile testing stays in Expo Go once maps land.** Plan 009 renders the web map in an Expo DOM component (decided 2026-11-14), so the map needs no dev client or EAS build.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.
 - Keep `@transit/shared` framework-free. Hooks such as `useTripDraft` and `useSavedItineraries` live in each app (or a future `packages/ui-hooks` if duplication hurts).
 
@@ -125,4 +122,4 @@ Use them instead of writing the same logic in each app.
 
 ## Map consumer notes
 
-The web map is merged (`@transit/maps/web`, PR #35); the native map is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4, style 009-Q5) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.
+The web map is merged (`@transit/maps/web`, PR #35); the mobile map (the same web renderer in an Expo DOM component) is plan 009's remaining work. Open map behavior questions (overlap chooser P1, mode filtering P2, colors P4) and the color-sharing rule live once in `plans/009-maps-package-contract.md`. Do not restate them here.

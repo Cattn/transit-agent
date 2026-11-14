@@ -22,12 +22,12 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Several rows are drawn but have no field to save. Those stay visible and unsaved until the questions below are answered.
-- **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Owner:** @KrakenTheJaken, after plan 030 (Reassigned 2026-11-14 from @Rad1ee, who is inactive). Full app, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** No. Talk to @Rad1ee before starting related work.
+- **Up for grabs?** Yes, until @KrakenTheJaken starts it. Comment on the issue first.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Plan 018 is merged in #37; reuse its persistent device-id storage.
 
-**Open questions** — **@Rad1ee answers these.** Reply as `025-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design).** Reply as `025-Q1: ...`. Use the proposed defaults until answered.
 
 - 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
 - 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*

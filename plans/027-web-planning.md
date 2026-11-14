@@ -22,12 +22,12 @@
 ## Who's on it & how to help
 
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
-- **Owner:** @KrakenTheJaken (assigned 2026-11-14; the screen is mostly map work: card ↔ map selection, shared route colors, the selected-route card). Starts after the native map (009).
+- **Owner:** up for grabs. @KrakenTheJaken takes it after 030 and 025 if nobody else has (the screen is mostly map work: card ↔ map selection, shared route colors, the selected-route card). **Web is low priority (@Cattn, 2026-11-14)**; the MVP check moved to Android (plan 035). The web renderer is also the mobile one (Expo DOM), so map changes made here show up on Android too.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work. @Rad1ee (026 owner, design lead) reviews the layout.
+- **Up for grabs?** Yes, after 026. @Cattn reviews the layout.
 - **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
-**Open questions** — **@KrakenTheJaken answers these; @Rad1ee reviews design.** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
+**Open questions** — **@Cattn answers these (design).** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
 - 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
 - ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
@@ -114,15 +114,15 @@ The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook pla
 
 **Verify**: `npm run lint` → exit 0
 
-### Step 3: MVP check against the real server
+### Step 3: Web check against the real server
 
-This is the MVP milestone: type a request, see editable filters, see routes on the map, save one.
+The MVP milestone itself is checked on Android in plan 035. This step is the same check on web.
 
 1. `npm run dev:server` (fixture routes; the agent needs `GEMINI_API_KEY` on that machine, or use Cattn's server via `VITE_API_URL`).
 2. `VITE_API_MODE=server npm run dev:web`, open http://localhost:5173.
 3. Type "Get me from MIT to South Station by 9 tomorrow" in the agent panel.
 
-**Verify**: filter chips update with the agent provenance chip, ≥ 1 route is drawn on the map and listed on the left, "Save & watch" adds the trip to Tracked trips, and a page reload still shows it. Record the result (or the failing step) in the PR. If the server has no Gemini key, record that and run steps 1–2 with a typed From/To instead.
+**Verify** (web): filter chips update with the agent provenance chip, ≥ 1 route is drawn on the map and listed on the left, "Save & watch" adds the trip to Tracked trips, and a page reload still shows it. Record the result (or the failing step) in the PR. If the server has no Gemini key, record that and run steps 1–2 with a typed From/To instead.
 
 ## Test plan
 
