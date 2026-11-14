@@ -20,9 +20,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔍 **PR #61 open** (Steps 1–4). Route-line colors stay in `@transit/maps`; apps import them from there.
+- **Status:** ✅ **DONE** in [PR #61](https://github.com/Cattn/transit-agent/pull/61) (Steps 1–4, merged as `009a165`, 2026-11-14). Route-line colors stay in `@transit/maps`; apps import them from there.
 - **Owner:** @DMFriends
-- **Waiting on:** nothing for Steps 1–4. Moving the route palette into shared (Later, below) waits on question 1.
+- **Waiting on:** nothing. Moving the route palette into shared (Later, below) is a separate later PR and waits on question 1, now asked on [#13](https://github.com/Cattn/transit-agent/issues/13).
 - **Step 4 (added 2026-11-14, from 017-Q2):** saved trips store their route color so the same trip keeps one color everywhere. Contract + server store + mock client; the UI side is in plans 021, 026, 027 and the maps side in plan 009 step 5.
 
 **Open questions** (answer by number in a comment on #25):
