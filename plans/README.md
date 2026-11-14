@@ -67,7 +67,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Trip links removed (Cattn, 2026-11-14) |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Launch-time foreground location permission allowed (018-Q1). Trip links removed (Cattn, 2026-11-14) |
 | 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | DONE (#67) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
@@ -154,6 +154,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 | D9 | Map package | **`packages/maps`** with `/web`; mobile renders `/web` in an Expo DOM component (no `/native`) | 009 |
 | D10 | Flight prices | **Sample fares for tests + adapted Clovis (all flights)** (plan 019) | 011, 019 |
 | D11 | Flight scope | **US domestic + nearby airports** first; Europe later (working default) | 011 |
+| D12 | Home mode control | **Transit / Fly** (@Cattn, 2026-11-14). Drive is no longer a tab: it is a Drive filter chip (`car` in `draft.modes`), off by default, under Transit and Fly, so a trip can include driving part of the way. `modeGroups.drive` stays in shared but the app stops using it. Built in plan 022 Step 4 | 011, 020, 022, 024–027, 035 |
 
 Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent auto-searches once from/to/time are known and can read but not edit saved trips; missed trips switch automatically; flights checked 3/2/1 days out then more often in the last 24 h (exact cadence open, 008-Q3); bikeshare dock pins and "bike saves X min" both approved; rideshare removed for now; separate transfer-risk and lateness controls; optional display time zone; USD only; no payment screen.
 
@@ -187,6 +188,8 @@ Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` 
 - *A separate web MVP check* (2026-11-14): the MVP is Android (plan 035); plan 027 Step 3 is the web version, done when web is picked up.
 
 ## Reconcile log
+
+- **2026-11-14:** D12: Home is Transit / Fly; Drive becomes a filter chip. Added to plan 022 (Step 4, PR #74 in review) instead of a new plan; notes in 011, 020, 024–027, 035 and ui-direction.
 
 - **2026-11-14:** 022-Q1–Q4 answered by @Cattn on #46: full sheet, keep wording, search in the sheet; no car chip, Advanced limits collapsed, Agent mark on every agent-set field, no Budget control.
 

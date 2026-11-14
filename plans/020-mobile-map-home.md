@@ -1,4 +1,4 @@
-# Plan 020: Build the mobile map home (tracked trips, Transit/Drive/Fly, light and dark)
+# Plan 020: Build the mobile map home (tracked trips, Transit/Fly, light and dark)
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
@@ -25,7 +25,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder (`MapSlot`) until @KrakenTheJaken's plan 009 ships its DOM map; Expo Go keeps working. Android checked on a phone in Expo Go. iOS is in the backlog.
+- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). **Changed after merge (D12, 2026-11-14):** the mode control is now Transit / Fly; Drive became a filter chip. Plan 022 Step 4 makes that change. Built with a map placeholder (`MapSlot`) until @KrakenTheJaken's plan 009 ships its DOM map; Expo Go keeps working. Android checked on a phone in Expo Go. iOS is in the backlog.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. Plan 009 replaces the `MapSlot` placeholder with its DOM map. Do not block on the map package.
@@ -98,8 +98,8 @@ export const modeGroups = {
 | Piece | iOS (`2010:51`) | Android (`15:2131`) |
 |---|---|---|
 | Search | Glass bar: magnifying glass, "Where to?", mic, person circle. Mic is visual only. Person circle navigates to Settings (plan 025). | Material search bar, 56 pt: menu icon (visual only), "Where to?", search icon, avatar. The avatar navigates to Settings (plan 025). |
-| Mode control | Glass segmented control: Transit, Drive, Fly, with SF symbols bus / car / airplane | Material segmented button, same three labels |
-| Map buttons | Two circular glass buttons stacked (location, layers). Location calls plan 018 only on tap. | One FAB (location) and one extended FAB labeled "Ask agent" |
+| Mode control | Glass segmented control: Transit, Fly (D12: no Drive) | Material segmented button, Transit, Fly |
+| Map buttons | Two circular glass buttons stacked (location, layers). Location uses plan 018; permission may also be requested at app launch. | One FAB (location) and one extended FAB labeled "Ask agent" |
 | Ask agent | Tinted glass pill "Ask agent" with sparkles, above the sheet | The extended FAB. Plan 023 owns the sheet it opens. |
 | Sheet | Inset glass sheet, grabber, "Tracked Trips", bell + "2 watching", two cards, chips Home / Office / Gym, a filter icon | Edge-to-edge Material sheet, drag handle, "Tracked trips", bell + "2 watching", two cards, assistive chips Home / Office / Gym / Settings |
 | Chrome | Status bar + home indicator. `SafeAreaView` edges. | Status bar + gesture bar. `SafeAreaView` edges. |
@@ -110,7 +110,7 @@ export const modeGroups = {
   - Use **Expo UI Jetpack Compose** (`@expo/ui/jetpack-compose`, `npx expo install @expo/ui`): Expo's library that renders Google's real Material 3 Compose components (@Cattn chose it over `react-native-paper`, 2026-11-14; docs: https://docs.expo.dev/versions/latest/sdk/ui/jetpack-compose/index.md). It is beta and works in Expo Go. Every Compose component sits inside a `Host` imported from the `@expo/ui` root, not the sub-package. `@expo/ui/jetpack-compose` crashes on iOS, so Compose code lives only in `.android.tsx` files (or behind `Platform.OS`). Inside a `Host`, lay out with Compose `Row` / `Column`, not flexbox. Don't put `matchContents` on the same axis as a scrolling list.
   - Material icons everywhere on Android (search, location, modes, Live, filters): Compose `Icon` with Material Symbols from `@expo/material-symbols`. Roboto is the Android system font; do not override it.
   - Colors come from the Material theme: `Host` `colorScheme` follows `useAppColors()` (light / dark / system) with one `seedColor`, and `useMaterialColors()` gives the same palette to any non-Compose view. Do not hand-pick chip or surface colors.
-  - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly. Anything that floats over the map (mode control, chips, buttons) sits on a filled or elevated Material surface, never transparent, so the map can't make it unreadable (@Cattn on #66, 2026-11-14).
+  - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit and Fly (D12: Drive is a filter chip in plan 022, not a segment). Anything that floats over the map (mode control, chips, buttons) sits on a filled or elevated Material surface, never transparent, so the map can't make it unreadable (@Cattn on #66, 2026-11-14).
   - Search bar: `DockedSearchBar` (or `SearchBar`) with Material icons.
   - Bottom chips (Home / Office / Gym / Settings, per 020-Q5): `AssistChip`s in theme colors. These were the worst offenders.
   - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo's drop-in `@expo/ui/community/bottom-sheet` (same API as `@gorhom/bottom-sheet`) first; the universal `BottomSheet` is a present/dismiss sheet, so it fits modals like chat, not this persistent sheet. If the drop-in can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
@@ -205,7 +205,7 @@ Results, filters, chat, and fly are presented by Home (sheets), not by extra sta
 
 Home holds the draft with `useTripDraft()`. Do not hand-roll `applyDraftPatch` state.
 
-The mode control calls `apply({ modes: [...modeGroups[group]] }, 'user')` for `transit` | `drive` | `fly`. It must not clear origin, destination, or time. When the group is `fly`, Home presents the fly sheet (plan 024's screen). Transit and drive stay on the home sheet.
+The mode control calls `apply({ modes }, 'user')` for `transit` | `fly`, where `modes` is the group's modes without `car`, plus `car` if the Drive filter is on (D12, plan 022 Step 4). It must not clear origin, destination, or time. When the group is `fly`, Home presents the fly sheet (plan 024's screen). Transit stays on the home sheet.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -229,7 +229,7 @@ The "2 watching" count is the number of saved trips with `watch === true`, not a
 
 Chips Home, Office, and Gym set origin or destination only when the profile has that place. The mock profile may be empty. Tapping a chip with no place opens Filters (plan 022's screen) instead of inventing an address. The Settings chip on Android calls `navigation.navigate('Settings')`.
 
-The location button calls the existing `getCurrentPlace` only on tap (decided on #26). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
+The location button calls the existing `getCurrentPlace`; Home may also call it at launch without a tap (018-Q1, updated by @Cattn, 2026-11-14). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
 
 "Ask agent" and the Android extended FAB set local state `chatOpen`. Plan 023 replaces the placeholder. This plan shows `ChatScreen` when that flag is true.
 
@@ -270,7 +270,7 @@ When a question is answered or a frame changes, update this same plan and its is
 
 - The map: plan 009 renders `@transit/maps/web` in an Expo DOM component inside `MapSlot` (decided 2026-11-14), not a native `@transit/maps/native`. No dev client is needed; Expo Go keeps working. Step 4's native wording above is the original plan.
 - Plans 021–025 replace the placeholder screens. They should import `useAppColors`, the Material theme setup (`Host` seed color) and the navigation types from this plan, and follow the Android Material 3 rules in Current state.
-- Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Drive / Fly does not clear the draft's places.
+- Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Fly does not clear the draft's places.
 - The UI-5 peek/half/full wording is intentionally not implemented. See open question 1.
 
 ## Open questions for review

@@ -4,7 +4,7 @@ import { formatClock, type DraftChangeSource, type Place, type PlanResponse, typ
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
 
-const CHIP_MODES = ['walk', 'bus', 'rail', 'bike'] as const;
+const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
 const TRANSFER_STEPS = [0, 1, 2, 3, 4, 5, 6];
 const TIME_OPTIONS = [
@@ -122,7 +122,7 @@ function countCopy(routes: number, almost: number): { routes: string; almost: st
   };
 }
 
-const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike' };
+const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike', car: 'Drive' };
 
 export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, onShowRoutes }: FiltersScreenProps) {
   const [limitsOpen, setLimitsOpen] = useState(() => field?.startsWith('constraints.') ?? false);

@@ -29,6 +29,7 @@ import ArrowUp from '../../../assets/icons/keyboard_arrow_up_fill.xml';
 import Close from '../../../assets/icons/close_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
+import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
 import { useAppColors } from '../../theme/appearance';
@@ -41,7 +42,8 @@ const MODE_ICONS: Record<ChipMode, number> = {
   walk: DirectionsWalk,
   bus: DirectionsBus,
   rail: Train,
-  bike: DirectionsBike
+  bike: DirectionsBike,
+  car: DirectionsCar
 };
 
 function Block({ scheme, children }: { scheme: 'light' | 'dark'; children: ReactElement }) {

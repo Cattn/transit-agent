@@ -146,9 +146,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const group = groupForModes(state.draft.modes);
   const onGroupChange = useCallback((next: ModeGroupName) => {
-    editDraft({ modes: modesForGroup(next) });
+    editDraft({ modes: modesForGroup(next, state.draft.modes) });
     if (next === 'fly') setSheet('fly');
-  }, [editDraft]);
+  }, [editDraft, state.draft.modes]);
 
   const onLocate = useCallback(async () => {
     setLocating(true);
