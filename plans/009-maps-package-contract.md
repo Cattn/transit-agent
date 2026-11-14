@@ -14,7 +14,7 @@
 - **Risk**: MED (native module → Expo Go no longer works for mobile testing)
 - **Depends on**: plans/002-shared-domain-contract.md (`Itinerary`, `Leg`, `sampleItinerary`)
 - **Category**: direction
-- **Blocked by decisions**: D8 (tile provider; hidden behind `styleUrl`), D9 (package location, default `packages/maps`)
+- **Decisions**: D8 tile provider = **OpenFreeMap** (decided by @KrakenTheJaken, [#13](https://github.com/Cattn/transit-agent/issues/13#issuecomment-6871834941)); still hidden behind the `styleUrl` prop. Package is **pre-built** with `tsc` to `dist` (009-Q4, decided). D9 (package location) still defaults to `packages/maps`. **Still open:** whether one style URL works on both web and mobile (009-Q5).
 - **Planned at**: commit `c9e33cc`, 2026-11-13
 - **Issue**: https://github.com/Cattn/transit-agent/issues/13
 
@@ -153,5 +153,6 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 - ~~009-Q1~~ **Confirmed on #6:** colour per itinerary, dash per mode. Also confirmed: one LineString per leg, tap selects the whole trip, Place fields are enough, server sends flight arcs.
 - ~~009-Q2~~ **Confirmed on #6:** chooser when a tap hits several routes.
-- 009-Q3: Tile provider (D8) and whether one style URL works on both platforms.
-- 009-Q4: Does the package build TSX via `tsc`, or should apps consume source directly (Vite and Metro can both transpile TS from workspaces)? Proposed: `tsc` to `dist`, consistent with `@transit/shared`.
+- ~~009-Q3~~ **Decided (@KrakenTheJaken, 2026-11-14, [#13](https://github.com/Cattn/transit-agent/issues/13#issuecomment-6871834941)):** tile provider (D8) = **OpenFreeMap** (no API key).
+- 009-Q5 (split out of Q3, **still open**): does one OpenFreeMap style URL work on both web (MapLibre GL JS) and mobile (MapLibre React Native), or does each platform need its own? Check when building steps 6 and 7; until answered, keep `styleUrl` a prop each app passes.
+- ~~009-Q4~~ **Decided (@KrakenTheJaken, 2026-11-14, [#13](https://github.com/Cattn/transit-agent/issues/13#issuecomment-6871834941)):** pre-built, `tsc` to `dist`, like `@transit/shared`.

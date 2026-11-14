@@ -169,6 +169,7 @@ transit data (007) can land afterwards without any client changes.
 - **D3 → A, ADK TypeScript + Gemini** (2026-11-14, [#17](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6871769429)).
 - **D5 → A for now: request/response JSON.** Streaming (B, SSE) is a **planned later follow-up**, not part of plan 006's first version. Plan 006 maintenance notes describe how to add it (2026-11-14, #17).
 - **D6 → A, `node:sqlite` file** (2026-11-14, #17).
+- **D8 → OpenFreeMap** basemap tiles; map package is **pre-built** (`tsc` to `dist`) (@KrakenTheJaken, 2026-11-14, [#13](https://github.com/Cattn/transit-agent/issues/13#issuecomment-6871834941)). Not yet answered: whether one style URL works on both web and mobile (009-Q5).
 - **Removed:** the payment-plan screen (former D12). The project isn't pursuing that track.
 
 
@@ -191,7 +192,7 @@ transit data (007) can land afterwards without any client changes.
 | D5 | Agent turn shape | A Request/response JSON · B Server-sent events (streaming) | **Decided: A now, B (SSE) planned later** (2026-11-14). | 006, 004 |
 | D6 | Database | A `node:sqlite` file (no native build) · B Postgres (hosted) | **Decided: A** (2026-11-14). Zero-setup on Windows; the store sits behind repository functions, so switching later touches only `apps/server/src/store/`. | 005 |
 | D7 | How clients learn of watch updates | A Poll `GET /api/itineraries` every 30–60 s · B SSE · C Expo push notifications | **A now, C later.** Push needs EAS credentials and a deployed server. | 008 |
-| D8 | Basemap tiles | A MapTiler (free tier, key) · B OpenFreeMap / Protomaps (no key) · C Stadia | **Maps team decides.** The contract in 009 hides it behind a `styleUrl` prop. | 009 |
+| D8 | Basemap tiles | A MapTiler (free tier, key) · B OpenFreeMap / Protomaps (no key) · C Stadia | **Decided: OpenFreeMap** (@KrakenTheJaken, 2026-11-14). Still open: whether one style URL works on web and mobile (009-Q5). | 009 |
 | D9 | Map package location | A `packages/maps` with `/web` and `/native` subpath exports · B Map code inside each app | **A**, per the map-architecture thread. | 009 |
 | D10 | Flight price data | A Port Clovis's Google Flights client · B Run Clovis as a separate local service · C Duffel API · D SerpApi Google Flights · E Fixture only · (+ agent orchestrates searches on top of any source) | **Decided (@Cattn, 2026-11-14): E for testing + A, adapted to return all flights (plan 019).** Details below the table. | 011, 014, 019, 006 |
 | D11 | Flight scope for v1 | A US domestic + "nearby airports + drive/train" · B Also Europe/Eurail | **A.** Europe/Eurail goes in the backlog. Eurail fares have no simple public API. | 011 |

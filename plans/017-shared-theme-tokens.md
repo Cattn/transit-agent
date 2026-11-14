@@ -57,6 +57,7 @@ both apps can import them.
 - `plans/009-maps-package-contract.md` Step 3 specifies `packages/maps/src/colors.ts`: `routeColor(itineraryId)` → one of 8 colors chosen by a stable string hash; legible on a light basemap; `selectedWidth` / `dimmedOpacity` constants. After this plan, 009 imports `routeColor` from shared instead.
 - `apps/mobile/app.json`: `"userInterfaceStyle": "light"`. Web has no dark mode yet. Plan for both anyway (tokens have `light` and `dark` values).
 - `packages/shared` must stay framework-free and Hermes-safe.
+- Basemap (D8) is decided: **OpenFreeMap**. Set `mapBasemapReference.light` to the land/background color of the OpenFreeMap style the maps team uses (ask @KrakenTheJaken which style), instead of the placeholder value in Step 2.
 
 ## Commands you will need
 
