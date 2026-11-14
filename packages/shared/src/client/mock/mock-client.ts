@@ -3,7 +3,8 @@ import { ApiClientError, type ApiClient } from '../api-client.js';
 import { PlanResponseSchema } from '../../domain/api.js';
 import { AgentMessageResponseSchema } from '../../domain/agent.js';
 import { PlaceSearchResponseSchema } from '../../domain/place-search.js';
-import { SavedItinerarySchema } from '../../domain/itinerary.js';
+import { SavedItinerarySchema, type SavedItinerary } from '../../domain/itinerary.js';
+import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
 import { mockItineraries } from './mock-routes.js';
 
@@ -18,6 +19,25 @@ export interface MockApiClientOptions {
 
 export function createMockApiClient(options: MockApiClientOptions = {}): ApiClient {
   const now = options.now ?? (() => new Date());
+  const saved = new Map<string, SavedItinerary>();
+  if (options.seedSaved ?? true) {
+    const clock = now();
+    for (const [minutes, label] of [[25, 'Morning commute'], [180, 'Dinner']] as const) {
+      const request = TripRequestSchema.parse({
+        origin: { name: 'Boston Common', coordinates: [-71.0656, 42.355] },
+        destination: { name: 'Harvard Square', coordinates: [-71.119, 42.3734] },
+        time: { type: 'departAt', at: new Date(clock.getTime() + minutes * 60000).toISOString() }
+      });
+      const itinerary = mockItineraries(request, now)[0]!;
+      saved.set(itinerary.id, SavedItinerarySchema.parse({ ...itinerary, savedAt: clock.toISOString(), label, watch: true, request }));
+    }
+  }
+
+  function getSaved(id: string): SavedItinerary {
+    const itinerary = saved.get(id);
+    if (!itinerary) return notFound();
+    return SavedItinerarySchema.parse(itinerary);
+  }
 
   function planTrip(input: TripRequest, scenario: MockScenario) {
     const parsed = TripRequestSchema.safeParse(input);
@@ -61,7 +81,7 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     },
     async sections() {
       await beforeCall();
-      return z.array(z.object({ id: z.enum(['flight', 'commute', 'biking', 'agent']), title: z.string(), description: z.string() })).parse([]);
+      return z.array(z.object({ id: z.enum(['flight', 'commute', 'biking', 'agent']), title: z.string(), description: z.string() })).parse(sections);
     },
     async planTrip(request) {
       const scenario = await beforeCall();
@@ -69,15 +89,27 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     },
     async listItineraries() {
       await beforeCall();
-      return z.array(SavedItinerarySchema).parse([]);
+      return z.array(SavedItinerarySchema).parse([...saved.values()].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)));
     },
-    async getItinerary() { await beforeCall(); return notFound(); },
+    async getItinerary(id) { await beforeCall(); return getSaved(id); },
     async saveItinerary(input) {
       await beforeCall();
-      return SavedItinerarySchema.parse({ ...input.itinerary, ...input, savedAt: (options.now?.() ?? new Date()).toISOString() });
+      const itinerary = SavedItinerarySchema.parse({ ...input.itinerary, savedAt: now().toISOString(), label: input.label, watch: input.watch, request: input.request });
+      saved.set(itinerary.id, itinerary);
+      return SavedItinerarySchema.parse(itinerary);
     },
-    async updateItinerary() { await beforeCall(); return notFound(); },
-    async deleteItinerary() { await beforeCall(); return notFound(); },
+    async updateItinerary(id, patch) {
+      await beforeCall();
+      const itinerary = SavedItinerarySchema.parse({ ...getSaved(id), ...patch });
+      saved.set(id, itinerary);
+      return SavedItinerarySchema.parse(itinerary);
+    },
+    async deleteItinerary(id) {
+      await beforeCall();
+      getSaved(id);
+      saved.delete(id);
+      return z.undefined().parse(undefined);
+    },
     async sendAgentMessage() {
       await beforeCall();
       return AgentMessageResponseSchema.parse({ sessionId: 'mock-session', reply: '', draftPatch: {}, questions: [] });
