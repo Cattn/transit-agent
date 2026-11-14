@@ -13,7 +13,8 @@
     "build:android": "npx --yes eas-cli@27.10.0 build --platform android --profile development",
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
-    "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/client-react && npm run build -w @transit/maps",
+    "eas-build-post-install": "npm run build -w @transit/shared && npm run build -w @transit/maps && npm run build -w @transit/client-react",
+    "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync(require.resolve('maplibre-gl/dist/maplibre-gl-worker.mjs'),'public/maplibre-gl-worker.js')\"",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test:unit": "vitest run",
     "test": "npm run typecheck"
@@ -21,6 +22,7 @@
   "dependencies": {
     "@expo-google-fonts/roboto": "^0.4.3",
     "@expo/material-symbols": "^0.1.1",
+    "@expo/metro-runtime": "~58.0.17",
     "@expo/ui": "~58.0.28",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-navigation/native": "^7.5.1",
@@ -38,12 +40,16 @@
     "expo-location": "~58.0.22",
     "expo-secure-store": "~58.0.3",
     "expo-status-bar": "~58.0.5",
+    "maplibre-gl": "^6.18.0",
     "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-map-gl": "^8.1.3",
     "react-native": "0.88.1",
     "react-native-gesture-handler": "~3.3.0",
     "react-native-reanimated": "4.7.1",
     "react-native-safe-area-context": "~5.11.1",
-    "react-native-screens": "~4.30.1"
+    "react-native-screens": "~4.30.1",
+    "react-native-web": "^0.21.4"
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",

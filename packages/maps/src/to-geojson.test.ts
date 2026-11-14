@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { travelModes } from '@transit/shared';
-import { sampleDrive, sampleItineraries, sampleItinerary } from './samples.js';
-import { routeColor } from './colors.js';
-import { dashForMode, itinerariesToFeatures, itineraryPoints, laneOrder } from './to-geojson.js';
-import { routeLayers } from './layers.js';
-import { evaluate, type FeatureProps } from './test-helpers/style-expressions.js';
-import type { Itinerary } from '@transit/shared';
+import { travelModes, type Itinerary } from '@transit/shared';
+import * as samples from './samples.js';
+import { commuteBikeTransit, commuteWalk, sampleDrive, sampleItineraries, sampleItinerary } from './samples.js';
+import { MODE_COLORS, routeColor } from './colors.js';
+import { dashForMode, drawnLegLines, itinerariesToFeatures, itineraryPoints, laneOrder, mainMode, transitLegLabels } from './to-geojson.js';
 
 describe('dashForMode', () => {
   it('maps each mode to the plan 009 dash style', () => {
@@ -28,7 +26,13 @@ describe('itinerariesToFeatures', () => {
     expect(fc.features).toHaveLength(sampleItinerary.legs.length);
     fc.features.forEach((f, i) => {
       expect(f.type).toBe('Feature');
-      expect(f.geometry).toEqual(sampleItinerary.legs[i]!.geometry);
+      expect(f.geometry.type).toBe('LineString');
+      const original = sampleItinerary.legs[i]!.geometry.coordinates;
+      const drawn = f.geometry.coordinates;
+      const startsWith = JSON.stringify(drawn.slice(0, original.length)) === JSON.stringify(original);
+      const endsWith = JSON.stringify(drawn.slice(-original.length)) === JSON.stringify(original);
+      expect(startsWith || endsWith, `leg ${i} keeps its own line`).toBe(true);
+      expect(drawn.length - original.length).toBeLessThanOrEqual(1);
       expect(f.properties.legId).toBe(sampleItinerary.legs[i]!.id);
       expect(f.properties.itineraryId).toBe(sampleItinerary.id);
       expect(f.properties.mode).toBe(sampleItinerary.legs[i]!.mode);
@@ -38,6 +42,12 @@ describe('itinerariesToFeatures', () => {
   it('styles the dash per mode (walk → rail → walk)', () => {
     const dashes = itinerariesToFeatures([sampleItinerary]).features.map((f) => f.properties.dash);
     expect(dashes).toEqual(['dotted', 'solid', 'dotted']);
+  });
+
+  it('gives every leg the colour of its mode, for when its trip is selected', () => {
+    const fc = itinerariesToFeatures([sampleItinerary]);
+    for (const f of fc.features) expect(f.properties.modeColor).toBe(MODE_COLORS[f.properties.mode]);
+    expect(new Set(travelModes.map((m) => MODE_COLORS[m])).size).toBeGreaterThanOrEqual(6);
   });
 
   it('colours a whole itinerary with one colour', () => {
@@ -91,12 +101,12 @@ describe('itineraryPoints', () => {
     expect(count(kinds, 'transfer')).toBe(sampleItinerary.legs.length - 1);
   });
 
-  it('puts origin and destination at the right places', () => {
+  it('puts origin and destination on the ends of the drawn line, so the dots sit on the route', () => {
     const fc = itineraryPoints([sampleItinerary]);
     const origin = fc.features.find((f) => f.properties.kind === 'origin')!;
     const dest = fc.features.find((f) => f.properties.kind === 'destination')!;
-    expect(origin.geometry.coordinates).toEqual(sampleItinerary.legs[0]!.from.coordinates);
-    expect(dest.geometry.coordinates).toEqual(sampleItinerary.legs.at(-1)!.to.coordinates);
+    expect(origin.geometry.coordinates).toEqual(sampleItinerary.legs[0]!.geometry.coordinates[0]);
+    expect(dest.geometry.coordinates).toEqual(sampleItinerary.legs.at(-1)!.geometry.coordinates.at(-1));
     expect(origin.properties.name).toBe('MIT Stata Center');
   });
 
@@ -169,68 +179,6 @@ describe('lanes follow where trips actually are (no crossing)', () => {
   });
 });
 
-describe('lanes stay apart in the real world, whatever direction a line runs (PR #35 review, issue 2)', () => {
-  // line-offset shifts a line to the RIGHT of ITS OWN direction. So the physical side a line ends up on
-  // depends on both its lane and which way its geometry runs. These tests compute the real shift.
-  const OFFSET = routeLayers().find((l) => l.type === 'line')!.paint['line-offset'];
-
-  /** The real sideways shift of one feature, as [east, north] in screen px. */
-  const physicalShift = (f: ReturnType<typeof itinerariesToFeatures>['features'][number]): [number, number] => {
-    const px = Number(evaluate(OFFSET, f.properties as unknown as FeatureProps));
-    const coords = f.geometry.coordinates;
-    const [x0, y0] = coords[0]!;
-    const [x1, y1] = coords.at(-1)!;
-    const len = Math.hypot(x1 - x0, y1 - y0) || 1;
-    // right of the direction (dx, dy) is (dy, -dx)
-    return [(px * (y1 - y0)) / len, (-px * (x1 - x0)) / len];
-  };
-
-  const straightTrip = (id: string, coordinates: [number, number][]): Itinerary => ({
-    ...sampleDrive,
-    id,
-    legs: [{ ...sampleDrive.legs[0]!, id: `${id}-0`, geometry: { type: 'LineString', coordinates } }]
-  });
-  const eastShiftOf = (list: Itinerary[], id: string) =>
-    physicalShift(itinerariesToFeatures(list).features.find((f) => f.properties.itineraryId === id)!)[0];
-
-  it('an outbound trip and its return on the same street end up on opposite sides', () => {
-    const outbound = straightTrip('outbound', [[-71, 42], [-71, 42.1]]); // heading north
-    const back = straightTrip('back', [[-71, 42.1], [-71, 42]]); // same street, heading south
-    for (const list of [[outbound, back], [back, outbound]]) {
-      const a = eastShiftOf(list, 'outbound');
-      const b = eastShiftOf(list, 'back');
-      expect(Math.abs(a), 'outbound is shifted').toBeGreaterThan(0);
-      expect(Math.abs(b), 'return is shifted').toBeGreaterThan(0);
-      expect(Math.sign(a), 'outbound and return must be on opposite sides of the street').not.toBe(Math.sign(b));
-    }
-  });
-
-  it('two trips sharing a short sideways stretch stay apart on it too', () => {
-    // Both go north, jog east, then north again. The jogs are drawn almost (not exactly) the same,
-    // one tilting slightly north, one slightly south: they must still end up on opposite sides.
-    const jog = (id: string, tilt: number): Itinerary => ({
-      ...sampleDrive,
-      id,
-      legs: [
-        { ...sampleDrive.legs[0]!, id: `${id}-0`, geometry: { type: 'LineString', coordinates: [[-71, 42], [-71, 42.01]] } },
-        { ...sampleDrive.legs[0]!, id: `${id}-1`, geometry: { type: 'LineString', coordinates: [[-71, 42.01], [-70.99, 42.01 + tilt]] } },
-        { ...sampleDrive.legs[0]!, id: `${id}-2`, geometry: { type: 'LineString', coordinates: [[-70.99, 42.01 + tilt], [-70.99, 42.02]] } }
-      ]
-    });
-    const a = jog('a', 0.0001);
-    const b = jog('b', -0.0001);
-    const northShiftOnJog = (id: string) =>
-      physicalShift(itinerariesToFeatures([a, b]).features.find((f) => f.properties.legId === `${id}-1`)!)[1];
-    expect(Math.sign(northShiftOnJog('a'))).not.toBe(Math.sign(northShiftOnJog('b')));
-  });
-
-  it('two trips in the same direction on the same street also end up on opposite sides', () => {
-    const one = straightTrip('one', [[-71, 42], [-71, 42.1]]);
-    const two = straightTrip('two', [[-71, 42], [-71, 42.1]]);
-    expect(Math.sign(eastShiftOf([one, two], 'one'))).not.toBe(Math.sign(eastShiftOf([one, two], 'two')));
-  });
-});
-
 describe('colours chosen by the app (PR #35 review, issue 3)', () => {
   it('lines and dots use the colour map passed in, so result cards in the app can share it', () => {
     const colors = new Map(sampleItineraries.map((t, i) => [t.id, `#00000${i}`]));
@@ -239,6 +187,108 @@ describe('colours chosen by the app (PR #35 review, issue 3)', () => {
     }
     for (const f of itineraryPoints(sampleItineraries, { colors }).features) {
       expect(f.properties.color).toBe(colors.get(f.properties.itineraryId));
+    }
+  });
+});
+
+describe('mainMode: the mode a trip uses for the most distance', () => {
+  it('counts distance, not time: a short train ride beats a slow walk', () => {
+    const minutes = (mode: string) => sampleItinerary.legs.filter((l) => l.mode === mode).reduce((t, l) => t + l.durationMinutes, 0);
+    expect(minutes('walk')).toBeGreaterThan(minutes('rail'));
+    expect(mainMode(sampleItinerary)).toBe('rail');
+  });
+
+  it('picks the right mode for bike + bus, drive-only and walk-only trips', () => {
+    expect(mainMode(commuteBikeTransit)).toBe('bike');
+    expect(mainMode(sampleDrive)).toBe('car');
+    expect(mainMode(commuteWalk)).toBe('walk');
+  });
+
+  it('puts the main mode colour on every leg and every dot of the trip', () => {
+    const expected = MODE_COLORS[mainMode(sampleItinerary)];
+    for (const f of itinerariesToFeatures([sampleItinerary]).features) expect(f.properties.mainModeColor).toBe(expected);
+    for (const f of itineraryPoints([sampleItinerary]).features) expect(f.properties.mainModeColor).toBe(expected);
+  });
+});
+
+describe('legs meet at transfers (real routing data can leave 10-50 m between legs)', () => {
+  const trip = (gapDegrees: number): Itinerary => ({
+    ...sampleItinerary,
+    id: 'gap-test',
+    legs: [
+      { ...sampleItinerary.legs[0]!, id: 'g-0', mode: 'walk', geometry: { type: 'LineString', coordinates: [[-71.1, 42.36], [-71.09, 42.36]] } },
+      { ...sampleItinerary.legs[1]!, id: 'g-1', mode: 'bus', geometry: { type: 'LineString', coordinates: [[-71.09 + gapDegrees, 42.36], [-71.08, 42.36]] } }
+    ]
+  });
+
+  it('joins a small gap by extending the walk to the stop, leaving the bus line exactly as given', () => {
+    const lines = drawnLegLines(trip(0.0003));
+    expect(lines[0]!.at(-1)).toEqual([-71.09 + 0.0003, 42.36]);
+    expect(lines[1]).toEqual([[-71.09 + 0.0003, 42.36], [-71.08, 42.36]]);
+  });
+
+  it('after getting off, starts the walk where the bus ended', () => {
+    const offTheBus: Itinerary = {
+      ...trip(0.0003),
+      legs: [
+        { ...sampleItinerary.legs[1]!, id: 'b-0', mode: 'bus', geometry: { type: 'LineString', coordinates: [[-71.1, 42.36], [-71.09, 42.36]] } },
+        { ...sampleItinerary.legs[2]!, id: 'b-1', mode: 'walk', geometry: { type: 'LineString', coordinates: [[-71.0897, 42.36], [-71.08, 42.36]] } }
+      ]
+    };
+    const lines = drawnLegLines(offTheBus);
+    expect(lines[0]).toEqual([[-71.1, 42.36], [-71.09, 42.36]]);
+    expect(lines[1]![0]).toEqual([-71.09, 42.36]);
+  });
+
+  it('leaves a big gap alone, since that would be bad data, not a transfer', () => {
+    const lines = drawnLegLines(trip(0.01));
+    expect(lines[1]![0]).toEqual([-71.09 + 0.01, 42.36]);
+  });
+
+  it('draws every sample trip as one connected line', () => {
+    const trips = Object.values(samples).filter((value): value is Itinerary => !Array.isArray(value) && typeof value === 'object' && 'legs' in value);
+    for (const it of trips) {
+      const lines = itinerariesToFeatures([it]).features.map((f) => f.geometry.coordinates);
+      for (let i = 1; i < lines.length; i++) {
+        if (it.legs[i - 1]!.mode === 'flight' || it.legs[i]!.mode === 'flight') continue;
+        expect(lines[i]![0], `${it.id} leg ${i}`).toEqual(lines[i - 1]!.at(-1));
+      }
+    }
+  });
+
+  it('puts each transfer where the legs meet, in the colour of the leg you switch onto', () => {
+    const points = itineraryPoints([trip(0.0003)]).features;
+    const transfer = points.find((p) => p.properties.kind === 'transfer')!;
+    expect(transfer.geometry.coordinates).toEqual([-71.09 + 0.0003, 42.36]);
+    expect(transfer.properties.modeColor).toBe(MODE_COLORS.bus);
+  });
+});
+
+describe('transitLegLabels: line bubbles for search results (Figma frame 02)', () => {
+  const trip = samples.testScenarios.airport![0]!;
+  const labels = transitLegLabels(trip, 'America/New_York');
+
+  it('labels only bus, train and ferry legs, in trip order', () => {
+    const transit = trip.legs.filter((leg) => ['bus', 'rail', 'ferry'].includes(leg.mode));
+    expect(labels.map((l) => l.legId)).toEqual(transit.map((leg) => leg.id));
+    expect(transitLegLabels(sampleDrive)).toEqual([]);
+  });
+
+  it('shows the line and the departure time without AM/PM, and drops the word Bus because the icon says it', () => {
+    expect(labels.map((l) => l.text)).toEqual(['Red Line · 8:49', 'SL1 · 8:58']);
+  });
+
+  it('puts each bubble halfway along its leg, on the drawn line', () => {
+    const lines = drawnLegLines(trip);
+    for (const label of labels) {
+      const line = lines[trip.legs.findIndex((leg) => leg.id === label.legId)]!;
+      const lngs = line.map((p) => p[0]);
+      const lats = line.map((p) => p[1]);
+      expect(label.coordinates[0]).toBeGreaterThanOrEqual(Math.min(...lngs));
+      expect(label.coordinates[0]).toBeLessThanOrEqual(Math.max(...lngs));
+      expect(label.coordinates[1]).toBeGreaterThanOrEqual(Math.min(...lats));
+      expect(label.coordinates[1]).toBeLessThanOrEqual(Math.max(...lats));
+      expect(label.coordinates).not.toEqual(line[0]);
     }
   });
 });

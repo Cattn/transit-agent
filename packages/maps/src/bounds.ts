@@ -52,7 +52,6 @@ export function boundsOf(itineraries: readonly Itinerary[], visibleModes?: reado
  *   1. drops features without properties
  *   2. sorts by sortKey, highest first (the trip drawn on top, i.e. the selected one, comes first)
  *   3. keeps only the first appearance of each itinerary id
- * The first id gets selected; if there is more than one, the app shows the "which route?" picker.
  */
 export function uniqueItineraryIds(
   features: ReadonlyArray<{ properties: { itineraryId?: unknown; sortKey?: unknown } | null }>
@@ -70,4 +69,19 @@ export function uniqueItineraryIds(
 
   // A Set keeps insertion order and ignores duplicates, which is exactly "first occurrence wins".
   return [...new Set(hits.map((hit) => hit.id))];
+}
+
+export function nextRouteToSelect(
+  underTap: readonly string[],
+  selectedId: string | undefined,
+  listOrder: readonly string[]
+): string | undefined {
+  if (underTap.length === 0) return undefined;
+  if (selectedId === undefined || !underTap.includes(selectedId)) return underTap[0];
+  const position = (id: string) => {
+    const index = listOrder.indexOf(id);
+    return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+  };
+  const cycle = [...underTap].sort((a, b) => position(a) - position(b));
+  return cycle[(cycle.indexOf(selectedId) + 1) % cycle.length];
 }

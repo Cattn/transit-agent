@@ -7,6 +7,7 @@
  *
  * Tests: colors.test.ts
  */
+import type { TravelMode } from '@transit/shared';
 
 /**
  * 8 colours that are easy to tell apart and stay readable on a light grey basemap
@@ -33,6 +34,8 @@ export const LINE_WIDTH = 5; // city zoom (14 and closer)
 export const SELECTED_LINE_WIDTH = 7;
 export const LINE_WIDTH_ZOOMED_OUT = 3; // country zoom (5 and further out)
 export const SELECTED_LINE_WIDTH_ZOOMED_OUT = 5;
+export const LINE_WIDTH_ZOOMED_IN = 7;
+export const SELECTED_LINE_WIDTH_ZOOMED_IN = 10;
 export const CASING_EXTRA_WIDTH = 4;
 export const DIMMED_OPACITY = 0.35;
 /**
@@ -41,6 +44,19 @@ export const DIMMED_OPACITY = 0.35;
  * 5 px at city zoom (5 px lines) and 7 px when zoomed out (3 px lines).
  */
 export const LANE_SPACING = 10;
+
+export const UNFOCUSED_ROUTE_COLOR = '#64748b';
+export const FOCUS_INK = '#1f2937';
+export const MODE_COLORS: Record<TravelMode, string> = {
+  walk: '#6b7280',
+  car: '#2563eb',
+  bike: '#2563eb',
+  bikeshare: '#2563eb',
+  bus: '#ea580c',
+  rail: '#7c3aed',
+  ferry: '#0d9488',
+  flight: '#db2777'
+};
 
 /**
  * Turn a string into a non-negative integer that is always the same for the same string.

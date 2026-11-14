@@ -20,12 +20,29 @@ function decode(encoded, precision) {
   return out;
 }
 const round = (p) => [Math.round(p[0] * 1e5) / 1e5, Math.round(p[1] * 1e5) / 1e5];
-/** Keep at most `max` points (always first + last), and drop consecutive duplicates. */
-function simplify(points, max = 60) {
+/** Shape-preserving thinning (Douglas-Peucker): drop only points within `toleranceMeters` of the line. */
+function simplify(points, toleranceMeters = 2) {
   const r = points.map(round).filter((p, i, a) => i === 0 || p[0] !== a[i - 1][0] || p[1] !== a[i - 1][1]);
-  if (r.length <= max) return r.length >= 2 ? r : [r[0], r[0]];
-  const step = (r.length - 1) / (max - 1);
-  return Array.from({ length: max }, (_, i) => r[Math.round(i * step)]);
+  if (r.length < 3) return r.length >= 2 ? r : [r[0], r[0]];
+  const metersPerDegLat = 111320;
+  const metersPerDegLng = metersPerDegLat * Math.cos((r[0][1] * Math.PI) / 180);
+  const xy = r.map(([lng, lat]) => [lng * metersPerDegLng, lat * metersPerDegLat]);
+  const keep = new Array(r.length).fill(false);
+  keep[0] = keep[r.length - 1] = true;
+  const stack = [[0, r.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const [ax, ay] = xy[a], [bx, by] = xy[b];
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    let worst = -1, worstDist = 0;
+    for (let i = a + 1; i < b; i++) {
+      const [px, py] = xy[i];
+      const d = Math.abs((bx - ax) * (ay - py) - (ax - px) * (by - ay)) / len;
+      if (d > worstDist) { worstDist = d; worst = i; }
+    }
+    if (worst !== -1 && worstDist > toleranceMeters) { keep[worst] = true; stack.push([a, worst], [worst, b]); }
+  }
+  return r.filter((_, i) => keep[i]);
 }
 const MODE = (m) => ({ WALK: 'walk', BIKE: 'bike', BUS: 'bus', COACH: 'bus', TRAM: 'rail', SUBWAY: 'rail', METRO: 'rail', RAIL: 'rail', REGIONAL_RAIL: 'rail', SUBURBAN: 'rail', FERRY: 'ferry', CAR: 'car', AIRPLANE: 'flight' }[m] ?? (() => { throw new Error('unknown mode ' + m); })());
 const minutes = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 60000);
@@ -47,6 +64,10 @@ function niceName(mode, l) {
 }
 
 /** Convert a MOTIS leg into our contract Leg. */
+function legLine(l) {
+  const points = l.legGeometry?.points ? decode(l.legGeometry.points, l.legGeometry.precision) : [];
+  return points.length > 0 ? simplify(points) : [round([l.from.lon, l.from.lat]), round([l.to.lon, l.to.lat])];
+}
 function motisLeg(id, l, nameOverride = {}) {
   const mode = MODE(l.mode);
   const transit = ['bus', 'rail', 'ferry'].includes(mode);
@@ -57,7 +78,7 @@ function motisLeg(id, l, nameOverride = {}) {
     departAt: l.startTime, arriveAt: l.endTime,
     durationMinutes: Math.max(1, minutes(l.startTime, l.endTime)),
     ...(l.distance ? { distanceMeters: Math.round(l.distance) } : {}),
-    geometry: { type: 'LineString', coordinates: simplify(decode(l.legGeometry.points, l.legGeometry.precision)) },
+    geometry: { type: 'LineString', coordinates: legLine(l) },
     timeSource: transit ? 'scheduled' : 'estimated',
     ...(transit ? { routeName: niceName(mode, l), agency: l.agencyName } : {})
   };
@@ -146,9 +167,10 @@ async function transitLegs(idPrefix, from, to, timeIso, want = () => true, extra
   const options = [...plan.itineraries, ...(plan.direct ?? [])];
   // Of the itineraries that match, take the one with the fewest vehicles, then the fastest.
   const vehicles = (x) => x.legs.filter((l) => l.mode !== 'WALK' && l.mode !== 'BIKE').length;
+  const notMbta = (x) => x.legs.filter((l) => l.mode !== 'WALK' && l.mode !== 'BIKE' && !/MBTA|Massachusetts Bay/i.test(l.agencyName ?? '')).length;
   const it = options
     .filter((x) => { try { return want(x.legs.map((l) => MODE(l.mode))); } catch { return false; } })
-    .sort((x, y) => vehicles(x) - vehicles(y) || x.duration - y.duration)[0];
+    .sort((x, y) => notMbta(x) - notMbta(y) || vehicles(x) - vehicles(y) || x.duration - y.duration)[0];
   if (!it) throw new Error(`${idPrefix}: nothing matched; got ${options.map((x) => x.legs.map((l) => l.mode).join(',')).join(' | ')}`);
   return it.legs.map((l, i, all) => motisLeg(`${idPrefix}-${i}`, l, { from: i === 0 ? from.name : undefined, to: i === all.length - 1 ? to.name : undefined }));
 }
@@ -217,6 +239,61 @@ flights.flyFromProvidence = await flyVia('fly-pvd', 'PVD',
     { level: 'low', reasons: [] });
 }
 
+// ---------- Test scenarios: harder real trips for checking the map on a phone (max 3 trips each) ----------
+const at = (name, lng, lat, kind = 'address') => ({ name, coordinates: [lng, lat], kind });
+async function transitOrAny(id, from, to, timeIso, want, extra = {}) {
+  try {
+    return await transitLegs(id, from, to, timeIso, want, extra);
+  } catch (error) {
+    console.warn(`${id}: ${error.message}; taking the best transit option instead`);
+    return transitLegs(id, from, to, timeIso, (m) => m.some((x) => ['bus', 'rail', 'ferry'].includes(x)), extra);
+  }
+}
+const drive = async (id, from, to) => finish(id, [await carLeg(`${id}-0`, from, to, commuteStart)], 'osrm (recorded)');
+const ride = async (id, from, to) => finish(id, [await activeLeg(`${id}-0`, 'bike', from, to, commuteStart)], 'osrm (recorded)');
+const scenarios = {};
+const vehicles = (m) => m.filter((x) => ['bus', 'rail', 'ferry'].includes(x)).length;
+
+{
+  const from = at('MIT Stata Center', ...MIT), to = at('Logan Airport, Terminal B', -71.0201, 42.364, 'airport');
+  scenarios.airport = [
+    finish('test-airport-transit', await transitOrAny('test-airport-transit', from, to, QUERY_TIME, (m) => vehicles(m) >= 2), 'transitous (recorded)'),
+    await drive('test-airport-drive', from, to)
+  ];
+}
+{
+  const from = at('Harvard Square', -71.119, 42.3734), to = at('Fenway Park', -71.0972, 42.3467);
+  scenarios.fenway = [
+    finish('test-fenway-transit', await transitOrAny('test-fenway-transit', from, to, QUERY_TIME, (m) => m.includes('bus') && m.includes('rail')), 'transitous (recorded)'),
+    await drive('test-fenway-drive', from, to),
+    await ride('test-fenway-bike', from, to)
+  ];
+}
+{
+  const from = at('Charlestown Navy Yard', -71.0541, 42.3727), to = at('Long Wharf', -71.0503, 42.36);
+  scenarios.ferry = [
+    finish('test-ferry', await transitOrAny('test-ferry', from, to, QUERY_TIME, (m) => m.includes('ferry'), { transitModes: 'FERRY' }), 'transitous (recorded)'),
+    finish('test-ferry-walk', [await activeLeg('test-ferry-walk-0', 'walk', from, to, commuteStart)], 'osrm (recorded)')
+  ];
+}
+{
+  const from = at('Central Square', -71.1036, 42.3653), to = at('Downtown Crossing', -71.0603, 42.3555);
+  scenarios.bikeRail = [
+    finish('test-bike-rail', await transitOrAny('test-bike-rail', from, to, QUERY_TIME, (m) => m[0] === 'bike' && m.includes('rail'), { preTransitModes: 'BIKE', requireBikeTransport: 'true' }), 'transitous (recorded)'),
+    await ride('test-bike-direct', from, to)
+  ];
+}
+{
+  const davis = at('Davis Square', -71.1218, 42.3967), backBay = at('Back Bay', -71.0758, 42.3474, 'station');
+  scenarios.roundTrip = [
+    finish('test-commute-out', await transitOrAny('test-commute-out', davis, backBay, QUERY_TIME, (m) => vehicles(m) >= 1), 'transitous (recorded)'),
+    finish('test-commute-back', await transitOrAny('test-commute-back', backBay, davis, '2026-11-16T22:30:00Z', (m) => vehicles(m) >= 1), 'transitous (recorded)')
+  ];
+}
+const scenarioTrips = Object.fromEntries(
+  Object.entries(scenarios).flatMap(([scenario, trips]) => trips.map((trip, i) => [`${scenario}${i}`, trip]))
+);
+
 // ---------- write ----------
 const header = `/**
  * Example routes for the demo page, the tests, and UI work before the server exists
@@ -239,7 +316,7 @@ const header = `/**
 import type { Itinerary } from '@transit/shared';
 `;
 const compact = (it) => JSON.stringify(it, null, 2).replace(/\[\s+(-?[\d.]+),\s+(-?[\d.]+)\s+\]/g, '[$1, $2]');
-const all = { ...commute, ...flights };
+const all = { ...commute, ...flights, ...scenarioTrips };
 const body = Object.entries(all).map(([name, it]) => `\nexport const ${name}: Itinerary = ${compact(it)};\n`).join('');
 const footer = `
 /**
@@ -253,6 +330,11 @@ export const flightOptions: Itinerary[] = [${Object.keys(flights).join(', ')}];
 
 /** Used by the tests. */
 export const sampleItineraries: Itinerary[] = commuteOptions;
+
+/** Harder real trips for checking the map on a phone, at most 3 trips per scenario. */
+export const testScenarios: Record<string, Itinerary[]> = {
+${Object.entries(scenarios).map(([name, trips]) => `  ${name}: [${trips.map((_, i) => `${name}${i}`).join(', ')}]`).join(',\n')}
+};
 `;
 writeFileSync(OUT, header + body + footer);
 for (const [name, it] of Object.entries(all)) console.log(name.padEnd(20), String(it.durationMinutes).padStart(4) + ' min', '$' + it.cost.totalUsd, '|', it.summary);
