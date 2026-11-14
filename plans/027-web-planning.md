@@ -23,7 +23,7 @@
 
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
 - **Owner:** @KrakenTheJaken (assigned 2026-11-14; the screen is mostly map work: card ↔ map selection, shared route colors, the selected-route card). Starts after the native map (009).
-- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work. @Rad1ee (026 owner, design lead) reviews the layout.
 - **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
