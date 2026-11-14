@@ -58,9 +58,8 @@ Client environment variables are public. Keep provider keys and secrets on the s
 - `secureStoreDeviceIdStorage` keeps the anonymous device ID in the OS keychain/keystore.
 - `getCurrentPlace()` is "use my location". It asks for permission only when called, and only for when-in-use location; the app never requests background location.
 - `useAppForeground()` lets screens pause polling while the app is in the background.
-- `tripLink()`, `parseTripLink()` and `useIncomingTripLink()` handle `transit-agent://trip/<id>` links.
 
-These use `expo-secure-store`, `expo-location`, `expo-linking` and `expo-constants`. Expo Go already includes them, but a development build must be rebuilt (`npm run build:android`, and `npm run build:ios` for iPhone) after pulling this change or any new permission text in `app.json`. Run the pure helpers' tests with `npm run test:unit -w @transit/mobile`.
+These use `expo-secure-store`, `expo-location` and `expo-constants`. Expo Go already includes them, but a development build must be rebuilt (`npm run build:android`, and `npm run build:ios` for iPhone) after pulling this change or any new permission text in `app.json`. Run the pure helpers' tests with `npm run test:unit -w @transit/mobile`.
 
 ## Test on your Android phone
 

@@ -107,6 +107,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [notice, setNotice] = useState<string>();
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
   const [chatBehind, setChatBehind] = useState(false);
+  const [filterField, setFilterField] = useState<string>();
   const [resultsOpen, setResultsOpen] = useState(false);
   const [agentPlan, setAgentPlan] = useState<{ plan: PlanResponse; draft: TripDraft }>();
   const currentPlan = agentPlan?.draft === state.draft ? agentPlan.plan : undefined;
@@ -145,6 +146,29 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     apply(patch, 'user');
   }, [apply]);
 
+  const applyUser = useCallback((patch: TripDraftPatch, source: 'user') => {
+    edited.current = true;
+    apply(patch, source);
+  }, [apply]);
+
+  const openFilters = useCallback((field?: string) => {
+    setFilterField(field);
+    setSheet('filters');
+  }, []);
+
+  const closeSheet = useCallback(() => {
+    setFilterField(undefined);
+    setSheet(chatBehind ? 'chat' : undefined);
+    setChatBehind(false);
+  }, [chatBehind]);
+
+  const showRoutes = useCallback(() => {
+    setFilterField(undefined);
+    setChatBehind(false);
+    setSheet(undefined);
+    setResultsOpen(true);
+  }, []);
+
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
     apply(patch, source);
@@ -159,9 +183,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const group = groupForModes(state.draft.modes);
   const onGroupChange = useCallback((next: ModeGroupName) => {
-    editDraft({ modes: modesForGroup(next) });
+    editDraft({ modes: modesForGroup(next, state.draft.modes) });
     if (next === 'fly') setSheet('fly');
-  }, [editDraft]);
+  }, [editDraft, state.draft.modes]);
 
   useEffect(() => {
     let active = true;
@@ -206,10 +230,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     const chip = (key: SavedPlaceChip['key'], label: string, place: Place | undefined): SavedPlaceChip => ({
       key,
       label,
-      onPress: () => (place ? void searchTo(place) : setSheet('filters'))
+      onPress: () => (place ? void searchTo(place) : openFilters())
     });
     return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
-  }, [profile, searchTo]);
+  }, [profile, searchTo, openFilters]);
 
   const closeResults = useCallback(() => setResultsOpen(false), []);
 
@@ -249,10 +273,6 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     () => ({ top: topBarEdge + MAP_PADDING, right: MAP_PADDING + MAP_BUTTON_COLUMN, bottom: sheetHeight, left: MAP_PADDING }),
     [topBarEdge, sheetHeight]
   );
-  const closeSheet = () => {
-    setSheet(chatBehind ? 'chat' : undefined);
-    setChatBehind(false);
-  };
   const clearSelection = useCallback(() => setSelectedId(undefined), [setSelectedId]);
 
   return (
@@ -284,7 +304,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onSave={saveResult}
           onBack={closeResults}
           onSwap={swapPlaces}
-          onOpenFilters={() => setSheet('filters')}
+          onOpenFilters={() => openFilters()}
           onSheetLayout={setSheetHeight}
         />
       ) : (
@@ -302,19 +322,29 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onLocate={() => void onLocate()}
           onAskAgent={() => setSheet('chat')}
           onOpenSettings={() => navigation.navigate('Settings')}
-          onOpenFilters={() => setSheet('filters')}
+          onOpenFilters={() => openFilters()}
           sheetHeight={sheetHeight}
           onSheetLayout={setSheetHeight}
           onTopLayout={setTopBarEdge}
         />
       )}
-      {sheet === 'chat' || chatBehind ? (
-        <ChatScreen draft={state} chat={chat} onOpenFilters={() => { setChatBehind(true); setSheet('filters'); }} onClose={closeSheet} />
+      {sheet === 'chat' ? (
+        <ChatScreen draft={state} chat={chat} onOpenFilters={(field) => { setChatBehind(true); openFilters(field); }} onClose={closeSheet} />
       ) : null}
-      <Modal visible={sheet === 'filters' || sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
+      {sheet === 'filters' ? (
+        <FiltersScreen
+          draft={state.draft}
+          provenance={state.provenance}
+          apply={applyUser}
+          field={filterField}
+          plan={plan}
+          onClose={closeSheet}
+          onShowRoutes={showRoutes}
+        />
+      ) : null}
+      <Modal visible={sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
         <SafeAreaProvider>
-          {sheet === 'filters' ? <FiltersScreen onClose={closeSheet} /> : null}
-          {sheet === 'fly' ? <FlyScreen onClose={closeSheet} /> : null}
+          <FlyScreen onClose={closeSheet} />
         </SafeAreaProvider>
       </Modal>
     </View>

@@ -61,7 +61,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
   - Footer: "3 routes match" / "1 almost works" from the latest plan response when plan 021 has run, otherwise hide the counts. Button "Show routes" closes the sheet and leaves the results sheet up.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
-- Place search: From and To open a list. Use `usePlaceSearch` from `@transit/client-react`. (Against the real server this needs plan 028's `/api/places`.) Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, (plan 018, merged in #37; never at launch). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
+- Place search: From and To open a list. Use `usePlaceSearch` from `@transit/client-react`. (Against the real server this needs plan 028's `/api/places`.) Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` on tap (plan 018, merged in #37); the app may also request foreground location permission at launch without a tap. On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
 
 ## Commands you will need
 
@@ -76,7 +76,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - `apps/mobile/src/screens/filters/FiltersScreen.tsx`
 - `apps/mobile/src/screens/filters/FiltersChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
-- `apps/mobile/src/screens/filters/PlaceField.tsx`
+- `apps/mobile/src/screens/filters/PlaceField.tsx` (plain fallback) and `PlaceField.android.tsx` (Compose `OutlinedTextField` and `ListItem` rows, PR #70 review)
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (the flag that presents Filters, the tapped field, and the mode-control handler in Step 4)
 - `apps/mobile/src/screens/home/ModeSlider.tsx`, `HomeChrome.android.tsx`, `HomeChrome.ios.tsx` (Step 4 only: drop the Drive segment; no iOS design work)
 
@@ -98,7 +98,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `Switch` for step-free access, `ListItem` rows for the limits, Material Symbols icons (no lock icons) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle and the sections in Current state, built with **Expo UI Jetpack Compose** components per plan 020's "Android Material 3 rules" and the `expo-ui` skill (@Cattn's review of PR #66: no hand-styled stand-ins for components Material 3 has): `FilterChip` for modes, `SingleChoiceSegmentedButtonRow` for Depart/Arrive and for the strictness choice, `Slider` for the three preferences, `ListItem` rows for the limits on a rounded `surfaceContainerLowest` card as in the frame (value in `primary` on the right; Max walk and Max transfers open an `AlertDialog` of `RadioButton` choices with "No limit" first; Step-free toggles On/Off on tap), a tertiary-container "✦ Agent" pill, Material Symbols icons (no lock icons) and theme colors. Do not install `@react-native-community/slider` or use React Native's `Switch`. If the installed `@expo/ui` has no Compose `Slider`, STOP and ask @Cattn instead of adding a package. Match Figma frame 03 Filters exactly. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -126,13 +126,13 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Done criteria
 
-- [ ] `npm run typecheck -w @transit/mobile` exits 0
-- [ ] `npm run lint` exits 0
-- [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
-- [ ] A hard limit control sends `null` when cleared
-- [ ] `lateTolerance` and `transferRisk` are two controls
-- [ ] Drive chip in Modes (off by default, kept across Transit ⇄ Fly); no Budget row; Advanced limits start collapsed
-- [ ] Home's mode control is Transit / Fly only
+- [x] `npm run typecheck -w @transit/mobile` exits 0
+- [x] `npm run lint` exits 0
+- [x] Android shows the full sheet, not `presentationStyle="formSheet"`
+- [x] A hard limit control sends `null` when cleared
+- [x] `lateTolerance` and `transferRisk` are two controls
+- [x] Drive chip in Modes (off by default, kept across Transit ⇄ Fly); no Budget row; Advanced limits start collapsed
+- [x] Home's mode control is Transit / Fly only
 - [ ] No files outside Scope are modified
 
 ## STOP conditions
@@ -154,7 +154,7 @@ See the help box at the top (022-Q*). It is the single list; answers are recorde
 
 ## Backlog: iOS
 
-iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+iOS is parked in the backlog (@Cattn, 2026-11-14): iOS stays functional through existing fallbacks; iOS-specific design is deferred. Keep the iOS bundle export passing.
 
 - Frames: `iOS · 03 Filters (form sheet, scrolled length)` (`2011:446`) and its dark twin `2019:1422` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
 - Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS only, from a `FiltersChrome.ios.tsx`.

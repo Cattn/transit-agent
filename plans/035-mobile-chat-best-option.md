@@ -4,12 +4,12 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: PRs #69 (plan 034) and #72 must be merged. Compare Current state with `apps/mobile/src/screens/chat/` and `apps/mobile/src/screens/results/` on `main`. On a mismatch, STOP.
+> **Drift check (run first)**: PR #69 is merged; PR #72 must be merged. Compare Current state with `apps/mobile/src/screens/chat/` and `apps/mobile/src/screens/results/` on `main`. On a mismatch, STOP.
 
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** TODO (waits on #69 and #72, which both change the chat)
+- **State:** BLOCKED on #72; #69 is merged
 - **Priority:** P1 (MVP polish: the chat should look like the mockup)
 - **Effort:** S
 - **Risk:** LOW (Android chat UI only; no contract or server change)
@@ -28,7 +28,7 @@ PR #67 built the frame's header, the bubbles, the change chips, the question chi
 
 - **The mic button** in the composer. Voice input isn't planned. Don't add a mic icon.
 - **What "Yes, watch it / Only if delayed / No thanks" does.** These stay plain quick replies that send their text, as `questions[].options` already do. Real watching is plan 008.
-- The server, the shared contract, `useAgentChat`, and iOS.
+- The server, the shared HTTP contract, and iOS design. A small additive hook message snapshot is in scope.
 
 ## Current state (main at `b26c290`, before #69 and #72)
 
@@ -48,7 +48,7 @@ PR #67 built the frame's header, the bubbles, the change chips, the question chi
    - When an agent turn returns a plan, find its best itinerary: the first entry of `plan.itineraries`, the same one Results shows first.
    - Render that card inside that turn's agent bubble, below the reply text, in the same Material container style Results uses.
    - Only the turn that returned the plan gets the card. A later turn without a plan doesn't repeat it.
-   - Tapping the card does the same as selecting it in Results: set `selectedItineraryId` and close the chat to show it on the map. If plan 034's return-to-chat behavior makes closing awkward, keep the chat open and only select it. Say which in the PR.
+   - Tapping the card does the same as selecting it in Results: set `selectedItineraryId` and close the chat to show it on the map. Restore that card's stored plan/request before selecting its itinerary and closing chat; do not select against unrelated current results.
    - Route color: if the card shows the trip's color the way Results does, use the same `routeColors` map. Don't add a dot; Results doesn't have one (plan 021).
    - The "Best option: …" sentence comes from the agent's reply text; don't build it in the app.
 3. **Chip icons.**
@@ -72,3 +72,7 @@ PR #67 built the frame's header, the bubbles, the change chips, the question chi
 - [ ] Change chips show a check icon and a pencil icon and still open Filters on their field.
 - [ ] No mic button; quick replies unchanged.
 - [ ] Android light and dark screenshots next to the Figma frames in the PR; `npm run check` exits 0.
+
+## Scope and message ownership (`0b37886`)
+
+In scope: `packages/client-react/src/use-agent-chat.ts`, its existing tests, `apps/mobile/src/screens/chat/*`, `apps/mobile/src/screens/results/*`, and Home selection wiring only. Current `ChatMessage` stores no plan; `lastPlan` is one latest value. Add optional per-agent-message plan and resulting draft snapshots when accepting a response; carry them into ChatEntry. A later no-plan response has no card, and earlier cards retain their own plan/request. Never reconstruct a historical card from current lastPlan. Preserve session/provenance. Extend existing tests for two planned replies separated by a no-plan reply and historical selection. No new test files/comments; preserve logging. Refresh historical excerpts after #72 merges before execution.
