@@ -21,8 +21,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Ready to start.** #7 and #8 are done.
-- **Owner:** Suggested: @Cattn (holds the Gemini API key). Unassigned until started.
+- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 
 **Open questions** (answer by number in a comment on #10):

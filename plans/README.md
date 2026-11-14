@@ -90,7 +90,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27) |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (merged in #29) |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (merged in #31, 054f511) |
-| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004, 005 (all done) | TODO |
+| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn (coding agent running) | P1 | L | 003, 004, 005 (all done) | IN PROGRESS |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
 | 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs **now** | P1 | M | 002 (D8, D9) | TODO |
@@ -99,7 +99,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (merged in #32) |
 | 013 | ["When do I leave" logic, pure + shared](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | DMFriends | P1 | S | 002 | APPROVED (PR #34), awaiting merge |
 | 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | DMFriends | P2 | S | 002 | APPROVED (PR #30), awaiting DMFriends' merge |
-| 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004, 012 | TODO |
+| 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn (coding agent running) | P1 | M | 004, 012 | IN PROGRESS |
 | 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | APPROVED (PR #36), awaiting merge |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends (waits on PR #35) | P1 | S | 016, PR #35 | TODO |
 | 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | 🟢 up for grabs **now** (good fit: mobile) | P1 | M | — (015 optional) | TODO |
@@ -129,7 +129,7 @@ UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in para
 Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
 ```
 
-**Unblocked right now (nothing to wait for):** 015, 018, 006, 007 research, 009 steps 1–5, UI slice 1 (shell).
+**Unblocked right now (nothing to wait for):** 018, 007 research, 009 steps 1–5, UI slice 1 (shell).
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is

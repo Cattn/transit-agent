@@ -20,22 +20,13 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** #8 and #20 are done.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Good fit for a UI person. No screens, just the logic both apps share.
+- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
 
 1. @Rad1ee @DMFriends: plain React hooks (suggested) or TanStack Query from the start?
 2. @Rad1ee @DMFriends: have you already written hooks in your branches that should move here instead?
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/015-client-react-hooks.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #23`.
-- **Just feedback:** answer the open questions above by number in a comment.
 
 <!-- help:end -->
 
