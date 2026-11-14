@@ -12,7 +12,7 @@
 - **Priority**: P1
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: plans/002-shared-domain-contract.md, plans/003-planning-api-fixture-provider.md
+- **Depends on**: plans/002-shared-domain-contract.md (DONE). *Changed 2026-11-14: no longer waits for 003. The endpoint shapes are written below, so the client is built and tested with a stubbed `fetch`.*
 - **Category**: direction
 - **Planned at**: commit `c9e33cc`, 2026-11-13
 - **Issue**: https://github.com/Cattn/transit-agent/issues/8
@@ -20,10 +20,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #7 merges.
+- **Status:** 🟢 **Up for grabs now.** No longer waits for #7 (changed 2026-11-14).
 - **Owner:** Nobody yet
-- **Up for grabs?** Yes. Good fit for a UI person, since the UI is what uses it.
-- **Waiting on:** #7
+- **Up for grabs?** Yes. Good fit for a UI person, since the UI is what uses it. It unblocks the mock client (#20) and the shared hooks (#23).
 
 **Open questions** (answer by number in a comment on #8):
 
@@ -73,7 +72,7 @@ mobile, and server all import it.
 
 ## Scope
 
-**In scope:** move client to `packages/shared/src/client/api-client.ts` (re-export from `index.ts`), new `packages/shared/src/client/trip-draft-state.ts`, new `packages/shared/src/client/device-id.ts`, tests beside them, `packages/shared/src/index.ts`.
+**In scope:** move client to `packages/shared/src/client/api-client.ts` (re-export from `index.ts`), new `packages/shared/src/client/trip-draft-state.ts`, new `packages/shared/src/client/device-id.ts`, new `packages/shared/src/domain/agent.ts` and `packages/shared/src/domain/place-search.ts` (Step 2b), tests beside them, `packages/shared/src/index.ts`.
 
 **Out of scope:** `apps/web/**`, `apps/mobile/**` (UI team adopts the client — see "Handoff" below), server code.
 
@@ -104,6 +103,51 @@ updateItinerary(id: string, patch: { label?: string; watch?: boolean }): Promise
 deleteItinerary(id: string): Promise<void>,
 ```
 `encodeURIComponent(id)` in paths.
+
+Also export the client's type so the mock client (plan 012) can implement it:
+```ts
+export type ApiClient = ReturnType<typeof createApiClient>;
+```
+
+### Step 2b: Agent and place-search contracts + client methods (moved here from plans 006 and 007)
+
+These are only shapes, but the mock client (plan 012) and the chat and place-search UI need them
+now, long before the agent (006) or geocoder (007) exist. **Do Step 4 first if you need
+`TripDraftPatchSchema`** (the agent response uses it).
+
+`packages/shared/src/domain/agent.ts`:
+```ts
+export const AgentMessageRequestSchema = z.object({
+  sessionId: z.string().optional(),
+  message: z.string().min(1).max(2000),
+  /** Client's current draft (filters state). The agent edits relative to this. */
+  draft: TripDraftSchema
+});
+export const AgentQuestionSchema = z.object({ field: z.string(), question: z.string(), options: z.array(z.string()).optional() });
+export const AgentMessageResponseSchema = z.object({
+  sessionId: z.string(),
+  reply: z.string(),
+  /** Everything the agent changed this turn. Client applies it with source 'agent' and shows editable chips. */
+  draftPatch: TripDraftPatchSchema,
+  /** Focused clarifying questions, each tied to the draft field it would fill. */
+  questions: z.array(AgentQuestionSchema),
+  /** Present when the agent ran a search this turn. Same shape as POST /api/plan. */
+  plan: PlanResponseSchema.optional()
+});
+export type AgentMessageRequest = z.infer<typeof AgentMessageRequestSchema>;
+export type AgentMessageResponse = z.infer<typeof AgentMessageResponseSchema>;
+```
+`packages/shared/src/domain/place-search.ts`:
+```ts
+export const PlaceSearchResponseSchema = z.object({ places: z.array(PlaceSchema) });
+export type PlaceSearchResponse = z.infer<typeof PlaceSearchResponseSchema>;
+```
+Client methods:
+```ts
+sendAgentMessage(body: AgentMessageRequest): Promise<AgentMessageResponse>,   // POST /api/agent/messages, 45 s timeout
+searchPlaces(q: string, near?: LngLat): Promise<Place[]>,                      // GET /api/places?q=&near=lng,lat → response.places
+```
+The server endpoints arrive later (006, 007); until then these calls return 404, which the client reports as `ApiClientError(404, 'not_found', …)`.
 
 ### Step 3: Device ID helper (decision D4)
 
@@ -156,7 +200,7 @@ Recommend (not mandate) TanStack Query or a small `useReducer` in each app.
 
 - [ ] `npm run check` exits 0; ≥ 12 new tests
 - [ ] `grep -n "health\|sections" packages/shared/src/client/api-client.ts` shows both methods still exist
-- [ ] `TripDraftPatchSchema` exported from `@transit/shared`
+- [ ] `TripDraftPatchSchema`, `ApiClient`, `AgentMessageRequestSchema`, `AgentMessageResponseSchema`, `PlaceSearchResponseSchema` exported from `@transit/shared`
 - [ ] No files changed under `apps/`
 
 ## STOP conditions

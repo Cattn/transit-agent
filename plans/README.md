@@ -28,10 +28,10 @@ Plans are tiered by how settled they are:
 
 | Tier | Meaning | Plans |
 |------|---------|-------|
-| **Executable** | Step-by-step, with verification gates; hand to an agent as-is | 001, 002, 003, 004, 005 |
+| **Executable** | Step-by-step, with verification gates; hand to an agent as-is | 001–005, 012–018 |
 | **Executable after decision** | Steps written; one decision (Dn) must be confirmed first | 006, 008, 009 |
 | **Spike → build** | Begins with a time-boxed research step whose output may revise later steps | 007, 010, 011 |
-| **Direction** | Broad guidance for a team already working; not step-by-step | `ui-direction.md` |
+| **Direction** | Broad guidance for a team already working; not step-by-step | `ui-direction.md`, `ui-slices.md` (draft) |
 
 ---
 
@@ -87,28 +87,48 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 |------|-------|-------------------|----------|--------|------------|--------|
 | 001 | [Establish a unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (merged in #18) |
 | 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19) |
-| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | 🟢 up for grabs **now** | P1 | M | 002 | TODO |
-| 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | 🟢 up for grabs (good fit: UI) | P1 | S | 002, 003 | TODO |
+| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn (coding agent running) | P1 | M | 002 | IN PROGRESS |
+| 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | 🟢 up for grabs **now** (good fit: UI) | P1 | S | 002 | TODO |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | 🟢 up for grabs | P1 | M | 003, 004 | TODO |
 | 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 (D3, D5) | TODO |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
-| 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 005, 007 (D7) | TODO |
+| 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
 | 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs **now** | P1 | M | 002 (D8, D9) | TODO |
 | 010 | [Bike + transit ("modeMix")](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | 🟢 up for grabs (later) | P2 | M | 007 | TODO |
-| 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003 (D10, D11) | TODO |
-| — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 004 for live data | IN PROGRESS (living doc) |
+| 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003, 014 (D10, D11) | TODO |
+| 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004 | TODO |
+| 013 | ["When do I leave" logic, pure + shared](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | 🟢 up for grabs **now** | P1 | S | 002 | TODO |
+| 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | 🟢 up for grabs **now** | P2 | S | 002 | TODO |
+| 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004, 012 | TODO |
+| 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | 🟢 up for grabs **now** (cheap agent OK) | P1 | S | 002 | TODO |
+| 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | 🟢 up for grabs; maps + UI review | P1 | S | 016 | TODO |
+| 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | 🟢 up for grabs **now** (good fit: mobile) | P1 | M | — (015 optional) | TODO |
+| — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 012 for mock data | IN PROGRESS (living doc) |
+| — | [UI slices](ui-slices.md) (draft, on [#16](https://github.com/Cattn/transit-agent/issues/16)) | UI team to confirm format | — | — | 012, 015 | DRAFT |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
-### Parallel tracks (4 people, 3 teams)
+### Parallel tracks (updated 2026-11-14)
+
+The old chart ran almost everything through the server (002 → 003 → 004 → UI). Now the UI waits
+only on the client (004) and the mock (012), and several pure pieces start right away.
 
 ```
-You (server/agent):  001 → 002 → 003 → 004 → 005 → 006 ─────────→ 008 → 011
-                                   │                   ╲
-Maps person:         (review 002) → 009 ──────────────→ 007 (spike) → 010
-                                   │
-UI person:           ui-direction.md with mocked data → switch to 004 client once 003 lands
+Server (Cattn):     003 ──→ 005 ──→ 006 ──────────→ 008 ──→ 011
+                     │                               ↑        ↑
+Start now, anyone:  013 (leave-by logic) ────────────┘        │
+                    014 (airports + drive cost) ──────────────┘
+                    016 (formatters) → 017 (colors, with maps)
+                    007 research spike → 010 research
+
+Client:             004 ──→ 012 (mock) ──→ 015 (hooks)
+Mobile:             018 (location, device ID, links, API URL)        start now
+
+UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in parallel
+Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
 ```
+
+**Unblocked right now (nothing to wait for):** 004, 007 research, 009 steps 1–5, 013, 014, 016, 018, UI slice 1 (shell).
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is
@@ -127,7 +147,13 @@ transit data (007) can land afterwards without any client changes.
   mobile team moves to the EAS dev-client build (`npm run build:android` + `npm run dev:client`
   in `apps/mobile`, already configured).
 - **008 needs real realtime data (007).** Against the fixture provider it can only be
-  exercised with synthetic delays.
+  exercised with synthetic delays. Its pure logic moved to 013 so it isn't stuck behind that.
+- **004 no longer waits for 003** (changed 2026-11-14). It also now carries the agent and
+  place-search response shapes (moved from 006 and 007), so the mock client and the chat and
+  search UI can be built early.
+- **015 changes root build scripts** (`build:packages` builds shared and client-react). Pull
+  and re-run `npm install` after it lands.
+- **018 adds native Expo modules.** After it lands, someone rebuilds the Android dev client once.
 
 ---
 
@@ -183,7 +209,7 @@ transit data (007) can land afterwards without any client changes.
 
 - *Add `fastify-type-provider-zod`*: rejected for now. Manual `schema.safeParse` in each route
   is three lines, avoids zod-version coupling with ADK, and is easier for agents to follow.
-- *Put React hooks in `@transit/shared`*: rejected. Shared stays framework-free so the server
-  can import it. The UI team owns hooks in each app (see 004 maintenance notes).
+- *Put React hooks in `@transit/shared`*: still rejected. Shared stays framework-free so the server
+  can import it. Hooks get their own package instead (`@transit/client-react`, plan 015).
 - *More CI work now*: rejected. The existing `ci.yml` already runs lint, typecheck, build, and
   smoke. Plan 001 adds unit tests to `npm test`, which CI already runs.

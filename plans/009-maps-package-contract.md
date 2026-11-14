@@ -106,7 +106,7 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 ### Step 3: Pure layer
 
-- `colors.ts`: `routeColor(itineraryId)` → color from a fixed 8-color palette chosen by a stable string hash (the same saved trip always gets the same color). Palette must stay legible on a light basemap. `selectedWidth` / `dimmedOpacity` constants.
+- `colors.ts`: **if plan 017 has landed**, re-export `routeColor`, `routePalette` and `routeLine` from `@transit/shared` (so result cards and map lines share one palette) and add nothing else. Otherwise: `routeColor(itineraryId)` → color from a fixed 8-color palette chosen by a stable string hash (the same saved trip always gets the same color), legible on a light basemap, plus `selectedWidth` / `dimmedOpacity` constants; plan 017 then moves the palette into shared, keeping these exact colors in this order.
 - `to-geojson.ts`: `itinerariesToFeatures(itineraries, { selectedItineraryId, visibleModes })` → `FeatureCollection<LineString, RouteFeatureProps>`:
   ```ts
   interface RouteFeatureProps { itineraryId: string; legId: string; mode: TravelMode; color: string;

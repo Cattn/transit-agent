@@ -12,7 +12,7 @@
 - **Priority**: P2
 - **Effort**: L
 - **Risk**: MED (fare data access is the hard part; the comparison logic is not)
-- **Depends on**: plans/003; uses 007's ground routing when available (falls back to fixture)
+- **Depends on**: plans/003, plans/014; uses 007's ground routing when available (falls back to fixture)
 - **Category**: direction
 - **Blocked by decisions**: D10 (fare source), D11 (scope: US domestic + nearby airports first)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
@@ -21,16 +21,15 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Later.** Can start any time after #7 using fake fares.
+- **Status:** ⏳ **Later.** Needs #7 and #22. Airports, drive costs and sample fares moved to #22, which can start now.
 - **Owner:** Nobody yet
-- **Up for grabs?** Yes. The cost comparison (gas, parking, other airports) works on sample data and needs no flight API.
-- **Waiting on:** #7
+- **Up for grabs?** Yes, once #7 and #22 land.
+- **Waiting on:** #7, #22
 
 **Open questions** (answer by number in a comment on #15):
 
-1. From Boston, include the NYC airports (JFK, LGA, EWR, ~300 km away) by default? *(the issue's example suggests yes)*
-2. Which flight price source: Duffel or SerpApi (Google Flights)? Someone needs to check current pricing and terms.
-3. Show "take Amtrak instead" as an option in the Fly tab (e.g. Boston → DC)? *(suggested: yes)*
+1. Which flight price source: Duffel or SerpApi (Google Flights)? Someone needs to check current pricing and terms.
+2. Show "take Amtrak instead" as an option in Fly mode (e.g. Boston → DC)? *(suggested: yes)*
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -60,24 +59,11 @@ Fare data is a replaceable input.
 
 ## Steps
 
-### Step 1: Airport data
+### Steps 1–3: done by plan 014
 
-`apps/server/src/flights/airports.ts`: a static list of commercial airports (IATA, name, [lng,lat], metro tag) for the Northeast corridor + major US hubs (≈ 40 entries is enough for v1; e.g. BOS, PVD, MHT, BDL, HVN, JFK, LGA, EWR, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO). `airportsNear(point, radiusKm)` returns them sorted by distance. If the list grows, source it from OurAirports' public dataset and record the license in the file header.
-
-### Step 2: Ground-access cost model (pure) — `flights/ground-cost.ts`
-
-```ts
-export function driveCost(miles: number, days: number, opts: { mpg: number; gasUsdPerGallon: number; parkingUsdPerDay: number; tollsUsd?: number }): CostLine[]
-```
-Plus per-airport parking defaults in `airports.ts` (`parkingUsdPerDay`, nullable → use a default of 25 and `estimated: true`). Gas price comes from `GAS_USD_PER_GALLON` env (default 3.20) for now. A live source (EIA weekly regional averages) is a follow-up; note the API in the PR if the spike finds it usable.
-
-### Step 3: `FlightFareProvider` interface + fixture
-
-```ts
-interface FareQuote { from: string; to: string; departAt: string; arriveAt: string; stops: number; layovers: { airport: string; minutes: number }[]; carrier: string; priceUsd: number; bagsIncluded: number; bookingUrl?: string; fetchedAt: string }
-interface FlightFareProvider { name: string; search(q: { from: string[]; to: string[]; date: string; flexibleDays?: number }): Promise<FareQuote[]> }
-```
-Fixture fares are deterministic and make the comparison interesting: BOS→X baseline, PVD −$70, MHT −$40, JFK −$120 (but 3.5 h drive), plus 1-stop options with 45 min vs 2 h layovers, which exercise "how tight of connections are you okay with".
+*Moved 2026-11-14.* The airport list (`flights/airports.ts`), the drive cost model
+(`flights/ground-cost.ts`) and the fare interface with sample fares (`flights/fares.ts`) are
+plan 014, which can start before plan 003 lands. Check they exist; if not, STOP.
 
 ### Step 4: Door-to-door composer — `providers/flight-door-to-door.ts` (a `RouteProvider`)
 
@@ -114,7 +100,7 @@ Add tools `compare_airports` (runs this provider for the current draft) and an i
 
 ## Open questions for review
 
-- 011-Q1: Default search radius: 250 km for origin airports (Boston → includes PVD, MHT, BDL, not JFK)? JFK is ~300 km. Should NYC be included by default given the issue's example?
+- ~~011-Q1~~ Moved to 014-Q1 (airport list now lives in plan 014).
 - ~~011-Q2~~ **Decided on #6:** add `bags` and `travelers` to `TripDraft` as part of this plan (additive change), not before.
 - 011-Q3: Europe / Eurail (D11-B) goes in the backlog. Agreed?
 - 011-Q4: Show the "Amtrak instead of flying" option (Boston → DC) as a ground-only competitor in the flight tab? Proposed: yes. It's just the transit provider run on the same request.

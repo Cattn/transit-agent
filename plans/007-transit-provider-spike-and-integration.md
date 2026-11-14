@@ -89,7 +89,7 @@ Driving needs no realtime. Use OTP's `CAR` mode if the chosen deployment support
 
 ### Step 5: Geocoder
 
-`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). Client method `searchPlaces(q, near?)` in `api-client.ts`. The agent's `find_place` tool switches to the geocoder.
+`apps/server/src/places/geocoder.ts`: `Geocoder { search(query, near?: LngLat): Promise<Place[]> }` with the spike's chosen service + the gazetteer as fallback. New route `GET /api/places?q=&near=lng,lat` (cache results in-memory 24 h; min query length 3; debounce is the client's job). The response shape (`PlaceSearchResponseSchema`) and client method `searchPlaces(q, near?)` already exist (plan 004 Step 2b); just implement the route to match. The agent's `find_place` tool switches to the geocoder.
 
 ### Step 6: Return-trip check ("can I make it back?")
 

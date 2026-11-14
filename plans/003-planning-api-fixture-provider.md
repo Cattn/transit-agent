@@ -20,23 +20,14 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** Next on the critical path: the UI, map and agent all need this API.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Server-side TypeScript. Good fit for anyone comfortable with Node; a coding agent can do most of it (use a strong model: it includes the ranking and risk logic).
+- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #7):
 
 1. When nothing matches all your limits, we show up to 3 "almost works" options. Is 3 the right number?
 2. Should planning a trip use your saved profile defaults automatically (needs the device ID on every request)? *(suggested: yes, when the app sends it)*
 3. Who explains why option #1 is ranked first: the server (a fixed one-line reason) or the AI agent? *(suggested: agent; server only gives the facts)*
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/003-planning-api-fixture-provider.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #7`.
-- **Just feedback:** answer the open questions above by number in a comment.
 
 <!-- help:end -->
 

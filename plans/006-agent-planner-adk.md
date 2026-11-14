@@ -92,8 +92,6 @@ apps/server/src/agent/adk-planner.ts     the ONLY file importing '@google/adk'
 apps/server/src/agent/fake-planner.ts    deterministic test double
 apps/server/src/places/gazetteer.ts      static place lookup (until plan 007 adds geocoding)
 apps/server/src/routes/agent.ts
-packages/shared/src/domain/agent.ts      request/response schemas (additive) + re-export
-packages/shared/src/client/api-client.ts add sendAgentMessage()
 scripts/agent-eval.mjs                   optional live check, NOT run in CI
 tests beside each module
 ```
@@ -106,28 +104,11 @@ tests beside each module
 Root `package.json` engines → `{ "node": ">=24.13.0", "npm": ">=11.8.0" }`. Leave `.nvmrc` at `24`. In `ci.yml`, after `setup-node`, add `- run: npm --version` and, if the runner's npm is below 11.8, `- run: npm install -g npm@^11.8`. Update README Quick start ("Use Node.js 24.13+ and npm 11.8+").
 **Verify**: `npm run check` → exit 0.
 
-### Step 2: Shared agent contract (additive)
+### Step 2: Shared agent contract: already done by plan 004
 
-`packages/shared/src/domain/agent.ts`:
-```ts
-export const AgentMessageRequestSchema = z.object({
-  sessionId: z.string().optional(),
-  message: z.string().min(1).max(2000),
-  /** Client's current draft (filters state) — the agent edits relative to this. */
-  draft: TripDraftSchema
-});
-export const AgentMessageResponseSchema = z.object({
-  sessionId: z.string(),
-  reply: z.string(),
-  /** Everything the agent changed this turn. Client applies with source 'agent' and shows it as editable chips. */
-  draftPatch: TripDraftPatchSchema,
-  /** Focused clarifying questions, each tied to the draft field it would fill. */
-  questions: z.array(z.object({ field: z.string(), question: z.string(), options: z.array(z.string()).optional() })),
-  /** Present when the agent ran a search this turn. Same shape as POST /api/plan. */
-  plan: PlanResponseSchema.optional()
-});
-```
-Client: `sendAgentMessage(body): Promise<AgentMessageResponse>` with a 45 s timeout.
+*Moved 2026-11-14.* `AgentMessageRequestSchema`, `AgentMessageResponseSchema` and the client's
+`sendAgentMessage()` are written in plan 004 Step 2b, so the mock client and chat UI can use them
+early. Check they exist in `@transit/shared`; if they don't, STOP (plan 004 isn't done).
 
 ### Step 3: Install ADK and learn the runner API from its types
 

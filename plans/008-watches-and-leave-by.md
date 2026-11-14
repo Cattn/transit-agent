@@ -12,7 +12,7 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: plans/005 (store + `listWatched`), plans/007 (real realtime data; can be developed against fixture synthetic delays)
+- **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/007 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
 - **Blocked by decisions**: D7 (client polling first; push later)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
@@ -21,16 +21,15 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ⏳ **Later.** Needs #9 and #11.
+- **Status:** ⏳ **Later.** Needs #21, #9 and #11. The pure leave-by logic moved to #21, which can start now.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes, once its dependencies land.
-- **Waiting on:** #9, #11
+- **Waiting on:** #21, #9, #11
 
 **Open questions** (answer by number in a comment on #12):
 
-1. Extra buffer before "leave now": 5 min if you must be on time, 2 min normally, 0 if flexible. Sensible?
-2. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
-3. Start watching a trip 3 hours before departure. Longer for flights?
+1. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
+2. Start watching a trip 3 hours before departure. Longer for flights?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -60,35 +59,17 @@ min late".
 
 ## Scope
 
-**In scope:** `packages/shared/src/domain/itinerary.ts` (additive `watchStatus` field), `apps/server/src/watch/leave-by.ts`, `apps/server/src/watch/watch-job.ts`, `apps/server/src/providers/types.ts` (optional `refresh` method), `apps/server/src/providers/fixture.ts` + real provider from 007 (implement `refresh`), `apps/server/src/store/*` (persist status), `apps/server/src/index.ts` (start/stop job), `.env.example`, tests.
+**In scope:** `apps/server/src/watch/watch-job.ts`, `apps/server/src/providers/types.ts` (optional `refresh` method), `apps/server/src/providers/fixture.ts` + real provider from 007 (implement `refresh`), `apps/server/src/store/*` (persist status), `apps/server/src/index.ts` (start/stop job), `.env.example`, tests.
 **Out of scope:** push notifications (D7-C), client UI.
 
 ## Steps
 
-### Step 1: Shared `watchStatus` (additive)
+### Steps 1–2: done by plan 013
 
-Add to `SavedItinerarySchema`:
-```ts
-watchStatus: z.object({
-  state: z.enum(['scheduled', 'onTrack', 'leaveSoon', 'leaveNow', 'atRisk', 'missed', 'done']),
-  leaveBy: IsoDateTime.optional(),
-  message: z.string(),               // "Leave by 8:12 AM — Bus 1 is 4 min late (live)"
-  checkedAt: IsoDateTime,
-  usedRealtime: z.boolean()
-}).optional()
-```
-
-### Step 2: Pure leave-by logic (`watch/leave-by.ts`) + tests
-
-```ts
-export function computeWatchStatus(it: Itinerary, req: TripRequest, now: Date): NonNullable<SavedItinerary['watchStatus']>
-```
-- `anchor` = first leg whose mode is in `scheduledModes`. Predicted departure = `departAt` (already includes `delayMinutes` if the provider applied it; if not, add `delayMinutes`). If there is no scheduled leg, the anchor is the first leg.
-- `leaveBy` = predicted anchor departure − sum(durations of legs before the anchor) − safety buffer `{ strict: 5, some: 2, flexible: 0 }[lateTolerance]` minutes.
-- State: `now > final arriveAt` → `done`; anchor departed (`now > anchor departure`) and user hasn't confirmed boarding → `missed`; `constraints.arriveBy` and predicted arrival > arriveBy → `atRisk`; `leaveBy − now ≤ 0` → `leaveNow`; `≤ 10 min` → `leaveSoon`; else `onTrack`. More than 3 h before `leaveBy` → `scheduled`.
-- `message` is deterministic, mentions live vs scheduled ("(live)" / "(schedule only, not live)").
-
-Tests: table-driven over `now` values around a fixture itinerary for each state; buffer differs by `lateTolerance`; a 4-min delay shifts `leaveBy` by 4 min.
+*Moved 2026-11-14.* The `watchStatus` schema and the pure `computeWatchStatus(it, req, now)` now
+live in `@transit/shared` (plan 013), so they could be built and tested before this plan's
+dependencies landed, and so apps can tick countdowns locally. Check they're exported from
+`@transit/shared`; if not, STOP. This plan's server job imports them; **don't write a second copy.**
 
 ### Step 3: Provider `refresh`
 
@@ -133,6 +114,6 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 
 ## Open questions for review
 
-- 008-Q1: Safety buffers (5/2/0 min by lateTolerance) — sensible?
+- ~~008-Q1~~ Moved to 013-Q1 (the buffers now live in plan 013).
 - 008-Q2: Should "missed" auto-save the next-best trip as the new watched trip? Proposed: no — suggest it, the user taps to switch.
 - 008-Q3: Watch horizon of 3 h — longer for flights (plan 011)?

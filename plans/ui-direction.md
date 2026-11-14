@@ -17,11 +17,11 @@ Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature note
 - **Status:** 🔄 **In progress** by the UI team.
 - **Owner:** @Rad1ee @DMFriends
 - **Up for grabs?** Owned by the UI team. Not a step-by-step plan.
-- **Waiting on:** Live data needs #8; until then use the sample route in the shared package.
 
 **Open questions** (answer by number in a comment on #16):
 
 1. @Rad1ee: anything you'd change in the layout DMFriends chose (map as home, mode slider, chat side panel on web)?
+2. @Rad1ee @DMFriends: is the slice format in `plans/ui-slices.md` useful? (See the comment below for what it is.)
 
 <!-- help:end -->
 
@@ -98,6 +98,13 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 - **Mobile testing changes once maps land.** MapLibre needs the EAS dev client (`npm run build:android`, then `npm run dev:client` in `apps/mobile`). Expo Go stops working.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.
 - Keep `@transit/shared` framework-free. Hooks such as `useTripDraft` and `useSavedItineraries` live in each app (or a future `packages/ui-hooks` if duplication hurts).
+
+## Building blocks and slices (added 2026-11-14)
+
+[`ui-slices.md`](ui-slices.md) splits the UI into 8 pieces that can be built in parallel, each
+with "must have" checks and the data it uses. Shared non-visual helpers now have their own plans:
+mock client (012), React hooks (015), display text (016), colors (017), mobile plumbing (018).
+Use them instead of writing the same logic in each app.
 
 ## What the UI can build today, before the server lands
 
