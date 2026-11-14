@@ -49,7 +49,7 @@ working out Expo permissions and storage.
 - `apps/mobile/App.tsx` lines 7–9 build the API URL: `process.env.EXPO_PUBLIC_API_URL ?? (Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'http://localhost:3001')`. **Do not edit App.tsx** (UI team owns it); the PR description tells them which helper to swap in.
 - `apps/mobile/.env.example`: `EXPO_PUBLIC_API_URL=http://10.0.2.2:3001`.
 - `apps/mobile/tsconfig.json`: `strict`, `noUncheckedIndexedAccess`. Mobile has no unit-test runner today.
-- Native modules require the EAS dev client, not Expo Go (see plan 009 and `plans/README.md` dependency notes).
+- The map does not need a dev client: plan 009 renders it through an Expo DOM component in Expo Go (decided 2026-11-14).
 
 ## Commands you will need
 

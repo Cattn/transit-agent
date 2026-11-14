@@ -17,7 +17,7 @@
 - **Priority**: P1
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: none to start. Uses merged plans 004, 012, 013, 015, 016, 018. Mounts the native map from 009 when `@transit/maps/native` exists; until then a placeholder.
+- **Depends on**: none to start. Uses merged plans 004, 012, 013, 015, 016, 018. Plan 009 mounts its DOM map (`@transit/maps/web` in an Expo `'use dom'` component) in `MapSlot`; until then a placeholder.
 - **Category**: implementation (first-pass UI)
 - **Planned at**: commit `bd41542`, 2026-11-14; refreshed at `1e8328a` (015 hooks merged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/39
@@ -25,10 +25,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go. iOS is in the backlog.
+- **Status:** ✅ **DONE in PR #60** (merged as `51b33a0`, 2026-11-14). Built with a map placeholder (`MapSlot`) until @KrakenTheJaken's plan 009 ships its DOM map; Expo Go keeps working. Android checked on a phone in Expo Go. iOS is in the backlog.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
-- **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
+- **Waiting on:** Nothing. Plan 009 replaces the `MapSlot` placeholder with its DOM map. Do not block on the map package.
 
 **Open questions** — **@DMFriends answers these.** Reply as `020-Q1: ...`. Use the proposed defaults until answered.
 
@@ -268,6 +268,7 @@ Plan 018 already provides the mobile unit-test runner. Do not add tests or anoth
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
+- The map: plan 009 renders `@transit/maps/web` in an Expo DOM component inside `MapSlot` (decided 2026-11-14), not a native `@transit/maps/native`. No dev client is needed; Expo Go keeps working. Step 4's native wording above is the original plan.
 - Plans 021–025 replace the placeholder screens. They should import `useAppColors`, the Material theme setup (`Host` seed color) and the navigation types from this plan, and follow the Android Material 3 rules in Current state.
 - Reviewers should check that a scheduled trip never gets the "Live" pill, and that moving Transit / Drive / Fly does not clear the draft's places.
 - The UI-5 peek/half/full wording is intentionally not implemented. See open question 1.

@@ -64,6 +64,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
   setWorkerUrl(workerUrl);
   ```
   `packages/maps/demo/App.tsx` is a complete working example of `RouteMap` + `assignRouteColors` + cards. Copy its pattern. The style URL is `https://tiles.openfreemap.org/styles/positron` (no key).
+- `@transit/maps/web` is also the mobile map: plan 009 renders it in an Expo DOM component on Android. Changes to the web renderer affect mobile too; report them on #13.
 - Frames: `Web · 01 Home` (`2026:36`) and `Web · Dark · 01 Home` (`2028:688`). Both are 1440×900. Dark is the same layout.
 - Left panel "Side panel · 400" (`2026:190`), 400×868, inset 16:
   - "Transit Agent", a notifications icon, a settings icon.

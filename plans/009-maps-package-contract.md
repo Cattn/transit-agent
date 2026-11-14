@@ -6,7 +6,7 @@ The map is the user's saved-route library and the visual view of current search 
 
 The app supplies trips, selection, colors, location, and layout padding. The map renders them and reports route choices. It does not search for routes, call the API, save trips, request location permission, or own the app's selected trip. Real routing is plan 007; the map must work now with existing sample/mock itineraries.
 
-**Next deliverable for Kraken:** add the missing `@transit/maps/native` renderer to the existing package and verify it in a rebuilt Android dev client. Do not rebuild the shared layer or web renderer.
+**Next deliverable for Kraken:** show the existing web renderer (`@transit/maps/web` `RouteMap`) on Android through an **Expo DOM component** (`'use dom'`), verified in Expo Go. Do not rebuild the shared layer or write a second renderer.
 
 ## Status
 
@@ -14,21 +14,32 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Owner:** @KrakenTheJaken
 - **Issue:** #13
 - **Status:** PARTIAL. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`. Step 5 (saved trips keep their color) merged in [PR #65](https://github.com/Cattn/transit-agent/pull/65) as `b32424f`.
-- **Remaining:** native renderer/export/setup, native parity and device verification, and an integration handoff to the UI team. Step 5 (saved colors): PR open.
-- **Ready to continue:** yes. No native export or native MapLibre dependency exists on main at this planning pass.
+- **Remaining:** the DOM renderer for mobile (steps 1–4), Android verification in Expo Go, and an integration handoff to the UI team.
+- **Ready to continue:** yes.
 - **Related owners:** @DMFriends owns shared colors (#25); @Rad1ee / @DMFriends own app screens (#16, #39, #42).
 - **Platforms:** web and Android. iOS is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end.
+
+## Decision: mobile map via Expo DOM (@Cattn, 2026-11-14)
+
+Mobile no longer gets a native MapLibre renderer (`@maplibre/maplibre-react-native`, `@transit/maps/native`). It renders the **web** renderer, `@transit/maps/web` (react-map-gl + maplibre-gl), inside an Expo DOM component: a `'use dom'` file that runs in a web view inside the app.
+
+- **Tested 2026-11-14** in Expo Go on a Pixel 10 and an iPhone: renders, fits, lanes/dashes/colors identical to web, smooth pan/zoom, the overlap picker works, and selection reaches the app through the DOM bridge.
+- **Why:** one renderer for web and mobile, so parity is automatic and every fix lands on both. The team keeps Expo Go: no dev builds, EAS, or local SDK for the map. Faster iteration. Plans 027 and 030 are built once.
+- **Where the DOM component lives:** it starts in `apps/mobile` (works today). Move it into `@transit/maps` (e.g. `@transit/maps/dom`) later only if Metro handles DOM files from a workspace package.
+- **Native adapter:** the already-pushed native adapter on the `maps/native` branch is **not merged**. Keep the branch for reference in case native performance is ever needed.
+- **Costs and risks:** WebGL in a web view (low-end Android may be slower); pinch/pan gestures vs. the home bottom sheet; bundling the maplibre-gl worker; the JSON prop boundary; slightly less native feel (acceptable for showing and selecting routes).
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package.
-- **Done:** pure map layer and web renderer, merged in #35.
-- **Next:** native renderer, Android setup and verification, then UI handoff.
-- **UI team:** mount the map in mobile #39 and web #42; keep screen/navigation work in those plans.
+- **Owner:** @KrakenTheJaken. Continue plan 009; do not start a second map package or a second renderer.
+- **Done:** pure map layer and web renderer (#35); saved trip colors (#65).
+- **Next:** the `'use dom'` map in `apps/mobile`, worker bundling, a touch-sized hit area in the web renderer, Android verification in Expo Go, then UI handoff.
+- **UI team:** mount the map in mobile (#39's `MapSlot`, #40) and web (#42); keep screen/navigation work in those plans.
+- **Web changes are mobile changes:** the web renderer is also the mobile one. Any change to `@transit/maps/web` shows up on Android too.
 - **Color work:** coordinate with @DMFriends on #25 rather than creating another palette.
-- **Feedback:** answer the open decisions below on #13 using `P1`, `P2`, `P4`, or `009-Q5`.
-- **Coding-agent handoff:** “Read plan 009 and the current maps package. Implement only its remaining native work. Preserve the merged pure/web behavior and app-owned state. No new comments or tests; preserve existing logging. Report compatibility or contract blockers before expanding scope.”
+- **Feedback:** answer the open decisions below on #13 using `P1` or `P2`.
+- **Coding-agent handoff:** “Read plan 009 and the current maps package. Implement only its remaining DOM-renderer work. Preserve the merged pure/web behavior and app-owned state. No new comments or tests; preserve existing logging. Report compatibility or contract blockers before expanding scope.”
 
 <!-- help:end -->
 
@@ -40,9 +51,11 @@ PR #35 added:
 - `@transit/maps/web`: `RouteMap`, location marker, camera fitting/padding, and overlap picker.
 - `@transit/maps/samples`: commute and flight examples; `npm run demo:maps` runs the web demo.
 - Root build/watch/lint wiring. Preserve the shared → maps → client-react build order now on main.
-- Fixes verified at `082892f`: direction-aware lane offsets, selected layers above all unselected dash styles, and order-independent color allocation with caller-owned overrides. The reviewer passed 55 maps tests and CI; that was static/pure review, not native/device validation.
+- Fixes verified at `082892f`: direction-aware lane offsets, selected layers above all unselected dash styles, and order-independent color allocation with caller-owned overrides. The reviewer passed 55 maps tests and CI.
 
-Start by reading `packages/maps/README.md`, `src/contract.ts`, `src/to-geojson.ts`, `src/layers.ts`, `src/bounds.ts`, and the web renderer. Check current main and open PRs before editing; coordinate if native work has appeared.
+PR #65 added `assignRouteColors(ids, fixed?)` (step 5).
+
+Start by reading `packages/maps/README.md`, `src/contract.ts`, `src/to-geojson.ts`, `src/layers.ts`, `src/bounds.ts`, the web renderer, and `apps/mobile/src/screens/home/HomeScreen.tsx` (`MapSlot`). Check current main and open PRs before editing.
 
 ## Current contract and invariants
 
@@ -63,126 +76,127 @@ interface RouteMapProps {
 ```
 
 - Coordinates are `[longitude, latitude]`; every route leg already carries a LineString. Flight arcs come from the server. Do not invent routes or fetch geometry in the map.
-- Reuse `itinerariesToFeatures`, `itineraryPoints`, `routeLayers`, `boundsOf`, `uniqueItineraryIds`, and `isItineraryVisible`; do not duplicate those algorithms in native.
+- Reuse `itinerariesToFeatures`, `itineraryPoints`, `routeLayers`, `boundsOf`, `uniqueItineraryIds`, and `isItineraryVisible`; do not duplicate those algorithms.
 - Preserve `RouteFeatureProps.direction` and `lane`. **Every** line offset uses `lane × direction × LANE_SPACING`, including visible lines, selected casing, and invisible hit targets. Opposite-direction trips must remain physically separated.
 - Preserve layer order: unselected solid/dashed/dotted → selected casing → selected solid/dashed/dotted → hit targets → points. A sort key within one layer cannot replace ordering across layers.
 - Walk is dotted; bike/bikeshare/flight dashed; bus/rail/ferry/car solid. Selection highlights the whole itinerary and dims others.
-- Compute `assignRouteColors(fullTripIds)` once over the full relevant trip set and reuse the same assignment for cards, map, picker, and filtered subsets through `routeColors`. Do not recompute each subset. List-order stability is fixed; permanent colors across different trip sets/sessions are not promised by that alone.
-- The merged web implementation currently has an internal picker, still emits `candidates`, and hides a whole trip when any leg is excluded by `visibleModes`. **These are current code behaviors, not newly settled product decisions.** Preserve compatibility during native work; resolve changes through P1/P2/P4 below. Do not silently remove `candidates` or create conflicting list/map filters.
+- Compute `assignRouteColors(fullTripIds, savedColors)` once over the full relevant trip set and reuse the same assignment for cards, map, picker, and filtered subsets through `routeColors`. Do not recompute each subset.
+- The web renderer has an internal overlap picker, still emits `candidates`, and hides a whole trip when any leg is excluded by `visibleModes`. Mobile gets the same behavior through the DOM map. P1/P2 below are unchanged; do not silently remove `candidates` or create conflicting list/map filters.
 - `fitKey` triggers fitting to visible trips with supplied padding. Merely selecting a route must not move the camera.
 - `userLocation` is supplied by the app. Reuse plan 018's tap-triggered location helper in the consumer; do not add another permission flow.
 
+**DOM boundary.** Props crossing into a `'use dom'` component must be JSON-serializable, and functions passed in become async callbacks over the bridge. So inside the DOM component `routeColors` arrives as a plain object (`Record<string, string>`) instead of a `Map`, and `onRouteSelect` is async. A small wrapper converts both ways, so app code still passes `RouteMapProps` unchanged.
+
 ## Remaining work, in order
 
-### 1. Confirm native setup against the installed SDK
+### 1. Mobile dependencies
 
-Use the current [MapLibre Expo setup](https://maplibre.org/maplibre-react-native/docs/setup/expo/) and [getting-started guide](https://maplibre.org/maplibre-react-native/docs/setup/getting-started/), then inspect installed exports/types. Do not copy the old plan's assumed component names: current native APIs can differ from older `MapView` / `ShapeSource` examples.
+In `apps/mobile`, add with `npx expo install` (so versions match Expo SDK 58): `react-native-web`, `@expo/metro-runtime`, `react-dom`. Add `@transit/maps` plus the web renderer's runtime deps (`maplibre-gl`, `react-map-gl`) at the versions `@transit/maps` already uses. Preserve existing Expo, React, and React Native versions.
 
-- Install a compatible `@maplibre/maplibre-react-native` as a **direct dependency of `apps/mobile`** and add `@transit/maps` there. Preserve existing Expo, React, and React Native versions.
-- Add the native peer to the map package with optional peer metadata so the server/web do not import or require native runtime code.
-- Register the MapLibre Expo config plugin alongside existing plugins. Preserve cleartext/LAN configuration, SecureStore, and foreground-only location settings.
-- MapLibre requires a rebuilt development client; it does not run in Expo Go. Do not run prebuild over someone else's native project as an incidental setup step.
-- Keep package/root/EAS builds in shared → maps → client-react order. Mobile's current EAS post-install builds shared/client-react only; include maps without dropping either.
-- If compatibility requires a framework upgrade or a different map library, stop and report the actual incompatibility on #13.
+- If `@maplibre/maplibre-react-native` or its config plugin is present on the branch you start from, remove them. Nothing native is added for the map.
+- Expo Go keeps working; `npm run start` (`expo start --go`) is the way to run it. No dev build, EAS build, or prebuild for the map.
+- Keep package/root/EAS builds in shared → maps → client-react order. Mobile's EAS post-install builds shared/client-react only; add maps there without dropping either, since the app now imports it.
+- If compatibility requires a framework upgrade, stop and report the actual incompatibility on #13.
 
-### 2. Implement the native adapter and export
+### 2. The DOM map component and wrapper
 
-Create `packages/maps/src/native/RouteMap.tsx` and `src/native/index.ts`; add the `./native` package export to built JS and declarations.
+Create the `'use dom'` component in `apps/mobile` (e.g. `apps/mobile/src/map/RouteMapDom.tsx`) that imports `RouteMap` from `@transit/maps/web` and the MapLibre CSS, and a wrapper (e.g. `apps/mobile/src/map/RouteMap.tsx`) that accepts `RouteMapProps`.
 
-- Accept the existing `RouteMapProps`; use the same shared feature collections and draw order.
-- Translate shared layer paint/layout/filter expressions into the installed native API without losing direction offsets, selected layering, dash patterns, hit-target widths, or point styling. Keep translation small; report unsupported expressions instead of silently omitting behavior.
-- Wire camera fitting/padding, optional location marker, route hits, and selection callbacks. Keep selection app-owned.
-- Port current overlap/visibility semantics compatibly. Announce any required prop/behavior difference on #13 before changing the contract; do not independently settle P1/P2.
-- Keep native imports behind `@transit/maps/native`. The pure package entry and `/web` must stay usable without loading native modules.
+- The wrapper turns `routeColors` (`ReadonlyMap`) into a plain object and passes `onRouteSelect` as an async callback; the DOM side turns the object back into a `Map` for the web renderer. Every other prop is already JSON.
+- Size the DOM view to fill its parent (`dom={{ style: ... }}` or the documented equivalent for SDK 58) so `MapSlot` controls layout. Turn off web-view scrolling/bounce that fights map gestures.
+- Keep the component in `apps/mobile` for now. Move it to `@transit/maps` (e.g. `@transit/maps/dom`) later only if Metro resolves DOM files from a workspace package.
 
-### 3. Verify rendering and interaction
+### 3. Bundle the maplibre-gl worker
 
-Use existing samples/mock trips and a temporary minimal consumer if the UI shell is not ready. Do not rewrite app screens merely to demonstrate the adapter.
+maplibre-gl v6 loads its worker from a separate file. Ship it with the app as an asset and point `setWorkerUrl` at it inside the DOM component. **No jsDelivr/CDN at runtime.** Mirror how `packages/maps/README.md` and plan 026 set the worker up on web (`maplibre-gl/dist/maplibre-gl-worker.mjs`), using whatever asset import Metro supports for DOM components. Report on #13 if Metro cannot bundle it.
 
-Check in a rebuilt Android dev client:
+### 4. Touch-sized route hit area (web renderer)
+
+Today the route hit target is a 14 px line (≈ ±7 px), sized for a mouse; the unmerged native adapter used ≈ ±17 dp. Widen the hit-target layer in the **web** renderer for touch, e.g. a wider hit line when the pointer is coarse (`matchMedia('(pointer: coarse)')`) or always, keeping the same lane offset. This also helps touch laptops and tablets on web. Keep layer order and the overlap picker unchanged.
+
+### 5. Honor saved trip colors (P4 / 017-Q2) — done
+
+Merged in #65: `assignRouteColors(itineraryIds, fixed?)` keeps each saved trip's color, counts all fixed colors as taken, and is identical to before without `fixed`.
+
+### 6. Verify on Android in Expo Go
+
+Use existing samples/mock trips, mounted in `MapSlot` on Home (plan 020) or a temporary minimal consumer. Do not rewrite app screens merely to demonstrate the map.
+
+Check in Expo Go on an Android phone (screenshots over adb, per the `ship-plan` skill's recipe):
 
 - Commute and flight samples render; empty trips/filter results do not crash.
-- All dash styles and start/end/transfer points appear.
-- Selecting a solid route crossing unselected dashed/dotted routes leaves the selected route on top.
-- Outbound/return routes with reversed geometry occupy distinct lanes; touch targets follow the shifted lines.
-- Map taps select the same itinerary as its card; overlaps offer the compatible chooser behavior.
-- Card/map/picker colors match, including after result reordering and mode filtering.
+- All dash styles and start/end/transfer points appear; lanes and colors match web.
+- Selecting a route on the map selects the same itinerary in the app (callback over the DOM bridge); overlaps show the picker.
+- Card/map/picker colors match, including after result reordering and mode filtering (`routeColors` crosses as a plain object).
 - `fitKey` fits routes clear of the bottom sheet; selection alone does not refit.
+- Pinch and pan work with the home bottom sheet: dragging the sheet does not pan the map, and map gestures do not drag the sheet.
 - The supplied location marker works without the map itself requesting permission.
-- Test the existing OpenFreeMap Positron style on native. Record whether web/native can share that URL (009-Q5); keep `styleUrl` configurable regardless.
+- The worker loads from the bundled asset with the network to jsDelivr unavailable (no CDN request).
+- If a low-end Android phone is available, one performance check: pan/zoom with all samples on screen. Record the device and result; report noticeable lag on #13.
 
-Record device/OS, build, result, and any untested platform in the PR. A JS export or pure test pass is not a device rendering result.
+Record device/OS, Expo Go version, result, and any untested item in the PR. A JS export or pure test pass is not a device rendering result.
 
-### 4. Give UI a concrete integration handoff
+### 7. Give UI a concrete integration handoff
 
-Document the native import, required app dependency/plugin, style URL(s), rebuilt-dev-client commands, and one minimal props example in `packages/maps/README.md`.
+Document the mobile import (the wrapper path), the `apps/mobile` dependencies, the style URL, the worker setup, the JSON prop boundary, and one minimal props example in `packages/maps/README.md`.
 
-- Mobile plan 020 / #39 owns the home screen, selection state, bottom-sheet padding, and calling plan 018 helpers. Until `./native` exists it may use its documented placeholder.
-- Web plan 026 / #42 owns mounting `/web`, the MapLibre CSS/worker setup, and panel padding. The package does not own those screens.
+- Mobile plan 020 / #39 built `MapSlot` in `HomeScreen`; it now renders the DOM map. Plan 021 / #40 reuses it for results. Expo Go keeps working.
+- Web plan 026 / #42 owns mounting `/web`, the MapLibre CSS/worker setup, and panel padding.
 - Result screens #40/#45 reuse selection and the same color assignment.
-- Plan 017 / #25 owns moving colors into shared. Once its tokens are exported and 017-Q1 is settled, switch maps to re-export/use them while retaining exact palette order and public APIs. Do not invent a second palette. Maps never stores colors; saved colors come in through step 5.
-
-### 5. Honor saved trip colors (P4 / 017-Q2)
-
-Decision: the same trip keeps one color wherever it appears. Plan 017 step 4 stores `SavedItinerary.color`; maps has to respect it.
-
-- `assignRouteColors(itineraryIds, fixed?: ReadonlyMap<string, string>)`: every listed id found in `fixed` gets exactly that color. All colors in `fixed` count as taken, even for ids not in the list, so a new result never borrows a saved trip's color while 8 or fewer are in use. The other ids go through the current two passes, skipping taken colors; past 8, colors repeat as today. The result still contains only listed ids and stays independent of list order.
-- Without `fixed`, results are identical to today (existing tests stay green).
-- Add cases to the existing `packages/maps/src/colors.test.ts`. Mention the new argument in `packages/maps/README.md`.
-- This can go in its own small PR ahead of the native work; UI plans 021, 026, 027 use it.
+- Plan 017 / #25 owns moving colors into shared. Once 017-Q1 is settled, switch maps to re-export/use them while retaining exact palette order and public APIs. Maps never stores colors.
 
 ## Scope for the next PR
 
-**In scope:** `assignRouteColors` fixed colors (step 5, may be its own PR), native files/export in `packages/maps`, minimal layer-adapter changes needed for parity, existing maps tests when useful, package peer/dependency/lock changes, `apps/mobile/package.json` and `app.json` native setup, EAS build wiring, and maps/mobile setup documentation.
+**In scope:** the `'use dom'` component and wrapper in `apps/mobile`, `apps/mobile/package.json`/`package-lock.json` (step 1 deps; removing native MapLibre if present), worker asset wiring, the touch hit area in `packages/maps/src/web/*` and `src/layers.ts` if the hit width lives there, mounting the map in `MapSlot`, EAS post-install build order, and maps/mobile setup documentation.
 
-**Out of scope:** rebuilding the pure/web package; designing app screens/navigation; server routing or live arrivals; shared-theme implementation owned by DMFriends; new tests/test files; new source comments; changing existing logging.
+**Out of scope:** a native renderer or `@transit/maps/native`; rebuilding the pure/web package; designing app screens/navigation; server routing or live arrivals; shared-theme implementation owned by DMFriends; new tests/test files; new source comments; changing existing logging.
 
-Keep the native continuation in one focused PR from current main. Do not reopen/reimplement merged #35. Preserve unrelated changes and show deviations/remaining platform limits in the PR.
+Keep it in one focused PR from current main. Do not reopen/reimplement merged #35, and do not merge the `maps/native` branch. Show deviations/remaining platform limits in the PR.
 
 ## Checks and completion
 
-Run existing checks appropriate to the adapter:
-
 ```sh
 npm run test:unit -w @transit/maps
+npm run typecheck -w @transit/maps
 npm run typecheck -w @transit/mobile
 npm run build -w @transit/maps
 npm run build:mobile
 npm run check
 ```
 
-Also verify the pure package imports from server code and the existing web demo still builds. **Do not create new tests**; extend existing tests only where meaningful. Keep all existing logging and add no source comments.
+Also verify the pure package imports from server code and the web demo still builds and shows the wider hit area. **Do not create new tests**; extend existing tests only where meaningful. Keep all existing logging and add no source comments.
 
 Core plan 009 is complete when:
 
 - [x] Shared/pure package, web renderer, samples, and demo are merged (#35).
-- [ ] `@transit/maps/native` exports a working adapter with built declarations.
-- [ ] Native dependency/plugin/EAS wiring is documented and buildable.
-- [ ] Shared geometry, colors, filtering/selection callbacks, layer order, offsets, bounds, and padding work across renderers.
-- [ ] Android rendering/interaction is verified in a rebuilt dev client.
-- [ ] UI has a usable mounting handoff; no app/data responsibilities moved into maps.
 - [x] `assignRouteColors` honors saved colors (step 5, #65).
+- [ ] Mobile renders `@transit/maps/web` through a `'use dom'` component with `RouteMapProps` for app code; `routeColors`/`onRouteSelect` cross the JSON boundary correctly.
+- [ ] The maplibre-gl worker is bundled; no CDN at runtime.
+- [ ] The web renderer's route hit area is touch-sized.
+- [ ] Mobile deps added with `npx expo install`; no native MapLibre dependency or config plugin; Expo Go still runs the app.
+- [ ] Android rendering/interaction, including gestures vs. the bottom sheet, is verified in Expo Go.
+- [ ] UI has a usable mounting handoff; no app/data responsibilities moved into maps.
 - [ ] Required contract decisions are resolved or explicitly tracked with compatible behavior retained.
 
-Do not close #13 or mark all of 009 done just because the native JS bundle builds. Keep actual app-screen mounting tracked in its UI issue.
+Do not close #13 or mark all of 009 done just because the bundle builds. Keep actual app-screen mounting tracked in its UI issue.
 
 ## Open product decisions — not prior code-review blockers
 
-- **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; do not drop that argument without agreement.
+- **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; mobile gets the same through the DOM map. Do not drop that argument without agreement.
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
-- **P4 / #25 — color policy, maps + UI:** colors decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14). Palette ownership in shared is still open (017-Q1). Storage is plan 017 step 4; maps honors it in step 5.
-- **009-Q5 — style compatibility, Kraken:** same OpenFreeMap style URL on web/native, or platform-specific URLs? Establish during native verification.
+- **P4 / #25 — color policy:** decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14), done in step 5. Palette ownership in shared is still open (017-Q1).
+- ~~009-Q5~~ **Answered (2026-11-14):** the same OpenFreeMap style URL works on web and mobile, since mobile runs the web renderer. Keep `styleUrl` configurable.
 
-## Follow-ups after native parity
+## Follow-ups after mobile parity
 
-Bikeshare dock pins are **approved**, along with bike-savings summaries, by [Cattn's roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245) and chat clarification. Under plan 010 / #14, agree a separate caller-supplied dock-data prop and Point layer with the server/UI owner. Maps renders the supplied dock data; GBFS fetching and “bike saves X min” calculations stay outside maps. Do not make that later data integration a blocker for the native MVP.
+Bikeshare dock pins are **approved**, along with bike-savings summaries, by [Cattn's roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245) and chat clarification. Under plan 010 / #14, agree a separate caller-supplied dock-data prop and Point layer with the server/UI owner. Maps renders the supplied dock data; GBFS fetching and “bike saves X min” calculations stay outside maps. Do not make that later data integration a blocker for the mobile MVP.
 
-Extra labels, fancier lane layouts, or persistent saved-trip colors are separate follow-ups, not prerequisites for this continuation.
+Extra labels and fancier lane layouts are separate follow-ups. A native renderer comes back only if the DOM map's performance is not good enough; start from the `maps/native` branch.
 
 ## Backlog: iOS
 
 iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
 
-- Set up `@transit/maps/native` on iOS and run step 3's checklist in a rebuilt iOS dev client (`npm run build:ios`; a real iPhone needs an Apple Developer account, otherwise the iOS Simulator on a Mac). Record device/OS and result in the PR.
+- The DOM map already worked in Expo Go on an iPhone (2026-11-14), so iOS is no longer blocked by Xcode or an Apple Developer account for the map. When iOS is picked up, run step 6's checklist in Expo Go on an iPhone and record device/OS and result in the PR.
 - Done criterion to restore: iOS rendering/interaction is verified.
 - @KrakenTheJaken was nominated as iOS tester in [the roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245); availability was never confirmed.
