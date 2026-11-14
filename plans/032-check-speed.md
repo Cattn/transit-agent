@@ -6,7 +6,7 @@
 - **Effort**: S
 - **Risk**: HIGH by the review rules (changes CI); approved by @Cattn on 2026-11-14, including merge after a passing review and green CI
 - **Owner**: Cattn (worker)
-- **State**: PR #63 open
+- **State**: DONE in PR #63 (merged as `20921a3`, 2026-11-14). Follow-up: parallel validation after a CI measurement.
 - **Issue**: #62
 - **Source**: research run on 2026-11-14 at `8cb5a4c` (Windows, Node 26). Ranked results below; the full report stayed in the research worktree.
 
