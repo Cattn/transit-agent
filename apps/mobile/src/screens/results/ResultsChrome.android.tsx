@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Host } from '@expo/ui';
 import {
+  Button,
   Column,
   FilterChip,
   HorizontalDivider,
@@ -13,11 +14,10 @@ import {
   Shape,
   Surface,
   Text,
-  TextButton,
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { background, clickable, clip, fillMaxWidth, horizontalScroll, padding, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { background, clickable, clip, fillMaxWidth, height, horizontalScroll, padding, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import type { Tone } from '@transit/shared';
 import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
 import BookmarkAdd from '../../../assets/icons/bookmark_add_fill.xml';
@@ -146,12 +146,12 @@ function RouteCard({ card, canSave, m, scheme, onSelect, onSave }: {
                 </Column>
               ))}
               <Row horizontalArrangement="end" modifiers={[fillMaxWidth()]}>
-                <TextButton enabled={canSave && !saved} onClick={onSave}>
+                <Button enabled={canSave && !saved} onClick={onSave}>
                   <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
                     <Icon source={saved ? Check : BookmarkAdd} size={18} />
                     <Text style={m3Text('labelLarge')}>{saved ? 'Saved' : 'Save'}</Text>
                   </Row>
-                </TextButton>
+                </Button>
               </Row>
             </Column>
           ) : null}
@@ -194,15 +194,19 @@ export function ResultsChrome(props: ResultsChromeProps) {
                 <Icon source={ArrowBack} size={24} contentDescription="Back" />
               </IconButton>
               <Column verticalArrangement={{ spacedBy: 6 }} modifiers={[weight(1)]}>
-                <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
-                  <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[size(10, 10), clip(Shapes.Circle), background(m.primary)]}>
-                    <Row modifiers={[size(6, 6), clip(Shapes.Circle), background(m.surfaceContainerLowest)]}>{null}</Row>
+                <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[height(24)]}>
+                  <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[size(20, 20)]}>
+                    <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[size(10, 10), clip(Shapes.Circle), background(m.primary)]}>
+                      <Row modifiers={[size(6, 6), clip(Shapes.Circle), background(m.surfaceContainerLowest)]}>{null}</Row>
+                    </Row>
                   </Row>
                   <Text color={m.onSurface} maxLines={1} overflow="ellipsis" style={m3Text('bodyLarge')}>{props.origin}</Text>
                 </Row>
                 <HorizontalDivider color={m.outlineVariant} />
-                <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
-                  <Icon source={LocationOn} size={18} tint={m.error} />
+                <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[height(24)]}>
+                  <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[size(20, 20)]}>
+                    <Icon source={LocationOn} size={18} tint={m.error} />
+                  </Row>
                   <Text color={m.onSurface} maxLines={1} overflow="ellipsis" style={m3Text('bodyLarge')}>{props.destination}</Text>
                 </Row>
               </Column>
