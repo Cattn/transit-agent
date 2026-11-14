@@ -1,4 +1,4 @@
-# Plan 022: Edit trip filters in the Android full sheet and the iOS form sheet
+# Plan 022: Edit trip filters in the Android full sheet
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
@@ -29,7 +29,7 @@
 
 **Open questions** — **@Rad1ee answers these.** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
 
-- 022-Q1: iOS form sheet and Android full sheet, as drawn? *(proposed: yes)*
+- 022-Q1: Android full sheet, as drawn? *(proposed: yes)*
 - 022-Q2: keep each screen's own strictness words? *(proposed: yes)*
 - 022-Q3: place search stays inside this sheet? *(proposed: yes)*
 - 022-Q4: which controls should change before a first build?
@@ -51,20 +51,14 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ## Current state
 
-- Frames: `Android · 03 Filters (full sheet, scrolled length)` (`2004:1253`) and its dark twin `2018:1721`. `iOS · 03 Filters (form sheet, scrolled length)` (`2011:446`) and its dark twin `2019:1422`.
+- Frames: `Android · 03 Filters (full sheet, scrolled length)` (`2004:1253`) and its dark twin `2018:1721`.
 - Android sheet (`2004:1341`): title "Trip filters", close icon, "Reset", then:
   - Where & when: From "Current location · Beacon Hill", To "Office · 200 Clarendon St", a Depart / Arrive segmented control, and a locked time "9:00 AM".
   - Modes: filter chips. The drawn selected set is the product default walk, bus, and train, plus bike and car available. Map chips to `draft.modes`. At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
-  - "How strict is the arrival time?" segmented control. iOS labels in the same control are "On time", "Bit late OK", "Flexible". Android may use the Material segmented button with those three labels. Map them to `preferences.lateTolerance`: `strict`, `some`, `flexible`.
+  - "How strict is the arrival time?" Material segmented button with the labels "On time", "Bit late OK", "Flexible". Map them to `preferences.lateTolerance`: `strict`, `some`, `flexible`.
   - Three sliders: Cheaper ↔ Comfier (`comfortVsCost`), Safe transfers ↔ Tight (`transferRisk`), Less walking ↔ More (`activeTravel`). Values are 0..1. The walking slider shows an "Agent" mark when `provenance['preferences.activeTravel'] === 'agent'`.
   - Advanced limits, expanded in the frame: Max walk (lock, "15 min", agent edit icon), Max transfers (lock, "1"), Budget (lock, "$10"), Step-free access (lock, "Off"). Locks are the visual for constraints. Clearing a limit sends `null` in the patch, not `0`.
   - Footer: "3 routes match" / "1 almost works" from the latest plan response when plan 021 has run, otherwise hide the counts. Button "Show routes" closes the sheet and leaves the results sheet up.
-- iOS is an inset-grouped form sheet, not a Material list:
-  - Close and Reset are glass circular buttons. Title "Trip Filters".
-  - Section labels are uppercase: "WHERE & WHEN", "MODES", "HOW STRICT IS 9:00?", "PREFERENCES · RANK, NEVER EXCLUDE".
-  - Mode choices are capsules with a checkmark when selected.
-  - Sliders are inset rows. The strictness control is a segmented control with "On time" / "Bit late OK" / "Flexible".
-  - "Show routes" is the bottom button.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
 - Place search: From and To open a list. Use `usePlaceSearch` from `@transit/client-react`. (Against the real server this needs plan 028's `/api/places`.) Do not send a query shorter than 3 characters. Picking a row applies `{ origin }` or `{ destination }` with source `'user'`. "Use my location" on From calls `getCurrentPlace` only on that tap, (plan 018, merged in #37; never at launch). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message.
@@ -80,7 +74,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 **In scope:**
 - `apps/mobile/src/screens/filters/FiltersScreen.tsx`
-- `apps/mobile/src/screens/filters/FiltersChrome.ios.tsx`
+- `apps/mobile/src/screens/filters/FiltersChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
 - `apps/mobile/src/screens/filters/PlaceField.tsx`
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only the flag that presents Filters)
@@ -91,7 +85,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 ## Git workflow
 
 - Branch: `plan/022-mobile-filters`
-- One commit: `mobile: edit trip filters in the platform sheet (plan 022)`.
+- One commit: `mobile: edit trip filters in the full sheet (plan 022)`.
 - Do not push unless told.
 
 ## Steps
@@ -104,19 +98,15 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 
 ### Step 2: Android full sheet
 
-`FiltersChrome.android.tsx` is a full-height surface with a drag handle, the sections in Current state, `Switch` from `react-native` for step-free access, and `Slider` from `@react-native-community/slider`. If it is not already installed, install it with `npx expo install @react-native-community/slider` in `apps/mobile`. One slider component, used by both platforms.
+`FiltersChrome.android.tsx` is a full-height surface with a drag handle, the sections in Current state, `Switch` from `react-native` for step-free access, and `Slider` from `@react-native-community/slider`. If it is not already installed, install it with `npx expo install @react-native-community/slider` in `apps/mobile`. Next to it, a plain `FiltersChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 3: iOS form sheet
-
-Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS. Do not use that presentation on Android. `FiltersChrome.ios.tsx` uses inset grouped sections and `BlurView` on the nav buttons. The segmented strictness control is three buttons, not a Material segmented button.
-
-**Verify**: `npm run lint` → exit 0
-
-### Step 4: Show routes
+### Step 3: Show routes
 
 "Show routes" closes Filters and asks Home to show Results (plan 021). If 021 has not merged, Home still unmounts Filters. Do not call the client directly from Filters.
+
+**Verify**: `npm run lint` → exit 0
 
 ## Test plan
 
@@ -126,7 +116,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 - [ ] `npm run typecheck -w @transit/mobile` exits 0
 - [ ] `npm run lint` exits 0
-- [ ] iOS uses `presentationStyle="formSheet"`. Android does not.
+- [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
 - [ ] A hard limit control sends `null` when cleared
 - [ ] `lateTolerance` and `transferRisk` are two controls
 - [ ] No files outside Scope are modified
@@ -135,7 +125,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 - `applyDraftPatch` is missing.
 - You are about to add `expo-location` or edit `src/platform`.
-- The filters frame in Figma no longer says "form sheet" on iOS or "full sheet" on Android.
+- The filters frame in Figma no longer says "full sheet" on Android.
 
 ## Maintenance notes
 
@@ -147,3 +137,11 @@ When a question is answered or a frame changes, update this same plan and its is
 ## Open questions for review
 
 See the help box at the top (022-Q*). It is the single list; answers are recorded there.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Frames: `iOS · 03 Filters (form sheet, scrolled length)` (`2011:446`) and its dark twin `2019:1422` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
+- Present Filters with React Native `Modal` `presentationStyle="formSheet"` on iOS only, from a `FiltersChrome.ios.tsx`.
+- Inset-grouped form sheet, not a Material list: glass circular Close and Reset buttons (`BlurView`), title "Trip Filters"; uppercase section labels "WHERE & WHEN", "MODES", "HOW STRICT IS 9:00?", "PREFERENCES · RANK, NEVER EXCLUDE"; mode capsules with a checkmark when selected; sliders as inset rows; strictness as three buttons "On time" / "Bit late OK" / "Flexible"; "Show routes" as the bottom button.

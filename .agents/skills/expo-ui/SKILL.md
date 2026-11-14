@@ -7,7 +7,7 @@ allowed-tools: "Bash(node *expo-ui/scripts/list-components.js *)"
 
 # Expo UI for transit-agent (Android Material 3)
 
-Trimmed from Expo's `expo-ui` skill (expo/skills `7582922`, MIT, see `LICENSE`). Project rules come first: plan 020's "Android Material 3 rules" (Current state) apply to every Android screen in plans 020–025. iOS keeps its glass design and does not use this skill.
+Trimmed from Expo's `expo-ui` skill (expo/skills `7582922`, MIT, see `LICENSE`). Project rules come first: plan 020's "Android Material 3 rules" (Current state) apply to every Android screen in plans 020–025. iOS is in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only for now, and iOS code already on main stays as is.
 
 ## Setup
 

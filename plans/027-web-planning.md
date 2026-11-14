@@ -147,7 +147,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
-- A later web filters frame should become its own short plan, or a new step here after the question is answered. Do not copy the mobile form sheet onto the web and call it done.
+- A later web filters frame should become its own short plan, or a new step here after the question is answered. Do not copy the mobile filters sheet onto the web and call it done.
 - The sample agent sentences are the draft's example. The screen shows `response.reply`.
 - **Animated map (plans 029 + 030):** once both land, pass `buildPreview` to `RouteMap`, built from `useAgentChat().progress` using the table in `packages/maps/README.md`, and show `progress.plan` in the left panel as soon as the `routes` event arrives instead of waiting for `done`. Do this as a follow-up PR; it is not part of this plan's MVP check.
 

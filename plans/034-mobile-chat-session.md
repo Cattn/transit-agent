@@ -46,7 +46,7 @@ In PR #67 the chat thread lives in `useAgentChat` inside `ChatScreen`, which onl
 - the server;
 - persistence (AsyncStorage etc.);
 - plan 022's field targeting;
-- iOS-specific redesign.
+- iOS (parked in the backlog; see "Backlog: iOS").
 
 ## Steps
 
@@ -56,8 +56,8 @@ In PR #67 the chat thread lives in `useAgentChat` inside `ChatScreen`, which onl
    - `ChatScreen` no longer calls the hook.
 2. **Keep the chat on a chip tap.**
    - `onOpenFilters(field)` opens Filters without throwing the thread away.
-   - Pick whichever of these works on both platforms:
-     - (a) Filters stacks over the open chat. This means mounting Filters so it renders above the Compose `ModalBottomSheet` on Android and the chat sheet on iOS.
+   - Pick whichever of these works on Android:
+     - (a) Filters stacks over the open chat. This means mounting Filters so it renders above the Compose `ModalBottomSheet`.
      - (b) The chat hides, Filters opens, and closing Filters reopens the chat automatically.
    - Either way, the user lands back in the chat with the same messages. Say in the PR which option you used and why.
 3. **Reopening the chat** later in the same session shows the earlier messages and keeps using the same `sessionId`. Check this by sending a follow-up that relies on context.
@@ -68,7 +68,6 @@ In PR #67 the chat thread lives in `useAgentChat` inside `ChatScreen`, which onl
      - Filters opened from a chip;
      - back in the chat with the thread intact;
      - after closing and reopening the chat.
-   - Note whether iOS was checked.
 5. **Bookkeeping.** Update this plan's status and its `plans/README.md` row. The PR closes this plan's issue.
 
 ## STOP conditions
@@ -82,3 +81,9 @@ In PR #67 the chat thread lives in `useAgentChat` inside `ChatScreen`, which onl
 - [ ] Closing and reopening the chat in the same app session keeps the messages and the agent session.
 - [ ] Restarting the app starts a fresh chat.
 - [ ] Android visual proof in the PR; `npm run check` exits 0.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Check that the thread survives a chip tap into Filters and a close/reopen with the iOS chat sheet (plan 023's backlog), using whichever option (a) or (b) Android shipped.

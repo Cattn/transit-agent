@@ -32,7 +32,7 @@
 - 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
 - 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*
 - 025-Q3: Theme writes System / Light / Dark? *(proposed: yes)*
-- 025-Q4: iOS comfort is a chevron row, Android is a slider? *(proposed: yes)*
+- ~~025-Q4~~ Moot: iOS is parked (@Cattn, 2026-11-14). Android comfort is an inline slider.
 - 025-Q5: which groups should be cut first?
 
 **How to help**
@@ -49,24 +49,24 @@ First Figma pass, read 2026-11-14. Settings is the longest frame and the most li
 
 ## Why this matters
 
-One profile per device fills the next trip. The screen is pushed, not a sheet. iOS uses a large title and inset groups. Android uses a top app bar. Light and dark already exist as a second row of the same frames.
+One profile per device fills the next trip. The screen is pushed, not a sheet. Android uses a top app bar. Light and dark already exist as a second row of the same frames.
 
 ## Current state
 
-- Frames: `Android · 06 Settings (scrolled length)` (`2016:1068`), dark twin `2018:2572`. `iOS · 06 Settings (scrolled length)` (`2017:795`), dark twin `2019:2043`.
-- Profile card. Android: "This device's profile" and "One profile per device — no account needed. Your defaults fill every new trip." iOS: "This iPhone's Profile" and "One profile per device — no account needed. Defaults fill every new trip."
+- Frames: `Android · 06 Settings (scrolled length)` (`2016:1068`), dark twin `2018:2572`.
+- Profile card: "This device's profile" and "One profile per device — no account needed. Your defaults fill every new trip."
 - Places: Home and Work. Sample subtitles "Beacon Hill, Boston" and "200 Clarendon St" are the draft. Show `profile.home.name` and `profile.work.name`, or "Not set". "Add a place" is drawn and, until 025-Q2 is answered, does not write.
 - Trip defaults, saved on `profile.defaults` through `putProfile`:
-  - Modes a new trip starts with. iOS capsules: Walk, Bus, Train checked; Bike and Car unchecked in the sample. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
-  - Comfort. Android slider "Cheaper" / "Comfier" writes `preferences.comfortVsCost` (0..1). iOS row value "Balanced" when the value is 0.5, "Cheaper" when it is under 0.35, "Comfier" when it is over 0.65. Tapping the iOS row opens the same slider.
-  - Max walk, lock, sample "15 min", subtitle "Hard limit" on Android. Writes `constraints.maxWalkMinutes`. Clearing sends `null`.
+  - Modes a new trip starts with. The sample has Walk, Bus, Train on; Bike and Car off. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
+  - Comfort. Slider "Cheaper" / "Comfier" writes `preferences.comfortVsCost` (0..1).
+  - Max walk, lock, sample "15 min", subtitle "Hard limit". Writes `constraints.maxWalkMinutes`. Clearing sends `null`.
   - Max transfers, lock, sample "1". Writes `constraints.maxTransfers`. Clearing sends `null`.
-  - Arrival strictness. Android subtitle "A little late is OK" for `some`. iOS value "Bit late OK" for `some`. `strict` is "Must be on time" on Android and "On time" on iOS. `flexible` is "Flexible" on both. Writes `preferences.lateTolerance`.
-  - Step-free. Android "Step-free routes only". iOS "Step-Free Routes Only". `Switch` from `react-native`. Writes `constraints.wheelchairAccessible`.
+  - Arrival strictness. Subtitle "A little late is OK" for `some`, "Must be on time" for `strict`, "Flexible" for `flexible`. Writes `preferences.lateTolerance`.
+  - Step-free. "Step-free routes only". `Switch` from `react-native`. Writes `constraints.wheelchairAccessible`.
 - Vehicles, on `profile.defaults.vehicles`: "I have my own bike" (`ownsBike`, subtitle "Adds bike + transit options"), "I have a car" (`ownsCar`, subtitle "Unlocks Drive and park-and-ride"), fuel economy (`carMpg`). Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
-- Leave reminders. Show the three rows from the frames. Do not persist them (025-Q1). iOS footer: "Watching uses live arrivals and tells you when to leave." iOS also has "Hard limits (lock) remove routes. Preferences only change the order." Show those sentences.
-- Display. Time zone writes `defaults.timeZone`. Unset subtitle: Android "Trip's starting point", iOS "Trip start". Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Android row title "Theme", sample value "System (light / dark)". iOS row title "Appearance", sample value "System".
-- About. Device id: read the app's existing ID through `secureStoreDeviceIdStorage` from plan 018; show the first 8 characters, an ellipsis, and the last 3. Use the same ID as the API client; do not generate another ID for Settings. Android adds "stored on this phone". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). iOS shows that version. Android shows `0.1.0 (design)` only if you are looking at the mock; the app shows the package version.
+- Leave reminders. Show the three rows from the frames. Do not persist them (025-Q1).
+- Display. Time zone writes `defaults.timeZone`. Unset subtitle: "Trip's starting point". Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Row title "Theme", sample value "System (light / dark)".
+- About. Device id: read the app's existing ID through `secureStoreDeviceIdStorage` from plan 018; show the first 8 characters, an ellipsis, and the last 3. Use the same ID as the API client; do not generate another ID for Settings. Add "stored on this phone". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). The frame shows `0.1.0 (design)`; the app shows the package version.
 - `getProfile()` on the mock returns `undefined` until `putProfile` is called. Start from an empty profile. `putProfile` body is `PutProfileRequest` (no `updatedAt`).
 
 ## Commands you will need
@@ -80,7 +80,7 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. i
 
 **In scope:**
 - `apps/mobile/src/screens/settings/SettingsScreen.tsx`
-- `apps/mobile/src/screens/settings/SettingsChrome.ios.tsx`
+- `apps/mobile/src/screens/settings/SettingsChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/settings/SettingsChrome.android.tsx`
 - `apps/mobile/package.json` and `package-lock.json` (only `@react-native-community/slider` if not already installed)
 
@@ -100,9 +100,9 @@ On mount, `getProfile()`. Edits to places, trip defaults, vehicles, time zone, a
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 2: Platform layout
+### Step 2: Android layout
 
-iOS: stack header large title "Settings", inset groups, uppercase section labels as in the frame, `Switch` for the switch rows. Android: top app bar "Settings" with a back icon, the same groups, inline slider for comfort. Use `@react-native-community/slider` if plan 022 already added it. If it is not installed, `npx expo install @react-native-community/slider` inside `apps/mobile`.
+`SettingsChrome.android.tsx`: top app bar "Settings" with a back icon, the groups in Current state, inline slider for comfort. Next to it, a plain `SettingsChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Use `@react-native-community/slider` if plan 022 already added it. If it is not installed, `npx expo install @react-native-community/slider` inside `apps/mobile`.
 
 The Theme row calls the appearance setter from plan 020 with `"system" | "light" | "dark"`.
 
@@ -138,3 +138,12 @@ When a question is answered or a frame changes, update this same plan and its is
 ## Open questions for review
 
 See the help box at the top (025-Q*). It is the single list; answers are recorded there.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Frames: `iOS · 06 Settings (scrolled length)` (`2017:795`) and dark twin `2019:2043` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
+- Layout: stack header large title "Settings", inset groups, uppercase section labels, `Switch` for switch rows. Build it as `SettingsChrome.ios.tsx`.
+- iOS copy that differs: profile card "This iPhone's Profile" / "Defaults fill every new trip."; modes as capsules; comfort is a chevron row valued "Balanced" (0.5), "Cheaper" (< 0.35), "Comfier" (> 0.65) that opens the same slider (was 025-Q4); strictness values "On time" / "Bit late OK" / "Flexible"; "Step-Free Routes Only"; time zone unset subtitle "Trip start"; row "Appearance" with value "System"; About shows the package version.
+- iOS reminder footers: "Watching uses live arrivals and tells you when to leave." and "Hard limits (lock) remove routes. Preferences only change the order."

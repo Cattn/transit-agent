@@ -48,17 +48,17 @@ First Figma pass, read 2026-11-14. The door-to-door layout is a draft, and the s
 
 ## Why this matters
 
-Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to the fly group. The sheet compares whole journeys, including the ride to the airport. Caption on both pages: door-to-door, including an Amtrak option (#15). Booking stays out.
+Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to the fly group. The sheet compares whole journeys, including the ride to the airport. Caption: door-to-door, including an Amtrak option (#15). Booking stays out.
 
 ## Current state
 
-- Frames: `Android · 05 Fly — door-to-door` (`2006:748`) and dark twin `2018:2307`. `iOS · 05 Fly` (`2012:677`) and dark twin `2019:1851`.
+- Frames: `Android · 05 Fly — door-to-door` (`2006:748`) and dark twin `2018:2307`.
 - Shared content:
   - Trip line "Boston → Washington, DC" and "Fri, Nov 20 · arrive by 2:00 PM" are the sample. Bind the title to origin and destination names, and the subtitle to the draft time. If either place is missing, show "Add where and when".
-  - Android title "Door-to-door, all options". iOS title "Door-to-Door". Subtitle on both: "Includes getting to the airport, security and parking".
+  - Title "Door-to-door, all options". Subtitle: "Includes getting to the airport, security and parking".
   - Sort chips: Total time, Total cost, Fewest legs. Sort the array you already have. Do not search again.
-  - Footer. Android: "~ fares are estimates from sample data · checked 2 min ago". iOS: "~ fares are estimates from sample data · 2 min ago". Show the "~" sentence only when some `cost.lines` entry has `estimated: true`, or when the list is the empty state above. Use `formatAge(source.fetchedAt, new Date())` from plan 016. Hide the age when no itinerary exists; do not show a checked time on an empty state.
-- iOS vs Android: iOS glass sheet and grabber. Android Material sheet and drag handle. Same list.
+  - Footer: "~ fares are estimates from sample data · checked 2 min ago". Show the "~" sentence only when some `cost.lines` entry has `estimated: true`, or when the list is the empty state above. Use `formatAge(source.fetchedAt, new Date())` from plan 016. Hide the age when no itinerary exists; do not show a checked time on an empty state.
+- Android: Material sheet and drag handle.
 - Component `2006:733` default props, for field order only: code "BOS", title "Fly from Logan", total time "4h 05m", breakdown "Blue Line 25m · airport buffer 1h 15m · flight 1h 35m · Metro 25m", cost "fare $129 + T $2.40", tag "Best overall", total "~$131". Those strings are the draft's example. They are not mock data.
 - `modeGroups.fly` is `['walk', 'car', 'rail', 'bus', 'flight']` (`packages/shared/src/domain/modes.ts`).
 
@@ -73,7 +73,7 @@ Choosing Fly keeps the same trip (from, to, time) and changes `draft.modes` to t
 
 **In scope:**
 - `apps/mobile/src/screens/fly/FlyScreen.tsx`
-- `apps/mobile/src/screens/fly/FlyChrome.ios.tsx`
+- `apps/mobile/src/screens/fly/FlyChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/fly/FlyChrome.android.tsx`
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only the flag that shows Fly when the mode group is `fly`)
 
@@ -93,9 +93,9 @@ When the mode group is `fly` and `toTripRequest(draft)` is `ok`, call `run(reque
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
-### Step 2: Platform chrome
+### Step 2: Android chrome
 
-iOS uses `BlurView`. Android uses the theme surface. Sort chips reorder the same array: duration, then `cost.totalUsd`, then leg count.
+`FlyChrome.android.tsx` uses the theme surface. Next to it, a plain `FlyChrome.tsx` with the same props (no Compose, minimal styling) so `npm run build:mobile`, which still exports iOS, keeps bundling. Do no iOS design work. Sort chips reorder the same array: duration, then `cost.totalUsd`, then leg count.
 
 **Verify**: `npm run lint` → exit 0
 
@@ -126,3 +126,10 @@ When a question is answered or a frame changes, update this same plan and its is
 ## Open questions for review
 
 See the help box at the top (024-Q*). It is the single list; answers are recorded there.
+
+## Backlog: iOS
+
+iOS is parked in the backlog (@Cattn, 2026-11-14): the mobile app is Android-only until it comes back out. Nothing here is scheduled.
+
+- Frames: `iOS · 05 Fly` (`2012:677`) and dark twin `2019:1851` on the [Figma](https://www.figma.com/design/noG2YImxFJKauBOvC1TLjb/Transit-Agent-Design-Mockups) page `iOS — Liquid Glass` (`12:3`).
+- Design: glass sheet (`BlurView`) with a grabber, same list. Title "Door-to-Door"; footer "~ fares are estimates from sample data · 2 min ago". Build it as `FlyChrome.ios.tsx`.

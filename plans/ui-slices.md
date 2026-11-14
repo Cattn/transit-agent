@@ -1,5 +1,7 @@
 # UI slices (draft: format up for review on #16)
 
+> **iOS is parked (@Cattn, 2026-11-14).** "Mobile" in these slices means Android until iOS comes back out of the backlog ([plans/README.md](README.md#backlog-deliberately-unplanned)). iOS design stays in [`ui-direction.md`](ui-direction.md), the Figma page `iOS — Liquid Glass`, and each mobile plan's "Backlog: iOS" section.
+
 **What this is:** the UI split into 8 pieces that different people (or the same person on web and
 on mobile) can build at the same time. Each card says **what** the piece must do and **what data it
 uses**, not how it should look. Layout, components, styling and libraries stay the UI team's call.
