@@ -32,7 +32,8 @@
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false
         }
-      ]
+      ],
+      "@maplibre/maplibre-react-native"
     ]
   }
 }

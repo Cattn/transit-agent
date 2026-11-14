@@ -71,3 +71,11 @@ export function uniqueItineraryIds(
   // A Set keeps insertion order and ignores duplicates, which is exactly "first occurrence wins".
   return [...new Set(hits.map((hit) => hit.id))];
 }
+
+export const MIN_FIT_SPAN = 0.008;
+
+export function flatFitBounds([[west, south], [east, north]]: Bounds): [number, number, number, number] {
+  const padLng = Math.max(0, MIN_FIT_SPAN - (east - west)) / 2;
+  const padLat = Math.max(0, MIN_FIT_SPAN - (north - south)) / 2;
+  return [west - padLng, south - padLat, east + padLng, north + padLat];
+}
