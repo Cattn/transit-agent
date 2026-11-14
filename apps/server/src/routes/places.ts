@@ -14,7 +14,6 @@ const PlaceSearchQuerySchema = z.object({
 });
 
 export const placeRoutes: FastifyPluginAsync<ServerDeps> = async (app) => {
-  /** GET /api/places?q=&near=lng,lat. `near` is accepted but not used yet (plan 007 adds a geocoder). */
   app.get('/api/places', async (request): Promise<PlaceSearchResponse> => {
     const { q } = parse(PlaceSearchQuerySchema, request.query);
     return { places: searchPlaces(q) };
