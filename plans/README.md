@@ -102,7 +102,7 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn (coding agent running) | P1 | M | 004, 012 | IN PROGRESS |
 | 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | APPROVED (PR #36), awaiting merge |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends (waits on PR #35) | P1 | S | 016, PR #35 | TODO |
-| 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | 🟢 up for grabs **now** (good fit: mobile) | P1 | M | — (015 optional) | TODO |
+| 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — (015 optional) | IN PROGRESS |
 | 019 | [Real flight prices: adapted Clovis (all flights)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | 🟢 up for grabs once 014 lands (strong model) | P2 | L | 014 (D10) | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 012 for mock data | IN PROGRESS (living doc) |
 | — | [UI slices](ui-slices.md) (draft, on [#16](https://github.com/Cattn/transit-agent/issues/16)) | UI team to confirm format | — | — | 012, 015 | DRAFT |
@@ -129,7 +129,7 @@ UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in para
 Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
 ```
 
-**Unblocked right now (nothing to wait for):** 018, 007 research, 009 steps 1–5, UI slice 1 (shell).
+**Unblocked right now (nothing to wait for):** 007 research, 009 steps 1–5, UI slice 1 (shell).
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is

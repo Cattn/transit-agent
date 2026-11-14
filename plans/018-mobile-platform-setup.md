@@ -20,22 +20,12 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** Nothing to wait for.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Good fit for whoever does mobile. Needs one Android dev-client rebuild afterwards.
+- **Status:** 🔄 **In progress** by @DMFriends.
+- **Owner:** @DMFriends
 
 **Open questions** (answer by number in a comment on #26):
 
-1. @Rad1ee @DMFriends: ask for location on first launch, or only when the user taps "use my location"? *(suggested: only on tap)*
-2. iOS is in scope (decided): who has a Mac or iPhone to test the iOS permission prompt?
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/018-mobile-platform-setup.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #26`.
-- **Just feedback:** answer the open questions above by number in a comment.
+1. iOS is in scope (decided): who has a Mac or iPhone to test the iOS permission prompt? *(Decided already: location is requested only when the user taps "use my location".)*
 
 <!-- help:end -->
 
@@ -130,7 +120,7 @@ Add `expo-secure-store` to `app.json` plugins if its docs for SDK 58 require it.
 export type LocationResult = { ok: true; place: Place } | { ok: false; reason: 'denied' | 'unavailable' }
 export async function getCurrentPlace(): Promise<LocationResult>
 ```
-`requestForegroundPermissionsAsync()` → not granted → `{ ok: false, reason: 'denied' }`. Then `getCurrentPositionAsync({ accuracy: Balanced })` (catch → `unavailable`). Return `{ name: 'Current location', coordinates: [lng, lat], kind: 'address' }`. **Note the order: `[longitude, latitude]`** (GeoJSON, as in `LngLatSchema`). Add the `expo-location` plugin to `app.json` with `locationWhenInUsePermission: "Transit Agent uses your location to plan trips from where you are."`. Foreground ("when in use") only; no background location.
+`requestForegroundPermissionsAsync()` → not granted → `{ ok: false, reason: 'denied' }`. Then `getCurrentPositionAsync({ accuracy: Balanced })` (catch → `unavailable`). Return `{ name: 'Current location', coordinates: [lng, lat], kind: 'address' }`. **Note the order: `[longitude, latitude]`** (GeoJSON, as in `LngLatSchema`). Add the `expo-location` plugin to `app.json` with `locationWhenInUsePermission: "Transit Agent uses your location to plan trips from where you are."`. Foreground ("when in use") only; no background location. Call it **only from a user tap** (018-Q1); never at app launch.
 
 ### Step 5: Foreground hook
 
@@ -176,5 +166,5 @@ After merging, someone must run `npm run build:android` once (new native modules
 
 ## Open questions for review
 
-- 018-Q1 (@Rad1ee @DMFriends): Ask for location on first launch, or only when the user taps "use my location"? *(proposed: only on tap)*
+- ~~018-Q1~~ **Decided (@DMFriends, 2026-11-14, [#26](https://github.com/Cattn/transit-agent/issues/26#issuecomment-6872580875)): only on tap.** `getCurrentPlace()` requests permission only when the user taps "use my location". Never request location at app launch.
 - ~~018-Q2~~ **Decided (@Cattn, 2026-11-14): iOS is in scope.** Test the location permission text on iOS too. Running a dev client on a real iPhone needs an EAS iOS build (`npm run build:ios`) and an Apple Developer account for device install; without one, use the iOS Simulator (needs a Mac). Whoever has a Mac/iPhone should verify Steps 4 and 6 on iOS.
