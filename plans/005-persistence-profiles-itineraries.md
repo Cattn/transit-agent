@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 👀 **In review:** PR #31.
+- **Status:** 👀 **In review:** PR #31 (re-check after fixes, head 31f5424). It also adds the mock profile methods, since #32 merged first.
 - **Owner:** @Cattn
 - **Up for grabs?** Yes. Server-side; small database work.
 
