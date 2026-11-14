@@ -57,7 +57,7 @@ draft, UI-4 freshness is mandatory).
 - **Goal:** show the options for the current search; tap one to see its legs and save it.
 - **Data:** `usePlanTrip` (or `useAgentChat().lastPlan`), formatters (016), `routeColor` (017).
 - **Must have:**
-  - [ ] Row: summary, time range, duration, cost (with `~` when estimated), risk badge, color swatch matching the map line.
+  - [ ] Row: summary, time range, duration, cost (with `~` when estimated), risk badge, color swatch matching the map line (if plan 009 proposal P4 is accepted, use the same `assignRouteColors` result the map uses).
   - [ ] **Every transit time shows whether it's live or scheduled** (`legFreshness`). A scheduled time never looks live.
   - [ ] "Updated 40 s ago" from `source.fetchedAt`.
   - [ ] Near-misses in a separate "Almost works" section with their `violations` text.

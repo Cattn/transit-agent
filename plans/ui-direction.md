@@ -79,7 +79,7 @@ Each `Itinerary` row: `summary`, depart → arrive, duration, `cost.totalUsd` (s
 ## Map (UI-5) — owned by maps teammate, mounted by UI
 
 - Mount `RouteMap` from `@transit/maps/web` or `/native` (plan 009). Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the mode slider), `styleUrl`, and `padding` (so routes aren't hidden under panels).
-- **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser.
+- **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser. *(Pending: [PR #35](https://github.com/Cattn/transit-agent/pull/35) proposes moving this chooser into the map itself. See plan 009 proposal P1. Keep the app-side chooser until that's decided.)*
 - Web: map fills the screen with a ~400 px side panel (filters, results, and the permanent chat). Mobile: full-screen map with a bottom sheet (peek = summary, half = results, full = filters).
 - Until plan 009 lands, render a placeholder list using `sampleItinerary` from `@transit/shared`.
 

@@ -28,6 +28,9 @@
 **Open questions** (answer by number in a comment on #13):
 
 1. @KrakenTheJaken: does one OpenFreeMap style URL work on both web and mobile, or does each platform need its own?
+2. @Rad1ee @DMFriends: PR #35 moves the "which route did you mean?" chooser **into the map** (you'd get one selected trip, no `candidates` list). OK to drop the app-side chooser? (Plan 009 proposal P1.)
+3. @Rad1ee @DMFriends: should the mode slider hide **whole trips** that use any mode outside the selected group (PR #35), rather than hiding individual legs? (P2)
+4. @KrakenTheJaken @Rad1ee @DMFriends: colors. Should every trip on screen get a **different** color (PR #35's `assignRouteColors`), even if that means a saved trip's color can change depending on what else is shown? Or should each trip **always keep the same color**? (P4)
 
 *Decided:* tiles from **OpenFreeMap**; the package is **pre-built** (`tsc` to `dist`).
 
@@ -149,6 +152,21 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 - The map draws whatever `itineraries` it gets. "Show saved library" vs "show search results" is an app decision. Show both with search results un-dimmed.
 - Flight legs need curved geometry. The server (plan 011) emits great-circle LineStrings split at the antimeridian, so the map stays dumb.
+
+## Proposals from [PR #35](https://github.com/Cattn/transit-agent/pull/35) (pending; current spec still applies until decided)
+
+@KrakenTheJaken's PR #35 (web renderer + pure layer; **mobile renderer deferred to a later PR**) proposes these changes. None is decided yet. Until one is, the spec above stays the requirement.
+
+| # | Proposal in PR #35 | Current agreed spec | Who decides | Effect if accepted |
+|---|---|---|---|---|
+| P1 | **Overlap picker inside the map.** A tap on overlapping routes shows a ring of colored circles; the app gets one `onRouteSelect(id)` with the chosen trip. | `onRouteSelect(itineraryId, candidates[])`; the **app** shows a chooser when `candidates.length > 1` (UI-5, confirmed on #6). | UI team (@Rad1ee @DMFriends) + maps | Contract change: `candidates` drops out; `ui-direction.md` UI-5 and UI slice 3 lose the app-side chooser. |
+| P2 | **Mode filter hides whole trips.** A trip shows only if **every** leg's mode is in `visibleModes`. | Per leg: `visibleModes: ['car']` hides walk legs; test in Step 4. | UI team + maps | Works with the mode slider's `modeGroups` (each group includes `walk`), but the Step 4 test changes. Results lists should filter the same way so list and map agree. |
+| P3 | **Side-by-side lanes** for overlapping routes (10 px apart, thinner lines when zoomed out). | "Overlap handling" was left to the maps team; no lane spec. | Maps (@KrakenTheJaken) | Visual only; no contract change. |
+| P4 | **No two on-screen trips share a color**: `assignRouteColors(ids)` moves a clashing trip to the next free color; #25 should export it next to `routeColor`. | `routeColor(id)` is a stable hash: the same saved trip always gets the same color (plan 017; "never reorder the palette"). | Maps + UI + plan 017 owner | **Trade-off:** unique colors on screen vs a trip keeping one color everywhere. If accepted, the **app** must compute `assignRouteColors(visibleIds)` once and use the result for both the map and the list cards (otherwise card swatches and map lines can disagree). Plan 017 then moves both functions to shared (see 017). |
+
+Also in PR #35, not needing a decision: OpenFreeMap basemap (matches D8); a pre-built package (matches 009-Q4); `@transit/maps/samples` with real street geometry; a demo page; root `build:shared` also builds maps (**coordinate with plan 015**, which also edits root build scripts).
+
+**Mobile scope is unchanged.** Step 7 (native renderer) is still required for #13. PR #35 only splits it into a later PR.
 
 ## Open questions for review (maps teammate)
 

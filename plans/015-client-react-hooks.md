@@ -104,6 +104,7 @@ Branch `plan/015-client-react`. One commit per step. Do not push unless told.
 - Root `package.json`: add `"build:packages": "npm run build -w @transit/shared && npm run build -w @transit/client-react"` and replace every `npm run build:shared` **inside other scripts** (`dev`, `build:web`, `build:server`, `build:mobile`, `build`, `typecheck`, `test:unit`) with `npm run build:packages`. Keep `build:shared` itself as is. In `dev`, add a `client-react` watcher (`npm run dev -w @transit/client-react`, with a `dev: tsc --watch` script).
 - `apps/mobile/package.json` `eas-build-post-install` → `npm run build -w @transit/shared && npm run build -w @transit/client-react`.
 - `npm install` at the root.
+If [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) has merged, it changes root scripts too (`build:shared` also builds `@transit/maps`). Include `@transit/maps` in `build:packages` in the same order instead of dropping it.
 **Verify**: `npm run build:packages` → exit 0, `packages/client-react/dist/index.js` exists.
 
 ### Step 2: `ApiProvider` and `useApi`
