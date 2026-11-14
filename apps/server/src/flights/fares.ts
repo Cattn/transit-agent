@@ -1,4 +1,4 @@
-import { airportByIata } from './airports.js';
+import { airportByIata, type Airport } from './airports.js';
 import { haversineKm } from './geo.js';
 
 export interface FareQuote {
@@ -38,17 +38,18 @@ export interface FlightFareProvider {
 
 interface SampleRoute {
   priceUsd: number;
-  layover?: { airport: string; minutes: number };
+  /** 1-stop routes: connect at the first hub that is neither the origin nor the destination. */
+  connection?: { hubs: readonly string[]; minutes: number };
 }
 
 /** Sample prices per origin, chosen so the cheapest fare (JFK) is not the cheapest trip from Boston. */
-const SAMPLE_ROUTES: Record<string, SampleRoute> = {
+const SAMPLE_ROUTES: Readonly<Record<string, Readonly<SampleRoute>>> = {
   BOS: { priceUsd: 240 },
   PVD: { priceUsd: 150 },
   MHT: { priceUsd: 200 },
   JFK: { priceUsd: 130 },
-  EWR: { priceUsd: 135, layover: { airport: 'ORD', minutes: 45 } },
-  BDL: { priceUsd: 190, layover: { airport: 'PHL', minutes: 120 } }
+  EWR: { priceUsd: 135, connection: { hubs: ['ORD', 'DTW'], minutes: 45 } },
+  BDL: { priceUsd: 190, connection: { hubs: ['PHL', 'CLT'], minutes: 120 } }
 };
 const ORIGIN_ORDER = Object.keys(SAMPLE_ROUTES);
 
@@ -68,6 +69,21 @@ function isoAtOffset(ms: number): string {
   return new Date(ms + OFFSET_MS).toISOString().slice(0, 19) + OFFSET;
 }
 
+/** One flight leg: great-circle distance at cruise speed plus taxi time, in (fractional) minutes. */
+function legMinutes(a: Airport, b: Airport): number {
+  return (haversineKm(a.coordinates, b.coordinates) / CRUISE_KMH) * 60 + TAXI_MINUTES;
+}
+
+/** The connection hub for origin → dest, or undefined for a nonstop (no route connection, or no hub qualifies). */
+function pickHub(route: SampleRoute, origin: Airport, dest: Airport): { hub: Airport; minutes: number } | undefined {
+  if (!route.connection) return undefined;
+  for (const code of route.connection.hubs) {
+    const hub = airportByIata(code);
+    if (hub && code !== origin.iata && code !== dest.iata) return { hub, minutes: route.connection.minutes };
+  }
+  return undefined;
+}
+
 /** Deterministic sample fares. No network, no randomness; only `fetchedAt` varies between calls. */
 export class FixtureFareProvider implements FlightFareProvider {
   readonly name = 'fixture-fares';
@@ -85,15 +101,18 @@ export class FixtureFareProvider implements FlightFareProvider {
         const dest = airportByIata(to);
         if (!dest || to === from) continue;
 
-        const layovers = route.layover ? [route.layover] : [];
+        const connection = pickHub(route, origin, dest);
         const durationMinutes = Math.round(
-          (haversineKm(origin.coordinates, dest.coordinates) / CRUISE_KMH) * 60 + TAXI_MINUTES + (route.layover?.minutes ?? 0)
+          connection
+            ? legMinutes(origin, connection.hub) + connection.minutes + legMinutes(connection.hub, dest)
+            : legMinutes(origin, dest)
         );
         const base = 100 + ORIGIN_ORDER.indexOf(from) * 10;
 
         DEPARTURES.forEach(({ hhmm, discountUsd }, i) => {
           const departAt = `${q.date}T${hhmm.slice(0, 2)}:${hhmm.slice(2)}:00${OFFSET}`;
           const flight = base + i;
+          // Fresh objects per quote: callers may annotate results without touching other quotes.
           quotes.push({
             id: `fx-${from}-${to}-${q.date}-${hhmm}`,
             from,
@@ -101,10 +120,10 @@ export class FixtureFareProvider implements FlightFareProvider {
             departAt,
             arriveAt: isoAtOffset(Date.parse(departAt) + durationMinutes * 60_000),
             durationMinutes,
-            stops: layovers.length,
-            layovers,
+            stops: connection ? 1 : 0,
+            layovers: connection ? [{ airport: connection.hub.iata, minutes: connection.minutes }] : [],
             carrier: 'Sample Air',
-            flightNumbers: layovers.length ? [`SA${flight}`, `SA${flight + 500}`] : [`SA${flight}`],
+            flightNumbers: connection ? [`SA${flight}`, `SA${flight + 500}`] : [`SA${flight}`],
             priceUsd: route.priceUsd - discountUsd,
             bagsIncluded: 0,
             source: this.name,

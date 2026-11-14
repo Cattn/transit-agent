@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { airportByIata } from './airports.js';
+import { AIRPORTS, airportByIata } from './airports.js';
 import { FixtureFareProvider, type FareQuote } from './fares.js';
 import { haversineKm, KM_PER_MILE } from './geo.js';
 import { driveCost, transitCost, type CostLine } from './ground-cost.js';
@@ -32,15 +32,56 @@ describe('FixtureFareProvider', () => {
     expect(jfk.map(priced).sort((a, b) => a - b)).toEqual([90, 130]);
   });
 
-  it('gives EWR one 45 min layover and a duration that includes it', async () => {
+  it('routes EWR→ORD via DTW: one 45 min layover, duration = leg 1 + 45 + leg 2', async () => {
     const [ewr] = await provider.search({ from: ['EWR'], to: ['ORD'], date: DATE });
     expect(ewr!.stops).toBe(1);
-    expect(ewr!.layovers).toEqual([{ airport: 'ORD', minutes: 45 }]);
+    expect(ewr!.layovers).toEqual([{ airport: 'DTW', minutes: 45 }]);
     expect(ewr!.flightNumbers).toHaveLength(2);
-    const km = haversineKm(airportByIata('EWR')!.coordinates, airportByIata('ORD')!.coordinates);
-    expect(ewr!.durationMinutes).toBe(Math.round((km / 800) * 60 + 30 + 45));
+    const leg = (a: string, b: string) => (haversineKm(airportByIata(a)!.coordinates, airportByIata(b)!.coordinates) / 800) * 60 + 30;
+    expect(ewr!.durationMinutes).toBe(Math.round(leg('EWR', 'DTW') + 45 + leg('DTW', 'ORD')));
     expect(Date.parse(ewr!.arriveAt) - Date.parse(ewr!.departAt)).toBe(ewr!.durationMinutes * 60_000);
     expect(ewr!.arriveAt).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:00-05:00$/);
+  });
+
+  it.each([
+    ['EWR', 'ORD', 'DTW'],
+    ['EWR', 'LAX', 'ORD'],
+    ['BDL', 'PHL', 'CLT'],
+    ['BDL', 'ORD', 'PHL']
+  ])('connects %s→%s at %s', async (from, to, hub) => {
+    const quotes = await provider.search({ from: [from], to: [to], date: DATE });
+    expect(quotes).toHaveLength(2);
+    for (const q of quotes) expect(q.layovers.map((l) => l.airport)).toEqual([hub]);
+  });
+
+  it('never lays over at an endpoint, for every sample origin and every known destination', async () => {
+    const quotes = await provider.search({ from: ORIGINS, to: AIRPORTS.map((a) => a.iata), date: DATE });
+    expect(quotes.length).toBe(ORIGINS.length * (AIRPORTS.length - 1) * 2);
+    for (const q of quotes) {
+      for (const l of q.layovers) {
+        expect(l.airport, q.id).not.toBe(q.from);
+        expect(l.airport, q.id).not.toBe(q.to);
+      }
+      expect(q.stops, q.id).toBe(q.layovers.length);
+      expect(q.flightNumbers, q.id).toHaveLength(q.stops === 1 ? 2 : 1);
+      expect(q.stops, q.id).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('returns fresh objects: mutating a result does not change sibling or later quotes', async () => {
+    const search = { from: ['EWR', 'BDL'], to: ['ORD'], date: DATE };
+    const first = await provider.search(search);
+    const pristine = structuredClone(first);
+    first[0]!.layovers[0]!.minutes = 999;
+    first[0]!.flightNumbers.push('SA999');
+
+    // The sibling quote (same origin, other departure) is untouched.
+    expect(first[1]!.layovers[0]!.minutes).toBe(pristine[1]!.layovers[0]!.minutes);
+    expect(first[1]!.flightNumbers).toEqual(pristine[1]!.flightNumbers);
+
+    const strip = (qs: FareQuote[]) => qs.map((q) => ({ ...q, fetchedAt: undefined }));
+    expect(strip(await provider.search(search))).toEqual(strip(pristine));
+    expect(strip(await new FixtureFareProvider().search(search))).toEqual(strip(pristine));
   });
 
   it('is deterministic apart from fetchedAt', async () => {

@@ -60,7 +60,10 @@ export const AIRPORTS: readonly Airport[] = [
   { iata: 'SFO', name: 'San Francisco International Airport', coordinates: [-122.3748, 37.6198], metro: 'San Francisco', timeZone: 'America/Los_Angeles' },
   { iata: 'SEA', name: 'Seattle–Tacoma International Airport', coordinates: [-122.3103, 47.4479], metro: 'Seattle', timeZone: 'America/Los_Angeles' },
   { iata: 'MIA', name: 'Miami International Airport', coordinates: [-80.2898, 25.796], metro: 'Miami', timeZone: 'America/New_York' },
-  { iata: 'MCO', name: 'Orlando International Airport', coordinates: [-81.309, 28.4294], metro: 'Orlando', timeZone: 'America/New_York' }
+  { iata: 'MCO', name: 'Orlando International Airport', coordinates: [-81.309, 28.4294], metro: 'Orlando', timeZone: 'America/New_York' },
+  // Fallback connection hubs for the sample fares (fares.ts), looked up 2026-11-14
+  { iata: 'DTW', name: 'Detroit Metropolitan Wayne County Airport', coordinates: [-83.3538, 42.2138], metro: 'Detroit', timeZone: 'America/Detroit' },
+  { iata: 'CLT', name: 'Charlotte Douglas International Airport', coordinates: [-80.9431, 35.214], metro: 'Charlotte', timeZone: 'America/New_York' }
 ];
 
 export function airportByIata(iata: string): Airport | undefined {

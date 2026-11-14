@@ -22,9 +22,9 @@ describe('airportsNear', () => {
 });
 
 describe('AIRPORTS', () => {
-  it('has the 25 planned airports, each with valid [lng, lat] and a time zone', () => {
+  it('has the 27 planned airports (incl. hubs DTW, CLT), each with valid [lng, lat] and a time zone', () => {
     expect(AIRPORTS.map((a) => a.iata).sort()).toEqual(
-      ['BOS', 'PVD', 'MHT', 'BDL', 'HVN', 'ALB', 'PWM', 'JFK', 'LGA', 'EWR', 'HPN', 'ISP', 'PHL', 'BWI', 'DCA', 'IAD', 'ORD', 'ATL', 'DFW', 'DEN', 'LAX', 'SFO', 'SEA', 'MIA', 'MCO'].sort()
+      ['BOS', 'PVD', 'MHT', 'BDL', 'HVN', 'ALB', 'PWM', 'JFK', 'LGA', 'EWR', 'HPN', 'ISP', 'PHL', 'BWI', 'DCA', 'IAD', 'ORD', 'ATL', 'DFW', 'DEN', 'LAX', 'SFO', 'SEA', 'MIA', 'MCO', 'DTW', 'CLT'].sort()
     );
     for (const a of AIRPORTS) {
       const [lng, lat] = a.coordinates;
