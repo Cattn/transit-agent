@@ -1,0 +1,30 @@
+name: Android preview APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build:shared
+      - name: Check Expo configuration
+        shell: bash
+        run: |
+          test -n "$EXPO_TOKEN" || { echo "Set the EXPO_TOKEN repository secret first."; exit 1; }
+          test -n "$EXPO_PUBLIC_API_URL" || { echo "Set EXPO_PUBLIC_API_URL to a reachable HTTPS API in repository variables."; exit 1; }
+      - name: Queue installable APK build
+        working-directory: apps/mobile
+        run: npx --yes eas-cli@27.10.0 build --platform android --profile preview --non-interactive --no-wait

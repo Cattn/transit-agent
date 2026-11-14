@@ -1,0 +1,19 @@
+{
+  "name": "@transit/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsc",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.4.3",
+    "@transit/shared": "*",
+    "fastify": "^5.12.8"
+  },
+  "devDependencies": { "tsx": "^4.20.6" }
+}

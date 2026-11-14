@@ -1,0 +1,35 @@
+{
+  "name": "@transit/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start --go",
+    "android": "expo start --go --android",
+    "ios": "expo start --go --ios",
+    "tunnel": "expo start --go --tunnel",
+    "dev:client": "expo start --dev-client",
+    "build": "expo export --platform android --platform ios",
+    "build:android": "npx --yes eas-cli@27.10.0 build --platform android --profile development",
+    "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
+    "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",
+    "eas-build-post-install": "npm run build -w @transit/shared",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck"
+  },
+  "dependencies": {
+    "@transit/shared": "*",
+    "expo": "~58.0.25",
+    "expo-build-properties": "~58.0.12",
+    "expo-dev-client": "~58.0.20",
+    "expo-status-bar": "~58.0.5",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1"
+  },
+  "devDependencies": {
+    "@expo/ngrok": "^4.1.3",
+    "@types/react": "~19.3.0",
+    "expo-doctor": "^1.21.8"
+  }
+}
