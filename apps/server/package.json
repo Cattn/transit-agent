@@ -8,12 +8,16 @@
     "build": "tsc",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "npm run typecheck"
+    "test:unit": "vitest run",
+    "test": "npm run typecheck && npm run test:unit"
   },
   "dependencies": {
     "@fastify/cors": "^11.4.3",
     "@transit/shared": "*",
     "fastify": "^5.12.8"
   },
-  "devDependencies": { "tsx": "^4.20.6" }
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "vitest": "^4.1.12"
+  }
 }
