@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Approved, awaiting merge:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`. All three review findings resolved; live-model quality remains unvalidated.
+- **Status:** **Done:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) merged as `7ee32a0a85848aab2c3c55895a67a0c63976fc6e`. Plan 006 implementation is on main; live Gemini/model-quality validation remains outstanding.
 - **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 
@@ -219,8 +219,8 @@ Cattn runs the Gemini-enabled server on their own machine. Teammates run their w
 
 ## Maintenance notes
 
-- Re-check passed at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`: fresh locked `npm ci`, native ESM ADK import, built-index HTTP health 200/no-key agent 503, completed and in-flight plan invalidation, max two questions, 132 existing tests, and server build. The root production `uuid` workaround was verified. No new tests or live Gemini calls; no remaining reviewed code/runtime blockers. PR #38 remains unmerged; live-model quality is unvalidated.
-- GitHub currently reports this branch as not mergeable against main. Reconcile branch conflicts before any future merge; review approval does not mean the dependency is on main.
+- Final integrated head `8623a2534a809d7b4d4d66f8634385a490aab621` merged in PR #38 as `7ee32a0`. Normal main merge preserved reviewed agent source/routes/index and the production UUID11 workaround; only the lockfile conflict required regeneration. Author verified fresh `npm ci`, full `npm run check` (320 existing tests, all builds/exports/smoke), native ADK import, real built/TS no-key health 200/agent 503, completed/in-flight plan invalidation, and max two questions. No live Gemini calls or model-quality validation.
+- The implementation dependency is satisfied on main. UI consumers can use the shared server endpoint; real transit/flight providers and live-model quality checks remain separate work.
 
 - ADK is isolated in `adk-planner.ts`, so switching to `@google/genai` function-calling (D3-B) means rewriting that one file.
 - `InMemorySessionService` loses conversations on restart. That's fine; durable data (profiles, saved trips) lives in SQLite (plan 005).
