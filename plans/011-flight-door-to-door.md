@@ -26,10 +26,6 @@
 - **Up for grabs?** Yes, once #7 and #22 land.
 - **Waiting on:** #7, #22
 
-**Open questions** (answer by number in a comment on #15):
-
-1. Show "take Amtrak instead" as an option in Fly mode (e.g. Boston → DC)? *(suggested: yes)*
-
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
 - **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
@@ -105,4 +101,4 @@ The `search_flights` tool returns `summarizeFares()` (plan 019) plus quote ids, 
 - ~~011-Q1~~ Moved to 014-Q1 (airport list now lives in plan 014).
 - ~~011-Q2~~ **Decided on #6:** add `bags` and `travelers` to `TripDraft` as part of this plan (additive change), not before.
 - 011-Q3: Europe / Eurail (D11-B) goes in the backlog. Agreed?
-- 011-Q4: Show the "Amtrak instead of flying" option (Boston → DC) as a ground-only competitor in the flight tab? Proposed: yes. It's just the transit provider run on the same request.
+- ~~011-Q4~~ **Decided (@Cattn, 2026-11-14, [#15](https://github.com/Cattn/transit-agent/issues/15#issuecomment-6872551924)): yes.** Fly mode shows "take Amtrak instead" as a ground-only competitor (the transit provider run on the same request).
