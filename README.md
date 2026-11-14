@@ -98,3 +98,11 @@ See [installable APK builds](https://docs.expo.dev/build-reference/apk/) and [de
 `android.yml` manually queues a cloud APK build. First link the Expo project and complete an interactive Android build to create signing credentials. Set repository secret `EXPO_TOKEN` to an Expo access token and repository variable `EXPO_PUBLIC_API_URL` to your HTTPS API. Run **Android preview APK** from Actions. The job prints the EAS build link; it does not wait for native compilation or publish to a store.
 
 Use Node.js 24.13+ and npm 11.8+. Set GEMINI_API_KEY only on the server to enable the planner. AGENT_MODEL_PLANNER overrides GEMINI_MODEL; the default is gemini-flash-latest.
+
+### Shared development server
+
+For occasional live AI/API tests, Cattn can run the API with `HOST=0.0.0.0`, `PORT=3001`, and a server-only `GEMINI_API_KEY`. Set `CORS_ORIGIN` to the actual teammate browser origins, comma-separated (local web commonly uses `http://localhost:5173`). Start the API with `npm run dev:server` after setting those variables in its environment. Teammates do not need Gemini credentials.
+
+Teammates set `VITE_API_URL=http://HOST_LAN_IP:3001` for web or `EXPO_PUBLIC_API_URL=http://HOST_LAN_IP:3001` for mobile, replacing `HOST_LAN_IP` with the API host's LAN address. Restart clients after changing environment variables and check `http://HOST_LAN_IP:3001/api/health`. The LAN must be reachable. Off-network access needs a separately arranged network or tunnel; an Expo bundle tunnel does not provide API access.
+
+Mocks and fakes remain the default development path, and CI never calls Gemini. Enabling live Gemini does not enable live transit or flight providers.
