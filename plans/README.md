@@ -53,7 +53,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | 🟢 UI | P2 | L | 020 | TODO |
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | 🟢 UI | P1 | L | — | TODO (**MVP, start here**) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | 🟢 UI | P1 | M | 026 | TODO (MVP check) |
-| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | CLAIMED (MVP; completion unconfirmed) |
+| 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | IN REVIEW (PR #50; also sets the Hydrogen model default) |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
 | — | [UI slices](ui-slices.md) | UI team | — | — | — | Draft |
 
@@ -129,7 +129,6 @@ Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent a
 - Probabilistic transfer risk (needs historical delay data; never show made-up percentages).
 - Tracking where a car or bike was left (`TripDraft.vehicles` leaves room).
 - Streaming agent replies (D5-B), push notifications (D7-C).
-- Small config follow-up for Cattn: `apps/server/.env.example` and `README.md` still default `GEMINI_MODEL` to `gemini-flash-latest`; set Hydrogen on the demo server and update the example once its availability is confirmed.
 
 ## Findings considered and rejected
 
