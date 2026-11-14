@@ -25,17 +25,18 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft.** Feedback welcome before or during the build. Reuse merged 015 (hooks) and 018 (platform helpers); the native map is @KrakenTheJaken's plan 009.
+- **Status:** 🔍 **PR #60 open.** Built with a map placeholder until @KrakenTheJaken's plan 009 ships `@transit/maps/native`. Android checked on a phone in Expo Go; iOS not yet.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Nothing. If `@transit/maps/native` is not installed, show the placeholder in Step 4. Do not block on the map package.
 
 **Open questions** — **@DMFriends answers these.** Reply as `020-Q1: ...`. Use the proposed defaults until answered.
 
-- 020-Q1: follow this Figma pass (separate home sheet) rather than UI-5's one three-detent sheet? *(proposed: yes)*
-- 020-Q2: tracked trips first, or the search field? *(proposed: tracked trips, as drawn)*
-- 020-Q3: mic does nothing for now? *(proposed: yes)*
-- 020-Q4: light and dark, default System? *(proposed: yes)*
+- ~~020-Q1~~ **Decided (@DMFriends, 2026-11-14):** yes, follow this Figma pass (separate home sheet), not UI-5's three-detent sheet.
+- ~~020-Q2~~ **Decided (@DMFriends, 2026-11-14):** tracked trips first, as drawn.
+- ~~020-Q3~~ **Decided (@DMFriends, 2026-11-14):** the mic does nothing for now.
+- ~~020-Q4~~ **Decided (@DMFriends, 2026-11-14):** light and dark, default System.
+- ~~020-Q5~~ **Decided (@DMFriends, 2026-11-14):** Android follows the redrawn frame `15:2131` (read 2026-11-14): menu icon (visual only) and avatar in the search bar, avatar opens Settings; the fourth chip is Settings, not Recent.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -96,11 +97,11 @@ export const modeGroups = {
 
 | Piece | iOS (`2010:51`) | Android (`15:2131`) |
 |---|---|---|
-| Search | Glass bar: magnifying glass, "Where to?", mic, person circle. Mic is visual only. Person circle navigates to Settings (plan 025). | Material search bar, 56 pt, "Where to?". No person circle. |
+| Search | Glass bar: magnifying glass, "Where to?", mic, person circle. Mic is visual only. Person circle navigates to Settings (plan 025). | Material search bar, 56 pt: menu icon (visual only), "Where to?", search icon, avatar. The avatar navigates to Settings (plan 025). |
 | Mode control | Glass segmented control: Transit, Drive, Fly, with SF symbols bus / car / airplane | Material segmented button, same three labels |
 | Map buttons | Two circular glass buttons stacked (location, layers). Location calls plan 018 only on tap. | One FAB (location) and one extended FAB labeled "Ask agent" |
 | Ask agent | Tinted glass pill "Ask agent" with sparkles, above the sheet | The extended FAB. Plan 023 owns the sheet it opens. |
-| Sheet | Inset glass sheet, grabber, "Tracked Trips", bell + "2 watching", two cards, chips Home / Office / Gym, a filter icon | Edge-to-edge Material sheet, drag handle, "Tracked trips", bell + "2 watching", two cards, assistive chips Home / Office / Gym / Recent |
+| Sheet | Inset glass sheet, grabber, "Tracked Trips", bell + "2 watching", two cards, chips Home / Office / Gym, a filter icon | Edge-to-edge Material sheet, drag handle, "Tracked trips", bell + "2 watching", two cards, assistive chips Home / Office / Gym / Settings |
 | Chrome | Status bar + home indicator. `SafeAreaView` edges. | Status bar + gesture bar. `SafeAreaView` edges. |
 | Blur | `expo-blur` `BlurView` behind the search, mode control, and sheet | No blur. Surface color from the theme. |
 
@@ -111,7 +112,7 @@ export const modeGroups = {
   - Colors come from the Material theme: `Host` `colorScheme` follows `useAppColors()` (light / dark / system) with one `seedColor`, and `useMaterialColors()` gives the same palette to any non-Compose view. Do not hand-pick chip or surface colors.
   - Mode control: `SingleChoiceSegmentedButtonRow` with icons for Transit, Drive, Fly.
   - Search bar: `DockedSearchBar` (or `SearchBar`) with Material icons.
-  - Bottom chips (Home / Office / Gym / Recent): `AssistChip`s in theme colors. These were the worst offenders.
+  - Bottom chips (Home / Office / Gym / Settings, per 020-Q5): `AssistChip`s in theme colors. These were the worst offenders.
   - Sheet: a Material surface color, draggable up and down (collapsed and expanded). Try Expo's drop-in `@expo/ui/community/bottom-sheet` (same API as `@gorhom/bottom-sheet`) first; the universal `BottomSheet` is a present/dismiss sheet, so it fits modals like chat, not this persistent sheet. If the drop-in can't stay open over the map and be dragged between collapsed and expanded, use `@gorhom/bottom-sheet` (needs `react-native-reanimated` and `react-native-gesture-handler`, installed with `npx expo install`) with Compose content in a `Host` inside it, and say why in the PR.
   - Tracked trip cards: clearly separated containers (Compose `Card`, elevated or filled) that stand out from the sheet surface, not faint borders.
   - Countdown tile: "Leaves in / # / minutes" in a Material accent container (the watch-state colors above).
@@ -226,13 +227,13 @@ Data: `useSavedItineraries({ pollMs: 30_000, enabled })`, where `enabled` is tru
 
 The "2 watching" count is the number of saved trips with `watch === true`, not a hard-coded 2.
 
-Chips Home, Office, and Gym set origin or destination only when the profile has that place. The mock profile may be empty. Tapping a chip with no place opens Filters (plan 022's screen) instead of inventing an address. "Recent" on Android is the most recently saved trip's destination, or hidden when there is none.
+Chips Home, Office, and Gym set origin or destination only when the profile has that place. The mock profile may be empty. Tapping a chip with no place opens Filters (plan 022's screen) instead of inventing an address. The Settings chip on Android calls `navigation.navigate('Settings')`.
 
 The location button calls the existing `getCurrentPlace` only on tap (decided on #26). On `{ ok: true, place }`, apply `{ origin: place }` with source `'user'`. On denied or unavailable, keep the draft and show a short message. Do not add `expo-location`.
 
 "Ask agent" and the Android extended FAB set local state `chatOpen`. Plan 023 replaces the placeholder. This plan shows `ChatScreen` when that flag is true.
 
-The person circle (iOS only) calls `navigation.navigate('Settings')`.
+The person circle (iOS) and the avatar (Android) call `navigation.navigate('Settings')`.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
