@@ -15,6 +15,15 @@
 - **Depends on**: none
 - **Category**: tests / dx
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/5
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** ✅ **Done.** Merged in #18.
+- **Owner:** @Cattn
+
+<!-- help:end -->
 
 ## Why this matters
 

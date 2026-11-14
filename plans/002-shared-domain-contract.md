@@ -5,7 +5,7 @@
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- packages/shared`
-> If `packages/shared/src/index.ts` changed beyond plan 001's test file, compare with "Current state"; on a mismatch, STOP.
+> Expected changes from plan 001 (merged in #18): `packages/shared/package.json` (vitest + `test:unit`), `packages/shared/tsconfig.json` (`exclude` tests), new `packages/shared/src/index.test.ts`. `packages/shared/src/index.ts` itself must be unchanged; if it differs from "Current state", STOP.
 
 ## Status
 
@@ -15,6 +15,21 @@
 - **Depends on**: plans/001-test-baseline.md
 - **Category**: direction / tech-debt
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/6
+- **Review**: answered on #6 (2026-11-14). Changes from that review are already applied below: no `rideshare` mode; optional user-chosen `timeZone`; risk stays two separate fields.
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🔄 **In progress.** A coding agent is implementing it with the review answers from this issue applied.
+- **Owner:** @Cattn
+- **Up for grabs?** No. Already being built.
+
+**Open questions** (answer by number in a comment on #6):
+
+1. @Rad1ee: you haven't answered the review questions yet. Shout if anything in the summary comment is wrong for the UI; otherwise the answers stand.
+
+<!-- help:end -->
 
 ## Why this matters
 
@@ -79,7 +94,7 @@ Branch `plan/002-domain-contract`; commit `add shared trip domain schemas`. No p
 ```ts
 import { z } from 'zod';
 
-export const travelModes = ['walk', 'bike', 'bikeshare', 'bus', 'rail', 'ferry', 'car', 'rideshare', 'flight'] as const;
+export const travelModes = ['walk', 'bike', 'bikeshare', 'bus', 'rail', 'ferry', 'car', 'flight'] as const;
 export const TravelModeSchema = z.enum(travelModes);
 export type TravelMode = z.infer<typeof TravelModeSchema>;
 
@@ -89,7 +104,7 @@ export const scheduledModes: readonly TravelMode[] = ['bus', 'rail', 'ferry', 'f
 /** Product tabs (issue #4: "tabs for car, bus/bike, plane"). A tab is a filter over modes, not a separate data model. */
 export const modeGroups = {
   transit: ['walk', 'bike', 'bikeshare', 'bus', 'rail', 'ferry'],
-  drive: ['walk', 'car', 'rideshare'],
+  drive: ['walk', 'car'],
   fly: ['walk', 'car', 'rail', 'bus', 'flight']
 } as const satisfies Record<string, readonly TravelMode[]>;
 export type ModeGroup = keyof typeof modeGroups;
@@ -122,6 +137,11 @@ import { PlaceSchema } from './places.js';
 
 const IsoDateTime = z.iso.datetime({ offset: true });
 const Unit = z.number().min(0).max(1);
+
+/** True for IANA zones like 'America/New_York'. Uses Intl (works in browsers, Node and Hermes). */
+export function isValidTimeZone(zone: string): boolean {
+  try { new Intl.DateTimeFormat('en-US', { timeZone: zone }); return true; } catch { return false; }
+}
 
 export const TripTimeSchema = z.object({
   type: z.enum(['departAt', 'arriveBy']),
@@ -165,6 +185,8 @@ export const TripDraftSchema = z.object({
   time: TripTimeSchema.optional(),
   /** "Can I make it back?" — plan also checks the latest viable return after this time. */
   returnTime: IsoDateTime.optional(),
+  /** IANA zone used to DISPLAY this trip's times (user-choosable, review #6 Q5). Omitted = the origin's local zone. Stored times keep their own offsets regardless. */
+  timeZone: z.string().refine(isValidTimeZone, { message: 'Unknown IANA time zone' }).optional(),
   modes: z.array(TravelModeSchema).min(1).default(['walk', 'bus', 'rail']),
   vehicles: VehiclesSchema.default({ ownsBike: false, ownsCar: false }),
   constraints: TripConstraintsSchema.default({}),
@@ -318,6 +340,8 @@ Cover:
 4. `PlaceSchema` rejects `[200, 10]` (lng out of range) and accepts `[-71.06, 42.36]` (Boston).
 5. An itinerary fixture with 3 legs (walk → bus → walk) parses; a leg with a 1-point LineString fails.
 6. `IsoDateTime` rejects `'2026-11-13 08:00'` and accepts `'2026-11-13T08:00:00-05:00'`.
+7. `timeZone: 'America/New_York'` parses; `timeZone: 'Mars/Olympus'` fails.
+8. `TravelModeSchema` rejects `'rideshare'` (removed in review).
 
 Put the 3-leg fixture in `packages/shared/src/domain/fixtures.ts` and **export it** (`export const sampleItinerary: Itinerary = …`) — plan 009 and the UI team reuse it for map rendering before the server exists.
 
@@ -327,9 +351,9 @@ Put the 3-leg fixture in `packages/shared/src/domain/fixtures.ts` and **export i
 
 **Verify**: `npm run typecheck` → exit 0; `npm run build:mobile` → exit 0; `npm run build:web` → exit 0.
 
-### Step 10: Review gate (human)
+### Step 10: Review gate (already satisfied)
 
-Open a draft PR (only if operator allows pushing) or share the diff of `packages/shared/src/domain/` with the UI and maps owners. Record any requested field changes as comments; do **not** mark this plan DONE until the plan owner confirms the review happened.
+The contract review happened on issue #6 before execution and its outcomes are applied above. Do not open a PR or push; commit locally and report. The reviewer opens the PR.
 
 ## Test plan
 
@@ -337,12 +361,12 @@ Step 8. Pattern: `packages/shared/src/index.test.ts` from plan 001.
 
 ## Done criteria
 
-- [ ] `npm test` exits 0, including ≥ 6 new schema tests
+- [ ] `npm test` exits 0, including ≥ 8 new schema tests
 - [ ] `npm run build:mobile` and `npm run build:web` exit 0
 - [ ] `grep -rn "from './domain" packages/shared/src/index.ts` shows 5 re-exports
 - [ ] `sampleItinerary` is exported from `@transit/shared`
 - [ ] Only in-scope files changed (`git status`)
-- [ ] Review gate (step 10) recorded in `plans/README.md` status as `DONE (reviewed by …)`
+- [ ] `grep -rn rideshare packages/shared/src` → no matches
 
 ## STOP conditions
 
@@ -354,11 +378,15 @@ Step 8. Pattern: `packages/shared/src/index.test.ts` from plan 001.
 
 - **Additive changes only** once the UI/maps teams consume this: add optional fields; don't rename. If a rename is needed, keep the old field for one iteration.
 - Coordinates are **[lng, lat]** everywhere (GeoJSON / MapLibre order). Google APIs return lat/lng objects — convert at the provider boundary (plan 007), never in UI code.
-- All times are ISO strings with offset; render in the trip's local zone, not the device's.
+- All times are ISO strings with offset. Render them in `draft.timeZone` when set, else the origin's local zone, never silently in the device's zone.
+- UI expects to add more filters later (review #6). New filters = new optional fields in `TripConstraintsSchema` / `TripPreferencesSchema`; that's an additive change.
 
-## Open questions for review
+## Review outcomes (issue #6, 2026-11-14)
 
-- 002-Q1: Is `rideshare` needed in v1? Proposed: keep in the enum (cheap), no provider yet.
-- 002-Q2: Should `transferRisk` and `lateTolerance` be merged into one "Risk" slider in the UI? Proposed: keep both in data; UI may show one slider that sets both.
-- 002-Q3: Money is `usd` only. Europe (backlog) would need a currency field — add then.
-- 002-Q4: `modes` default `['walk','bus','rail']` — or should the default come from the saved profile (plan 005)? Proposed: profile overrides schema default.
+- 002-Q1 rideshare: **removed** (may return later as an additive enum value).
+- 002-Q2 risk controls: **two separate controls** in the UI; data already has `transferRisk` and `lateTolerance`.
+- 002-Q3 currency: **USD only** for now.
+- 002-Q4 default modes: **kept** (`walk`, `bus`, `rail` start switched on for a new trip; a saved profile overrides).
+- Travelers/bags: **later**, with flights (#15).
+- Maps (KrakenTheJaken): one LineString per leg, select whole trip on tap, color per trip + dash per mode, Place fields sufficient, server-drawn flight arcs, overlap picker: **all confirmed**.
+- Time zone: users can **choose** the display zone → optional `timeZone` field added.

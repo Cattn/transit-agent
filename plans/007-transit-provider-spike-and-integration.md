@@ -16,6 +16,25 @@
 - **Category**: direction
 - **Blocked by decisions**: D1 (metro, default Boston), D2 (routing engine; decided by this spike)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/11
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🟢 **Research is up for grabs now.** Building waits for the research result.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. The first step is research only (about a day): compare routing options and write up a recommendation. Good fit for the maps person or anyone curious. (Decided: the routing server would run on Cattn's machine; sample routes stay the default for UI work.)
+- **Waiting on:** Research: nothing. Building: #7 and the research result.
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/007-transit-provider-spike-and-integration.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #11`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 
@@ -99,10 +118,10 @@ When `request.returnTime` is set, `planTrip` also asks the provider for the **la
 ## Maintenance notes
 
 - Provider responses vary; all mapping lives in `*-mapping.ts` pure functions with real recorded samples as fixtures. When the provider changes format, update the sample and fix the mapper.
-- The fixture provider stays as the offline demo fallback (`ROUTE_PROVIDERS=otp,fixture`). Consider hiding fixture results when a real provider succeeded (add a flag if that becomes noisy).
+- The fixture provider stays the **default** for UI work and unrelated PRs (decided on #11, to avoid needing or stressing the routing laptop). Real routing is opt-in via `ROUTE_PROVIDERS`. CI must never need the real provider.
 
 ## Open questions for review
 
-- 007-Q1: Launch metro (D1). Boston assumed.
-- 007-Q2: Who on the team can host a JVM service (if OTP)? Is a cloud VM budget available?
-- 007-Q3: Keep showing fixture results alongside real ones in dev builds? Proposed: only when the real provider fails.
+- ~~007-Q1~~ **Decided:** Boston (D1).
+- ~~007-Q2~~ **Decided on #11:** the routing server (OTP, if chosen) runs on **Cattn's machine** for the demo and real-routing tests. The spike should say how much RAM/disk a Boston graph needs so Cattn can confirm it fits.
+- ~~007-Q3~~ **Decided on #11:** keep the **fixture provider as the default** (`ROUTE_PROVIDERS=fixture`) for UI work and PRs that don't touch routing, so nobody needs the routing server running. Use the real provider (`ROUTE_PROVIDERS=otp`, optionally `otp,fixture`) only when working on or testing routing itself.

@@ -16,6 +16,29 @@
 - **Category**: direction
 - **Blocked by decisions**: D4 (device-id identity), D6 (SQLite) — recommended defaults assumed
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/9
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🟢 **Up for grabs** after #7 and #8.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. Server-side; small database work.
+- **Waiting on:** #7, #8
+
+**Open questions** (answer by number in a comment on #9):
+
+1. @Rad1ee @DMFriends: one profile per device, or several named profiles ("Work trips", "Weekend")? *(suggested: one for now)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/005-persistence-profiles-itineraries.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #9`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 

@@ -15,6 +15,31 @@
 - **Depends on**: plans/002-shared-domain-contract.md (must be DONE — this plan imports its schemas)
 - **Category**: direction
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/7
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🟢 **Up for grabs** once #6 merges.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. Server-side TypeScript. Good fit for anyone comfortable with Node; a coding agent can do most of it.
+- **Waiting on:** #6
+
+**Open questions** (answer by number in a comment on #7):
+
+1. When nothing matches all your limits, we show up to 3 "almost works" options. Is 3 the right number?
+2. Should planning a trip use your saved profile defaults automatically (needs the device ID on every request)? *(suggested: yes, when the app sends it)*
+3. Who explains why option #1 is ranked first: the server (a fixed one-line reason) or the AI agent? *(suggested: agent; server only gives the facts)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/003-planning-api-fixture-provider.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #7`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 

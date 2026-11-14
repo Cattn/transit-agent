@@ -15,6 +15,29 @@
 - **Depends on**: plans/002-shared-domain-contract.md, plans/003-planning-api-fixture-provider.md
 - **Category**: direction
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/8
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🟢 **Up for grabs** once #6 and #7 merge.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. Good fit for a UI person, since the UI is what uses it.
+- **Waiting on:** #6, #7
+
+**Open questions** (answer by number in a comment on #8):
+
+1. Should the app double-check every server response against the shared types in production too, or only in development? *(suggested: always, for now)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/004-client-sdk-and-trip-draft.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #8`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 
@@ -92,7 +115,7 @@ deleteItinerary(id: string): Promise<void>,
 ```ts
 export type DraftChangeSource = 'user' | 'agent' | 'profile';
 export interface TripDraftPatch {            // deep-partial of the editable fields
-  origin?: Place | null; destination?: Place | null; time?: TripDraft['time'] | null; returnTime?: string | null;
+  origin?: Place | null; destination?: Place | null; time?: TripDraft['time'] | null; returnTime?: string | null; timeZone?: string | null;
   modes?: TravelMode[]; vehicles?: Partial<TripDraft['vehicles']>;
   constraints?: { [K in keyof TripConstraints]?: TripConstraints[K] | null };   // null = clear
   preferences?: Partial<TripPreferences>;
@@ -149,4 +172,4 @@ Recommend (not mandate) TanStack Query or a small `useReducer` in each app.
 ## Open questions for review
 
 - 004-Q1: Should the client validate every response with zod in production too (cost: CPU on big itinerary lists)? Proposed: yes for now. Revisit if lists get large.
-- 004-Q2: Where does the UI keep `DraftState`: one global store per app, or per tab (transit/drive/fly)? Proposed: **one draft**, and tabs set `modes` via `modeGroups`.
+- ~~004-Q2~~ **Decided (#6, #16):** one draft per app; the mode slider sets `modes` via `modeGroups`.

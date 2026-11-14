@@ -5,28 +5,40 @@ plan. It covers what each screen needs, which data/API backs it, and the interac
 keep the UI consistent with the server and agent design. Treat every item as a proposal. Push
 back in review using the IDs (UI-1, UI-2, …).
 
+**Issue**: https://github.com/Cattn/transit-agent/issues/16
+
 Written 2026-11-13 against commit `c9e33cc`. Sources: issue #4, the feature notes, and the two design threads.
 
 ---
 
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🔄 **In progress** by the UI team.
+- **Owner:** @Rad1ee @DMFriends
+- **Up for grabs?** Owned by the UI team. Not a step-by-step plan.
+- **Waiting on:** Live data needs #8; until then use the sample route in the shared package.
+
+**Open questions** (answer by number in a comment on #16):
+
+1. @Rad1ee: anything you'd change in the layout DMFriends chose (map as home, mode slider, chat side panel on web)?
+
+<!-- help:end -->
+
 ## Navigation (UI-1)
 
-Issue #4 lists: Home, "tabs for car, bus/bike, plane maps", a floating AI bubble, Settings, profiles, and an optional payment screen.
+**Decided on #16 (DMFriends):** the **map is the home page / dashboard**, and a **mode slider** switches between transit, drive and fly instead of tabs.
 
-Proposed structure (mobile bottom tabs; web left rail + full-height map):
-
-| Tab | Shows | Backed by |
+| Screen | Shows | Backed by |
 |---|---|---|
-| **Home** | Currently tracked trips with leave-by countdowns and live/scheduled status; "plan a trip" entry | `listItineraries()` polled every 30–60 s while visible (plan 008 `watchStatus`) |
-| **Transit** (bus + bike) | Map + filters, `modes` = `modeGroups.transit` | `planTrip()` |
-| **Drive** | Map + filters, `modes` = `modeGroups.drive` | `planTrip()` |
-| **Fly** | Map + filters + airport comparison list, `modes` = `modeGroups.fly` | `planTrip()` (plan 011) |
-| **Settings** | Profile defaults (home/work, sliders, vehicles), device id, about, (optional) payment plan | `getProfile()` / `putProfile()` (plan 005) |
+| **Map home** | Full map with saved / tracked trips drawn on it. Tracked trips also appear as cards (leave-by countdown, live vs scheduled) in a panel (web) or bottom sheet (mobile). Search box + filters to plan a new trip. | `listItineraries()` polled every 30–60 s while visible (plan 008 `watchStatus`); `planTrip()` for new searches |
+| **Mode slider** (on the map home) | Transit (bus + bike) / Drive / Fly. Changes which routes are shown and searched; the Fly position also shows the airport comparison list (plan 011) | sets `draft.modes` from `modeGroups.transit` / `.drive` / `.fly`; passes the same list to the map as `visibleModes` |
+| **Settings** | Profile defaults (home/work, sliders, vehicles), time zone, device id, about | `getProfile()` / `putProfile()` (plan 005) |
 
-The **AI bubble** floats over every tab and opens a chat sheet (mobile) or side panel (web).
+**AI chat:** on **web, a permanent side panel** next to the map (decided on #16). On **mobile, a floating bubble** that opens a chat sheet.
 
-Tabs are **filters over one trip draft**, not separate data models. Switching tabs changes
-`draft.modes`. Everything else (origin, time, constraints) carries over. (Decision 004-Q2.)
+The mode slider is a **filter over one trip draft**, not a separate data model. Moving it changes
+`draft.modes`; everything else (origin, time, limits) carries over (decided on #6).
 
 ## The one rule: filters and agent edit the same draft (UI-2)
 
@@ -45,11 +57,15 @@ Tabs are **filters over one trip draft**, not separate data models. Switching ta
 Map 1:1 to `TripDraft` (plan 002). Suggested grouping:
 
 - **Always visible:** From, To (place search → `searchPlaces()`, plan 007), Depart at / Arrive by, mode toggles.
-- **"How strict?"** `lateTolerance` (3-way: *Must be on time* / *A little late is OK* / *Flexible*), optional hard deadline.
+- **"How strict?"** `lateTolerance` (3-way: *Must be on time* / *A little late is OK* / *Flexible*), optional hard deadline. This stays a **separate control** from the tight-transfers slider (decided on #6).
 - **Sliders:** *Cheaper ↔ Comfier* (`comfortVsCost`), *Safe ↔ Tight transfers* (`transferRisk`), *Less ↔ More walking/biking* (`activeTravel`).
 - **Advanced (collapsed):** max walk min, max bike min, max transfers, min transfer buffer, budget, max drive min, accessibility, own bike/car, car mpg.
 
 Requirements (hard) vs preferences (soft) should look different. For example, use a lock icon on hard limits.
+
+- **Default modes:** a fresh trip starts with walk + bus + train switched on (car, bike, flight off). A saved profile replaces that.
+- **Time zone:** times show in the trip's starting-point time zone by default. Users can pick another (`draft.timeZone`, e.g. in Settings or on the trip).
+- **More filters later** are expected (#6). They're added as new optional fields, so nothing already built breaks.
 
 ## Results list (UI-4)
 
@@ -62,9 +78,9 @@ Each `Itinerary` row: `summary`, depart → arrive, duration, `cost.totalUsd` (s
 
 ## Map (UI-5) — owned by maps teammate, mounted by UI
 
-- Mount `RouteMap` from `@transit/maps/web` or `/native` (plan 009). Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the active tab), `styleUrl`, and `padding` (so routes aren't hidden under panels).
+- Mount `RouteMap` from `@transit/maps/web` or `/native` (plan 009). Pass `itineraries`, `selectedItineraryId`, `onRouteSelect`, `visibleModes` (from the mode slider), `styleUrl`, and `padding` (so routes aren't hidden under panels).
 - **The map is the saved-route library.** Saved trips are always drawn and search results are drawn on top. Tapping a route selects it and opens its detail. If `candidates.length > 1`, show a small chooser.
-- Web: map fills the screen with a ~400 px side panel (filters/results/chat). Mobile: full-screen map with a bottom sheet (peek = summary, half = results, full = filters).
+- Web: map fills the screen with a ~400 px side panel (filters, results, and the permanent chat). Mobile: full-screen map with a bottom sheet (peek = summary, half = results, full = filters).
 - Until plan 009 lands, render a placeholder list using `sampleItinerary` from `@transit/shared`.
 
 ## Home / tracked trips (UI-6)
@@ -77,11 +93,7 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 
 **Device identity (D4):** on first launch, `createDeviceId()` and persist it (web: `localStorage`; mobile: `expo-secure-store` or AsyncStorage). Pass it to `createApiClient(url, { deviceId })`.
 
-## Payment plan screen (UI-8, optional — D12)
-
-Static mock for the Capital One prize track: plan tiers, no real payment fields. Don't collect card numbers, even fake ones. Use clearly fake placeholder UI.
-
-## Platform notes (UI-9)
+## Platform notes (UI-8)
 
 - **Mobile testing changes once maps land.** MapLibre needs the EAS dev client (`npm run build:android`, then `npm run dev:client` in `apps/mobile`). Expo Go stops working.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.
@@ -89,13 +101,12 @@ Static mock for the Capital One prize track: plan tiers, no real payment fields.
 
 ## What the UI can build today, before the server lands
 
-1. Navigation shell + tabs + AI bubble placeholder.
+1. Map-home shell + mode slider + chat side panel (web) / bubble (mobile) placeholder.
 2. Filters bound to `DraftState` (plan 004's reducer is pure, so it works offline).
 3. Results list + detail rendering from `sampleItinerary`.
 4. Home cards from a hand-written `SavedItinerary` mock with each `watchStatus.state`.
 
 ## Open questions for the UI teammate
 
-- UI-Q1: Tabs as proposed (Home / Transit / Drive / Fly / Settings), or is Home merged into the map?
-- UI-Q2: Is one "Risk" slider enough (setting both `transferRisk` and `lateTolerance`), or are both exposed?
-- UI-Q3: Should the chat bubble be available on web, or does web use a permanent side panel?
+(Resolved on #6: risk is two separate controls; users can choose the time zone; default modes explained above. Resolved on #16: map is home, mode slider instead of tabs, permanent chat side panel on web.)
+

@@ -16,6 +16,30 @@
 - **Category**: direction
 - **Blocked by decisions**: D8 (tile provider; hidden behind `styleUrl`), D9 (package location, default `packages/maps`)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/13
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** 🟢 **Shared logic is up for grabs** once #6 merges. Map drawing (web + mobile) is @KrakenTheJaken's.
+- **Owner:** @KrakenTheJaken (map drawing). Shared logic (steps 1–5): anyone.
+- **Up for grabs?** Steps 1–5 (colors, line styles, route data conversion, tests) need no map experience and suit a coding agent. Steps 6–7 (the actual maps) are KrakenTheJaken's.
+- **Waiting on:** #6
+
+**Open questions** (answer by number in a comment on #13):
+
+1. @KrakenTheJaken: which map tile provider (MapTiler, OpenFreeMap, Stadia, ...)? Does one style URL work on both web and mobile?
+2. @KrakenTheJaken: should the map package be pre-built like the shared package, or should apps use its source directly? *(suggested: pre-built)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/009-maps-package-contract.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #13`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 
@@ -69,7 +93,7 @@ export interface RouteMapProps {
   selectedItineraryId?: string;
   /** Tap/click on a route. `candidates` lists every itinerary under the pointer (overlaps); app shows a chooser when > 1. */
   onRouteSelect: (itineraryId: string, candidates: string[]) => void;
-  /** Tab filter (issue #4 tabs: drive / transit+bike / fly). Legs whose mode is excluded are hidden. */
+  /** Mode filter from the mode slider (transit+bike / drive / fly, decided on #16). Legs whose mode is excluded are hidden. */
   visibleModes?: readonly TravelMode[];
   styleUrl: string;                         // basemap (D8) — app passes it, map never reads env
   userLocation?: LngLat;
@@ -89,7 +113,7 @@ The map never fetches, saves, or owns selection state. The app owns all three.
   interface RouteFeatureProps { itineraryId: string; legId: string; mode: TravelMode; color: string;
     dash: 'solid' | 'dashed' | 'dotted'; selected: boolean; dimmed: boolean; sortKey: number }
   ```
-  Dash by mode: walk → dotted; bike/bikeshare → dashed; bus/rail/ferry/car/rideshare → solid; flight → dashed. `dimmed` = a selection exists and this isn't it. `sortKey` puts the selected route on top. Also emit Point features for transfer points (`kind: 'transfer'`) and the endpoints.
+  Dash by mode: walk → dotted; bike/bikeshare → dashed; bus/rail/ferry/car → solid; flight → dashed. `dimmed` = a selection exists and this isn't it. `sortKey` puts the selected route on top. Also emit Point features for transfer points (`kind: 'transfer'`) and the endpoints.
 - `layers.ts`: MapLibre style-spec layer objects shared by both renderers: one line layer **per dash style** (`filter: ['==', ['get','dash'], 'dashed']`) using `line-color: ['get','color']` and `line-opacity` from `dimmed`. Separate layers avoid data-driven `line-dasharray`, which renderers don't support uniformly. Add a casing layer under the selected route.
 - `bounds.ts`: `boundsOf(itineraries, visibleModes?)` → `[[minLng,minLat],[maxLng,maxLat]] | undefined`. `uniqueItineraryIds(features)` dedupes the overlap list in sort order.
 
@@ -128,7 +152,7 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 ## Open questions for review (maps teammate)
 
-- 009-Q1: Colour per **itinerary** (thread decision) and dash per **mode**. Still the plan?
-- 009-Q2: Overlap handling: chooser sheet when > 1 candidate, OK?
+- ~~009-Q1~~ **Confirmed on #6:** colour per itinerary, dash per mode. Also confirmed: one LineString per leg, tap selects the whole trip, Place fields are enough, server sends flight arcs.
+- ~~009-Q2~~ **Confirmed on #6:** chooser when a tap hits several routes.
 - 009-Q3: Tile provider (D8) and whether one style URL works on both platforms.
 - 009-Q4: Does the package build TSX via `tsc`, or should apps consume source directly (Vite and Metro can both transpile TS from workspaces)? Proposed: `tsc` to `dist`, consistent with `@transit/shared`.

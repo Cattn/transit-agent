@@ -14,6 +14,30 @@
 - **Depends on**: plans/007-transit-provider-spike-and-integration.md
 - **Category**: direction
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/14
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** ⏳ **Later.** Needs #11.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. The first step (finding Boston's Bluebikes data feed and the MBTA bike rules) is quick research anyone can do now.
+- **Waiting on:** #11 (research step: nothing)
+
+**Open questions** (answer by number in a comment on #14):
+
+1. @KrakenTheJaken: show bikeshare docks as pins on the map?
+2. Headline results with "bike saves 8 min" style summaries? *(suggested: yes)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/010-bike-transit-modemix.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #14`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 

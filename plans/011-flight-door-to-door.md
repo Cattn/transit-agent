@@ -16,6 +16,31 @@
 - **Category**: direction
 - **Blocked by decisions**: D10 (fare source), D11 (scope: US domestic + nearby airports first)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/15
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** ⏳ **Later.** Can start any time after #7 using fake fares.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes. The cost comparison (gas, parking, other airports) works on sample data and needs no flight API.
+- **Waiting on:** #7
+
+**Open questions** (answer by number in a comment on #15):
+
+1. From Boston, include the NYC airports (JFK, LGA, EWR, ~300 km away) by default? *(the issue's example suggests yes)*
+2. Which flight price source: Duffel or SerpApi (Google Flights)? Someone needs to check current pricing and terms.
+3. Show "take Amtrak instead" as an option in the Fly tab (e.g. Boston → DC)? *(suggested: yes)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/011-flight-door-to-door.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #15`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 
@@ -90,6 +115,6 @@ Add tools `compare_airports` (runs this provider for the current draft) and an i
 ## Open questions for review
 
 - 011-Q1: Default search radius: 250 km for origin airports (Boston → includes PVD, MHT, BDL, not JFK)? JFK is ~300 km. Should NYC be included by default given the issue's example?
-- 011-Q2: Add `bags` and `travelers` to `TripDraft` now (contract change)?
+- ~~011-Q2~~ **Decided on #6:** add `bags` and `travelers` to `TripDraft` as part of this plan (additive change), not before.
 - 011-Q3: Europe / Eurail (D11-B) goes in the backlog. Agreed?
 - 011-Q4: Show the "Amtrak instead of flying" option (Boston → DC) as a ground-only competitor in the flight tab? Proposed: yes. It's just the transit provider run on the same request.

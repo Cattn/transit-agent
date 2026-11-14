@@ -16,6 +16,30 @@
 - **Category**: direction
 - **Blocked by decisions**: D3 (ADK vs direct `@google/genai`), D5 (request/response, no streaming) — defaults assumed
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/10
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** ⏳ **Waiting** on #7 and #8.
+- **Owner:** Suggested: @Cattn (holds the Gemini API key). Unassigned until started.
+- **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
+- **Waiting on:** #7, #8
+
+**Open questions** (answer by number in a comment on #10):
+
+1. Should the agent be able to see your saved trips ("same as my usual commute but later")? *(suggested: later)*
+2. Use the fast, cheap Gemini Flash model, or a stronger Pro model? *(suggested: Flash, switchable by a setting)*
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/006-agent-planner-adk.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #10`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 

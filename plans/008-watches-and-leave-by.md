@@ -16,6 +16,31 @@
 - **Category**: direction
 - **Blocked by decisions**: D7 (client polling first; push later)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Issue**: https://github.com/Cattn/transit-agent/issues/12
+
+<!-- help:start -->
+## Who's on it & how to help
+
+- **Status:** ⏳ **Later.** Needs #9 and #11.
+- **Owner:** Nobody yet
+- **Up for grabs?** Yes, once its dependencies land.
+- **Waiting on:** #9, #11
+
+**Open questions** (answer by number in a comment on #12):
+
+1. Extra buffer before "leave now": 5 min if you must be on time, 2 min normally, 0 if flexible. Sensible?
+2. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
+3. Start watching a trip 3 hours before departure. Longer for flights?
+
+**How to help**
+- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
+- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
+  > Read `plans/008-watches-and-leave-by.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
+
+  Review what it did, then open a PR that says `Closes #12`.
+- **Just feedback:** answer the open questions above by number in a comment.
+
+<!-- help:end -->
 
 ## Why this matters
 
