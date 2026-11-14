@@ -7,6 +7,7 @@ import { registerErrorHandler } from './http/errors.js';
 import { FixtureProvider } from './providers/fixture.js';
 import type { RouteProvider } from './providers/types.js';
 import { itineraryRoutes } from './routes/itineraries.js';
+import { placeRoutes } from './routes/places.js';
 import { profileRoutes } from './routes/profile.js';
 import { MemoryProfileStore, type ProfileStore } from './store/profiles.js';
 import { planRoutes } from './routes/plan.js';
@@ -46,6 +47,7 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
   app.register(planRoutes, resolved);
   app.register(itineraryRoutes, resolved);
   app.register(profileRoutes, resolved);
+  app.register(placeRoutes, resolved);
   app.register(agentRoutes, resolved);
 
   return app;
