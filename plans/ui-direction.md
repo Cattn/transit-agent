@@ -85,7 +85,7 @@ Each `Itinerary` row: `summary`, depart → arrive, duration, `cost.totalUsd` (s
 
 ## Home / tracked trips (UI-6)
 
-Card per watched trip: label, big **"Leave in 6 min"** (from `watchStatus.leaveBy`), `watchStatus.message`, and a state color (`onTrack` / `leaveSoon` / `leaveNow` / `atRisk` / `missed`). On `missed`, show the suggested next option with a "switch" action. Watch toggle → `updateItinerary(id, { watch })`.
+Card per watched trip: label, big **"Leave in 6 min"** (from `watchStatus.leaveBy`), `watchStatus.message`, and a state color (`onTrack` / `leaveSoon` / `leaveNow` / `atRisk` / `missed`). On `missed`, the server automatically switches to the next valid trip when available ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)); show the replacement/status message without requiring a confirmation tap. Until plan 008 lands, display the supplied state honestly rather than pretending auto-switching is active. Watch toggle → `updateItinerary(id, { watch })`.
 
 ## Settings / profiles (UI-7)
 
