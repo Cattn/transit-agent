@@ -192,7 +192,8 @@ transit data (007) can land afterwards without any client changes.
 
 ### Roadmap answers ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245))
 
-- **Missed trips:** automatically switch to the next valid trip (008-Q2). No tap-to-confirm; watch horizons/rail classification/polling ramp remain open.
+- **Missed trips:** automatically switch to the next valid trip (008-Q2). No tap-to-confirm.
+- **Flight monitoring direction ([#12](https://github.com/Cattn/transit-agent/issues/12#issuecomment-6873902169)):** checks 3, 2, and 1 days before departure, then ramp within 24 h. Within 24 h, intensity may be consistent/continuous or every few hours by user preference. This replaces the earlier “5 h+” start-horizon shorthand. Exact cadence/ramp and preference behavior remain open; bus/rail timing/classification is separate.
 - **Main model (clarified in chat):** Hydrogen, API ID `gemini-4-hydrogen`. Use existing server model configuration; runtime availability/quality is unverified and task-specific alternatives remain open.
 - **Clovis (clarified in chat):** prefer its round-trip search; optionally compare two one-way searches. Reconcile plan 019/011 round-trip contracts before implementation.
 - **Bike display (clarified in chat):** both bikeshare dock pins and bike-savings summaries are approved; specific dock presentation remains with maps/UI.
