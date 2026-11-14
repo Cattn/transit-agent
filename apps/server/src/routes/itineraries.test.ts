@@ -122,5 +122,7 @@ describe('/api/itineraries', () => {
     });
     expect(res.statusCode).toBeLessThan(300);
     expect(String(res.headers['access-control-allow-headers'] ?? '').toLowerCase()).toContain('x-device-id');
+    const methods = String(res.headers['access-control-allow-methods'] ?? '').split(',').map((method) => method.trim());
+    expect(methods).toEqual(expect.arrayContaining(['GET', 'POST', 'PATCH', 'DELETE']));
   });
 });

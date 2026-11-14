@@ -23,6 +23,7 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
   const app = Fastify({ logger: true });
 
   app.register(cors, {
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
     origin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173').split(',').map((origin) => origin.trim())
   });
 
