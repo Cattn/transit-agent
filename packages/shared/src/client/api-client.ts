@@ -1,5 +1,13 @@
 import type { z } from 'zod';
-import { ApiErrorSchema } from '../domain/api.js';
+import {
+  ApiErrorSchema,
+  PlanResponseSchema,
+  SavedItineraryListSchema,
+  type PlanResponse,
+  type SaveItineraryRequest
+} from '../domain/api.js';
+import { SavedItinerarySchema, type SavedItinerary } from '../domain/itinerary.js';
+import type { TripRequest } from '../domain/trip-draft.js';
 import type { HealthResponse, Section } from '../index.js';
 
 /** Every failed API call rejects with this. `status` is 0 for network errors and timeouts. */
@@ -90,8 +98,34 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
     }
   }
 
+  const itineraryPath = (id: string) => `/api/itineraries/${encodeURIComponent(id)}`;
+
   return {
-    health: () => request<HealthResponse>('GET', '/api/health'),
-    sections: () => request<Section[]>('GET', '/api/sections')
+    health: (): Promise<HealthResponse> => request<HealthResponse>('GET', '/api/health'),
+    sections: (): Promise<Section[]> => request<Section[]>('GET', '/api/sections'),
+
+    /** POST /api/plan. Longer timeout: planning fans out to several providers. */
+    planTrip: (tripRequest: TripRequest): Promise<PlanResponse> =>
+      request('POST', '/api/plan', { body: tripRequest, schema: PlanResponseSchema, timeoutMs: 20_000 }),
+
+    /** GET /api/itineraries (requires a device id). Newest first. */
+    listItineraries: async (): Promise<SavedItinerary[]> =>
+      (await request('GET', '/api/itineraries', { schema: SavedItineraryListSchema })).itineraries,
+
+    getItinerary: (id: string): Promise<SavedItinerary> =>
+      request('GET', itineraryPath(id), { schema: SavedItinerarySchema }),
+
+    saveItinerary: (input: SaveItineraryRequest): Promise<SavedItinerary> =>
+      request('POST', '/api/itineraries', { body: input, schema: SavedItinerarySchema }),
+
+    updateItinerary: (id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary> =>
+      request('PATCH', itineraryPath(id), { body: patch, schema: SavedItinerarySchema }),
+
+    deleteItinerary: async (id: string): Promise<void> => {
+      await request<undefined>('DELETE', itineraryPath(id));
+    }
   };
 }
+
+/** The client's shape. Alternative implementations (e.g. the mock client, plan 012) implement this. */
+export type ApiClient = ReturnType<typeof createApiClient>;
