@@ -21,10 +21,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Shared logic is up for grabs** once #6 merges. Map drawing (web + mobile) is @KrakenTheJaken's.
+- **Status:** 🟢 **Shared logic is up for grabs now.** Map drawing (web + mobile) is @KrakenTheJaken's.
 - **Owner:** @KrakenTheJaken (map drawing). Shared logic (steps 1–5): anyone.
 - **Up for grabs?** Steps 1–5 (colors, line styles, route data conversion, tests) need no map experience and suit a coding agent. Steps 6–7 (the actual maps) are KrakenTheJaken's.
-- **Waiting on:** #6
 
 **Open questions** (answer by number in a comment on #13):
 

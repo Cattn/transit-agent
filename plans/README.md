@@ -86,14 +86,14 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | Plan | Title | Who / availability | Priority | Effort | Depends on | Status |
 |------|-------|-------------------|----------|--------|------------|--------|
 | 001 | [Establish a unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (merged in #18) |
-| 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | IN REVIEW (PR #19) |
-| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | 🟢 up for grabs | P1 | M | 002 | TODO |
+| 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19) |
+| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | 🟢 up for grabs **now** | P1 | M | 002 | TODO |
 | 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | 🟢 up for grabs (good fit: UI) | P1 | S | 002, 003 | TODO |
 | 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | 🟢 up for grabs | P1 | M | 003, 004 | TODO |
 | 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | suggested: Cattn (Gemini key) | P1 | L | 003, 004 (D3, D5) | TODO |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 005, 007 (D7) | TODO |
-| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs | P1 | M | 002 (D8, D9) | TODO |
+| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs **now** | P1 | M | 002 (D8, D9) | TODO |
 | 010 | [Bike + transit ("modeMix")](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | 🟢 up for grabs (later) | P2 | M | 007 | TODO |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003 (D10, D11) | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 004 for live data | IN PROGRESS (living doc) |

@@ -20,10 +20,10 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #6 and #7 merge.
+- **Status:** 🟢 **Up for grabs** once #7 merges.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Good fit for a UI person, since the UI is what uses it.
-- **Waiting on:** #6, #7
+- **Waiting on:** #7
 
 **Open questions** (answer by number in a comment on #8):
 

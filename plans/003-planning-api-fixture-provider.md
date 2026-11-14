@@ -20,10 +20,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #6 merges.
+- **Status:** 🟢 **Up for grabs now.** Next on the critical path: the UI, map and agent all need this API.
 - **Owner:** Nobody yet
-- **Up for grabs?** Yes. Server-side TypeScript. Good fit for anyone comfortable with Node; a coding agent can do most of it.
-- **Waiting on:** #6
+- **Up for grabs?** Yes. Server-side TypeScript. Good fit for anyone comfortable with Node; a coding agent can do most of it (use a strong model: it includes the ranking and risk logic).
 
 **Open questions** (answer by number in a comment on #7):
 

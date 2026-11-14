@@ -21,13 +21,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** A coding agent is implementing it with the review answers from this issue applied.
+- **Status:** ✅ **Done.** Merged in #19.
 - **Owner:** @Cattn
-- **Up for grabs?** No. Already being built.
-
-**Open questions** (answer by number in a comment on #6):
-
-1. @Rad1ee: you haven't answered the review questions yet. Shout if anything in the summary comment is wrong for the UI; otherwise the answers stand.
 
 <!-- help:end -->
 
