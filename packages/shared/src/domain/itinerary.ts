@@ -61,12 +61,26 @@ export const ItinerarySchema = z.object({
 });
 export type Itinerary = z.infer<typeof ItinerarySchema>;
 
+export const WatchStateSchema = z.enum(['scheduled', 'onTrack', 'leaveSoon', 'leaveNow', 'atRisk', 'missed', 'done']);
+export const WatchStatusSchema = z.object({
+  state: WatchStateSchema,
+  leaveBy: IsoDateTime.optional(),
+  /** Deterministic sentence, e.g. "Leave by 8:12 AM. Bus 1 is 4 min late (live)." */
+  message: z.string(),
+  checkedAt: IsoDateTime,
+  /** True if any leg used live data. The UI must not present schedule-only times as live. */
+  usedRealtime: z.boolean()
+});
+export type WatchStatus = z.infer<typeof WatchStatusSchema>;
+
 export const SavedItinerarySchema = ItinerarySchema.extend({
   savedAt: IsoDateTime,
   label: z.string().optional(),       // "Morning commute"
   watch: z.boolean(),                 // auto-watched after saving (map thread)
   /** Computed by the watch engine (plan 008). */
   leaveBy: IsoDateTime.optional(),
+  /** Latest watch result (computeWatchStatus, plan 013). */
+  watchStatus: WatchStatusSchema.optional(),
   /** The request that produced this itinerary — needed to re-plan when watching. */
   request: TripRequestSchema
 });
