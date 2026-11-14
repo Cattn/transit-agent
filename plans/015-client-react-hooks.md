@@ -20,10 +20,9 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #20 merges (#8 is done).
+- **Status:** 🟢 **Up for grabs now.** #8 and #20 are done.
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Good fit for a UI person. No screens, just the logic both apps share.
-- **Waiting on:** #20
 
 **Open questions** (answer by number in a comment on #23):
 

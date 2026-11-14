@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 👀 **In review:** PR #31.
+- **Status:** ✅ **Done.** Merged in #31 (054f511), including the mock profile methods.
 - **Owner:** @Cattn
 - **Up for grabs?** Yes. Server-side; small database work.
 

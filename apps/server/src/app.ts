@@ -5,6 +5,8 @@ import { registerErrorHandler } from './http/errors.js';
 import { FixtureProvider } from './providers/fixture.js';
 import type { RouteProvider } from './providers/types.js';
 import { itineraryRoutes } from './routes/itineraries.js';
+import { profileRoutes } from './routes/profile.js';
+import { MemoryProfileStore, type ProfileStore } from './store/profiles.js';
 import { planRoutes } from './routes/plan.js';
 import { MemoryItineraryStore } from './store/memory.js';
 import type { ItineraryStore } from './store/types.js';
@@ -12,18 +14,20 @@ import type { ItineraryStore } from './store/types.js';
 export interface ServerDeps {
   providers: RouteProvider[];
   itineraries: ItineraryStore;
+  profiles: ProfileStore;
 }
 
 export function createServer(deps: Partial<ServerDeps> = {}) {
   const resolved: ServerDeps = {
     providers: deps.providers ?? [new FixtureProvider()],
-    itineraries: deps.itineraries ?? new MemoryItineraryStore()
+    itineraries: deps.itineraries ?? new MemoryItineraryStore(),
+    profiles: deps.profiles ?? new MemoryProfileStore()
   };
 
   const app = Fastify({ logger: true });
 
   app.register(cors, {
-    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'PUT'],
     origin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173').split(',').map((origin) => origin.trim())
   });
 
@@ -37,6 +41,7 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
   registerErrorHandler(app);
   app.register(planRoutes, resolved);
   app.register(itineraryRoutes, resolved);
+  app.register(profileRoutes, resolved);
 
   return app;
 }

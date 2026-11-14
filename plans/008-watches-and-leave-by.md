@@ -28,8 +28,8 @@
 
 **Open questions** (answer by number in a comment on #12):
 
-1. If you miss your bus, which one: **(a)** the app switches your saved trip to the next option automatically, or **(b)** it suggests the next option and you tap to switch? *(suggested: b. Your earlier "Yes" didn't say which.)*
-2. Watch horizons, only the parts still needed before this is built: how long ahead for light rail/subway vs intercity (Amtrak), and roughly how the checks should ramp up as departure gets closer. *(Already recorded: depends on mode, bus about 2 h, flights 5 h+.)*
+1. If you miss your bus, should the app switch your saved trip to the next option automatically, or suggest it and let you tap? *(suggested: suggest)*
+2. Start watching a trip 3 hours before departure. Longer for flights?
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.

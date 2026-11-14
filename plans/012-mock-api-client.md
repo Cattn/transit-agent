@@ -21,13 +21,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** ✅ **Done.** Merged in #32. (Profile methods for the mock come with #31.)
 - **Owner:** @Cattn
-
-**Open questions** (answer by number in a comment on #20):
-
-1. Should the mock be on by default in development? *(suggested: no; opt in with `VITE_USE_MOCK=1` / `EXPO_PUBLIC_USE_MOCK=1`)*
-2. Worth a tiny hidden dev menu in each app to switch mock scenarios (empty, offline, ...)? *(suggested: yes, UI team's call)*
 
 <!-- help:end -->
 

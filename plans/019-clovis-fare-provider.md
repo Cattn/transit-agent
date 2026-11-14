@@ -23,7 +23,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs** once #22 merges.
+- **Status:** 🟢 **Up for grabs** once #22 merges (PR #30 is approved).
 - **Owner:** Nobody yet
 - **Up for grabs?** Yes. Server-side; needs judgment and live network access (use a strong coding model). Starts with a 2-hour research step.
 - **Waiting on:** #22
