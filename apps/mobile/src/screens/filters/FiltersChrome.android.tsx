@@ -17,6 +17,7 @@ import {
   Switch,
   Text,
   TextButton,
+  TimePickerDialog,
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
@@ -102,15 +103,17 @@ function LimitRow({ title, item, m, onAction }: {
         <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Limit" />
       </ListItem.LeadingContent>
       <ListItem.HeadlineContent>
-        <Text style={m3Text('bodyLarge')}>{title}</Text>
+        <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+          <Text style={m3Text('bodyLarge')}>{title}</Text>
+          <AgentMark show={item.agent} m={m} />
+        </Row>
       </ListItem.HeadlineContent>
       <ListItem.SupportingContent>
-        <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 4 }}>
+        <Row verticalAlignment="center">
           {item.set ? <TextButton onClick={() => onAction('down')}><Text style={m3Text('labelLarge')}>−</Text></TextButton> : null}
           {item.set ? <TextButton onClick={() => onAction('up')}><Text style={m3Text('labelLarge')}>+</Text></TextButton> : null}
           {item.set ? <TextButton onClick={() => onAction('clear')}><Text style={m3Text('labelLarge')}>Clear</Text></TextButton> : null}
           {item.set ? null : <TextButton onClick={() => onAction('up')}><Text style={m3Text('labelLarge')}>Set</Text></TextButton>}
-          <AgentMark show={item.agent} m={m} />
         </Row>
       </ListItem.SupportingContent>
       <ListItem.TrailingContent>
@@ -126,6 +129,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const scroll = useRef<ScrollViewInstance>(null);
   const scrolled = useRef(false);
+  const [pickingTime, setPickingTime] = useState(false);
   const placeColors: PlaceFieldColors = {
     surface: m.surface,
     onSurface: m.onSurface,
@@ -136,8 +140,9 @@ export function FiltersChrome(props: FiltersChromeProps) {
 
   const remember = (key: FilterFocus, y: number) => {
     if (scrolled.current || props.focus !== key) return;
-    scrolled.current = true;
-    requestAnimationFrame(() => scroll.current?.scrollTo({ y, animated: false }));
+    requestAnimationFrame(() => {
+      if (!scrolled.current) scroll.current?.scrollTo({ y, animated: false });
+    });
   };
 
   return (
@@ -156,7 +161,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </TextButton>
         </Row>
       </Block>
-      <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} style={styles.list}>
+      <ScrollView ref={scroll} onScrollBeginDrag={() => { scrolled.current = true; }} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} style={styles.list}>
         <View onLayout={(event) => remember('where', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
             <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
@@ -209,17 +214,34 @@ export function FiltersChrome(props: FiltersChromeProps) {
             </Column>
           </Block>
           <Block scheme={scheme}>
-            <ListItem modifiers={props.time.set ? [fillMaxWidth()] : [fillMaxWidth(), clickable(props.onSetTime)]}>
-              <ListItem.LeadingContent>
-                <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Locked time" />
-              </ListItem.LeadingContent>
-              <ListItem.HeadlineContent>
-                <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                  <Text style={m3Text('bodyLarge')}>{props.time.label}</Text>
-                  <AgentMark show={props.time.agent} m={m} />
-                </Row>
-              </ListItem.HeadlineContent>
-            </ListItem>
+            <Column modifiers={[fillMaxWidth()]}>
+              <ListItem modifiers={[fillMaxWidth(), clickable(() => setPickingTime(true))]}>
+                <ListItem.LeadingContent>
+                  <Icon source={Lock} size={24} tint={m.onSurfaceVariant} contentDescription="Locked time" />
+                </ListItem.LeadingContent>
+                <ListItem.HeadlineContent>
+                  <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+                    <Text style={m3Text('bodyLarge')}>{props.time.label}</Text>
+                    <AgentMark show={props.time.agent} m={m} />
+                  </Row>
+                </ListItem.HeadlineContent>
+                <ListItem.TrailingContent>
+                  <Text color={m.primary} style={m3Text('labelLarge')}>{props.time.set ? 'Change' : 'Set'}</Text>
+                </ListItem.TrailingContent>
+              </ListItem>
+              {pickingTime ? (
+                <TimePickerDialog
+                  initialDate={props.time.at ?? new Date().toISOString()}
+                  is24Hour={false}
+                  confirmButtonLabel="Set time"
+                  onDateSelected={(at) => {
+                    setPickingTime(false);
+                    props.onSetTime(at);
+                  }}
+                  onDismissRequest={() => setPickingTime(false)}
+                />
+              ) : null}
+            </Column>
           </Block>
         </View>
 

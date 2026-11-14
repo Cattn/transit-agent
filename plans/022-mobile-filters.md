@@ -77,7 +77,7 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - `apps/mobile/src/screens/filters/FiltersScreen.tsx`
 - `apps/mobile/src/screens/filters/FiltersChrome.tsx` (plain fallback, see Step 2)
 - `apps/mobile/src/screens/filters/FiltersChrome.android.tsx`
-- `apps/mobile/src/screens/filters/PlaceField.tsx`
+- `apps/mobile/src/screens/filters/PlaceField.tsx` (plain fallback) and `PlaceField.android.tsx` (Compose `OutlinedTextField` and `ListItem` rows, PR #70 review)
 - `apps/mobile/src/screens/home/HomeScreen.tsx` (only the flag that presents Filters)
 
 **Out of scope:** `packages/shared/**`, `apps/mobile/src/platform/**`, `app.json` plugins, results cards (plan 021), settings rows (plan 025).
@@ -120,7 +120,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [x] A hard limit control sends `null` when cleared
 - [x] `lateTolerance` and `transferRisk` are two controls
 - [x] No car chip and no Budget row; Advanced limits start collapsed
-- [ ] No files outside Scope are modified (lock and chevron icons under `apps/mobile/assets/icons`, required for the limit rows)
+- [ ] No files outside Scope are modified (lock and chevron icons under `apps/mobile/assets/icons`, required for the limit rows; Home only changes which sheet is shown while Filters is up)
 
 ## STOP conditions
 

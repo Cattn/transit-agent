@@ -47,10 +47,10 @@ export interface FiltersChromeProps {
     onPick: (place: Place) => void;
     onUseLocation: () => void;
   };
-  time: { label: string; set: boolean; agent: boolean };
+  time: { label: string; set: boolean; agent: boolean; at?: string };
   timeOptions: { value: TimeType; label: string; selected: boolean }[];
   onTimeType: (type: TimeType) => void;
-  onSetTime: () => void;
+  onSetTime: (at: Date) => void;
   modes: { mode: ChipMode; label: string; selected: boolean }[];
   modesAgent: boolean;
   onToggleMode: (mode: ChipMode) => void;
@@ -108,6 +108,13 @@ function stepLimit(current: number | undefined, delta: 1 | -1, steps: readonly n
   let lower: number | undefined;
   for (const step of steps) if (step < current) lower = step;
   return lower ?? null;
+}
+
+function upcoming(picked: Date, now: Date): Date {
+  const at = new Date(picked);
+  at.setSeconds(0, 0);
+  while (at.getTime() < now.getTime() - 60_000) at.setDate(at.getDate() + 1);
+  return at;
 }
 
 function countCopy(routes: number, almost: number): { routes: string; almost: string } {
@@ -210,7 +217,8 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
     time: {
       label: draft.time ? formatClock(draft.time.at, draft.timeZone) : 'Set a time',
       set: draft.time !== undefined,
-      agent: agent('time')
+      agent: agent('time'),
+      at: draft.time?.at
     },
     timeOptions: TIME_OPTIONS.map((option) => ({ ...option, selected: option.value === timeType })),
     onTimeType: (type) => {
@@ -218,9 +226,10 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, onClose, 
       if (draft.time?.type === type) return;
       apply({ time: { type, at } }, 'user');
     },
-    onSetTime: () => {
-      if (draft.time) return;
-      apply({ time: { type: 'departAt', at: new Date().toISOString() } }, 'user');
+    onSetTime: (picked) => {
+      const at = upcoming(picked, new Date()).toISOString();
+      if (draft.time?.at === at && draft.time.type === timeType) return;
+      apply({ time: { type: timeType, at } }, 'user');
     },
     modes: CHIP_MODES.map((mode) => ({ mode, label: MODE_LABELS[mode], selected: draft.modes.includes(mode) })),
     modesAgent: agent('modes'),

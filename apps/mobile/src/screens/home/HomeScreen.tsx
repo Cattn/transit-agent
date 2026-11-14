@@ -256,7 +256,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onSheetLayout={setSheetHeight}
         />
       )}
-      {sheet === 'chat' || chatBehind ? (
+      {sheet === 'chat' ? (
         <ChatScreen draft={state} chat={chat} onOpenFilters={(field) => { setChatBehind(true); openFilters(field); }} onClose={closeSheet} />
       ) : null}
       {sheet === 'filters' ? (

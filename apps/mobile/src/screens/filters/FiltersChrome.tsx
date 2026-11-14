@@ -87,7 +87,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
               </Pressable>
             ))}
           </View>
-          <Pressable accessibilityRole="button" disabled={props.time.set} onPress={props.onSetTime} style={styles.field}>
+          <Pressable accessibilityRole="button" disabled={props.time.set} onPress={() => props.onSetTime(new Date())} style={styles.field}>
             <Text style={{ color: colors.onSurface }}>{props.time.label}</Text>
             {props.time.agent ? <Text style={{ color: colors.primary }}>Agent</Text> : null}
           </Pressable>
