@@ -21,14 +21,14 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In review.** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (`mapping`, @KrakenTheJaken) is the implementation of the pure layer and the web renderer. Review at `3681019` requested changes: the color allocator swaps colors when the same trips are reordered. Do not start a second `packages/maps` on main. The native renderer (step 7) is still not in that PR.
+- **Status:** **Approved, awaiting merge:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) at `082892f7842af20d65931923e2d46b8a62bceafb` by @KrakenTheJaken. All three P2 findings are resolved. Native renderer (step 7) remains a follow-up; do not start a duplicate package.
 - **Owner:** @KrakenTheJaken.
-- **Up for grabs?** No, not as a new branch. Review fixes belong on `mapping`. Step 7 (native `RouteMap`) starts only after #35's pure layer has merged, unless KrakenTheJaken asks for it on that branch.
+- **Up for grabs?** No, not as a new branch. Any further changes belong on `mapping` until merge. Step 7 (native `RouteMap`) starts only after #35's pure layer has merged, unless KrakenTheJaken asks for it on that branch.
 
 **Open questions** (answer by number in a comment on #13):
 
 1. @KrakenTheJaken: does one OpenFreeMap style URL work on both web and mobile, or does each platform need its own?
-2. @Rad1ee @DMFriends: PR #35 moves the "which route did you mean?" chooser **into the map** (you'd get one selected trip, no `candidates` list). OK to drop the app-side chooser? (Plan 009 proposal P1.)
+2. @Rad1ee @DMFriends: PR #35 adds an internal overlap chooser and still passes `candidates`. Should the map own choosing, replacing the app-side chooser? (Plan 009 proposal P1.)
 3. @Rad1ee @DMFriends: should the mode slider hide **whole trips** that use any mode outside the selected group (PR #35), rather than hiding individual legs? (P2)
 4. @KrakenTheJaken @Rad1ee @DMFriends: colors. Should every trip on screen get a **different** color (PR #35's `assignRouteColors`), even if that means a saved trip's color can change depending on what else is shown? Or should each trip **always keep the same color**? (P4)
 
@@ -58,7 +58,7 @@ GPU.
 
 ## Current state
 
-- No `packages/maps` on main at `9ccf722`. The work lives on PR #35 (`mapping`), which is open with changes requested. Workspaces glob `packages/*` (root `package.json`) will pick the package up once that PR merges. Do not recreate it.
+- No `packages/maps` on main at `9ccf722`. The work lives on PR #35 (`mapping`), which is approved at `082892f` but still unmerged. Workspaces glob `packages/*` (root `package.json`) will pick the package up once that PR merges. Do not recreate it.
 - `packages/shared` pattern to copy: `package.json` with `"type": "module"`, `exports` → `dist`, `tsc` build, NodeNext. Read `packages/shared/package.json` and `tsconfig.json`.
 - `apps/mobile/package.json` `start` script is `expo start --go` (Expo Go). MapLibre RN **cannot run in Expo Go**. It needs the dev client: `npm run build:android` (EAS development profile) then `npm run dev:client`, both already defined in `apps/mobile/package.json`.
 - Shared `Leg.geometry` is a GeoJSON LineString in **[lng, lat]**. `Itinerary.id` is stable. Each leg has `mode`.
@@ -114,10 +114,11 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 - `to-geojson.ts`: `itinerariesToFeatures(itineraries, { selectedItineraryId, visibleModes })` → `FeatureCollection<LineString, RouteFeatureProps>`:
   ```ts
   interface RouteFeatureProps { itineraryId: string; legId: string; mode: TravelMode; color: string;
-    dash: 'solid' | 'dashed' | 'dotted'; selected: boolean; dimmed: boolean; sortKey: number }
+    dash: 'solid' | 'dashed' | 'dotted'; selected: boolean; dimmed: boolean; sortKey: number;
+    lane: number; direction: 1 | -1 }
   ```
-  Dash by mode: walk → dotted; bike/bikeshare → dashed; bus/rail/ferry/car → solid; flight → dashed. `dimmed` = a selection exists and this isn't it. `sortKey` puts the selected route on top. Also emit Point features for transfer points (`kind: 'transfer'`) and the endpoints.
-- `layers.ts`: MapLibre style-spec layer objects shared by both renderers: one line layer **per dash style** (`filter: ['==', ['get','dash'], 'dashed']`) using `line-color: ['get','color']` and `line-opacity` from `dimmed`. Separate layers avoid data-driven `line-dasharray`, which renderers don't support uniformly. Add a casing layer under the selected route.
+  Dash by mode: walk → dotted; bike/bikeshare → dashed; bus/rail/ferry/car → solid; flight → dashed. `dimmed` = a selection exists and this isn't it. `sortKey` puts the selected route on top. Every line offset uses `lane × direction × LANE_SPACING`, including visible lines, selected casing, and hit targets. Preserve the per-trip direction adjustment in the future native renderer. Also emit Point features for transfer points (`kind: 'transfer'`) and the endpoints.
+- `layers.ts`: MapLibre style-spec layer objects shared by both renderers: one line layer **per dash style** (`filter: ['==', ['get','dash'], 'dashed']`) using `line-color: ['get','color']` and `line-opacity` from `dimmed`. Separate layers avoid data-driven `line-dasharray`, which renderers don't support uniformly. Use separate unselected and selected dash layers: all unselected styles first, then selected casing and selected styles. A sort key alone does not order features across layers. Preserve this ordering in the future native renderer.
 - `bounds.ts`: `boundsOf(itineraries, visibleModes?)` → `[[minLng,minLat],[maxLng,maxLat]] | undefined`. `uniqueItineraryIds(features)` dedupes the overlap list in sort order.
 
 ### Step 4: Tests (`src/*.test.ts`, Vitest, mirror plan 001 setup)
@@ -151,6 +152,10 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 ## Maintenance notes
 
+- **Re-review at `082892f` passed:** 55 maps tests independently passed and final CI succeeded. Review was static/pure only; no browser/native/device validation is claimed. #35 is still unmerged and P1/P2/P4 remain product decisions.
+- **Caller-owned colors:** optional `RouteMap.routeColors` accepts one shared assignment. Compute `assignRouteColors(fullTripIds)` over the full trip set and reuse it for filtered subsets, cards, map, and picker; do not allocate each subset separately. `itinerariesToFeatures` and `itineraryPoints` accept the same assignment via `colors`.
+- **Current callback/predicate:** the approved PR still passes `candidates` to `onRouteSelect`; P1 does not yet authorize dropping it. `isItineraryVisible(itinerary, visibleModes)` already exists in the pure package; if P2 is accepted, use that same whole-trip predicate for list and map.
+
 - The map draws whatever `itineraries` it gets. "Show saved library" vs "show search results" is an app decision. Show both with search results un-dimmed.
 - Flight legs need curved geometry. The server (plan 011) emits great-circle LineStrings split at the antimeridian, so the map stays dumb.
 
@@ -160,10 +165,10 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 | # | Proposal in PR #35 | Current agreed spec | Who decides | Effect if accepted |
 |---|---|---|---|---|
-| P1 | **Overlap picker inside the map.** A tap on overlapping routes shows a ring of colored circles; the app gets one `onRouteSelect(id)` with the chosen trip. | `onRouteSelect(itineraryId, candidates[])`; the **app** shows a chooser when `candidates.length > 1` (UI-5, confirmed on #6). | UI team (@Rad1ee @DMFriends) + maps | Contract change: `onRouteSelect(itineraryId)` with no `candidates`; `ui-direction.md` UI-5 and UI slice 3 lose the app-side chooser. **Consumers to align if accepted:** the `RouteMapProps` contract in Step 2, UI-5, slice 3, and the Step 6 done criterion. If rejected, the map must keep returning `candidates` and leave choosing to the app. |
+| P1 | **Overlap picker inside the map.** A tap on overlapping routes shows a ring of colored circles; the app gets the chosen id; the approved head still also passes `candidates`. | `onRouteSelect(itineraryId, candidates[])`; the **app** shows a chooser when `candidates.length > 1` (UI-5, confirmed on #6). | UI team (@Rad1ee @DMFriends) + maps | Contract change: `onRouteSelect(itineraryId)` with no `candidates`; `ui-direction.md` UI-5 and UI slice 3 lose the app-side chooser. **Consumers to align if accepted:** the `RouteMapProps` contract in Step 2, UI-5, slice 3, and the Step 6 done criterion. If rejected, the map must keep returning `candidates` and leave choosing to the app. |
 | P2 | **Mode filter hides whole trips.** A trip shows only if **every** leg's mode is in `visibleModes`. | Per leg: `visibleModes: ['car']` hides walk legs; test in Step 4. | UI team + maps | Works with the mode slider's `modeGroups` (each group includes `walk`), but the Step 4 test changes. **Consumers to align if accepted:** export one pure predicate (e.g. `tripMatchesModes(itinerary, modes)`) from the maps pure layer (or shared) and use it for **both** the map and the results list (slice 3), so they never disagree. |
 | P3 | **Side-by-side lanes** for overlapping routes (10 px apart, thinner lines when zoomed out). | "Overlap handling" was left to the maps team; no lane spec. | Maps (@KrakenTheJaken) | Visual only; no contract change. |
-| P4 | **No two on-screen trips share a color**: `assignRouteColors(ids)` moves a clashing trip to the next free color; #25 should export it next to `routeColor`. | `routeColor(id)` is a stable hash: the same saved trip always gets the same color (plan 017; "never reorder the palette"). | Maps + UI + plan 017 owner | **Trade-off:** unique colors on screen vs a trip keeping one color everywhere. If accepted, the **app** must compute `assignRouteColors(visibleIds)` once and use the result for both the map and the list cards (otherwise card swatches and map lines can disagree). Plan 017 then moves both functions to shared (see 017). **Review finding ([review of PR #35 at 3681019](https://github.com/Cattn/transit-agent/pull/35), changes requested):** the proposed allocator **swaps colors when the same trips are merely reordered** (trip-0 / trip-8 reproduction). If P4 is accepted, the allocation must depend only on the **set** of ids, not their order, and must keep each trip's `routeColor(id)` whenever there's no clash. Fixed in #35 and re-reviewed before anything reuses it. |
+| P4 | **No two on-screen trips share a color**: `assignRouteColors(ids)` moves a clashing trip to the next free color; #25 should export it next to `routeColor`. | `routeColor(id)` is a stable hash: the same saved trip always gets the same color (plan 017; "never reorder the palette"). | Maps + UI + plan 017 owner | **Trade-off:** unique colors on screen vs a trip keeping one color everywhere. If accepted, the **app** must compute `assignRouteColors(fullTripIds)` once and use the result for both the map and the list cards (otherwise card swatches and map lines can disagree). Plan 017 then moves both functions to shared (see 017). **Resolved at `082892f`:** allocation is order-independent and preserves uncontested base colors. The allocator fix/re-review prerequisite is satisfied; #35 merge and P4 acceptance remain prerequisites for plan 017 reuse. Compute over the full trip set, then reuse the same assignment for filtered subsets, cards, map, and picker. |
 
 Also in PR #35, not needing a decision: OpenFreeMap basemap (matches D8); a pre-built package (matches 009-Q4); `@transit/maps/samples` with real street geometry; a demo page; root `build:shared` also builds maps (**coordinate with plan 015**, which also edits root build scripts).
 
