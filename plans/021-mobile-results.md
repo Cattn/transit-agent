@@ -24,6 +24,7 @@
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The steps use the defaults below until a question is answered.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** Plan 020's home shell. Map drawing stays with @KrakenTheJaken. This plan only sets `selectedItineraryId`.
 
