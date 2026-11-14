@@ -119,6 +119,51 @@ describe('createApiClient', () => {
     expect(fetch.mock.calls[1]?.[0]).toBe('http://x/api/places?q=south%20st%26n&near=-71.06,42.36');
   });
 
+  describe('body-read failures', () => {
+    const failingBody = (status: number) => new Response(
+      new ReadableStream({ start(controller) { controller.error(new TypeError('connection reset')); } }),
+      { status }
+    );
+
+    it("reports a 2xx body-read failure as 'network' with the cause attached", async () => {
+      const fetch = vi.fn(async () => failingBody(200));
+      const error = await catchError(createApiClient('http://x', { fetch }).planTrip(tripRequest));
+      expect(error).toBeInstanceOf(ApiClientError);
+      expect(error).toMatchObject({ status: 0, code: 'network' });
+      expect((error as ApiClientError).details).toBeInstanceOf(TypeError);
+    });
+
+    it("reports a 500 body-read failure as 'network', not 'http_error'", async () => {
+      const fetch = vi.fn(async () => failingBody(500));
+      const error = await catchError(createApiClient('http://x', { fetch }).health());
+      expect(error).toBeInstanceOf(ApiClientError);
+      expect(error).toMatchObject({ status: 0, code: 'network' });
+    });
+
+    it("reports a timeout during a slow body read as 'network'", async () => {
+      // Headers arrive immediately; the body never finishes and the stream ignores the abort signal.
+      const fetch = vi.fn(async () => new Response(new ReadableStream({ start() { /* never enqueues */ } }), { status: 200 }));
+      const error = await catchError(createApiClient('http://x', { fetch, timeoutMs: 20 }).health());
+      expect(error).toBeInstanceOf(ApiClientError);
+      expect(error).toMatchObject({ status: 0, code: 'network' });
+      expect((error as ApiClientError).message).toMatch(/timed out/);
+    });
+
+    it("reports a 2xx response with invalid JSON as 'invalid_response'", async () => {
+      const fetch = vi.fn(async () => new Response('<html>captive portal</html>', { status: 200 }));
+      const error = await catchError(createApiClient('http://x', { fetch }).planTrip(tripRequest));
+      expect(error).toBeInstanceOf(ApiClientError);
+      expect(error).toMatchObject({ status: 200, code: 'invalid_response' });
+    });
+
+    it('still throws the ZodError unchanged on a schema mismatch', async () => {
+      const fetch = vi.fn(async () => json({ places: [{ name: 'No coordinates' }] }));
+      const error = await catchError(createApiClient('http://x', { fetch }).searchPlaces('x'));
+      expect(error).toBeInstanceOf(ZodError);
+      expect(error).not.toBeInstanceOf(ApiClientError);
+    });
+  });
+
   it('reports a missing agent endpoint as not_found', async () => {
     const fetch = stubFetch(json({ error: { code: 'not_found', message: 'Route POST:/api/agent/messages not found' } }, 404));
     const error = await catchError(createApiClient('http://x', { fetch }).sendAgentMessage({ message: 'hi', draft: tripRequest }));

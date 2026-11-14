@@ -61,41 +61,64 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), init.timeoutMs ?? defaultTimeoutMs);
-    let response: Response;
-    try {
-      response = await doFetch(`${url}${path}`, {
-        method,
-        headers,
-        body: init.body === undefined ? undefined : JSON.stringify(init.body),
-        signal: controller.signal
-      });
-    } catch (error) {
-      clearTimeout(timeout);
+
+    const networkError = (error: unknown) => {
       const reason = controller.signal.aborted ? 'timed out' : error instanceof Error ? error.message : String(error);
-      throw new ApiClientError(0, 'network', `API request ${method} ${path} failed: ${reason}`, error);
-    }
+      return new ApiClientError(0, 'network', `API request ${method} ${path} failed: ${reason}`, error);
+    };
+
+    /** Rejects when the timeout fires, even if the transport ignores the abort signal while streaming the body. */
+    const aborted = new Promise<never>((_resolve, reject) => {
+      controller.signal.addEventListener('abort', () => reject(new Error('timed out')), { once: true });
+    });
+    aborted.catch(() => undefined); // only observed through Promise.race below
 
     try {
+      // Phase (a): send the request. Any failure here is a transport failure.
+      let response: Response;
+      try {
+        response = await Promise.race([
+          doFetch(`${url}${path}`, {
+            method,
+            headers,
+            body: init.body === undefined ? undefined : JSON.stringify(init.body),
+            signal: controller.signal
+          }),
+          aborted
+        ]);
+      } catch (error) {
+        throw networkError(error);
+      }
+
+      if (response.ok && response.status === 204) return undefined as T;
+
+      // Phase (b): read the body. A dropped connection or timeout mid-body is also a transport failure.
+      let text: string;
+      try {
+        text = await Promise.race([response.text(), aborted]);
+      } catch (error) {
+        throw networkError(error);
+      }
+
+      // Phase (c): parse JSON, then validate. Schema mismatches throw the ZodError unchanged (004-Q1).
+      let json: unknown;
+      let isJson = text.length > 0;
+      if (isJson) {
+        try { json = JSON.parse(text); } catch { isJson = false; }
+      }
+
       if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        let json: unknown;
-        try { json = text ? JSON.parse(text) : undefined; } catch { json = undefined; }
         const parsed = ApiErrorSchema.safeParse(json);
-        if (parsed.success) {
+        if (isJson && parsed.success) {
           const { code, message, details } = parsed.data.error;
           throw new ApiClientError(response.status, code, message, details);
         }
         throw new ApiClientError(response.status, 'http_error', `API request failed (${response.status})`, text || undefined);
       }
-      if (response.status === 204) return undefined as T;
-      const json: unknown = await response.json();
-      return init.schema ? init.schema.parse(json) : json as T;
-    } catch (error) {
-      if (error instanceof ApiClientError) throw error;
-      if (controller.signal.aborted) {
-        throw new ApiClientError(0, 'network', `API request ${method} ${path} failed: timed out`, error);
+      if (!isJson) {
+        throw new ApiClientError(response.status, 'invalid_response', `API response for ${method} ${path} was not valid JSON`, text || undefined);
       }
-      throw error;
+      return init.schema ? init.schema.parse(json) : json as T;
     } finally {
       clearTimeout(timeout);
     }
