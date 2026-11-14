@@ -9,7 +9,7 @@
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** IN PROGRESS, PR #69 open
+- **State:** DONE in PR #69 (merged as `4faaf91`, 2026-11-14)
 - **Priority:** P1 (MVP polish: losing the conversation on a chip tap feels broken)
 - **Effort:** S
 - **Risk:** LOW (mobile-only state move; no contract or server change)
