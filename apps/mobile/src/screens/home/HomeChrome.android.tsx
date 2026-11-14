@@ -61,7 +61,7 @@ function tileColors(role: ReturnType<typeof tileRole>, m: MaterialColors): { bg:
   return { bg: m.primaryContainer, fg: m.onPrimaryContainer };
 }
 
-function TripCard({ trip, now, m, scheme }: { trip: SavedItinerary; now: Date; m: MaterialColors; scheme: 'light' | 'dark' }) {
+function TripCard({ trip, now, m, scheme, onOpen }: { trip: SavedItinerary; now: Date; m: MaterialColors; scheme: 'light' | 'dark'; onOpen: () => void }) {
   const text = tripCardText(trip, now);
   const tile = tileColors(tileRole(text.state), m);
   const pill = text.live
@@ -72,6 +72,7 @@ function TripCard({ trip, now, m, scheme }: { trip: SavedItinerary; now: Date; m
   return (
     <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
       <Surface
+        onClick={onOpen}
         color={m.surfaceContainerLowest}
         contentColor={m.onSurface}
         shadowElevation={2}
@@ -271,7 +272,7 @@ export function HomeChrome(props: HomeChromeProps) {
             contentContainerStyle={[styles.listContent, { paddingBottom: footerHeight + 8 }]}
             onContentSizeChange={(_, height) => setListHeight(height - footerHeight - 8)}
           >
-            {trips.length ? trips.map((trip) => <TripCard key={trip.id} trip={trip} now={now} m={m} scheme={scheme} />) : (
+            {trips.length ? trips.map((trip) => <TripCard key={trip.id} trip={trip} now={now} m={m} scheme={scheme} onOpen={() => props.onOpenTrip(trip.id)} />) : (
               <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
                 <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>
                   {props.tripsLoading ? 'Loading saved trips…' : props.tripsError ? 'Saved trips are not available right now.' : 'No tracked trips yet.'}

@@ -64,11 +64,6 @@ export function PlaceField({ near, showLocation, locating, notice, onPick, onUse
               </IconButton>
             </OutlinedTextField.TrailingIcon>
           ) : null}
-          {hint ? (
-            <OutlinedTextField.SupportingText>
-              <Text style={m3Text('bodySmall')}>{hint}</Text>
-            </OutlinedTextField.SupportingText>
-          ) : null}
         </OutlinedTextField>
         {showLocation ? (
           <ListItem modifiers={locating ? [fillMaxWidth()] : [fillMaxWidth(), clickable(() => blurThen(onUseLocation))]}>
@@ -82,6 +77,9 @@ export function PlaceField({ near, showLocation, locating, notice, onPick, onUse
         ) : null}
         {notice ? (
           <Text color={m.error} style={m3Text('bodyMedium')} modifiers={[padding(16, 4, 16, 4)]}>{notice}</Text>
+        ) : null}
+        {hint ? (
+          <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')} modifiers={[padding(16, 4, 16, 4)]}>{hint}</Text>
         ) : null}
         {loading ? (
           <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[padding(16, 8, 16, 8)]}>

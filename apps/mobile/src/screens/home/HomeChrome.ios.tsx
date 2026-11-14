@@ -129,7 +129,11 @@ export function HomeChrome(props: HomeChromeProps) {
             ) : null}
           </View>
           <BottomSheetScrollView style={styles.list} contentContainerStyle={styles.listContent} onContentSizeChange={(_, height) => setListHeight(height)}>
-            {trips.length ? trips.map((trip) => <TrackedTripCard key={trip.id} trip={trip} now={now} colors={colors} />) : (
+            {trips.length ? trips.map((trip) => (
+              <Pressable key={trip.id} accessibilityRole="button" onPress={() => props.onOpenTrip(trip.id)}>
+                <TrackedTripCard trip={trip} now={now} colors={colors} />
+              </Pressable>
+            )) : (
               <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>
                 {props.tripsLoading ? 'Loading saved trips…' : props.tripsError ? 'Saved trips are not available right now.' : 'No tracked trips yet.'}
               </Text>

@@ -3,7 +3,7 @@
 ## Status
 
 - Owner: DMFriends; Kraken supports map interactions; Cattn accepts design/product behavior.
-- State: TODO after 009/#76 and 022/#74 merge; 034/#69 is merged.
+- State: PR open (`mobile/trip-continuity`); 009/#76, 022/#74 and 034/#69 are merged.
 - Priority: P1; effort M; risk MED (Home owns shared screen state).
 - Category: correctness / product completion.
 - Planned at: `0b37886`, 2026-11-14.
