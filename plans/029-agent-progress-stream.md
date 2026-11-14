@@ -5,7 +5,7 @@
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat 043cbe6..HEAD -- apps/server/src/agent apps/server/src/routes/agent.ts packages/shared/src/domain/agent.ts packages/shared/src/client packages/client-react/src/use-agent-chat.ts`
-> PR #52 (Vertex + tool-schema fixes, head `b6cb637`) touches `adk-planner.ts`, `tools.ts`, and `routes/agent.ts`, and the excerpts below include it. **Start only after #52 is merged**, then compare Current state with the live code. On a mismatch, STOP.
+> PR #52 (Vertex + tool-schema fixes, merged as `40cf8e2`) touches `adk-planner.ts`, `tools.ts`, and `routes/agent.ts`, and the excerpts below include it. Compare Current state with the live code. On a mismatch, STOP.
 
 ## Status
 
@@ -22,7 +22,7 @@
 
 - **Owner:** @Cattn (server + shared + hooks)
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
-- **Waiting on:** PR #52 merging (same files).
+- **Waiting on:** nothing (#52 merged).
 - **Pairs with:** plan 030 (@KrakenTheJaken), which turns these events into the map animation.
 
 **Open questions** (answer by number in a comment on #55) — **@Cattn answers these.**
