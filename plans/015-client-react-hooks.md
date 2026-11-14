@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** **Changes requested:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `eccf80c`. Existing worker is fixing review findings; unmerged.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -196,6 +196,8 @@ const chat = useAgentChat(trip.state, trip.apply);
 - The root script change breaks CI (`.github/workflows/ci.yml` calls a script you renamed).
 
 ## Maintenance notes
+
+- Review at `eccf80c` requested changes: stale-client mutation results after provider switches, loading/pending resets on client switches, and saved-trip loading stuck after a failed mutation supersedes refresh. Fixes stay in PR #47; the existing worker sends the updated head and runtime validation to the primary reviewer. Passing builds/tests do not resolve these reproduced runtime findings.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
