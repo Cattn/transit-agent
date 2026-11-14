@@ -198,9 +198,9 @@ The mode control calls `apply({ modes: [...modeGroups[group]] }, 'user')` for `t
 
 `HomeScreen` measures the sheet's visible height and passes it as `padding.bottom` to the map. The other padding sides are 16.
 
-If `apps/mobile/package.json` depends on `@transit/maps`, render `RouteMap` from `@transit/maps/native` with `itineraries` from the mock saved list, `selectedItineraryId`, `onRouteSelect`, `visibleModes` equal to the current `draft.modes`, a `styleUrl` constant for OpenFreeMap (the same string plan 009 documents; do not read a secret), and `padding`. The map must not fetch or save.
+Only when `apps/mobile/package.json` depends on `@transit/maps` and that package exports `./native`, render `RouteMap` from `@transit/maps/native` with `itineraries` from the mock saved list, `selectedItineraryId`, `onRouteSelect`, `visibleModes` equal to the current `draft.modes`, a `styleUrl` constant for OpenFreeMap (the same string plan 009 documents; do not read a secret), and `padding`. The map must not fetch or save.
 
-If the dependency is absent, render a `View` that fills the screen, `accessibilityLabel="Map"`, and do not add `@transit/maps` or `maplibre`.
+If the dependency or native export is absent (PR #35 ships web only), render a `View` that fills the screen, `accessibilityLabel="Map"`, and do not add `@transit/maps` or `maplibre`.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -263,3 +263,11 @@ When a question is answered or a frame changes, update this same plan and its is
 - 020-Q2: tracked trips first, or the search field? *(proposed: tracked trips, as drawn)*
 - 020-Q3: mic does nothing for now? *(proposed: yes)*
 - 020-Q4: light and dark, default System? *(proposed: yes)*
+
+## Map consumer handoff (PR #35 re-review, 2026-11-14)
+
+PR #35 merged at `619fc44` after approval at `082892f`; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
+
+When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; product acceptance still applies.
+
+Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.

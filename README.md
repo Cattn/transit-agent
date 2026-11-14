@@ -19,6 +19,7 @@ This builds and watches shared code and starts the API, web app, and Expo togeth
 - `apps/mobile`: Expo + React Native for Android and iOS.
 - `apps/server`: Fastify API with request logging, CORS, and graceful shutdown.
 - `packages/shared`: API types, planning sections, and an API client used by both apps.
+- `packages/maps`: the route map (`@transit/maps`). Draws `Itinerary[]` on MapLibre; see [`packages/maps/README.md`](packages/maps/README.md) for how to put a route on the map.
 
 Keep reusable types and platform-independent logic in `packages/shared/src`. Each client owns its platform UI. Shared output is compiled into `packages/shared/dist`; `npm run dev` rebuilds it automatically.
 
@@ -26,6 +27,7 @@ Keep reusable types and platform-independent logic in `packages/shared/src`. Eac
 
 - `npm run dev`: run everything with shared-package watching.
 - `npm run dev:web`, `npm run dev:server`, `npm run dev:mobile`: run individual apps after `npm run build:shared`.
+- `npm run demo:maps`: the route map demo with sample routes at http://localhost:5180. No server or build needed.
 - `npm run android`: open Expo Go on an Android emulator or connected Android phone.
 - `npm run ios`: open an iOS simulator on macOS.
 - `npm run mobile:tunnel`: expose the Expo development server through a tunnel.

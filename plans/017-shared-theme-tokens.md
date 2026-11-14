@@ -5,7 +5,7 @@
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages/shared/src packages/maps`
-> Reconciled 2026-11-14: `packages/maps` is not on main (it is PR #35). If this diff shows `packages/maps/src/colors.ts` on your branch, read it and **reuse its colors** in Step 2 instead of inventing new ones. The allocator fix/re-review passed at `082892f`; still wait for #35 merge and P4 acceptance before moving the allocator.
+> Reconciled 2026-11-14: `packages/maps` merged in PR #35 at `619fc44`. If this diff shows `packages/maps/src/colors.ts` on your branch, read it and **reuse its colors** in Step 2 instead of inventing new ones. The allocator fix/re-review passed at `082892f`; P4 acceptance is still required before moving the allocator.
 
 ## Status
 
@@ -14,16 +14,16 @@
 - **Risk**: LOW (new pure module; plan 009 switches to it)
 - **Depends on**: plans/016-display-formatters.md (merged in #36; import `Tone` from `@transit/shared`, do not redefine it).
 - **Category**: direction (parallel work)
-- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged. Still wait for PR #35.)
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; PR #35 is now merged; palette/P4 decisions remain open)
 - **Co-owners**: maps (@KrakenTheJaken) and UI (@Rad1ee @DMFriends) review the palette.
-- **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **Wait for #35 to merge before starting**, then move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted and #35 is merged. Its order-stability fix passed re-review at `082892f`; that review blocker is resolved.
+- **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **PR #35 is merged.** Once palette sharing is confirmed, move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted. Its order-stability fix passed re-review at `082892f`; that review blocker is resolved.
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **Assigned to @DMFriends.** Still waits for PR #35 (maps) to merge, since it moves #35's palette into shared. The allocator fix/re-review passed at `082892f`; merge and P4 acceptance remain required.
+- **Status:** 🔄 **Assigned to @DMFriends.** PR #35 is merged; palette sharing and P4 still need answers before moving the allocator. The allocator fix/re-review passed at `082892f`; P4 acceptance remains required.
 - **Owner:** @DMFriends
-- **Waiting on:** PR #35 merge (allocator fix/re-review resolved at `082892f`; P4 remains open). Plan 016 formatters are merged in #36
+- **Waiting on:** Palette-sharing and P4 decisions (PR #35 merged at `619fc44`; allocator fix/re-review resolved at `082892f`). Plan 016 formatters are merged in #36
 
 **Open questions** (answer by number in a comment on #25):
 
@@ -115,7 +115,7 @@ Pick colors that are distinguishable for common color-vision deficiencies (e.g. 
 ## Maintenance notes
 
 - **Color sharing after P4 acceptance:** compute the order-independent `assignRouteColors(fullTripIds)` once over the full trip set. Pass the same assignment to `RouteMap.routeColors`, cards, and picker, including filtered subsets. Do not recompute allocation for each subset or use standalone `routeColor(id)` for cards when the map uses an allocated override.
-- PR #35 was approved at `082892f` after 55 independent maps tests and final CI. This resolves the allocator fix/re-review blocker only; #35 remains unmerged, P4/palette-sharing decisions remain open, and native/device validation is outstanding.
+- PR #35 was approved at `082892f` after 55 independent maps tests and final CI. This resolves the allocator fix/re-review blocker only; #35 merged at `619fc44`, P4/palette-sharing decisions remain open, and native/device validation is outstanding.
 
 - **Never reorder `routePalette`**: a saved trip's color comes from its position.
 - If the maps team changes the basemap style (D8), update `mapBasemapReference` and re-run the contrast test.

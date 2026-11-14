@@ -150,7 +150,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
-- If plan 009 proposal P1 is accepted, the map will not return `candidates`. Until then, if `onRouteSelect` provides a second argument and its length is greater than 1, show a short list of those ids. Do not build a second chooser inside the map.
+- The merged map handles overlaps internally and still calls `onRouteSelect(id, candidates)`. Select the returned id; do not add a second chooser or remove `candidates` from the contract. P1 remains a product question on #13.
 - Empty, offline, and error copy is not in Figma. Keep it one text block.
 
 ## Open questions for review
@@ -159,3 +159,11 @@ When a question is answered or a frame changes, update this same plan and its is
 - 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
 - 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
 - 021-Q4: what in this layout should change before it is built?
+
+## Map consumer handoff (PR #35 re-review, 2026-11-14)
+
+PR #35 merged at `619fc44` after approval at `082892f`; native rendering remains deferred. P1 (picker ownership), P2 (whole-trip filtering), and P4 (unique colors) remain product decisions. The current callback still supplies `candidates`; do not drop that contract solely because the code review passed. If P2 is accepted, use the exported `isItineraryVisible` predicate for both results and map.
+
+When caller-owned color allocation is used, compute `assignRouteColors(fullTripIds)` over the full trip set and reuse that assignment for all filtered subsets, card swatches, map, and picker via optional `RouteMap.routeColors`. Do not reallocate each subset or mix base `routeColor(id)` with overridden map colors. The allocator fix/re-review blocker is resolved at this head; product acceptance still applies.
+
+Future native map adapters must preserve `RouteFeatureProps.direction` in every line offset (visible, casing, and hit targets) and keep selected dash layers above every unselected dash layer. Static/pure review and 55 passing maps tests do not establish native/device validation.
