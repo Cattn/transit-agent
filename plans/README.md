@@ -18,7 +18,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 1 | **009** DOM map: `@transit/maps/web` in a `'use dom'` component, mounted in Home's `MapSlot` | KrakenTheJaken | Not started. **Longest pole:** Android shows no map until it lands |
 | 2 | **021** Results sheet + Save | DMFriends | ✅ Merged (#66, `9450fed`) |
 | 3 | **022** Filters full sheet | DMFriends | Unblocked. Rebase on 034 before the PR |
-| 4 | **034** Keep the chat for the session | Cattn | In progress (worker thread, branch `plan/034-mobile-chat-session`) |
+| 4 | **034** Keep the chat for the session | Cattn | PR [#69](https://github.com/Cattn/transit-agent/pull/69) open |
 | 5 | **035** Android MVP check against the real server | Cattn | After 1–4 |
 
 **Right after the MVP:** **029** (the agent streams each step) + **030** (the map animates while the agent builds the trip; built once on web, shows on Android through the DOM map), with #54 (turn speed). This is the owner's "watch the map build the trip" direction.
@@ -39,7 +39,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (pure + web #35, saved colors #65; DOM renderer next). **MVP** |
 | 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | DONE (#66) |
 | 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | DMFriends | P1 | L | 020, 021, 023 | TODO (refreshed 2026-11-14: Material components, open on the tapped field). **MVP** |
-| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | IN PROGRESS (worker thread). **MVP** |
+| 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | PR [#69](https://github.com/Cattn/transit-agent/pull/69) open. **MVP** |
 | 035 | [Android MVP check against the real server](035-android-mvp-check.md) (tracked on [#17](https://github.com/Cattn/transit-agent/issues/17), no separate issue) | Cattn | P1 | S | 009, 022, 034 | TODO. **MVP milestone** |
 | 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | — | TODO (right after MVP) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | TODO (right after MVP; pure layer + web demo can start any time) |
