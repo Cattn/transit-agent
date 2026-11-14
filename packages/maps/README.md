@@ -86,9 +86,11 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 
 ## Status and what's next
 
+[Plan 009: remaining native work and UI handoff](../../plans/009-maps-package-contract.md) is the continuation guide for @KrakenTheJaken. PR #35 is merged; do not recreate the shared/web package. The remaining core deliverable is `@transit/maps/native`, native setup, and Android/iOS rendering verification. The plan separates current merged behavior from open picker/filter/color product decisions.
+
 | Done | |
 | --- | --- |
-| ✅ Map logic (`@transit/maps`) | Colours, line styles, side-by-side lanes, map data, drawing rules, zoom box. 46 tests |
+| ✅ Map logic (`@transit/maps`) | Colours, line styles, side-by-side lanes, map data, drawing rules, zoom box. 55 tests at the #35 re-review |
 | ✅ Web map (`@transit/maps/web`) | `RouteMap` + the overlap picker |
 | ✅ Example routes (`@transit/maps/samples`) | Real street geometry, sample flights |
 | ✅ Demo | `npm run demo:maps` |
@@ -97,7 +99,7 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 
 - [ ] **Mobile map** (plan 009 step 7): MapLibre React Native. Needs an Expo dev build; it can't run in Expo Go.
 - [ ] **Use it in the app screens** (UI team, #16): add the MapLibre setup above to `apps/web`, then mount `<RouteMap>`.
-- [ ] **Shared colours** (#25): move the palette and `assignRouteColors` to `@transit/shared`. For saved trips to keep a colour across sessions, store it with the trip.
+- [ ] **Shared colours** (#25, DMFriends): coordinate palette ownership and P4 before moving the palette/allocator into shared. Reuse one full-trip-set assignment across cards/map/picker; persistent per-trip colors across changing sets/sessions remain a product decision, not a new storage requirement.
 - [ ] **Real routes** (#11): server results replace the example routes. No map changes needed.
 - [ ] **Bike-share docks on the map** (#14): an optional `docks` prop and a pin layer.
 
@@ -108,7 +110,7 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 - Shift only the parts of routes that overlap, instead of whole routes.
 - Move the start/end dots with their lane.
 
-**Open decisions:** basemap provider (D8; OpenFreeMap proposed: free, no key). The package is pre-built to `dist/` like `@transit/shared`.
+**Settled:** OpenFreeMap (D8), with app-supplied `styleUrl`; package pre-built to `dist/`. **Still open:** web/native style compatibility and P1/P2/P4 product alignment (see plan 009). The native SDK needs a rebuilt dev client; existing pure review does not establish device verification.
 
 ---
 
@@ -170,7 +172,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript. Only `src/web/` know
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 46 tests
+npm run test:unit -w @transit/maps   # 55 tests at the #35 re-review
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)
 ```
