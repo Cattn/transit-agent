@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** **Changes requested:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) at `1f586f4`. Existing worker is fixing review findings; unmerged.
 - **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 
@@ -218,6 +218,8 @@ Cattn runs the Gemini-enabled server on their own machine. Teammates run their w
 - Gemini returns prices/times in replies without calling `search_routes` in > 1 of 6 eval prompts, even after tightening instructions once. Report: this is a product-risk finding.
 
 ## Maintenance notes
+
+- Review at `1f586f4` requested changes: Clean-install ADK runtime dependency failure (also breaks no-key startup), stale route results after draft edits, and unenforced two-question limit. Fixes stay in PR #38; the existing worker sends the updated head and runtime validation to the primary reviewer. Passing builds/tests do not resolve these reproduced runtime findings.
 
 - ADK is isolated in `adk-planner.ts`, so switching to `@google/genai` function-calling (D3-B) means rewriting that one file.
 - `InMemorySessionService` loses conversations on restart. That's fine; durable data (profiles, saved trips) lives in SQLite (plan 005).
