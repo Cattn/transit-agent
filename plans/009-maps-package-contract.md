@@ -4,8 +4,8 @@
 > Steps 6–7 (renderers) are **owned by the maps teammate**. The executor implements them only if the
 > plan owner says so; otherwise stop after step 5 and hand off. Honor STOP conditions; update the status row.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- packages apps/web/package.json apps/mobile/package.json apps/mobile/app.json`
-> If a `packages/maps` folder already exists (maps team started), STOP and reconcile with its owner. Don't overwrite.
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages apps/web/package.json apps/mobile/package.json apps/mobile/app.json`
+> If a `packages/maps` folder already exists on the branch you are on, or if PR #35 is still open, STOP. Do not start a second package. See the STOP conditions.
 
 ## Status
 
@@ -15,15 +15,15 @@
 - **Depends on**: plans/002-shared-domain-contract.md (`Itinerary`, `Leg`, `sampleItinerary`)
 - **Category**: direction
 - **Decisions**: D8 tile provider = **OpenFreeMap** (decided by @KrakenTheJaken, [#13](https://github.com/Cattn/transit-agent/issues/13#issuecomment-6871834941)); still hidden behind the `styleUrl` prop. Package is **pre-built** with `tsc` to `dist` (009-Q4, decided). D9 (package location) still defaults to `packages/maps`. **Still open:** whether one style URL works on both web and mobile (009-Q5).
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/13
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Shared logic is up for grabs now.** Map drawing (web + mobile) is @KrakenTheJaken's.
-- **Owner:** @KrakenTheJaken (map drawing). Shared logic (steps 1–5): anyone.
-- **Up for grabs?** Steps 1–5 (colors, line styles, route data conversion, tests) need no map experience and suit a coding agent. Steps 6–7 (the actual maps) are KrakenTheJaken's.
+- **Status:** 🔄 **In review.** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (`mapping`, @KrakenTheJaken) is the implementation of the pure layer and the web renderer. Review at `3681019` requested changes: the color allocator swaps colors when the same trips are reordered. Do not start a second `packages/maps` on main. The native renderer (step 7) is still not in that PR.
+- **Owner:** @KrakenTheJaken.
+- **Up for grabs?** No, not as a new branch. Review fixes belong on `mapping`. Step 7 (native `RouteMap`) starts only after #35's pure layer has merged, unless KrakenTheJaken asks for it on that branch.
 
 **Open questions** (answer by number in a comment on #13):
 
@@ -58,7 +58,7 @@ GPU.
 
 ## Current state
 
-- No `packages/maps`. Workspaces glob `packages/*` (root `package.json`) picks it up automatically.
+- No `packages/maps` on main at `9ccf722`. The work lives on PR #35 (`mapping`), which is open with changes requested. Workspaces glob `packages/*` (root `package.json`) will pick the package up once that PR merges. Do not recreate it.
 - `packages/shared` pattern to copy: `package.json` with `"type": "module"`, `exports` → `dist`, `tsc` build, NodeNext. Read `packages/shared/package.json` and `tsconfig.json`.
 - `apps/mobile/package.json` `start` script is `expo start --go` (Expo Go). MapLibre RN **cannot run in Expo Go**. It needs the dev client: `npm run build:android` (EAS development profile) then `npm run dev:client`, both already defined in `apps/mobile/package.json`.
 - Shared `Leg.geometry` is a GeoJSON LineString in **[lng, lat]**. `Itinerary.id` is stable. Each leg has `mode`.
@@ -145,6 +145,7 @@ The map never fetches, saves, or owns selection state. The app owns all three.
 
 ## STOP conditions
 
+- PR #35 is still open, or you are about to create `packages/maps` while that PR exists. Stop. Continue only on branch `mapping` if you are the PR author fixing the review. Everyone else comments on #13.
 - Metro can't resolve the `@transit/maps/native` subpath export → report (fallback: separate `react-native` field or a `packages/maps-native` package).
 - The maps team has already chosen a different library. That re-opens D9/D-library; report rather than override.
 

@@ -4,7 +4,8 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 45f5379..HEAD -- packages package.json apps/web/package.json apps/mobile/package.json`
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages package.json apps/web/package.json apps/mobile/package.json`
+> Reconciled 2026-11-14: an empty diff is expected. If this prints anything, compare Current state before proceeding. Plans 004 and 012 are already on this commit.
 > Expected: plans 004 and 012 landed in `packages/shared/src/client/`. If a `packages/client-react`
 > or `packages/ui-hooks` directory already exists, STOP: the UI team may have started their own.
 
@@ -15,7 +16,7 @@
 - **Risk**: MEDIUM (new workspace package; touches root build scripts that every app uses)
 - **Depends on**: plans/004-client-sdk-and-trip-draft.md, plans/012-mock-api-client.md (tests run against the mock). Uses plan 013's `computeWatchStatus` only through data already on `SavedItinerary`.
 - **Category**: direction (parallel work)
-- **Planned at**: commit `45f5379`, 2026-11-14
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 
 <!-- help:start -->
 ## Who's on it & how to help
@@ -46,7 +47,7 @@ imports shared and must not depend on React. A **separate package** keeps that r
 - `packages/shared/package.json` is the pattern for a workspace library: `"type": "module"`, `main: ./dist/index.js`, `types`, `exports`, scripts `build: tsc`, `typecheck: tsc --noEmit`, `test:unit: vitest run`. Its `tsconfig.json` extends `../../tsconfig.base.json` with `module: NodeNext`, `rootDir: src`, `outDir: dist`, `declaration: true`, and excludes `src/**/*.test.ts`. Read both files and copy them.
 - Root `package.json` scripts build shared first everywhere: `build:shared`, `build:web`, `build:server`, `build:mobile`, `build`, `typecheck`, `test:unit`, and `dev` (concurrently). `apps/mobile/package.json` has `"eas-build-post-install": "npm run build -w @transit/shared"`.
 - React versions: `react` `19.3.0` in both apps; `@types/react` `~19.3.0`.
-- After plan 004: `@transit/shared` exports `ApiClient`, `ApiClientError`, `createDeviceId`, `initialDraftState`, `applyDraftPatch`, `toTripRequest`, `describePatch`, `DraftState`, `TripDraftPatch`, `DraftChangeSource`, `AgentMessageResponse`, `Place`. After plan 012: `createMockApiClient`.
+- On main at `9ccf722`, `@transit/shared` (`packages/shared/src/index.ts`) already exports `ApiClient`, `ApiClientError`, `createDeviceId`, `initialDraftState`, `applyDraftPatch`, `toTripRequest`, `describePatch`, `DraftState`, `TripDraftPatch`, `DraftChangeSource`, `AgentMessageResponse`, `Place`, and `createMockApiClient`. `packages/client-react` does not exist. Root `build:shared` still builds only `@transit/shared`.
 - ESLint already applies `react-hooks` rules to `apps/web/src/**` and `apps/mobile/**` (`eslint.config.mjs`). Extend that `files` list to include `packages/client-react/src/**/*.{ts,tsx}`.
 
 ## Commands you will need

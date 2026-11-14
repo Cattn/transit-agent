@@ -4,9 +4,8 @@
 > confirm the expected result before moving on. If a STOP condition occurs, stop and report. Do
 > not improvise. When done, update this plan's status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 45f5379..HEAD -- packages/shared/src packages/maps`
-> If `packages/maps/src/colors.ts` already exists with a palette, read it: **reuse its colors** in
-> Step 2 instead of inventing new ones, and note that in the PR.
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- packages/shared/src packages/maps`
+> Reconciled 2026-11-14: `packages/maps` is not on main (it is PR #35). If this diff shows `packages/maps/src/colors.ts` on your branch, read it and **reuse its colors** in Step 2 instead of inventing new ones. Do not copy `assignRouteColors` until the review fix in plan 009 P4 has landed.
 
 ## Status
 
@@ -15,7 +14,7 @@
 - **Risk**: LOW (new pure module; plan 009 switches to it)
 - **Depends on**: plans/016-display-formatters.md (for the `Tone` type only; if 016 hasn't landed, define `Tone` exactly as in 016 Step 1 inside `theme/` and note it).
 - **Category**: direction (parallel work)
-- **Planned at**: commit `45f5379`, 2026-11-14
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged. Still wait for PR #35.)
 - **Co-owners**: maps (@KrakenTheJaken) and UI (@Rad1ee @DMFriends) review the palette.
 - **Related:** [PR #35](https://github.com/Cattn/transit-agent/pull/35) (maps) already ships a palette in `packages/maps/src/colors.ts` and proposes `assignRouteColors(ids)` (no two on-screen trips share a color; plan 009 proposal P4, **not decided**). **Wait for #35 to merge before starting**, then move its palette into shared **keeping the exact colors and order**, and have maps re-export from shared. Add `assignRouteColors` only if P4 is accepted **and** #35's allocator has been fixed and re-reviewed. The first review found it swaps colors when the same trips are reordered. **Do not copy the allocator from #35 as-is.**
 
@@ -49,7 +48,7 @@ both apps can import them.
 ## Current state
 
 - `plans/009-maps-package-contract.md` Step 3 specifies `packages/maps/src/colors.ts`: `routeColor(itineraryId)` → one of 8 colors chosen by a stable string hash; legible on a light basemap; `selectedWidth` / `dimmedOpacity` constants. After this plan, 009 imports `routeColor` from shared instead.
-- `apps/mobile/app.json`: `"userInterfaceStyle": "light"`. Web has no dark mode yet. Plan for both anyway (tokens have `light` and `dark` values).
+- `apps/mobile/app.json`: `"userInterfaceStyle": "light"` (still true at `9ccf722`). Web has no dark mode yet. Plan for both anyway (tokens have `light` and `dark` values). `packages/shared/src/theme/` does not exist.
 - `packages/shared` must stay framework-free and Hermes-safe.
 - Basemap (D8) is decided: **OpenFreeMap**. Set `mapBasemapReference.light` to the land/background color of the OpenFreeMap style the maps team uses (ask @KrakenTheJaken which style), instead of the placeholder value in Step 2.
 
