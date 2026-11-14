@@ -10,7 +10,7 @@
 ## Status
 
 - **Owner:** @Cattn (verified sole assignee on #49).
-- **Status:** CLAIMED. Completion is not confirmed; do not start a competing implementation.
+- **Status:** TECHNICAL PASS at `c1f8602` in PR #50; instruction-compliance cleanup pending with the existing author. COMMENT review, not formal approval; unmerged.
 - **Priority**: P1 (MVP: the search box fails against the real server without it)
 - **Effort**: S
 - **Risk**: LOW
@@ -52,7 +52,7 @@ agree, and unblocks the MVP flow. Plan 007 later puts a real geocoder behind thi
 
 ## Scope
 
-**In scope:** `apps/server/src/routes/places.ts` (create), `apps/server/src/routes/places.test.ts` (create), `apps/server/src/app.ts` (register it).
+**In scope:** `apps/server/src/routes/places.ts` (create), `apps/server/src/app.test.ts` (extend existing file only), `apps/server/src/app.ts` (register it).
 **Out of scope:** `places/gazetteer.ts` contents, `packages/shared/**` (the contract already exists), the agent tools, a geocoder or any network call (plan 007 step 5).
 
 ## Git workflow
@@ -72,11 +72,11 @@ Register it in `app.ts` next to the other routes.
 
 **Verify**: `npm run typecheck -w @transit/server` → exit 0
 
-### Step 2: Tests
+### Step 2: Existing test coverage
 
-`routes/places.test.ts`, cases: `q=south` returns South Station and parses with `PlaceSearchResponseSchema`; `q=BOS` returns Logan; `q=zzzz` returns `{ places: [] }` with 200; missing `q` → 400 `invalid_request`; `near=abc` → 400.
+Preserve the five existing PR cases by moving them into the existing `apps/server/src/app.test.ts` (or another existing server test file); remove the newly added `routes/places.test.ts`. Add no further test files/cases. Coverage: `q=south` returns South Station and parses with `PlaceSearchResponseSchema`; `q=BOS` returns Logan; `q=zzzz` returns `{ places: [] }` with 200; missing `q` → 400 `invalid_request`; `near=abc` → 400.
 
-**Verify**: `npm run test:unit -w @transit/server` → all pass, 5 new.
+**Verify**: `npm run test:unit -w @transit/server` → all existing cases pass, including the five relocated place-search cases.
 
 ## Done criteria
 
@@ -90,5 +90,7 @@ Register it in `app.ts` next to the other routes.
 - The client's request shape differs from the excerpt above.
 
 ## Maintenance notes
+
+- Current owner instructions prohibit new test files and source comments. PR #50 passed functional review at `c1f8602`, but its author must relocate the five cases to an existing test file and remove the new route JSDoc before completion. Preserve existing coverage/comments/logging. Send the cleanup head and focused validation to the original reviewer; do not re-review unrelated functionality or merge without authorization.
 
 Plan 007 step 5 replaces the body of this route with `Geocoder.search(q, near)` and keeps the gazetteer as a fallback. Keep the response shape; the client and mock depend on it.
