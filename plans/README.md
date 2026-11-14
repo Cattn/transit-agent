@@ -54,7 +54,9 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | Rad1ee | P1 | L | — | TODO (**MVP, start here**) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | KrakenTheJaken | P1 | M | 026 | TODO (MVP check) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
-| — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | TODO (MVP; manual check, no plan file) |
+| — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | DONE (results on #51; fixes in #52) |
+| — | Real place search: geocoder behind `/api/places` + `find_place` (plan 007 step 5, pulled forward) ([#53](https://github.com/Cattn/transit-agent/issues/53)) | Cattn | P1 | S–M | 028 | TODO (MVP; pick a service) |
+| — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | — | Living doc |
 | — | [UI slices](ui-slices.md) | UI team | — | — | — | Draft |
 
@@ -64,7 +66,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason).
 
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
-- **@Cattn:** D2 routing engine, after the 007 research report ([#11](https://github.com/Cattn/transit-agent/issues/11)) · 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · keep Hydrogen after the live check ([#51](https://github.com/Cattn/transit-agent/issues/51))
+- **@Cattn:** D2 routing engine, after the 007 research report ([#11](https://github.com/Cattn/transit-agent/issues/11)) · 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53))
 - **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, P4 color policy (with DMFriends), 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
 - **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 017-Q2 unique vs permanent route colors ([#25](https://github.com/Cattn/transit-agent/issues/25))
 - **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 with Cattn ([#25](https://github.com/Cattn/transit-agent/issues/25))
@@ -118,7 +120,7 @@ Every executable plan has: Status, Why this matters, Current state (with excerpt
 |----|----------|---------|---------|
 | D1 | Launch metro | **Boston** (MBTA + Bluebikes) | 007, 010 |
 | D2 | Transit routing engine | **Open**: decided by the 007 research (OTP self-hosted on Cattn's machine vs Google Routes + MBTA V3) | 007, 008, 010 |
-| D3 | LLM framework | **ADK TypeScript + Gemini**; main model Hydrogen (`gemini-4-hydrogen`), configured with `GEMINI_MODEL` on the server | 006 |
+| D3 | LLM framework | **ADK TypeScript + Gemini**; main model Hydrogen (`gemini-4-hydrogen`), configured with `GEMINI_MODEL` on the server; kept after the live check (#51). Runs with `GEMINI_API_KEY` or Vertex AI + Application Default Credentials (location `global`, #52) | 006 |
 | D4 | Identity | **Anonymous device ID** (`x-device-id`) | 003–005 |
 | D5 | Agent reply shape | **JSON now**, streaming (SSE) later | 006 |
 | D6 | Database | **`node:sqlite` file** | 005 |
