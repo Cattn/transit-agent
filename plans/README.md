@@ -190,6 +190,14 @@ transit data (007) can land afterwards without any client changes.
 - **Removed:** the payment-plan screen (former D12). The project isn't pursuing that track.
 
 
+### Roadmap answers ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245))
+
+- **Missed trips:** automatically switch to the next valid trip (008-Q2). No tap-to-confirm; watch horizons/rail classification/polling ramp remain open.
+- **Main model (clarified in chat):** Hydrogen, API ID `gemini-4-hydrogen`. Use existing server model configuration; runtime availability/quality is unverified and task-specific alternatives remain open.
+- **Clovis (clarified in chat):** prefer its round-trip search; optionally compare two one-way searches. Reconcile plan 019/011 round-trip contracts before implementation.
+- **Bike display (clarified in chat):** both bikeshare dock pins and bike-savings summaries are approved; specific dock presentation remains with maps/UI.
+- **iOS:** @KrakenTheJaken nominated to verify devices; availability and actual validation remain outstanding.
+
 ### Contract review on #6 (2026-11-14)
 
 - Rideshare **removed** as a mode (may come back later).
