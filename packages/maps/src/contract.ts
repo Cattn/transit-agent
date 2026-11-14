@@ -29,4 +29,10 @@ export interface RouteMapProps {
   fitKey?: string | number;
   /** Extra padding when panels cover part of the map (web side panel, mobile bottom sheet). */
   padding?: { top: number; right: number; bottom: number; left: number };
+  /**
+   * Colour per itinerary id. Pass the SAME map your result cards use, so card and line always match:
+   * `const routeColors = assignRouteColors(itineraries.map((it) => it.id))`.
+   * Optional: without it the map computes exactly that itself.
+   */
+  routeColors?: ReadonlyMap<string, string>;
 }

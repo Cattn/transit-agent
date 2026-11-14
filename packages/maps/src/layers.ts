@@ -80,21 +80,29 @@ const CASING_WIDTH_EXPR = [
 const OPACITY_EXPR = ['case', ['get', 'dimmed'], DIMMED_OPACITY, 1];
 
 /**
- * Draw each trip in its own lane: shifted sideways by `lane` × LANE_SPACING screen pixels (lane is
- * −1, 0, +1, … from to-geojson), so trips sharing a street sit side by side. Used by every line layer
- * (casing, visible lines, hit line) so they all stay lined up. The start/end/transfer dots are not
- * shifted: those points are shared anyway.
+ * Draw each trip in its own lane: shifted sideways by lane × direction × LANE_SPACING screen pixels.
+ * `lane` is the trip's lane (−1, 0, +1, … across the shared reference direction) and `direction` is
+ * 1 or -1 depending on which way THIS leg's line runs. MapLibre shifts relative to each line's own
+ * direction, so multiplying by `direction` keeps every leg of a trip on the same physical side.
+ * Used by every line layer (casing, visible lines, hit line) so they all stay lined up. The
+ * start/end/transfer dots are not shifted: those points are shared anyway.
  */
-const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], LANE_SPACING];
+const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], ['get', 'direction'], LANE_SPACING];
 
 /** One line layer for one dash style. */
-function dashLayer(dash: Dash): RouteLayer {
+/**
+ * One line layer for one dash style, drawing EITHER the unselected trips OR the selected trip.
+ * The two halves are separate layers so the selected trip can be drawn after (on top of) every
+ * unselected line, whatever their dash styles: line-sort-key only orders lines inside one layer.
+ */
+function dashLayer(dash: Dash, which: 'unselected' | 'selected'): RouteLayer {
   const pattern = DASH_PATTERNS[dash];
   return {
-    id: `route-${dash}`,
+    id: which === 'selected' ? `route-${dash}-selected` : `route-${dash}`,
     type: 'line',
     source: ROUTE_SOURCE_ID,
-    filter: ['==', ['get', 'dash'], dash], // this layer only draws legs with this dash style
+    // only legs with this dash style, and only selected / only unselected ones
+    filter: ['all', ['==', ['get', 'dash'], dash], ['==', ['get', 'selected'], which === 'selected']],
     layout: {
       'line-cap': 'round', // round ends: makes dots round, and makes leg joins look seamless
       'line-join': 'round',
@@ -113,15 +121,21 @@ function dashLayer(dash: Dash): RouteLayer {
 
 /**
  * All layers in DRAW ORDER: the first one is drawn at the bottom.
- *   1. casing: a wide white line under the SELECTED trip, so it stands out from the map and the others
- *   2. solid / dashed / dotted: the trips themselves, one layer per dash style
+ *   1. unselected trips: solid / dashed / dotted, one layer per dash style
  *      (separate layers because line-dasharray can't reliably be data-driven on every renderer)
- *   3. hit: an INVISIBLE, extra-wide copy of every route line. It's the only layer that
+ *   2. casing: a wide white line under the SELECTED trip, so it stands out from the map and the others
+ *   3. the selected trip: solid / dashed / dotted again. Because these layers come after every
+ *      unselected layer, the selected trip is always on top, even where a solid selected line
+ *      crosses a dotted or dashed unselected one.
+ *   4. hit: an INVISIBLE, extra-wide copy of every route line. It's the only layer that
  *      responds to clicks, so you can click near a line rather than exactly on it.
- *   4. points: start, end and transfer dots on top of the lines
+ *   5. points: start, end and transfer dots on top of the lines
  */
 export function routeLayers(): RouteLayer[] {
   return [
+    dashLayer('solid', 'unselected'),
+    dashLayer('dashed', 'unselected'),
+    dashLayer('dotted', 'unselected'),
     {
       id: CASING_LAYER_ID,
       type: 'line',
@@ -134,9 +148,9 @@ export function routeLayers(): RouteLayer[] {
         'line-offset': LANE_OFFSET_EXPR // stay under the selected trip's lane
       }
     },
-    dashLayer('solid'),
-    dashLayer('dashed'),
-    dashLayer('dotted'),
+    dashLayer('solid', 'selected'),
+    dashLayer('dashed', 'selected'),
+    dashLayer('dotted', 'selected'),
     {
       id: HIT_LAYER_ID,
       type: 'line',

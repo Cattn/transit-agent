@@ -67,7 +67,17 @@ export function TripMap({ trips }: { trips: Itinerary[] }) {
 }
 ```
 
-**3. No data yet?** Use the example routes: `import { commuteOptions, flightOptions } from '@transit/maps/samples'`.
+**3. Showing result cards too?** Give them the same colours as the map: compute the colours once and pass the
+same map to both.
+
+```tsx
+import { assignRouteColors } from '@transit/maps';
+
+const routeColors = useMemo(() => assignRouteColors(trips.map((t) => t.id)), [trips]);
+// <RouteMap ... routeColors={routeColors} />   and in a card:   routeColors.get(trip.id)
+```
+
+**4. No data yet?** Use the example routes: `import { commuteOptions, flightOptions } from '@transit/maps/samples'`.
 
 Each leg needs a `geometry`: a GeoJSON `LineString` with at least 2 points in **`[longitude, latitude]`** order.
 A flight is just a leg with `mode: 'flight'`; the server sends its curved path (plan 011).
@@ -87,7 +97,7 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 
 - [ ] **Mobile map** (plan 009 step 7): MapLibre React Native. Needs an Expo dev build; it can't run in Expo Go.
 - [ ] **Use it in the app screens** (UI team, #16): add the MapLibre setup above to `apps/web`, then mount `<RouteMap>`.
-- [ ] **Shared colours** (#25): move the palette to `@transit/shared` so result cards match the map. Include `assignRouteColors`.
+- [ ] **Shared colours** (#25): move the palette and `assignRouteColors` to `@transit/shared`. For saved trips to keep a colour across sessions, store it with the trip.
 - [ ] **Real routes** (#11): server results replace the example routes. No map changes needed.
 - [ ] **Bike-share docks on the map** (#14): an optional `docks` prop and a pin layer.
 
@@ -107,7 +117,8 @@ A flight is just a leg with `mode: 'flight'`; the server sends its curved path (
 1. **The map only draws.** It never fetches data, saves anything or decides the selection. Trips go in, clicks come out.
 2. **Coordinates are `[longitude, latitude]`.** Convert other formats on the server, never in map code.
 3. **`@transit/maps` stays pure.** No React or MapLibre imports there; the server imports it. UI code lives in `/web`.
-4. **One colour scheme.** Colour a set of trips with `assignRouteColors(ids)` so the map, the picker and the cards match.
+4. **One colour scheme.** Compute `assignRouteColors(ids)` once for everything on screen and pass that same map to
+   `<RouteMap routeColors>` and the result cards. Don't recompute it for a filtered subset.
 5. **Changing the props or feature data?** Say so on #13 first; the UI team builds on them.
 6. **Plan 009 is claimed** (#13). Don't re-implement it; comment on the issue instead.
 
@@ -130,10 +141,10 @@ Everything before `<RouteMap>` is plain, tested TypeScript. Only `src/web/` know
 
 | Behaviour | How |
 | --- | --- |
-| A colour per trip | A hash of the trip id picks one of 8 colours; `assignRouteColors` moves clashes to a free colour |
+| A colour per trip | A hash of the trip id picks one of 8 colours; `assignRouteColors` moves clashes to a free colour. Re-ordering the trips never changes their colours |
 | Line style per mode | Walk dotted · bike, bikeshare, flight dashed · bus, rail, ferry, car solid |
 | Tap selects the whole trip | Every leg carries its trip id |
-| Overlapping routes | Each trip gets a lane 10 px to the side, ordered so lanes push routes apart |
+| Overlapping routes | Each trip gets a lane 10 px to the side, ordered so lanes push routes apart. Works for trips going opposite ways too (e.g. a commute and its return) |
 | Readable when zoomed out | Lines are 3 px wide zoomed out, 5 px at city zoom |
 | Easy to click | An invisible 14 px line catches clicks |
 | Several routes under a click | The ring picker appears at the click; the app gets one `onRouteSelect` |
@@ -151,6 +162,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript. Only `src/web/` know
 | `fitKey` | Change it to zoom to the visible trips (selecting doesn't move the camera) |
 | `userLocation` | Optional `[lng, lat]` for a "you are here" dot |
 | `padding` | Optional space to keep routes clear of panels |
+| `routeColors` | Optional colour per trip id. Pass the same map your result cards use; without it the map uses `assignRouteColors` itself |
 
 ---
 

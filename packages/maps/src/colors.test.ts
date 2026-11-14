@@ -51,18 +51,43 @@ describe('assignRouteColors (no two trips on screen share a colour)', () => {
     for (const c of colors.values()) expect(PALETTE).toContain(c);
   });
 
-  it('the first trip keeps its own routeColor, and a lone trip always does', () => {
-    expect(assignRouteColors(['a', 'b']).get('a')).toBe(routeColor('a'));
+  it('a trip with no clash keeps its own routeColor', () => {
     expect(assignRouteColors(['b']).get('b')).toBe(routeColor('b'));
+    const noClash = Array.from({ length: 50 }, (_, i) => `trip-${i}`).find((id) => routeColor(id) !== routeColor('trip-0'))!;
+    expect(assignRouteColors(['trip-0', noClash]).get(noClash)).toBe(routeColor(noClash));
   });
 
-  it('resolves a real collision by moving the later trip on', () => {
-    // find two ids that hash to the same colour
+  it('resolves a real collision so the two trips get different colours', () => {
     const first = 'trip-0';
     const clash = Array.from({ length: 200 }, (_, i) => `trip-${i + 1}`).find((id) => routeColor(id) === routeColor(first))!;
     const colors = assignRouteColors([first, clash]);
-    expect(colors.get(first)).toBe(routeColor(first));
     expect(colors.get(clash)).not.toBe(colors.get(first));
+  });
+
+  it('a trip keeps its own routeColor whenever no other trip on screen wants that colour (PR #35 review, issue 3)', () => {
+    // Many pseudo-random sets of 2 to 8 trips, including chains (A and B clash, and C wants the
+    // colour B gets bumped to): every trip whose preferred colour is unique in its set keeps it.
+    for (let seed = 0; seed < 300; seed++) {
+      const size = 2 + (seed % 7);
+      const ids = Array.from({ length: size }, (_, i) => `t${(seed * 7919 + i * 104729) % 100000}`);
+      const colors = assignRouteColors(ids);
+      for (const id of ids) {
+        const wanted = routeColor(id);
+        const competitors = ids.filter((other) => other !== id && routeColor(other) === wanted);
+        if (competitors.length === 0) expect(colors.get(id), `${id} in [${ids}]`).toBe(wanted);
+      }
+      expect(new Set(colors.values()).size, `unique colours for [${ids}]`).toBe(new Set(ids).size);
+    }
+  });
+
+  it('gives the same colours whatever order the trips are listed in (PR #35 review, issue 3)', () => {
+    const asObject = (ids: string[]) => Object.fromEntries(assignRouteColors(ids));
+    // Cattn's reproduction: these two clash, and used to swap colours when reordered.
+    expect(asObject(['trip-8', 'trip-0'])).toEqual(asObject(['trip-0', 'trip-8']));
+    const ids = Array.from({ length: 8 }, (_, i) => `fx-transit-${i}`);
+    const expected = asObject(ids);
+    expect(asObject([...ids].reverse())).toEqual(expected);
+    expect(asObject([...ids.slice(3), ...ids.slice(0, 3)])).toEqual(expected);
   });
 
   it('is the same every time for the same list', () => {

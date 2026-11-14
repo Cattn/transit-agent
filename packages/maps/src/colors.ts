@@ -69,23 +69,45 @@ export function routeColor(itineraryId: string): string {
  * Colours for a SET of trips shown together (one map, one results list).
  *
  * Hashing alone can give two trips on screen the same colour (8 colours, any number of ids), which
- * makes side-by-side lanes useless. So: each trip starts at its own routeColor(id); if an earlier
- * trip in the list already took that colour, it moves on to the next unused palette colour.
- * With up to 8 trips every one is different; past 8, colours repeat.
- * Same list in the same order → same colours, so the map, the picker and the result cards agree.
+ * makes side-by-side lanes useless. So, in two passes:
+ *   1. Every trip whose preferred colour, routeColor(id), nobody else on screen wants keeps it. When
+ *      several trips want the same colour, the one whose id sorts first keeps it.
+ *   2. The trips that lost a clash then take the next free palette colour after their preferred one.
+ * So a trip only ever changes colour when it actually clashes. With up to 8 trips every one is
+ * different; past 8, colours repeat.
+ *
+ * The ORDER of the list doesn't matter (ids are sorted first), so re-ranking results never swaps
+ * colours. The SET does: a different set of trips can resolve clashes differently. So compute this
+ * once for everything you show and pass the same map to the map (RouteMap's `routeColors`) and to
+ * the result cards. Don't recompute it for a filtered subset.
  */
 export function assignRouteColors(itineraryIds: readonly string[]): Map<string, string> {
-  const used = new Set<string>();
-  const colors = new Map<string, string>();
+  // Sorted and de-duplicated, so the result depends only on WHICH trips there are.
+  const ids = [...new Set(itineraryIds)].sort();
+  const preferred = (id: string) => hashString(id) % PALETTE.length;
 
-  for (const id of itineraryIds) {
-    if (colors.has(id)) continue; // listed twice: keep the first colour
-    const start = hashString(id) % PALETTE.length; // this trip's preferred colour
-    let color = PALETTE[start]!;
-    for (let step = 0; step < PALETTE.length; step++) {
-      const candidate = PALETTE[(start + step) % PALETTE.length]!;
+  const colors = new Map<string, string>();
+  const used = new Set<string>();
+  const bumped: string[] = [];
+
+  // Pass 1: the first (by sorted id) trip to want each colour keeps it.
+  for (const id of ids) {
+    const color = PALETTE[preferred(id)]!;
+    if (used.has(color)) {
+      bumped.push(id);
+    } else {
+      used.add(color);
+      colors.set(id, color);
+    }
+  }
+
+  // Pass 2: trips that lost a clash take the next free colour after their preferred one.
+  for (const id of bumped) {
+    let color = PALETTE[preferred(id)]!; // if all 8 are taken, colours repeat
+    for (let step = 1; step < PALETTE.length; step++) {
+      const candidate = PALETTE[(preferred(id) + step) % PALETTE.length]!;
       if (!used.has(candidate)) {
-        color = candidate; // first colour, from the preferred one onwards, that nobody has yet
+        color = candidate;
         break;
       }
     }

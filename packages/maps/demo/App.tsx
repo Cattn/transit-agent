@@ -22,7 +22,8 @@ export function App() {
   const [lastEvent, setLastEvent] = useState('Click a route on the map.');
 
   const trips = SCENARIOS[scenario].trips;
-  const colors = useMemo(() => assignRouteColors(trips.map((t) => t.id)), [trips]); // same colours as the map
+  // The app owns the colours: computed once, passed to the map AND used by the cards below.
+  const colors = useMemo(() => assignRouteColors(trips.map((t) => t.id)), [trips]);
 
   const switchTo = (id: ScenarioId) => {
     setScenario(id);
@@ -71,6 +72,7 @@ export function App() {
             setSelectedId(id);
             setLastEvent(`onRouteSelect("${id}") · ${candidates.length} route(s) under the click`);
           }}
+          routeColors={colors}
           styleUrl={BASEMAP}
           userLocation={[-71.0905, 42.3616]}
           fitKey={scenario}

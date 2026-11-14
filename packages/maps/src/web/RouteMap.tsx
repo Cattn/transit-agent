@@ -52,7 +52,8 @@ export function RouteMap({
   styleUrl,
   userLocation,
   fitKey,
-  padding = DEFAULT_PADDING
+  padding = DEFAULT_PADDING,
+  routeColors
 }: RouteMapProps) {
   // A handle on the underlying map so we can call camera methods like fitBounds().
   const mapRef = useRef<MapRef>(null);
@@ -83,12 +84,12 @@ export function RouteMap({
 
   // Trips → GeoJSON (only recomputed when one of the inputs changes).
   const lines = useMemo(
-    () => itinerariesToFeatures(itineraries, { selectedItineraryId: shownSelectedId, visibleModes }),
-    [itineraries, shownSelectedId, visibleModes]
+    () => itinerariesToFeatures(itineraries, { selectedItineraryId: shownSelectedId, visibleModes, colors: routeColors }),
+    [itineraries, shownSelectedId, visibleModes, routeColors]
   );
   const points = useMemo(
-    () => itineraryPoints(itineraries, { selectedItineraryId: shownSelectedId, visibleModes }),
-    [itineraries, shownSelectedId, visibleModes]
+    () => itineraryPoints(itineraries, { selectedItineraryId: shownSelectedId, visibleModes, colors: routeColors }),
+    [itineraries, shownSelectedId, visibleModes, routeColors]
   );
 
   const closePicker = useCallback(() => {
@@ -133,8 +134,12 @@ export function RouteMap({
     // ids.length === 0: clicked empty map, nothing else to do
   };
 
-  // The same colour assignment the lines use, so the picker's circles match the map.
-  const colors = useMemo(() => assignRouteColors(itineraries.map((it) => it.id)), [itineraries]);
+  // The colours the lines use (the app's routeColors, else the automatic assignment), so the
+  // picker's circles match the map.
+  const colors = useMemo(() => {
+    const auto = assignRouteColors(itineraries.map((it) => it.id));
+    return new globalThis.Map(itineraries.map((it) => [it.id, routeColors?.get(it.id) ?? auto.get(it.id)!]));
+  }, [itineraries, routeColors]);
 
   // Look up the full trips for the picker (it needs their colour, duration and summary).
   const pickerCandidates = useMemo(() => {

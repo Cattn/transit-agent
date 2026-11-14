@@ -3,6 +3,9 @@ import { travelModes } from '@transit/shared';
 import { sampleDrive, sampleItineraries, sampleItinerary } from './samples.js';
 import { routeColor } from './colors.js';
 import { dashForMode, itinerariesToFeatures, itineraryPoints, laneOrder } from './to-geojson.js';
+import { routeLayers } from './layers.js';
+import { evaluate, type FeatureProps } from './test-helpers/style-expressions.js';
+import type { Itinerary } from '@transit/shared';
 
 describe('dashForMode', () => {
   it('maps each mode to the plan 009 dash style', () => {
@@ -162,6 +165,80 @@ describe('lanes follow where trips actually are (no crossing)', () => {
       const laneOfTrip = (id: string) => itinerariesToFeatures(list).features.find((f) => f.properties.itineraryId === id)!.properties.lane;
       expect(laneOfTrip('east')).toBeGreaterThan(0);
       expect(laneOfTrip('west')).toBeLessThan(0);
+    }
+  });
+});
+
+describe('lanes stay apart in the real world, whatever direction a line runs (PR #35 review, issue 2)', () => {
+  // line-offset shifts a line to the RIGHT of ITS OWN direction. So the physical side a line ends up on
+  // depends on both its lane and which way its geometry runs. These tests compute the real shift.
+  const OFFSET = routeLayers().find((l) => l.type === 'line')!.paint['line-offset'];
+
+  /** The real sideways shift of one feature, as [east, north] in screen px. */
+  const physicalShift = (f: ReturnType<typeof itinerariesToFeatures>['features'][number]): [number, number] => {
+    const px = Number(evaluate(OFFSET, f.properties as unknown as FeatureProps));
+    const coords = f.geometry.coordinates;
+    const [x0, y0] = coords[0]!;
+    const [x1, y1] = coords.at(-1)!;
+    const len = Math.hypot(x1 - x0, y1 - y0) || 1;
+    // right of the direction (dx, dy) is (dy, -dx)
+    return [(px * (y1 - y0)) / len, (-px * (x1 - x0)) / len];
+  };
+
+  const straightTrip = (id: string, coordinates: [number, number][]): Itinerary => ({
+    ...sampleDrive,
+    id,
+    legs: [{ ...sampleDrive.legs[0]!, id: `${id}-0`, geometry: { type: 'LineString', coordinates } }]
+  });
+  const eastShiftOf = (list: Itinerary[], id: string) =>
+    physicalShift(itinerariesToFeatures(list).features.find((f) => f.properties.itineraryId === id)!)[0];
+
+  it('an outbound trip and its return on the same street end up on opposite sides', () => {
+    const outbound = straightTrip('outbound', [[-71, 42], [-71, 42.1]]); // heading north
+    const back = straightTrip('back', [[-71, 42.1], [-71, 42]]); // same street, heading south
+    for (const list of [[outbound, back], [back, outbound]]) {
+      const a = eastShiftOf(list, 'outbound');
+      const b = eastShiftOf(list, 'back');
+      expect(Math.abs(a), 'outbound is shifted').toBeGreaterThan(0);
+      expect(Math.abs(b), 'return is shifted').toBeGreaterThan(0);
+      expect(Math.sign(a), 'outbound and return must be on opposite sides of the street').not.toBe(Math.sign(b));
+    }
+  });
+
+  it('two trips sharing a short sideways stretch stay apart on it too', () => {
+    // Both go north, jog east, then north again. The jogs are drawn almost (not exactly) the same,
+    // one tilting slightly north, one slightly south: they must still end up on opposite sides.
+    const jog = (id: string, tilt: number): Itinerary => ({
+      ...sampleDrive,
+      id,
+      legs: [
+        { ...sampleDrive.legs[0]!, id: `${id}-0`, geometry: { type: 'LineString', coordinates: [[-71, 42], [-71, 42.01]] } },
+        { ...sampleDrive.legs[0]!, id: `${id}-1`, geometry: { type: 'LineString', coordinates: [[-71, 42.01], [-70.99, 42.01 + tilt]] } },
+        { ...sampleDrive.legs[0]!, id: `${id}-2`, geometry: { type: 'LineString', coordinates: [[-70.99, 42.01 + tilt], [-70.99, 42.02]] } }
+      ]
+    });
+    const a = jog('a', 0.0001);
+    const b = jog('b', -0.0001);
+    const northShiftOnJog = (id: string) =>
+      physicalShift(itinerariesToFeatures([a, b]).features.find((f) => f.properties.legId === `${id}-1`)!)[1];
+    expect(Math.sign(northShiftOnJog('a'))).not.toBe(Math.sign(northShiftOnJog('b')));
+  });
+
+  it('two trips in the same direction on the same street also end up on opposite sides', () => {
+    const one = straightTrip('one', [[-71, 42], [-71, 42.1]]);
+    const two = straightTrip('two', [[-71, 42], [-71, 42.1]]);
+    expect(Math.sign(eastShiftOf([one, two], 'one'))).not.toBe(Math.sign(eastShiftOf([one, two], 'two')));
+  });
+});
+
+describe('colours chosen by the app (PR #35 review, issue 3)', () => {
+  it('lines and dots use the colour map passed in, so result cards in the app can share it', () => {
+    const colors = new Map(sampleItineraries.map((t, i) => [t.id, `#00000${i}`]));
+    for (const f of itinerariesToFeatures(sampleItineraries, { colors }).features) {
+      expect(f.properties.color).toBe(colors.get(f.properties.itineraryId));
+    }
+    for (const f of itineraryPoints(sampleItineraries, { colors }).features) {
+      expect(f.properties.color).toBe(colors.get(f.properties.itineraryId));
     }
   });
 });
