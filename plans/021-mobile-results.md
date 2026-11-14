@@ -117,6 +117,8 @@ Render `itineraries` and `nearMisses` with the card fields above. Freshness text
 
 Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
+**Android (from @Cattn's review of PR #66, 2026-11-14):** follow plan 020's "Android Material 3 rules" and the `expo-ui` skill on every element of this sheet: Expo UI Jetpack Compose components (`Card`, `AssistChip` / `FilterChip`, `Surface`, `Badge`, `Icon`), laid out to match Figma frame **02 Results** on the `Android — Material 3` page. No hand-styled stand-ins for components Material 3 has. Badge and freshness colors come from the Material theme (`useMaterialColors()` / the `Host` color scheme), not `toneColors` from `@transit/shared`: Tight uses the `error` / `errorContainer` roles, Some risk uses `tertiaryContainer`, Safe and Live use `primaryContainer` / `secondaryContainer`.
+
 **Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. Both are on main (017 step 4 in #61, 009 step 5 in #65). Apply the same `savedColors` to the home map from plan 020, so a saved trip has the same color on home and in Results.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
