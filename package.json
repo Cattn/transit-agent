@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=22.13.0", "npm": ">=10" },
+  "engines": { "node": ">=24.13.0", "npm": ">=11.8.0" },
   "scripts": {
     "dev": "npm run build:shared && concurrently -k -n shared,server,web,mobile \"npm run dev -w @transit/shared\" \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:mobile\"",
     "dev:web": "npm run dev -w @transit/web",

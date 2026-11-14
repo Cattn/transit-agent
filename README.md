@@ -4,7 +4,7 @@ React web, React Native mobile, and a shared Node API in an npm workspace. Start
 
 ## Quick start
 
-Use Node.js 24 LTS and npm 10 or newer. From the repository root:
+Use Node.js 24.13+ and npm 11.8+. From the repository root:
 
 ```sh
 npm install
@@ -96,3 +96,5 @@ See [installable APK builds](https://docs.expo.dev/build-reference/apk/) and [de
 `ci.yml` runs lint, type checks, web/server builds, Android/iOS bundle exports, and API smoke checks on pushes and pull requests. Outputs are uploaded as a seven-day artifact. Deploy the server with its workspace dependencies and built shared package, not only its `dist` folder; web `dist` is standalone static output.
 
 `android.yml` manually queues a cloud APK build. First link the Expo project and complete an interactive Android build to create signing credentials. Set repository secret `EXPO_TOKEN` to an Expo access token and repository variable `EXPO_PUBLIC_API_URL` to your HTTPS API. Run **Android preview APK** from Actions. The job prints the EAS build link; it does not wait for native compilation or publish to a store.
+
+Use Node.js 24.13+ and npm 11.8+. Set GEMINI_API_KEY only on the server to enable the planner. AGENT_MODEL_PLANNER overrides GEMINI_MODEL; the default is gemini-flash-latest.

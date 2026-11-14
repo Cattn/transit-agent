@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import type { PlannerAgent } from './agent/types.js';
+import { agentRoutes } from './routes/agent.js';
 import cors from '@fastify/cors';
 import { sections, type HealthResponse } from '@transit/shared';
 import { registerErrorHandler } from './http/errors.js';
@@ -12,6 +14,7 @@ import { MemoryItineraryStore } from './store/memory.js';
 import type { ItineraryStore } from './store/types.js';
 
 export interface ServerDeps {
+  agent?: PlannerAgent;
   providers: RouteProvider[];
   itineraries: ItineraryStore;
   profiles: ProfileStore;
@@ -19,6 +22,7 @@ export interface ServerDeps {
 
 export function createServer(deps: Partial<ServerDeps> = {}) {
   const resolved: ServerDeps = {
+    agent: deps.agent,
     providers: deps.providers ?? [new FixtureProvider()],
     itineraries: deps.itineraries ?? new MemoryItineraryStore(),
     profiles: deps.profiles ?? new MemoryProfileStore()
@@ -42,6 +46,7 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
   app.register(planRoutes, resolved);
   app.register(itineraryRoutes, resolved);
   app.register(profileRoutes, resolved);
+  app.register(agentRoutes, resolved);
 
   return app;
 }
