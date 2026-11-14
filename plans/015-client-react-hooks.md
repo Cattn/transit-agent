@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Awaiting re-check:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `73a6d892117d686c34b1fe3514bb91f790acfacf`. Existing author pushed fixes for all three findings; reviewer 2 owns this PR and subsequent re-checks. Unmerged.
+- **Status:** **Technical re-check passed; merge conflicts remain:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `73a6d892117d686c34b1fe3514bb91f790acfacf`. Reviewer 2 recorded a COMMENT review, not a formal GitHub approval. Existing author is reconciling the branch; any new head needs reviewer 2's re-check. Unmerged.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -197,7 +197,7 @@ const chat = useAgentChat(trip.state, trip.apply);
 
 ## Maintenance notes
 
-- Fixes pushed at `73a6d892117d686c34b1fe3514bb91f790acfacf`: saved-mutation generation/queue isolation, state resets on client switches, and loading release after failed mutations supersede refreshes. Author reports `npm run check` and temporary jsdom/renderHook reproductions passing, including newer-request guards and serialization/rollback. No new tests or live Gemini calls. Independent re-check is pending with reviewer 2; do not send a duplicate packet or mark approved/merged.
+- Technical re-check passed at `73a6d892117d686c34b1fe3514bb91f790acfacf`: reviewer 2 independently verified all three P2 fixes with temporary jsdom/renderHook probes, fresh `npm ci`, full `npm run check` (132 existing tests and all builds/smoke), and exact-head CI. No remaining actionable fix-diff findings. GitHub rejected self-APPROVE; [the COMMENT review](https://github.com/Cattn/transit-agent/pull/47#pullrequestreview-5902320464) records the technical pass only. Merge conflicts against main remain; existing author owns reconciliation, preserving concurrent changes. Any updated head requires reviewer 2's re-check through the same sole sender. PR remains unmerged.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
