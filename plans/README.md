@@ -129,7 +129,7 @@ UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in para
 Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
 ```
 
-**Unblocked right now (nothing to wait for):** 015, 007 research, 009 steps 1–5, 014, 016, 018, UI slice 1 (shell).
+**Unblocked right now (nothing to wait for):** 015, 016, 017, 018, 006, 007 research, 009 steps 1–5, UI slice 1 (shell).
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is
