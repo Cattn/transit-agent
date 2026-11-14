@@ -6,8 +6,33 @@
     "orientation": "portrait",
     "scheme": "transit-agent",
     "userInterfaceStyle": "light",
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.transitagent.app" },
-    "android": { "package": "com.transitagent.app" },
-    "plugins": [["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]]
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.transitagent.app"
+    },
+    "android": {
+      "package": "com.transitagent.app"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Transit Agent uses your location to plan trips from where you are.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ]
+    ]
   }
 }

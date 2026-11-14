@@ -28,9 +28,10 @@ Plans are tiered by how settled they are:
 
 | Tier | Meaning | Plans |
 |------|---------|-------|
-| **Executable** | Step-by-step, with verification gates; hand to an agent as-is | 001–005, 012–018 |
-| **Executable after decision** | Steps written; one decision (Dn) must be confirmed first | 006, 008, 009 |
-| **Spike → build** | Begins with a time-boxed research step whose output may revise later steps | 007, 010, 011 |
+| **Done** | Merged. Do not reimplement. Verified 2026-11-14 at `bd41542` | 001–005, 012 |
+| **Executable** | Step-by-step, and expected to be rewritten as the mockups change | 007 research step only, then UI plans 020–027 (first Figma pass) |
+| **Waiting on a person** | In progress or approved. Do not start a second copy | 006 (Cattn), 009 (PR #35), 013 (PR #34), 014 (PR #30), 015 (Cattn), 016 (PR #36), 017 (DMFriends, waits on #35), 018 (DMFriends) |
+| **Later** | A dependency is not on main yet | 008, 010, 011, 019 |
 | **Direction** | Broad guidance for a team already working; not step-by-step | `ui-direction.md`, `ui-slices.md` (draft) |
 
 ---
@@ -85,25 +86,33 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 
 | Plan | Title | Who / availability | Priority | Effort | Depends on | Status |
 |------|-------|-------------------|----------|--------|------------|--------|
-| 001 | [Establish a unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (merged in #18) |
-| 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19) |
-| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27) |
-| 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (merged in #29) |
-| 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (merged in #31, 054f511) |
-| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn (coding agent running) | P1 | L | 003, 004, 005 (all done) | IN PROGRESS |
+| 001 | [Establish a unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (merged in #18; verified 2026-11-14 at `bd41542`, Vitest still runs) |
+| 002 | [Define the shared trip domain contract](002-shared-domain-contract.md) ([#6](https://github.com/Cattn/transit-agent/issues/6)) | Cattn | P1 | M | 001 | DONE (merged in #19; verified, domain schemas still on main) |
+| 003 | [Planning API with a fixture route provider](003-planning-api-fixture-provider.md) ([#7](https://github.com/Cattn/transit-agent/issues/7)) | Cattn | P1 | M | 002 | DONE (merged in #27; verified, `planTrip` + `FixtureProvider` still on main) |
+| 004 | [Typed client SDK + TripDraft state](004-client-sdk-and-trip-draft.md) ([#8](https://github.com/Cattn/transit-agent/issues/8)) | Cattn | P1 | S | 002 | DONE (merged in #29; verified, `applyDraftPatch` + API client still exported) |
+| 005 | [Persist users, profiles, saved itineraries](005-persistence-profiles-itineraries.md) ([#9](https://github.com/Cattn/transit-agent/issues/9)) | Cattn | P1 | M | 003, 004 | DONE (merged in #31, 054f511; verified, `node:sqlite` store and `listWatched` still on main) |
+| 006 | [Gemini planner agent via ADK](006-agent-planner-adk.md) ([#10](https://github.com/Cattn/transit-agent/issues/10)) | Cattn (coding agent running) | P1 | L | 003, 004, 005 (all done) | APPROVED (PR #38 at `c4e8a74`), unmerged; branch conflicts remain; live quality unvalidated |
 | 007 | [Real transit routing + realtime provider](007-transit-provider-spike-and-integration.md) ([#11](https://github.com/Cattn/transit-agent/issues/11)) | 🟢 research up for grabs now | P1 | L | 003 (D1, D2) | TODO |
 | 008 | [Watches and "when do I leave" engine](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | 🟢 up for grabs (later) | P2 | M | 013, 005, 007 (D7) | TODO |
-| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken (maps); steps 1–5 up for grabs **now** | P1 | M | 002 (D8, D9) | TODO |
+| 009 | [`packages/maps` contract + pure layer](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 (D8, D9) | APPROVED (PR #35 at `082892f`), awaiting merge; native deferred |
 | 010 | [Bike + transit ("modeMix")](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | 🟢 up for grabs (later) | P2 | M | 007 | TODO |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003, 014 (D10, D11) | TODO |
-| 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (merged in #32) |
+| 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | Cattn | P1 | M | 004 | DONE (merged in #32; verified, `createMockApiClient` still exported) |
 | 013 | ["When do I leave" logic, pure + shared](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | DMFriends | P1 | S | 002 | APPROVED (PR #34), awaiting merge |
 | 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | DMFriends | P2 | S | 002 | APPROVED (PR #30), awaiting DMFriends' merge |
-| 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn (coding agent running) | P1 | M | 004, 012 | IN PROGRESS |
+| 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn (coding agent running) | P1 | M | 004, 012 | TECHNICAL PASS (PR #47 at `73a6d89`, COMMENT review); branch conflicts, unmerged |
 | 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | APPROVED (PR #36), awaiting merge |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends (waits on PR #35) | P1 | S | 016, PR #35 | TODO |
 | 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — (015 optional) | APPROVED (PR #37 at `f04e96c`), awaiting merge; UI integration and device checks remain |
 | 019 | [Real flight prices: adapted Clovis (all flights)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | 🟢 up for grabs once 014 lands (strong model) | P2 | L | 014 (D10) | TODO |
+| 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | 📝 feedback welcome (@Rad1ee @DMFriends) | P1 | L | 012, 004 | TODO (first Figma pass) |
+| 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | 📝 feedback welcome | P1 | M | 020 | TODO (first Figma pass) |
+| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | 📝 feedback welcome | P1 | L | 020 | TODO (first Figma pass) |
+| 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | 📝 feedback welcome | P1 | M | 020 | TODO (first Figma pass) |
+| 024 | [Mobile door-to-door fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | 📝 feedback welcome | P2 | M | 020 | TODO (first Figma pass) |
+| 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | 📝 feedback welcome | P2 | L | 020 | TODO (first Figma pass) |
+| 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | 📝 feedback welcome | P1 | L | 012, 004 | TODO (first Figma pass) |
+| 027 | [Web results beside the agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | 📝 feedback welcome | P1 | M | 026 | TODO (first Figma pass) |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 012 for mock data | IN PROGRESS (living doc) |
 | — | [UI slices](ui-slices.md) (draft, on [#16](https://github.com/Cattn/transit-agent/issues/16)) | UI team to confirm format | — | — | 012, 015 | DRAFT |
 
@@ -122,14 +131,18 @@ Start now, anyone:  013 (leave-by logic) ────────────┘
                     016 (formatters) → 017 (colors, with maps)
                     007 research spike → 010 research
 
-Client:             004 ✅ → 012 (mock) ──→ 015 (hooks)
-Mobile:             018 (location, device ID, links, API URL)        start now
+Client:             004 ✅ → 012 (mock) ──→ 015 (hooks, in progress — do not start a second package)
+Mobile:             018 (in progress, DMFriends) — UI calls its helpers, does not recreate them
 
-UI (Rad1ee, DMFriends): ui-slices 1–8 against the mock, web and mobile in parallel
-Maps (KrakenTheJaken):  009 (steps 1–5 anyone) → web / native renderers
+UI (Rad1ee, DMFriends): plans 020–027, a first Figma pass (iOS, Android, and web). Expect these files to be edited as the mockups change. Comment on the issue by question number.
+Maps (KrakenTheJaken):  009 is PR #35. Native RouteMap is still step 7. UI only mounts it.
 ```
 
-**Unblocked right now (nothing to wait for):** 007 research, 009 steps 1–5, UI slice 1 (shell).
+**Unblocked right now (reconciled 2026-11-14 at `bd41542`, after pulling main):** 007's research step, and the UI plans 020–027. Those UI plans are a first Figma pass. They are buildable with the recommended defaults, and they are meant to be rewritten when the frames change. Answer the numbered questions on the issue (`020-Q2: ...`) and the plan file gets updated. Do not start a second copy of 006, 015, or 018 (in progress), 009 (PR #35), 013 (PR #34), 014 (PR #30), 016 (PR #36), or 017 (assigned to DMFriends, still waits on #35).
+
+**UI plans are a draft (2026-11-14).** Figma file `Transit-Agent-Design-Mockups`, pages `iOS — Liquid Glass`, `Android — Material 3`, and `Web — Desktop`. Web currently has home and planning only. Web settings, web filters, and a web fly frame are not drawn, so no plan invents them. D12 (a payment screen) stays removed. Where a frame disagrees with `ui-direction.md` (one sheet with three detents, one web side panel), the plan follows the frame and records the conflict as a question. Do not edit `ui-direction.md` from these plans. When a mockup changes, edit the existing plan's Current state. Do not open a second plan for the same screen.
+
+Maps (KrakenTheJaken): 009 is PR #35, not a fresh start. Native `RouteMap` (step 7) is still not in that PR. Mobile UI plans mount that component and pass padding; they do not draw routes.
 
 **First shared milestone (from the design thread):** *a user types a request and sees editable
 interpreted filters. The user gets route options drawn on the map and saves one.* That is
@@ -137,6 +150,8 @@ interpreted filters. The user gets route options drawn on the map and saves one.
 transit data (007) can land afterwards without any client changes.
 
 ## Dependency notes
+
+- **PR #35:** approved at `082892f` with 55 independent maps tests and final CI; still unmerged. Plan 017's allocator fix/re-review blocker is resolved, while merge and P4/palette decisions remain. Consumers reuse one full-trip-set color assignment via `RouteMap.routeColors` across filters/cards/map/picker. Native adapters preserve direction-adjusted offsets and selected dash layering; native/device validation remains open.
 
 - **002 before everything else.** It is the contract. Get the UI and maps teams to review
   `packages/shared/src/domain/*` before 003 starts.

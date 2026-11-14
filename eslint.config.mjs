@@ -9,7 +9,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   { languageOptions: { globals: { ...globals.node, ...globals.browser } } },
   {
-    files: ['packages/client-react/src/**/*.{ts,tsx}', 'apps/web/src/**/*.{ts,tsx}', 'apps/mobile/**/*.{ts,tsx}'],
+    files: ['apps/web/src/**/*.{ts,tsx}', 'apps/mobile/**/*.{ts,tsx}', 'packages/maps/src/**/*.{ts,tsx}', 'packages/client-react/src/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules
   }

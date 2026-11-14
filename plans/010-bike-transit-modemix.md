@@ -3,8 +3,8 @@
 > **Executor instructions**: Step 1 is a short spike; record its findings before continuing.
 > Honor STOP conditions; update the status row when done.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- apps/server/src/providers apps/server/src/agent/tools.ts`
-> Expected: plan 007 landed with a real provider. If D2 ≠ OTP, read the step notes marked "(non-OTP)".
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/providers apps/server/src/agent/tools.ts`
+> Reconciled 2026-11-14: plan 007 has **not** landed. An empty diff is expected. If this prints anything, compare Current state. If D2 ≠ OTP when you start the build steps, read the notes marked "(non-OTP)".
 
 ## Status
 
@@ -13,7 +13,7 @@
 - **Risk**: MED
 - **Depends on**: plans/007-transit-provider-spike-and-integration.md
 - **Category**: direction
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/14
 
 <!-- help:start -->
@@ -51,8 +51,8 @@ make it faster (see modeMix)."* Three distinct trip shapes matter:
 
 ## Current state
 
-- Contract has modes `bike` and `bikeshare`, `vehicles.ownsBike`, `constraints.maxBikeMinutes`, `preferences.activeTravel`, and `Place.kind: 'bikeDock'`.
-- Fixture provider emits a `bike-rail` option. The real provider (007) may or may not mix bikes (OTP does natively; Google Routes does not).
+- Contract has modes `bike` and `bikeshare`, `vehicles.ownsBike`, `constraints.maxBikeMinutes`, `preferences.activeTravel`, and `Place.kind: 'bikeDock'` (`packages/shared/src/domain/modes.ts`, `trip-draft.ts`, `places.ts`).
+- `apps/server/src/providers/fixture.ts` emits a `bike-rail` option (`OptionKey`). There is no `gbfs.ts` or `bike-rules.ts`. The real provider (007) has not landed. `apps/server/src/agent/tools.ts` does not exist yet (plan 006).
 
 ## Steps
 

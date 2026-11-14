@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔄 **In progress.** @Cattn is running a coding agent on it (started 2026-11-14).
+- **Status:** **Approved, awaiting merge:** [PR #38](https://github.com/Cattn/transit-agent/pull/38) at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`. All three review findings resolved; live-model quality remains unvalidated.
 - **Owner:** @Cattn
 - **Up for grabs?** Partly. Anyone can help with the agent's test prompts or tools, but running it needs the Gemini key on the server.
 
@@ -178,6 +178,16 @@ If ADK forbids changing the agent/tools for an existing session's runner, keep o
 `ServerDeps` gains `agent?: PlannerAgent`. In `index.ts`, construct `AdkPlanner` only if `GEMINI_API_KEY` is set. Otherwise, the route returns 503 `{ error: { code: 'agent_unavailable', message: 'Set GEMINI_API_KEY on the server' } }`. Log at startup whether the agent is enabled. **Never log the key.**
 Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory token bucket in the route file).
 
+### Shared development server (owner decision, 2026-11-14)
+
+Cattn runs the Gemini-enabled server on their own machine. Teammates run their web/mobile apps locally and point them at that server only when testing live AI or available live API integrations. They do not need Cattn's Gemini account, credentials, or a local Gemini key. Mock clients and fake planners remain the normal development/CI path.
+
+- Keep `GEMINI_API_KEY` only in the host machine's server environment or ignored `apps/server/.env`. Never send it to clients, teammates, logs, or source control.
+- Document the host setup in README: run the API with `HOST=0.0.0.0`, port `3001`, and `CORS_ORIGIN` listing teammates' actual browser origins (comma-separated; each teammate's `http://localhost:5173` works for their local browser). Existing server configuration already supports this; no separate hosted service is required.
+- Teammates set `VITE_API_URL=http://HOST_LAN_IP:3001` for web or `EXPO_PUBLIC_API_URL=http://HOST_LAN_IP:3001` for mobile, then restart their app. These variables contain only the API address. `localhost` and `10.0.2.2` on their machines do not address Cattn's server. Check `/api/health` from the teammate's machine first.
+- A LAN address works when the devices can reach that network. Off-network testing needs a reachable private-network address or separately arranged API tunnel; Expo's bundle tunnel does not expose the API. Document this distinction without provisioning a tunnel as part of 006.
+- The host server must be running for live calls. Without a configured key, agent requests retain the planned 503 behavior. Plan 006 enables live Gemini, not real transit/flight sources still owned by other plans; label fixture data accordingly.
+
 ### Step 9: Tests
 
 - `tools.test.ts`: `update_trip_draft` accumulates patches across 2 calls; `search_routes` with incomplete draft → `incomplete` + missing list; complete draft → `turn.plan` set and model-facing result has no `geometry` key; `ask_user` queues.
@@ -198,6 +208,7 @@ Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory to
 - [ ] `grep -rln "@google/adk" apps/server/src` → only `agent/adk-planner.ts` (and possibly `agent/tools.ts` for `FunctionTool`)
 - [ ] `grep -rn "GEMINI" apps/web apps/mobile` → no matches
 - [ ] Server starts without `GEMINI_API_KEY` and `/api/agent/messages` returns 503
+- [ ] README documents Cattn-hosted shared-server setup, teammate API URLs, browser CORS origins, and mock-first development without distributing the Gemini key
 - [ ] Eval run recorded in PR
 
 ## STOP conditions
@@ -207,6 +218,9 @@ Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory to
 - Gemini returns prices/times in replies without calling `search_routes` in > 1 of 6 eval prompts, even after tightening instructions once. Report: this is a product-risk finding.
 
 ## Maintenance notes
+
+- Re-check passed at `c4e8a7485a2bd1899b1c8edb522705ba97606ad5`: fresh locked `npm ci`, native ESM ADK import, built-index HTTP health 200/no-key agent 503, completed and in-flight plan invalidation, max two questions, 132 existing tests, and server build. The root production `uuid` workaround was verified. No new tests or live Gemini calls; no remaining reviewed code/runtime blockers. PR #38 remains unmerged; live-model quality is unvalidated.
+- GitHub currently reports this branch as not mergeable against main. Reconcile branch conflicts before any future merge; review approval does not mean the dependency is on main.
 
 - ADK is isolated in `adk-planner.ts`, so switching to `@google/genai` function-calling (D3-B) means rewriting that one file.
 - `InMemorySessionService` loses conversations on restart. That's fine; durable data (profiles, saved trips) lives in SQLite (plan 005).

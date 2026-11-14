@@ -2,23 +2,19 @@
   "name": "transit-agent",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "engines": {
-    "node": ">=22.13.0",
-    "npm": ">=10"
-  },
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=22.13.0", "npm": ">=10" },
   "scripts": {
-    "dev": "npm run build:packages && concurrently -k -n shared,client-react,server,web,mobile \"npm run dev -w @transit/shared\" \"npm run dev -w @transit/client-react\" \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:mobile\"",
+    "dev": "npm run build:packages && concurrently -k -n shared,maps,client-react,server,web,mobile \"npm run dev -w @transit/shared\" \"npm run dev -w @transit/maps\" \"npm run dev -w @transit/client-react\" \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:mobile\"",
     "dev:web": "npm run dev -w @transit/web",
     "dev:server": "npm run dev -w @transit/server",
     "dev:mobile": "npm run start -w @transit/mobile",
+    "demo:maps": "npm run demo -w @transit/maps",
     "android": "npm run android -w @transit/mobile",
     "ios": "npm run ios -w @transit/mobile",
     "mobile:tunnel": "npm run tunnel -w @transit/mobile",
-    "build:shared": "npm run build -w @transit/shared",
+    "build:shared": "npm run build -w @transit/shared && npm run build -w @transit/maps",
+    "build:packages": "npm run build:shared && npm run build -w @transit/client-react",
     "build:web": "npm run build:packages && npm run build -w @transit/web",
     "build:server": "npm run build:packages && npm run build -w @transit/server",
     "build:mobile": "npm run build:packages && npm run build -w @transit/mobile",
@@ -30,8 +26,7 @@
     "check": "npm test && npm run build && node scripts/smoke.mjs",
     "smoke": "npm run build:server && node scripts/smoke.mjs",
     "mobile:doctor": "npm exec -w @transit/mobile -- expo-doctor",
-    "android:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-setup.ps1",
-    "build:packages": "npm run build -w @transit/shared && npm run build -w @transit/client-react"
+    "android:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-setup.ps1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

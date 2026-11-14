@@ -4,7 +4,8 @@
 > Step 6 (real fare provider) must wait for decision D10 recorded in `plans/README.md`. Honor STOP
 > conditions; update the status row when done.
 >
-> **Drift check (run first)**: `git diff --stat c9e33cc..HEAD -- apps/server/src/providers apps/server/src/planning packages/shared/src/domain`
+> **Drift check (run first)**: `git diff --stat 9ccf722..HEAD -- apps/server/src/providers apps/server/src/planning packages/shared/src/domain`
+> Reconciled 2026-11-14: an empty diff is expected. If this prints anything, compare Current state before proceeding.
 > Expected: plans 003 (and ideally 007) landed. Read `providers/types.ts` and `planning/plan-trip.ts`.
 
 ## Status
@@ -15,7 +16,7 @@
 - **Depends on**: plans/003, plans/014, plans/019 (real prices; sample fares work without it); uses 007's ground routing when available (falls back to fixture)
 - **Category**: direction
 - **Blocked by decisions**: D10 (fare source), D11 (scope: US domestic + nearby airports first)
-- **Planned at**: commit `c9e33cc`, 2026-11-13
+- **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/15
 
 <!-- help:start -->
@@ -48,9 +49,9 @@ Fare data is a replaceable input.
 
 ## Current state
 
-- Contract supports `flight` legs, `Place.kind: 'airport'` with IATA `code`, cost lines with `estimated` flags, and `vehicles.carMpg`.
-- `planTrip` merges results from every provider whose `supports()` is true. `rank.ts` already trades cost against comfort via `comfortVsCost`.
-- No airport data, fare data, or gas price source yet.
+- Contract supports `flight` legs, `Place.kind: 'airport'` with IATA `code`, cost lines with `estimated` flags, and `vehicles.carMpg` (`packages/shared/src/domain/`).
+- `planTrip` in `apps/server/src/planning/plan-trip.ts` merges results from every provider whose `supports()` is true. `rank.ts` trades cost against comfort via `comfortVsCost`.
+- No `apps/server/src/flights/` on main. Plan 014 (airports, drive cost, sample fares) is approved in PR #30 and not merged. Steps 1–3 still say STOP if those files are missing.
 
 ## Steps
 
