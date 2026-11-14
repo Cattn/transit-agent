@@ -4,7 +4,7 @@ import { AgentQuestionSchema, TripDraftPatchSchema, applyDraftPatch, describePat
 import type { RouteProvider } from '../providers/types.js';
 import type { ItineraryStore } from '../store/types.js';
 import { planTrip } from '../planning/plan-trip.js';
-import { searchPlaces } from '../places/gazetteer.js';
+import type { PlaceSearcher } from '../places/geocoder.js';
 
 export interface TurnContext {
   deviceId: string;
@@ -14,6 +14,7 @@ export interface TurnContext {
   plan?: PlanResponse;
   providers: RouteProvider[];
   itineraries: ItineraryStore;
+  places: PlaceSearcher;
   signal?: AbortSignal;
 }
 
@@ -49,7 +50,7 @@ export function createPlannerTools(turn: TurnContext) {
       const request = toTripRequest(turn.draft);
       return { status: 'updated', draftSummary: describePatch(patch), missing: request.ok ? [] : request.missing };
     } }),
-    new PlannerTool({ name: 'find_place', description: 'Find up to five known places by name or airport code.', parameters: z.object({ query: z.string() }), execute: ({ query }: { query: string }) => searchPlaces(query) }),
+    new PlannerTool({ name: 'find_place', description: 'Find up to five places (stations, airports, landmarks, addresses) by name, address or airport code.', parameters: z.object({ query: z.string() }), execute: ({ query }: { query: string }) => turn.places.search(query) }),
     new PlannerTool({ name: 'search_routes', description: 'Search actual route providers for the current draft.', parameters: z.object({}), execute: async () => {
       const request = toTripRequest(turn.draft);
       if (!request.ok) return { status: 'incomplete', missing: request.missing };

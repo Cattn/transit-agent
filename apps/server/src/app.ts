@@ -13,12 +13,14 @@ import { MemoryProfileStore, type ProfileStore } from './store/profiles.js';
 import { planRoutes } from './routes/plan.js';
 import { MemoryItineraryStore } from './store/memory.js';
 import type { ItineraryStore } from './store/types.js';
+import { createPlaceSearcher, type PlaceSearcher } from './places/geocoder.js';
 
 export interface ServerDeps {
   agent?: PlannerAgent;
   providers: RouteProvider[];
   itineraries: ItineraryStore;
   profiles: ProfileStore;
+  places: PlaceSearcher;
 }
 
 export function createServer(deps: Partial<ServerDeps> = {}) {
@@ -26,7 +28,8 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
     agent: deps.agent,
     providers: deps.providers ?? [new FixtureProvider()],
     itineraries: deps.itineraries ?? new MemoryItineraryStore(),
-    profiles: deps.profiles ?? new MemoryProfileStore()
+    profiles: deps.profiles ?? new MemoryProfileStore(),
+    places: deps.places ?? createPlaceSearcher({})
   };
 
   const app = Fastify({ logger: true });

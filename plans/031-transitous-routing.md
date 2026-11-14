@@ -82,7 +82,7 @@ Use direct car routing from the selected engine where supported. Transitous retu
 
 ### Step 5: Geocoder
 
-Moved to [#53](https://github.com/Cattn/transit-agent/issues/53) (pulled forward for the MVP). Skip it here.
+Done by plan 033 ([#53](https://github.com/Cattn/transit-agent/issues/53)): Photon behind `/api/places` and `find_place`, with the hand list as fallback. Skip it here.
 
 ### Step 6: Return-trip check ("can I make it back?")
 

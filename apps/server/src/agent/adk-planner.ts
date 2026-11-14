@@ -9,7 +9,7 @@ const sessions = new InMemorySessionService();
 const appName = 'transit-agent';
 
 export class AdkPlanner implements PlannerAgent {
-  constructor(private readonly deps: Pick<TurnContext, 'providers' | 'itineraries'>) {}
+  constructor(private readonly deps: Pick<TurnContext, 'providers' | 'itineraries' | 'places'>) {}
 
   async respond(input: AgentTurnInput, signal?: AbortSignal) {
     const abortSignal = AbortSignal.any([AbortSignal.timeout(40_000), ...(signal ? [signal] : [])]);
