@@ -110,7 +110,7 @@ See [installable APK builds](https://docs.expo.dev/build-reference/apk/) and [de
 
 `android.yml` manually queues a cloud APK build. First link the Expo project and complete an interactive Android build to create signing credentials. Set repository secret `EXPO_TOKEN` to an Expo access token and repository variable `EXPO_PUBLIC_API_URL` to your HTTPS API. Run **Android preview APK** from Actions. The job prints the EAS build link; it does not wait for native compilation or publish to a store.
 
-Use Node.js 24.13+ and npm 11.8+. Set GEMINI_API_KEY only on the server to enable the planner. AGENT_MODEL_PLANNER overrides GEMINI_MODEL; the default is gemini-4-hydrogen.
+Use Node.js 24.13+ and npm 11.8+. Set GEMINI_API_KEY only on the server to enable the planner, or use Vertex AI with Application Default Credentials: `GOOGLE_GENAI_USE_ENTERPRISE=true` (the older `GOOGLE_GENAI_USE_VERTEXAI=true` also works), `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION` (see `apps/server/.env.example`). AGENT_MODEL_PLANNER overrides GEMINI_MODEL; the default is gemini-4-hydrogen.
 
 ### Shared development server
 

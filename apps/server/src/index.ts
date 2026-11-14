@@ -2,6 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createServer } from './app.js';
+import { plannerConfigured, usesVertex } from './agent/models.js';
 import { FixtureProvider } from './providers/fixture.js';
 import { migrate } from './store/migrations.js';
 import { SqliteItineraryStore } from './store/sqlite.js';
@@ -13,9 +14,9 @@ const db = new DatabaseSync(databasePath);
 migrate(db);
 const itineraries = new SqliteItineraryStore(db);
 const providers = [new FixtureProvider()];
-const agent = process.env.GEMINI_API_KEY ? new (await import('./agent/adk-planner.js')).AdkPlanner({ itineraries, providers }) : undefined;
+const agent = plannerConfigured() ? new (await import('./agent/adk-planner.js')).AdkPlanner({ itineraries, providers }) : undefined;
 const app = createServer({ itineraries, providers, profiles: new SqliteProfileStore(db), agent });
-app.log.info({ agentEnabled: Boolean(agent) }, 'Planner agent availability');
+app.log.info({ agentEnabled: Boolean(agent), backend: agent ? (usesVertex() ? 'vertex' : 'gemini-api') : undefined }, 'Planner agent availability');
 
 async function shutdown() {
   try {
