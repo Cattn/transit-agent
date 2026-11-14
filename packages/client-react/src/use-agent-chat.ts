@@ -13,6 +13,14 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiClientError>();
   const [lastPlan, setLastPlan] = useState<PlanResponse>();
+  const [previousApi, setPreviousApi] = useState(api);
+  if (previousApi !== api) {
+    setPreviousApi(api);
+    setMessages([]);
+    setPending(false);
+    setError(undefined);
+    setLastPlan(undefined);
+  }
   useEffect(() => () => { generation.current++; session.current = undefined; busy.current = false; }, [api]);
   const send = useCallback(async (text: string) => {
     if (busy.current || !text.trim()) return;

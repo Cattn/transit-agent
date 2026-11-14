@@ -6,6 +6,11 @@ export function usePlanTrip() {
   const api = useApi();
   const sequence = useRef(0);
   const [state, setState] = useState<{ data?: PlanResponse; error?: ApiClientError; loading: boolean }>({ loading: false });
+  const [previousApi, setPreviousApi] = useState(api);
+  if (previousApi !== api) {
+    setPreviousApi(api);
+    setState({ loading: false });
+  }
   useEffect(() => () => { sequence.current++; }, [api]);
   const clear = useCallback(() => { sequence.current++; setState({ loading: false }); }, []);
   const run = useCallback(async (request: TripRequest) => {
