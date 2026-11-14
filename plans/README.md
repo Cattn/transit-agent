@@ -58,7 +58,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 | 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | #52 | TODO (right after MVP) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (native) | TODO (right after MVP) |
 | 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | TODO (after MVP) |
-| 032 | [Faster check and test](032-check-speed.md) ([#62](https://github.com/Cattn/transit-agent/issues/62)) | Cattn | P2 | S | — | IN PROGRESS (approved incl. merge) |
+| 032 | [Faster check and test](032-check-speed.md) ([#62](https://github.com/Cattn/transit-agent/issues/62)) | Cattn | P2 | S | — | DONE (#63) |
 | — | Live agent check: Hydrogen on real prompts ([#51](https://github.com/Cattn/transit-agent/issues/51)) | Cattn | P1 | S | — | DONE (results on #51; fixes in #52) |
 | — | Real place search: geocoder behind `/api/places` + `find_place` (plan 007 step 5, pulled forward) ([#53](https://github.com/Cattn/transit-agent/issues/53)) | Cattn | P1 | S–M | 028 | TODO (MVP; pick a service) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | TODO |
@@ -83,7 +83,7 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
 - **Answer questions** on the issue by number (`020-Q2: search first`). The answer is recorded in that same plan; never open a second plan for the same screen.
 - Use the strongest model for 007, 009, 010, 019.
 - **Labels and milestones:** each issue has one `area: …` label (server, web, mobile, maps, shared), plus at most `help wanted` (up for grabs), `blocked` (waiting on another issue or decision), `research` (starts with a spike), or `bug`. Open questions live in each issue's help box, not a label. Milestones: **MVP** and **Full app**. #16 and #17 are `tracking`.
-- **UI plans and issues need visual proof:** a UI PR shows each primary feature working, as screenshots or a video, at most 4 pieces of media. The PR template and the `review-pr` skill enforce it.
+- **UI plans and issues need visual proof:** a UI PR shows each primary feature working, as screenshots or a video, ideally about 4 pieces of media (more is fine). Upload with `gh ... --attach` (gh 2.104+); the `ship-plan` skill has the Android-over-USB capture recipe. The PR template and the `review-pr` skill enforce it.
 - **Android is Material 3 (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)):** Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`, real Material 3 components; chosen over `react-native-paper`), Material Symbols icons, theme colors, Roboto. The full list is in plan 020's Current state and applies to 021–025. iOS keeps the glass design.
 - **UI plans (020–027) are a first Figma pass** (`Transit-Agent-Design-Mockups`: `iOS — Liquid Glass`, `Android — Material 3`, `Web — Desktop`). When a frame changes, update that plan's Current state. Web has only home and planning frames; no plan invents web settings, filters, or Fly.
 - **Mock first:** UI plans default to the mock client. `VITE_API_MODE=server` (web) or `EXPO_PUBLIC_API_MODE=server` (mobile) switches to a real server. Only Cattn's server holds the Gemini key.

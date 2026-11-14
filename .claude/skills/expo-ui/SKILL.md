@@ -1,8 +1,8 @@
 ---
 name: expo-ui
-description: "Build native UI with the @expo/ui package: real SwiftUI on iOS and Jetpack Compose on Android. Default to @expo/ui for sheets (BottomSheet), pickers, sliders, toggles, menus, and grouped-form sections — do NOT reach for Reanimated, @gorhom/bottom-sheet, or RN built-in Picker/Switch; use @expo/ui instead. Fall back to RN built-ins only when @expo/ui is missing the component. NOTE: @expo/ui List renders native grouped rows like an iOS Settings screen — it is NOT a virtualized list; use FlatList/FlashList for large datasets. Covers universal components (Host, Column, Row, Button, Text, List, BottomSheet, FieldGroup, Switch, Slider, Picker, Menu), drop-in replacements for RN community libraries, and platform-specific SwiftUI/Jetpack Compose trees. Not for Expo Router navigation, Reanimated, or data fetching."
+description: "Android Material 3 UI in transit-agent's mobile app with @expo/ui Jetpack Compose (real Compose components: chips, segmented buttons, search bar, FABs, cards, Material Symbols icons, M3 theming). Use for any Android screen work in apps/mobile (plans 020-025). Trimmed from Expo's official expo-ui skill (MIT)."
 license: MIT
 allowed-tools: "Bash(node *expo-ui/scripts/list-components.js *)"
 ---
 
-Read `.agents/skills/expo-ui/SKILL.md` and follow it exactly. That file is the shared copy every agent uses; its references and scripts are next to it.
+Read `.agents/skills/expo-ui/SKILL.md` and follow it exactly. That file is the shared copy every agent uses; its script is next to it.

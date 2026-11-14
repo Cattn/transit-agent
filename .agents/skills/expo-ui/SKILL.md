@@ -1,101 +1,71 @@
 ---
 name: expo-ui
-description: "Build native UI with the @expo/ui package: real SwiftUI on iOS and Jetpack Compose on Android. Default to @expo/ui for sheets (BottomSheet), pickers, sliders, toggles, menus, and grouped-form sections — do NOT reach for Reanimated, @gorhom/bottom-sheet, or RN built-in Picker/Switch; use @expo/ui instead. Fall back to RN built-ins only when @expo/ui is missing the component. NOTE: @expo/ui List renders native grouped rows like an iOS Settings screen — it is NOT a virtualized list; use FlatList/FlashList for large datasets. Covers universal components (Host, Column, Row, Button, Text, List, BottomSheet, FieldGroup, Switch, Slider, Picker, Menu), drop-in replacements for RN community libraries, and platform-specific SwiftUI/Jetpack Compose trees. Not for Expo Router navigation, Reanimated, or data fetching."
+description: "Android Material 3 UI in transit-agent's mobile app with @expo/ui Jetpack Compose (real Compose components: chips, segmented buttons, search bar, FABs, cards, Material Symbols icons, M3 theming). Use for any Android screen work in apps/mobile (plans 020-025). Trimmed from Expo's official expo-ui skill (MIT)."
 license: MIT
 allowed-tools: "Bash(node *expo-ui/scripts/list-components.js *)"
 ---
 
-# Expo UI (`@expo/ui`)
+# Expo UI for transit-agent (Android Material 3)
 
-`@expo/ui` renders real native UI from React: SwiftUI on iOS, Jetpack Compose on Android. It also ships drop-in replacements for migrating off RN community UI libraries.
+Trimmed from Expo's `expo-ui` skill (expo/skills `7582922`, MIT, see `LICENSE`). Project rules come first: plan 020's "Android Material 3 rules" (Current state) apply to every Android screen in plans 020–025. iOS keeps its glass design and does not use this skill.
 
-> These instructions track the latest Expo SDK. The **universal** layer requires **SDK 56+** and works in Expo Go — no custom build needed. Drop-in replacements and the platform-specific layers also exist on SDK 55. For component details on a specific SDK, refer to the Expo UI docs for that version.
+## Setup
 
-## Installation
+- `npx expo install @expo/ui` in `apps/mobile` (Expo SDK 58; works in Expo Go).
+- Components: `@expo/ui/jetpack-compose`. Modifiers: `@expo/ui/jetpack-compose/modifiers`. **`Host` always from the `@expo/ui` root.**
+- `@expo/ui/jetpack-compose` crashes on iOS ("Unable to get view config"). Compose code lives only in `.android.tsx` files (e.g. `HomeChrome.android.tsx`) or behind `Platform.OS === 'android'`.
 
-```bash
-npx expo install @expo/ui
-```
+## Before writing code
 
-Every `@expo/ui` tree — universal or platform-specific — must be wrapped in `Host`.
+1. List what the installed version has: `node .agents/skills/expo-ui/scripts/list-components.js .` from the repo root, where npm hoists `@expo/ui` (use `apps/mobile` if it is not hoisted; add `--docs` for one-line descriptions).
+2. Read the component's `index.d.ts` under `node_modules/@expo/ui/build/jetpack-compose/` for exact props. Types beat docs and memory.
+3. Docs per component: https://docs.expo.dev/versions/latest/sdk/ui/jetpack-compose/{component-name}/index.md. Modifiers: https://docs.expo.dev/versions/latest/sdk/ui/jetpack-compose/modifiers/index.md
+4. The API mirrors Jetpack Compose + Material 3. Pick components the way an Android Compose developer would (https://m3.material.io/).
 
-## Use @expo/ui by default — don't reach for RN alternatives first
+## Layout and sizing
 
-**Before using Reanimated, `@gorhom/bottom-sheet`, React Native's built-in `Switch`/`Picker`, or any community UI library for the items below, use `@expo/ui` instead.** Only fall back to RN built-ins when `@expo/ui` is missing the component.
-
-| Need | Use |
-|------|-----|
-| Slide-up sheet / bottom sheet | `BottomSheet` from `@expo/ui` — **not** Reanimated or `@gorhom/bottom-sheet` |
-| Grouped native list rows (settings/form-style) | `List` + `ListItem` from `@expo/ui` — **not** `FlatList` (see note below) |
-| Toggle | `Switch` from `@expo/ui` |
-| Slider | `Slider` from `@expo/ui` |
-| Date/time picker | `@expo/ui/community/datetimepicker` |
-| Menu | `Menu` from `@expo/ui` |
-| Form section with label | `FieldGroup` from `@expo/ui` |
-| Collapsible section | `Collapsible` from `@expo/ui` |
-
-> **`List` is NOT a virtualized scrolling list.** It renders native grouped table rows — the visual look of an iOS Settings screen or a form section, with disclosure indicators and native row styling. Each `ListItem` is a native node on the JS thread; rows are not recycled. For any list with large or unknown-length data (feeds, search results, catalogs), use **`FlatList`** or **`FlashList`** instead. `List` is the right choice for short, fixed-length groups: a settings screen, a detail panel's rows, a fixed menu.
-
-**`BottomSheet` example** (use this for map pin details, action sheets, detail panels — not Reanimated):
+- Every Compose tree sits in a `Host`. `<Host matchContents>` sizes to content; `<Host style={{ flex: 1 }}>` for an explicit size (needed around `LazyColumn`).
+- Inside a `Host`, lay out with Compose `Row` / `Column` (`verticalArrangement={{ spacedBy: 8 }}`, `modifiers={[fillMaxWidth(), paddingAll(16)]}`), not flexbox.
+- Never `matchContents` on the same axis as a scrolling child (`LazyColumn`, `LazyRow`, `Carousel`); it crashes. `matchContents` is read once on mount.
+- `RNHostView` puts React Native views (e.g. the map) inside a Compose tree. Several small `Host`s inside an RN layout is fine.
 
 ```tsx
-import { Host, BottomSheet, Column, Text } from '@expo/ui';
-import { useState } from 'react';
+import { Host } from '@expo/ui';
+import { Column, Text, AssistChip } from '@expo/ui/jetpack-compose';
+import { fillMaxWidth, paddingAll } from '@expo/ui/jetpack-compose/modifiers';
 
-export default function MapScreen() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <View style={{ flex: 1 }}>
-      <MapView onMarkerPress={() => setIsOpen(true)} />
-      <Host>
-        <BottomSheet
-          isPresented={isOpen}
-          onDismiss={() => setIsOpen(false)}
-          snapPoints={['half', 'full']}
-        >
-          <Column>
-            <Text>Café name</Text>
-            <Text>Address</Text>
-          </Column>
-        </BottomSheet>
-      </Host>
-    </View>
-  );
-}
+<Host matchContents>
+  <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), paddingAll(16)]}>
+    <Text style={{ typography: 'titleLarge' }}>Tracked trips</Text>
+  </Column>
+</Host>;
 ```
 
-`BottomSheet` uses `isPresented`/`onDismiss` — **not** `isOpened`, `isOpen`, `onIsOpenedChange`, or `onChange` (those are `@gorhom/bottom-sheet` props and will silently do nothing). `snapPoints` accepts `'half'`, `'full'`, `{ fraction: 0.5 }`, or `{ height: 400 }` and is optional (auto-sizes to content when omitted).
+## Components we use (check exact props in the `.d.ts`)
 
-## Choosing an approach
+| Need | Compose component |
+|---|---|
+| Transit / Drive / Fly | `SingleChoiceSegmentedButtonRow` |
+| Search | `DockedSearchBar` (or `SearchBar`) |
+| Home / Office / Gym / Recent chips | `AssistChip` (`FilterChip` for toggles) |
+| Ask agent | `ExtendedFloatingActionButton` (`.Icon` / `.Text` slots) |
+| Location button | `FloatingActionButton` / `SmallFloatingActionButton` |
+| Trip cards | `Card` (elevated or filled), `Surface` |
+| Live pill, badges | `Surface` / `Badge` + `Icon` |
+| Settings rows | `ListItem`, `Switch`, `RadioButton` |
+| Short fixed lists | `LazyColumn` (not for long lists; use RN `FlatList` there) |
 
-Work down this list and stop at the first layer that meets the need:
+## Sheets
 
-1. **Universal components — start here.** Import from the `@expo/ui` root. One component tree runs unmodified on iOS, Android, and web from a single source (Compose on Android, SwiftUI on iOS, `react-native-web`/`react-dom` on web). No platform file splits. → `./references/universal.md`
+- Home / results sheet (persistent over the map, dragged between collapsed and expanded): try Expo's drop-in `import BottomSheet, { BottomSheetView } from '@expo/ui/community/bottom-sheet'` (same API as `@gorhom/bottom-sheet`) first; fall back to `@gorhom/bottom-sheet` and say why in the PR.
+- Modal sheets that open and close (e.g. agent chat): the universal `BottomSheet` from `@expo/ui`, controlled with `isPresented` / `onDismiss` (not `isOpen` / `onChange`); `snapPoints` takes `'half'`, `'full'`, `{ fraction }`, `{ height }`.
 
-2. **Platform-specific (SwiftUI / Jetpack Compose).** Import from `@expo/ui/swift-ui` or `@expo/ui/jetpack-compose`. Use **only** when the universal layer is missing a component or modifier you need, or when you need platform-specific behavior or optimization. **Downside:** you write two trees and split them into `.ios.tsx` / `.android.tsx` files (or branch on `Platform.OS`) — more code to maintain.
+## Icons and theme
 
-   > **`@expo/ui/swift-ui` is iOS-only. `@expo/ui/jetpack-compose` is Android-only.** Importing either in a file that runs on the other platform will crash at runtime with "Unable to get view config" errors. Isolate platform-specific trees in `.ios.tsx` / `.android.tsx` files placed in `components/` (never inside `app/` — Expo Router does not support platform extensions for route files), or guard with `Platform.OS` in a regular route file. `Host` must always be imported from `@expo/ui` (the universal package root), not from the platform-specific sub-packages. → `./references/swift-ui.md` and `./references/jetpack-compose.md`
+- Icons: Material Symbols as Android XML vector drawables, `<Icon source={require('../../assets/icons/bus.xml')} size={24} tint={...} contentDescription="Bus" />`. Get them from `@expo/material-symbols` or https://fonts.google.com/icons (Android, XML) into `apps/mobile/assets/icons/`.
+- Theme: `Host` `colorScheme` follows the app's appearance setting (`useAppColors()`, plan 020), with one `seedColor` for the brand. `useMaterialColors()` gives the same palette to non-Compose views. Never hand-pick chip or surface colors. Android 12+ wallpaper colors apply only if we drop the seed.
+- Fonts: Roboto is the system font; don't override it.
 
-**Already using an RN community UI library?** `@expo/ui` also ships **drop-in replacements** — API-compatible swaps for popular libraries (`@gorhom/bottom-sheet`, `@react-native-community/datetimepicker`, and more), imported from `@expo/ui/community/<name>`. This is a migration side-path for replacing an existing dependency, not a step in the universal-vs-platform decision above. → `./references/drop-in-replacements.md`
+## Missing a component?
 
-## References
-
-Consult these resources as needed:
-
-```
-references/
-  universal.md             Universal @expo/ui components and when to use them (SDK 56+)
-  drop-in-replacements.md  API-compatible replacements for RN community UI libraries
-  swift-ui.md              Platform-specific iOS UI: @expo/ui/swift-ui components, modifiers, RNHostView, useNativeState
-  jetpack-compose.md       Platform-specific Android UI: @expo/ui/jetpack-compose components, modifiers, LazyColumn caveat, icons, useNativeState
-```
-
-## Submitting Feedback
-If you encounter errors, misleading or outdated information in this skill, report it so Expo can improve:
-```bash
-npx --yes @expo/agent-cli@latest feedback --category skills --subject "expo-ui" --message "<actionable feedback>"
-```
-Only submit when you have something specific and actionable to report. Include as much relevant context as possible. Messages need 40-5,000 characters.
-If an `@expo/agent-cli` command fails, gives a wrong answer, or is hard to use, report it with `--category agent-cli` and the command name as `--subject`, such as `status`.
-If an agent repeatedly fails at an Expo task or the user has to step in, submit a brief report of the task, expected result, and what went wrong using `--category evals` and the relevant Expo package or command as `--subject`.
+Fall back to a plain React Native view styled from `useMaterialColors()`, and note it in the PR. Extending Expo UI with a local Expo module needs the user's OK first.

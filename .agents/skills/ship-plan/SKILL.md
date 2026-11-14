@@ -34,7 +34,10 @@ Never invent an answer to a product decision to keep moving.
 ## 4. Validate
 - `npm run check` must pass (lint, typecheck, unit tests, all builds, smoke). Paste the summary into the PR.
 - Anything you couldn't verify (devices, live APIs, credentials) goes in the PR as untested — say so plainly.
-- UI changes need visual proof of each primary feature (screenshots or video, at most 4 pieces of media) in the PR's "Screenshots / video" section. If you can't capture them (no device or emulator), say so there and in your report so a person adds them before merge.
+- UI changes need visual proof of each primary feature (screenshots or video, ideally about 4; more is fine when needed) in the PR's "Screenshots / video" section. If you can't capture them (no device or emulator), say so there and in your report so a person adds them before merge.
+  - Android phone over USB (mobile): `npm run build -w @transit/shared -w @transit/client-react` (add `-w @transit/maps` if the app imports it), check `adb devices -l` shows `device`, run `adb reverse tcp:8081 tcp:8081`, start `npx expo start --go --android --localhost` in `apps/mobile` in the background, navigate (`adb shell input tap X Y` / `input swipe`), then `adb exec-out screencap -p > shot.png` (binary-safe; in PowerShell use `cmd /c "adb exec-out screencap -p > shot.png"`). For video: `adb shell screenrecord /sdcard/demo.mp4` then `adb pull`. Stop Metro and `adb reverse --remove-all` after.
+  - Web: run the dev server and capture with the browser/preview tools.
+  - Upload: put `![what it shows](./shot.png)` lines in the body file and run `gh pr create ... --body-file body.md --attach ./shot.png` (or `gh pr edit <n>`); gh rewrites the local paths to uploaded URLs. Needs gh 2.104+. Never commit screenshots to the repo.
 
 ## 5. Open the PR
 - Commit messages and PR text: **no AI attribution** (no Co-Authored-By, no "generated with/by").
