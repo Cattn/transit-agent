@@ -208,6 +208,24 @@ describe('SQLite storage', () => {
 });
 
 describe.each(['memory', 'sqlite'])('%s store contract', (implementation) => {
+  it('preserves concurrent independent patches', async () => {
+    if (implementation === 'sqlite') {
+      db = new DatabaseSync(':memory:');
+      migrate(db);
+    }
+    const store = db ? new SqliteItineraryStore(db) : new MemoryItineraryStore();
+    const saved = await store.save(DEVICE_A, {
+      ...saveBody(undefined, 'Original'), request: TripRequestSchema.parse(fixtureRequest), watch: true
+    });
+    const [renamed, unwatched] = await Promise.all([
+      store.update(DEVICE_A, saved.id, { label: 'Renamed' }),
+      store.update(DEVICE_A, saved.id, { watch: false })
+    ]);
+    expect(renamed).toMatchObject({ label: 'Renamed' });
+    expect(unwatched).toMatchObject({ label: 'Renamed', watch: false });
+    expect(await store.get(DEVICE_A, saved.id)).toMatchObject({ label: 'Renamed', watch: false });
+  });
+
   it('round-trips, isolates and replaces itineraries and profiles without exposing mutable state', async () => {
     if (implementation === 'sqlite') {
       db = new DatabaseSync(':memory:');

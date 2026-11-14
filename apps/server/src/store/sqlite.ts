@@ -19,7 +19,7 @@ export class SqliteItineraryStore implements ItineraryStore {
       ON CONFLICT(device_id, id) DO UPDATE SET saved_at = excluded.saved_at,
       label = excluded.label, watch = excluded.watch, leave_by = excluded.leave_by,
       itinerary_json = excluded.itinerary_json, request_json = excluded.request_json`);
-    this.patch = db.prepare('UPDATE saved_itineraries SET label = ?, watch = ? WHERE device_id = ? AND id = ?');
+    this.patch = db.prepare('UPDATE saved_itineraries SET label = COALESCE(?, label), watch = COALESCE(?, watch) WHERE device_id = ? AND id = ?');
     this.deleteOne = db.prepare('DELETE FROM saved_itineraries WHERE device_id = ? AND id = ?');
     this.watched = db.prepare('SELECT * FROM saved_itineraries WHERE watch = 1');
   }
@@ -64,13 +64,9 @@ export class SqliteItineraryStore implements ItineraryStore {
   }
 
   async update(deviceId: string, id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary | undefined> {
-    const current = await this.get(deviceId, id);
-    if (!current) return undefined;
-    const next = { ...current };
-    if (patch.label !== undefined) next.label = patch.label;
-    if (patch.watch !== undefined) next.watch = patch.watch;
-    this.patch.run(next.label ?? null, Number(next.watch), deviceId, id);
-    return next;
+    this.patch.run(patch.label ?? null, patch.watch === undefined ? null : Number(patch.watch), deviceId, id);
+    const row = this.selectOne.get(deviceId, id);
+    return row && this.read(row);
   }
 
   async remove(deviceId: string, id: string): Promise<boolean> {
