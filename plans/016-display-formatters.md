@@ -20,21 +20,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** Nothing to wait for.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Fully specified and test-driven; a cheaper coding agent can do it.
-
-**Open questions** (answer by number in a comment on #24):
-
-1. @Rad1ee @DMFriends: wording check: "Safe / Some risk / Tight" for transfer risk, and "Scheduled (not live)" for schedule-only times. Change anything?
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/016-display-formatters.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #24`.
-- **Just feedback:** answer the open questions above by number in a comment.
+- **Status:** 🔄 **In progress** by @DMFriends.
+- **Owner:** @DMFriends
 
 <!-- help:end -->
 
@@ -117,4 +104,4 @@ One `describe` per function, table-driven. Use `timeZone: 'America/New_York'` in
 
 ## Open questions for review
 
-- 016-Q1 (@Rad1ee @DMFriends): Wording check: "Safe / Some risk / Tight" for transfer risk, and "Scheduled (not live)" for schedule-only times. Change anything?
+- ~~016-Q1~~ **Decided (@DMFriends, 2026-11-14, [#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** no changes. Keep "Safe / Some risk / Tight" and "Scheduled (not live)" exactly as written in Step 1.
