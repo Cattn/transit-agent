@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=22.13.0", "npm": ">=10" },
+  "engines": { "node": ">=24.13.0", "npm": ">=11.8.0" },
   "scripts": {
     "dev": "npm run build:packages && concurrently -k -n shared,maps,client-react,server,web,mobile \"npm run dev -w @transit/shared\" \"npm run dev -w @transit/maps\" \"npm run dev -w @transit/client-react\" \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:mobile\"",
     "dev:web": "npm run dev -w @transit/web",
@@ -37,5 +37,8 @@
     "globals": "^16.5.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.2"
+  },
+  "dependencies": {
+    "uuid": "^11.1.1"
   }
 }

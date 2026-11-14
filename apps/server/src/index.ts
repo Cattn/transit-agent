@@ -2,6 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createServer } from './app.js';
+import { FixtureProvider } from './providers/fixture.js';
 import { migrate } from './store/migrations.js';
 import { SqliteItineraryStore } from './store/sqlite.js';
 import { SqliteProfileStore } from './store/profiles.js';
@@ -10,7 +11,11 @@ const databasePath = process.env.DATABASE_PATH ?? './data/transit-agent.db';
 if (databasePath !== ':memory:') mkdirSync(dirname(databasePath), { recursive: true });
 const db = new DatabaseSync(databasePath);
 migrate(db);
-const app = createServer({ itineraries: new SqliteItineraryStore(db), profiles: new SqliteProfileStore(db) });
+const itineraries = new SqliteItineraryStore(db);
+const providers = [new FixtureProvider()];
+const agent = process.env.GEMINI_API_KEY ? new (await import('./agent/adk-planner.js')).AdkPlanner({ itineraries, providers }) : undefined;
+const app = createServer({ itineraries, providers, profiles: new SqliteProfileStore(db), agent });
+app.log.info({ agentEnabled: Boolean(agent) }, 'Planner agent availability');
 
 async function shutdown() {
   try {
