@@ -28,6 +28,8 @@ export * from './domain/fixtures.js';
 export * from './domain/agent.js';
 export * from './domain/place-search.js';
 export * from './format/format.js';
+export * from './theme/colors.js';
+export * from './theme/contrast.js';
 export * from './client/api-client.js';
 export * from './client/device-id.js';
 export * from './client/trip-draft-state.js';

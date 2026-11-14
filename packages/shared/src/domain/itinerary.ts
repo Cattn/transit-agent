@@ -81,6 +81,7 @@ export const SavedItinerarySchema = ItinerarySchema.extend({
   leaveBy: IsoDateTime.optional(),
   /** Latest watch result (computeWatchStatus, plan 013). */
   watchStatus: WatchStatusSchema.optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   /** The request that produced this itinerary — needed to re-plan when watching. */
   request: TripRequestSchema
 });

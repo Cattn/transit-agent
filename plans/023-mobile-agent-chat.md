@@ -23,6 +23,7 @@
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Agent:** plan 006 is merged. This screen uses the client from plan 020's `src/data/client.ts`: the mock by default, the real agent with `EXPO_PUBLIC_API_MODE=server`.
 - **Waiting on:** The home shell. Not on `GEMINI_API_KEY`.

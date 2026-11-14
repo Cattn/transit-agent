@@ -8,7 +8,8 @@ const migrations = [
     PRIMARY KEY (device_id, id)
   );
   CREATE INDEX saved_itineraries_watch ON saved_itineraries (watch, leave_by);
-  CREATE TABLE profiles (device_id TEXT PRIMARY KEY, profile_json TEXT NOT NULL, updated_at TEXT NOT NULL);`
+  CREATE TABLE profiles (device_id TEXT PRIMARY KEY, profile_json TEXT NOT NULL, updated_at TEXT NOT NULL);`,
+  'ALTER TABLE saved_itineraries ADD COLUMN color TEXT'
 ];
 
 export function migrate(db: DatabaseSync): void {

@@ -95,6 +95,8 @@ One profile per device (decision 005-Q1): home, work, default sliders/constraint
 
 ## Platform notes (UI-8)
 
+- **Android = Material 3 for real** (@Cattn, [PR #60 review](https://github.com/Cattn/transit-agent/pull/60#pullrequestreview-5904509484)): Expo UI Jetpack Compose (`@expo/ui/jetpack-compose`), Material Symbols icons, theme colors, Roboto, connected button group for modes, extended FAB for Ask agent, draggable sheet. Details in plan 020's Current state.
+
 - **Mobile testing changes once maps land.** MapLibre needs the EAS dev client (`npm run build:android`, then `npm run dev:client` in `apps/mobile`). Expo Go stops working.
 - **Client env vars are public.** Only `VITE_API_URL` / `EXPO_PUBLIC_API_URL` and the basemap `styleUrl` key (if the provider issues browser-safe keys) belong in clients. The Gemini key never does.
 - Keep `@transit/shared` framework-free. Hooks such as `useTripDraft` and `useSavedItineraries` live in each app (or a future `packages/ui-hooks` if duplication hurts).

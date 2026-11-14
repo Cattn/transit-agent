@@ -23,6 +23,7 @@
 
 - **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Do not start plan 011 from this screen.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** The home shell. Not on flight prices.
 

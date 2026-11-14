@@ -14,11 +14,12 @@ export class SqliteItineraryStore implements ItineraryStore {
     this.select = db.prepare('SELECT * FROM saved_itineraries WHERE device_id = ? ORDER BY rowid');
     this.selectOne = db.prepare('SELECT * FROM saved_itineraries WHERE device_id = ? AND id = ?');
     this.upsert = db.prepare(`INSERT INTO saved_itineraries
-      (device_id, id, saved_at, label, watch, leave_by, itinerary_json, request_json)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (device_id, id, saved_at, label, watch, leave_by, itinerary_json, request_json, color)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(device_id, id) DO UPDATE SET saved_at = excluded.saved_at,
       label = excluded.label, watch = excluded.watch, leave_by = excluded.leave_by,
-      itinerary_json = excluded.itinerary_json, request_json = excluded.request_json`);
+      itinerary_json = excluded.itinerary_json, request_json = excluded.request_json,
+      color = COALESCE(saved_itineraries.color, excluded.color)`);
     this.patch = db.prepare('UPDATE saved_itineraries SET label = COALESCE(?, label), watch = COALESCE(?, watch) WHERE device_id = ? AND id = ?');
     this.deleteOne = db.prepare('DELETE FROM saved_itineraries WHERE device_id = ? AND id = ?');
     this.watched = db.prepare('SELECT * FROM saved_itineraries WHERE watch = 1');
@@ -33,6 +34,7 @@ export class SqliteItineraryStore implements ItineraryStore {
         ...(row.label === null ? {} : { label: row.label }),
         watch: row.watch === 1,
         ...(row.leave_by === null ? {} : { leaveBy: row.leave_by }),
+        ...(row.color === null || row.color === undefined ? {} : { color: row.color }),
         request: JSON.parse(String(row.request_json))
       });
     } catch (error) {
@@ -59,8 +61,9 @@ export class SqliteItineraryStore implements ItineraryStore {
     };
     if (input.label !== undefined) saved.label = input.label;
     this.upsert.run(deviceId, saved.id, saved.savedAt, saved.label ?? null,
-      Number(saved.watch), null, JSON.stringify(input.itinerary), JSON.stringify(input.request));
-    return saved;
+      Number(saved.watch), null, JSON.stringify(input.itinerary), JSON.stringify(input.request), input.color ?? null);
+    const row = this.selectOne.get(deviceId, saved.id);
+    return (row && this.read(row)) ?? saved;
   }
 
   async update(deviceId: string, id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary | undefined> {

@@ -23,6 +23,7 @@
 
 - **Status:** 📝 **First draft.** Feedback welcome. The web file is two screens (home, and planning in plan 027) plus the same two in dark. Settings, filters, and fly are not drawn on web yet.
 - **Owner:** @Rad1ee (assigned 2026-11-14 from the build timeline)
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
 - **Up for grabs?** No. Talk to @Rad1ee before starting related work.
 - **Waiting on:** Nothing. The web map (`@transit/maps/web`) and the React hooks (`@transit/client-react`) are on main. **This is the first MVP screen** (see `plans/README.md`).
 
@@ -78,7 +79,7 @@ The site still opens on three "Coming soon" cards. The draft replaces that with 
   - Composer placeholder "Ask about a trip…". Mic does nothing (same proposal as 020-Q3). Send calls `sendAgentMessage` with the current `TripDraft`.
 - Map chips above the map: "Commute" and "Gym" selected in the sample, plus "Weekend: Seaport" and "Live vehicles". Follow question 3.
 - Map controls: zoom +/−, and two FABs. Zoom calls the map if `RouteMap` exposes it. One FAB is location. There is no web location helper. The tap does nothing until a web location plan exists. Do not add a geolocation call in this plan.
-- Saved routes drawn on the frame are "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", pins Office and Gym. The app does not draw them. Pass saved itineraries, `selectedItineraryId`, `onRouteSelect`, `visibleModes`, and padding `{ top: 16, right: 420, bottom: 16, left: 432 }` so the panels are not covered. `styleUrl` is the OpenFreeMap URL above. Compute `assignRouteColors` once over every itinerary on screen and pass the same map to `RouteMap.routeColors` and to the card swatches.
+- Saved routes drawn on the frame are "Saved · Commute (Bus 1)" and "Saved · Gym (Orange Line)", pins Office and Gym. The app does not draw them. Pass saved itineraries, `selectedItineraryId`, `onRouteSelect`, `visibleModes`, and padding `{ top: 16, right: 420, bottom: 16, left: 432 }` so the panels are not covered. `styleUrl` is the OpenFreeMap URL above. Compute `assignRouteColors` once over every itinerary on screen and pass the same map to `RouteMap.routeColors` and to the card swatches. Saved trips keep their stored color (017-Q2; Step 3).
 
 ## Commands you will need
 
@@ -127,6 +128,8 @@ Build the two panels from Current state. The agent empty state hides once `messa
 ### Step 3: Map
 
 `npm install -w @transit/web @transit/maps maplibre-gl react-map-gl`. Add the MapLibre setup to `main.tsx`. Mount `RouteMap` from `@transit/maps/web` filling the page behind the panels, with the props and padding in Current state. Saved itineraries come from `useSavedItineraries({ enabled: true })`.
+
+**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Saving happens in plan 027. If `assignRouteColors` has no second argument yet (plan 009 step 5) or `color` is not in the save contract yet (plan 017 step 4), use the one-argument call, omit `color`, and say so in the PR.
 
 **Verify**: `npm run lint` → exit 0, then `npm run build:web` → exit 0. Manual: `npm run dev:web`, open http://localhost:5173, the two mock saved trips are drawn on the map.
 

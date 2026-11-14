@@ -23,6 +23,7 @@
 
 - **Status:** 📝 **First draft, after plan 026.** Feedback welcome. There is still no web filters frame. "All filters" is a chip with nowhere to go.
 - **Owner:** @KrakenTheJaken (assigned 2026-11-14; the screen is mostly map work: card ↔ map selection, shared route colors, the selected-route card). Starts after the native map (009).
+- **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, at most 4 pieces of media (combine features into one video or screenshot where possible).
 - **Up for grabs?** No. Talk to @KrakenTheJaken before starting related work. @Rad1ee (026 owner, design lead) reviews the layout.
 - **Waiting on:** The web home shell (026). Plan 028 (`/api/places`) is needed only for Step 3's real-server check.
 
@@ -108,6 +109,8 @@ When origin, destination, and time are set, call `run(request)` from `usePlanTri
 Render the left panel and the map card from Current state. Use `itineraryFreshness`, `legFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
 
 The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook plan 026 uses. When `lastPlan` changes, show it in the left panel.
+
+**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. If `assignRouteColors` has no second argument yet (plan 009 step 5) or `color` is not in the save contract yet (plan 017 step 4), use the one-argument call, omit `color`, and say so in the PR. Use the same `savedColors` plan 026 builds, so a trip keeps its color from results to Tracked trips.
 
 **Verify**: `npm run lint` → exit 0
 
