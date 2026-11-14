@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
+import { useFonts } from 'expo-font';
+import { Roboto_400Regular, Roboto_500Medium, Roboto_700Bold } from '@expo-google-fonts/roboto';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -37,13 +39,16 @@ function Starting() {
   );
 }
 
+const ANDROID_FONTS: Record<string, number> = Platform.OS === 'android' ? { Roboto_400Regular, Roboto_500Medium, Roboto_700Bold } : {};
+
 export default function App() {
   const client = useAppClient();
+  const [fontsLoaded, fontError] = useFonts(ANDROID_FONTS);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AppearanceProvider>
-          {client ? (
+          {client && (fontsLoaded || fontError) ? (
             <ApiProvider client={client}>
               <ThemedNavigation />
             </ApiProvider>

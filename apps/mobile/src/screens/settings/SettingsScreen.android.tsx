@@ -4,11 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
 import { Card, Column, Icon, IconButton, Row, Text, useMaterialColors } from '@expo/ui/jetpack-compose';
 import { background, clip, fillMaxWidth, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
-import ArrowBack from '@expo/material-symbols/arrow_back.xml';
-import Construction from '@expo/material-symbols/construction.xml';
-import Mobile from '@expo/material-symbols/mobile.xml';
+import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
+import Construction from '../../../assets/icons/construction_fill.xml';
+import Mobile from '../../../assets/icons/mobile_fill.xml';
 import { useAppColors } from '../../theme/appearance';
 import { materialSeedColor } from '../../theme/colors';
+import { m3Text } from '../../theme/typography';
 
 export function SettingsScreen() {
   const navigation = useNavigation();
@@ -24,7 +25,7 @@ export function SettingsScreen() {
             <IconButton onClick={() => navigation.goBack()}>
               <Icon source={ArrowBack} size={24} contentDescription="Back" />
             </IconButton>
-            <Text color={m.onSurface} style={{ typography: 'headlineMedium' }}>Settings</Text>
+            <Text color={m.onSurface} style={m3Text('headlineMedium')}>Settings</Text>
           </Row>
           <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[padding(12, 0, 0, 0)]}>
             <Card colors={{ containerColor: m.primaryContainer, contentColor: m.onPrimaryContainer }} modifiers={[fillMaxWidth()]}>
@@ -37,8 +38,8 @@ export function SettingsScreen() {
                   <Icon source={Mobile} size={24} tint={m.onPrimary} />
                 </Column>
                 <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
-                  <Text color={m.onPrimaryContainer} style={{ typography: 'titleMedium' }}>This device&apos;s profile</Text>
-                  <Text color={m.onPrimaryContainer} style={{ typography: 'bodyMedium' }}>
+                  <Text color={m.onPrimaryContainer} style={m3Text('titleMedium')}>This device&apos;s profile</Text>
+                  <Text color={m.onPrimaryContainer} style={m3Text('bodyMedium')}>
                     One profile per device — no account needed. Your defaults fill every new trip.
                   </Text>
                 </Column>
@@ -48,8 +49,8 @@ export function SettingsScreen() {
               <Row horizontalArrangement={{ spacedBy: 14 }} verticalAlignment="center" modifiers={[paddingAll(16)]}>
                 <Icon source={Construction} size={24} tint={m.onSurfaceVariant} />
                 <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
-                  <Text color={m.onSurface} style={{ typography: 'titleMedium' }}>Places, trip defaults and theme</Text>
-                  <Text color={m.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>Coming in plan 025.</Text>
+                  <Text color={m.onSurface} style={m3Text('titleMedium')}>Places, trip defaults and theme</Text>
+                  <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Coming in plan 025.</Text>
                 </Column>
               </Row>
             </Card>

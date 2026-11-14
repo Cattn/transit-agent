@@ -30,13 +30,14 @@ export function HomeChrome(props: HomeChromeProps) {
   const [headerHeight, setHeaderHeight] = useState(40);
   const [footerHeight, setFooterHeight] = useState(64);
   const [listHeight, setListHeight] = useState(LIST_CAP);
-  const [sheetIndex, setSheetIndex] = useState(0);
+  const [sheetIndex, setSheetIndex] = useState(1);
   const [topHeight, setTopHeight] = useState(106);
 
   const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP + SHEET_INSET));
   const natural = Math.round(HANDLE_HEIGHT + headerHeight + Math.min(listHeight, LIST_CAP) + footerHeight + 24);
   const collapsed = Math.min(natural, expanded - MIN_TRAVEL);
-  const snapPoints = [collapsed, expanded];
+  const peek = Math.round(HANDLE_HEIGHT + headerHeight + 12);
+  const snapPoints = [peek, collapsed, expanded];
   const visible = snapPoints[sheetIndex] ?? collapsed;
 
   const settle = (index: number) => {
@@ -80,7 +81,7 @@ export function HomeChrome(props: HomeChromeProps) {
         </Glass>
       </View>
 
-      {sheetIndex === 0 ? <View pointerEvents="box-none" style={[styles.actions, { bottom: visible + SHEET_INSET + 14 }]}>
+      {sheetIndex !== 2 ? <View pointerEvents="box-none" style={[styles.actions, { bottom: visible + SHEET_INSET + 14 }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="Ask agent" onPress={props.onAskAgent} style={[styles.askAgent, { backgroundColor: colors.primary }]}>
           <Text style={[styles.askAgentText, { color: colors.onPrimary }]}>✦ Ask agent</Text>
         </Pressable>
@@ -99,7 +100,7 @@ export function HomeChrome(props: HomeChromeProps) {
       </View> : null}
 
       <BottomSheet
-        index={0}
+        index={1}
         snapPoints={snapPoints}
         enableDynamicSizing={false}
         enablePanDownToClose={false}
@@ -136,7 +137,7 @@ export function HomeChrome(props: HomeChromeProps) {
               <Text style={[styles.chipText, { color: colors.onSurface }]}>☷</Text>
             </Pressable>
           </View>
-          <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.onSurfaceVariant }]}>{status}</Text>
+          {status ? <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.onSurfaceVariant }]}>{status}</Text> : null}
           </View>
         </BottomSheetView>
       </BottomSheet>

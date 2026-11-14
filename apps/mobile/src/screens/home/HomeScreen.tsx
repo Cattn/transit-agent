@@ -53,7 +53,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const { state, apply, reset } = useTripDraft();
   const { items } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
   const [profile, setProfile] = useState<TravelProfile>();
-  const [status, setStatus] = useState('Connecting…');
+  const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
   const [sheetHeight, setSheetHeight] = useState(0);
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
@@ -63,7 +63,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   useEffect(() => {
     let active = true;
     api.health().then(() => {
-      if (active) setStatus(apiMode === 'mock' ? 'Sample data' : 'Server connected');
+      if (active) setStatus(apiMode === 'mock' ? '' : 'Server connected');
     }).catch(() => {
       if (active) setStatus('Server unavailable. Check your API URL and restart.');
     });
