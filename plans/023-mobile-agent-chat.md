@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🔍 **PR #67 open** (Android checked on a Pixel 10; iOS not yet checked). First draft, after plan 020. Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
+- **Status:** 🔍 **PR #67 open** (Android checked on a Pixel 10). First draft, after plan 020. Feedback welcome. The mobile sheet versus the web side panel is already decided on #16. Everything else in the thread can still change.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
@@ -125,7 +125,7 @@ When a question is answered or a frame changes, update this same plan and its is
 - Switching to the real agent is plan 020's `EXPO_PUBLIC_API_MODE=server`; the screen does not change. Do not open a streaming connection in this plan.
 - **Animated map (plans 029 + 030):** later, `useAgentChat` streams progress (pass `expo/fetch` to the API client) and Home passes `buildPreview` to the native `RouteMap` while the chat sheet is open. Follow-up PR after 029, 030, and the native map (009) land.
 
-- **Chat history (decided 2026-11-14, @Cattn):** not part of this plan. A separate plan keeps the thread for the app session (in memory, with the agent `sessionId`, not saved across restarts), and returns to the chat after a chip opens Filters. Until then, closing the sheet clears the thread, but the draft changes stay.
+- **Chat history (decided 2026-11-14, @Cattn):** not part of this plan. [Plan 034](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) keeps the thread for the app session (in memory, with the agent `sessionId`, not saved across restarts), and returns to the chat after a chip opens Filters. Until then, closing the sheet clears the thread, but the draft changes stay.
 - **Android sheet height:** about 85% of the window, so a strip of the map stays visible above it (@Cattn, 2026-11-14).
 
 ## Open questions for review
