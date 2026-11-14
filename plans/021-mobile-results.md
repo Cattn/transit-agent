@@ -22,7 +22,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **MVP, in progress: [PR #66](https://github.com/Cattn/transit-agent/pull/66)** (changes requested; rebase on #67 per Step 1's "Agent plan" note; filled or elevated mode control; Material error color for Tight). The route-color dot waits on @Cattn. The steps use the defaults below until a question is answered.
+- **Status:** **MVP, in progress: [PR #66](https://github.com/Cattn/transit-agent/pull/66)** (changes requested; rebase on #67 per Step 1's "Agent plan" note; filled or elevated mode control; Material error color for Tight). Result cards match Figma frame 02 Results exactly: remove the route-color dot (@Cattn, 2026-11-14). The steps use the defaults below until a question is answered.
 - **Owner:** @DMFriends (assigned 2026-11-14 from the build timeline)
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
@@ -62,7 +62,7 @@ After a search, the map stays up and the sheet grows to a results list. Figma fr
   - Header "3 routes" is the count of `plan.itineraries`, not a constant. Subtitle "Leave now · arrive by 9:00 AM" comes from the draft time.
   - "updated 20s ago" is `formatAge(source.fetchedAt, new Date())` from plan 016 (merged in #36). A scheduled itinerary still must not say Live.
   - Warning banner. The mock can return `warnings`. The frame's sample sentence is "Green Line realtime unavailable — showing timetable". Render `plan.warnings[0]` when present.
-  - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. A route-color swatch is an 8 pt circle in the trip's color from the same map passed to `RouteMap.routeColors` (see Step 2). Do not invent a palette in `packages/shared`.
+  - Itinerary card (`14:136`): time range, duration, leg chips (walk minutes, route name, walk minutes), freshness, "updated …", cost, risk badge. Sample row: "8:04 – 8:27", "23 min", legs "6 › Bus 1 › 5", "Live · +1 min", "updated 20s ago", "$1.70", risk label. Nothing else: no route-color dot or swatch. Do not invent a palette in `packages/shared`.
   - "Almost works" then a dimmed row. Sample: "Walk the whole way · 8:04 – 8:49" and "45 min walk — breaks your 15 min limit". Bind this to `plan.nearMisses` and `violations[0]`.
 - Android chrome (Material 3 rules in plan 020):
 
@@ -121,7 +121,7 @@ Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@t
 
 **Android (from @Cattn's review of PR #66, 2026-11-14):** follow plan 020's "Android Material 3 rules" and the `expo-ui` skill on every element of this sheet: Expo UI Jetpack Compose components (`Card`, `AssistChip` / `FilterChip`, `Surface`, `Badge`, `Icon`), laid out to match Figma frame **02 Results** on the `Android — Material 3` page. No hand-styled stand-ins for components Material 3 has. Badge and freshness colors come from the Material theme (`useMaterialColors()` / the `Host` color scheme), not `toneColors` from `@transit/shared`: Tight uses the `error` / `errorContainer` roles, Some risk uses `tertiaryContainer`, Safe and Live use `primaryContainer` / `secondaryContainer`.
 
-**Route colors (017-Q2: the same trip keeps one color everywhere it appears):** build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors(ids, savedColors)` once over every trip on screen, and pass that map to `RouteMap.routeColors` and the card swatches. Save sends the color the trip is showing: `saveItinerary({ itinerary, request, watch: true, color: routeColors.get(itinerary.id) })`. Both are on main (017 step 4 in #61, 009 step 5 in #65). Apply the same `savedColors` to the home map from plan 020, so a saved trip has the same color on home and in Results.
+**Route colors (@Cattn on PR #66, 2026-11-14):** distinct colors are for **saved trips** (017-Q2: a saved trip keeps one color on Home, in Tracked trips and on the map). Search results are not saved trips: result cards and their routes look **exactly like Figma frame 02 Results**, with no added color dot, swatch or edge. Draw the result routes on the map the way that frame shows them. When the user saves a result, give it its permanent color then: build `savedColors = new Map(saved.flatMap((s) => (s.color ? [[s.id, s.color]] : [])))` from `useSavedItineraries`, call `assignRouteColors([...saved.map((s) => s.id), itinerary.id], savedColors)` and save with `color` set to the new trip's entry: `saveItinerary({ itinerary, request, watch: true, color })`. Both are on main (017 step 4 in #61, 009 step 5 in #65). Apply the same `savedColors` to the home map from plan 020, so a saved trip has the same color on home and in Results.
 
 **Verify**: `npm run typecheck -w @transit/mobile` → exit 0
 
@@ -164,7 +164,7 @@ When a question is answered or a frame changes, update this same plan and its is
 
 See the help box at the top (021-Q*). It is the single list; answers are recorded there.
 
-Map behavior (overlap chooser, mode filtering) is tracked once in plan 009 under "Open product decisions". Colors are decided (017-Q2); see Step 2.
+Map behavior (overlap chooser, mode filtering) is tracked once in plan 009 under "Open product decisions". Colors are decided: saved trips only, results match Figma (see Step 2).
 
 ## Backlog: iOS
 
