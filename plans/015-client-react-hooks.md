@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Changes requested:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `eccf80c`. Existing worker is fixing review findings; unmerged.
+- **Status:** **Awaiting re-check:** [PR #47](https://github.com/Cattn/transit-agent/pull/47) at `73a6d892117d686c34b1fe3514bb91f790acfacf`. Existing author pushed fixes for all three findings; reviewer 2 owns this PR and subsequent re-checks. Unmerged.
 - **Owner:** @Cattn
 
 **Open questions** (answer by number in a comment on #23):
@@ -197,7 +197,7 @@ const chat = useAgentChat(trip.state, trip.apply);
 
 ## Maintenance notes
 
-- Review at `eccf80c` requested changes: stale-client mutation results after provider switches, loading/pending resets on client switches, and saved-trip loading stuck after a failed mutation supersedes refresh. Fixes stay in PR #47; the existing worker sends the updated head and runtime validation to the primary reviewer. Passing builds/tests do not resolve these reproduced runtime findings.
+- Fixes pushed at `73a6d892117d686c34b1fe3514bb91f790acfacf`: saved-mutation generation/queue isolation, state resets on client switches, and loading release after failed mutations supersede refreshes. Author reports `npm run check` and temporary jsdom/renderHook reproductions passing, including newer-request guards and serialization/rollback. No new tests or live Gemini calls. Independent re-check is pending with reviewer 2; do not send a duplicate packet or mark approved/merged.
 
 - New `ApiClient` methods get a hook here only when two screens need the same logic. One-off calls can use `useApi()` directly.
 - If the team later wants caching across screens, TanStack Query can replace the internals of `usePlanTrip` / `useSavedItineraries` without changing their return shapes.
