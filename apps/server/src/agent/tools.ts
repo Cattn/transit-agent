@@ -1,4 +1,4 @@
-import { FunctionTool } from '@google/adk';
+import { FunctionTool, type ToolInputParameters } from '@google/adk';
 import { z } from 'zod';
 import { AgentQuestionSchema, TripDraftPatchSchema, applyDraftPatch, describePatch, toTripRequest, type AgentQuestion, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import type { RouteProvider } from '../providers/types.js';
@@ -17,10 +17,28 @@ export interface TurnContext {
   signal?: AbortSignal;
 }
 
+/** Keywords the Gemini/Vertex function-declaration schema rejects ("Unknown name ..."). Zod still validates the args. */
+const unsupportedSchemaKeys = new Set(['exclusiveMinimum', 'exclusiveMaximum']);
+
+export function stripUnsupportedSchemaKeys<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(stripUnsupportedSchemaKeys) as T;
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !unsupportedSchemaKeys.has(key))
+    .map(([key, child]) => [key, key === 'properties' ? Object.fromEntries(Object.entries(child as object).map(([name, field]) => [name, stripUnsupportedSchemaKeys(field)])) : stripUnsupportedSchemaKeys(child)])) as T;
+}
+
+class PlannerTool<T extends ToolInputParameters> extends FunctionTool<T> {
+  override _getDeclaration() {
+    const declaration = super._getDeclaration();
+    return { ...declaration, parameters: stripUnsupportedSchemaKeys(declaration.parameters) };
+  }
+}
+
 export function createPlannerTools(turn: TurnContext) {
   let revision = 0;
   return [
-    new FunctionTool({ name: 'update_trip_draft', description: 'Apply stated trip requirements and preferences.', parameters: TripDraftPatchSchema, execute: (patch: TripDraftPatch) => {
+    new PlannerTool({ name: 'update_trip_draft', description: 'Apply stated trip requirements and preferences.', parameters: TripDraftPatchSchema, execute: (patch: TripDraftPatch) => {
       const next = applyDraftPatch({ draft: turn.draft, provenance: {} }, patch, 'agent');
       turn.patch = { ...turn.patch, ...patch,
         constraints: { ...turn.patch.constraints, ...patch.constraints },
@@ -32,8 +50,8 @@ export function createPlannerTools(turn: TurnContext) {
       const request = toTripRequest(turn.draft);
       return { status: 'updated', draftSummary: describePatch(patch), missing: request.ok ? [] : request.missing };
     } }),
-    new FunctionTool({ name: 'find_place', description: 'Find up to five known places by name or airport code.', parameters: z.object({ query: z.string() }), execute: ({ query }: { query: string }) => searchPlaces(query) }),
-    new FunctionTool({ name: 'search_routes', description: 'Search actual route providers for the current draft.', parameters: z.object({}), execute: async () => {
+    new PlannerTool({ name: 'find_place', description: 'Find up to five known places by name or airport code.', parameters: z.object({ query: z.string() }), execute: ({ query }: { query: string }) => searchPlaces(query) }),
+    new PlannerTool({ name: 'search_routes', description: 'Search actual route providers for the current draft.', parameters: z.object({}), execute: async () => {
       const request = toTripRequest(turn.draft);
       if (!request.ok) return { status: 'incomplete', missing: request.missing };
       const searchedRevision = revision;
@@ -43,11 +61,11 @@ export function createPlannerTools(turn: TurnContext) {
       const compact = ({ id, summary, departAt, arriveAt, durationMinutes, cost, risk, violations }: PlanResponse['itineraries'][number]) => ({ id, summary, departAt, arriveAt, durationMinutes, cost: { totalUsd: cost.totalUsd }, risk, violations });
       return { itineraries: turn.plan.itineraries.map(compact), nearMisses: turn.plan.nearMisses.map(compact), warnings: turn.plan.warnings };
     } }),
-    new FunctionTool({ name: 'ask_user', description: 'Queue a focused question about a missing or ambiguous field.', parameters: AgentQuestionSchema, execute: (question: AgentQuestion) => {
+    new PlannerTool({ name: 'ask_user', description: 'Queue a focused question about a missing or ambiguous field.', parameters: AgentQuestionSchema, execute: (question: AgentQuestion) => {
       if (turn.questions.length >= 2) return { status: 'limit_reached', message: 'At most two questions per turn. Wait for the user to answer.' };
       turn.questions.push(question);
       return { status: 'queued' };
     } }),
-    new FunctionTool({ name: 'list_saved_trips', description: 'Read up to twenty saved trips for this device.', parameters: z.object({}), execute: async () => (await turn.itineraries.list(turn.deviceId)).slice(0, 20).map(({ id, label, summary, departAt, arriveAt, request, watch }) => ({ id, label, summary, departAt, arriveAt, watch, request: { origin: request.origin, destination: request.destination, time: request.time, modes: request.modes } })) })
+    new PlannerTool({ name: 'list_saved_trips', description: 'Read up to twenty saved trips for this device.', parameters: z.object({}), execute: async () => (await turn.itineraries.list(turn.deviceId)).slice(0, 20).map(({ id, label, summary, departAt, arriveAt, request, watch }) => ({ id, label, summary, departAt, arriveAt, watch, request: { origin: request.origin, destination: request.destination, time: request.time, modes: request.modes } })) })
   ];
 }

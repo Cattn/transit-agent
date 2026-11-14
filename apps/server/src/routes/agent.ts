@@ -9,7 +9,7 @@ export const agentRoutes: FastifyPluginAsync<ServerDeps> = async (app, deps) => 
   const buckets = new Map<string, { count: number; until: number }>();
   app.post('/api/agent/messages', async (request) => {
     const deviceId = getDeviceId(request);
-    if (!deps.agent) throw new ApiError(503, 'agent_unavailable', 'Set GEMINI_API_KEY on the server');
+    if (!deps.agent) throw new ApiError(503, 'agent_unavailable', 'Set GEMINI_API_KEY, or Vertex AI with Application Default Credentials, on the server');
     const input = parse(AgentMessageRequestSchema, request.body);
     const now = Date.now();
     for (const [id, bucket] of buckets) if (bucket.until <= now) buckets.delete(id);
