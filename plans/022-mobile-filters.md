@@ -27,12 +27,12 @@
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Not on the server.
 
-**Open questions** — **@Cattn answers these (design).** Reply as `022-Q1: ...`. Use the proposed defaults until answered.
+**Questions** — all answered by @Cattn ([#46](https://github.com/Cattn/transit-agent/issues/46), 2026-11-14).
 
-- 022-Q1: Android full sheet, as drawn? *(proposed: yes)*
-- 022-Q2: keep each screen's own strictness words? *(proposed: yes)*
-- 022-Q3: place search stays inside this sheet? *(proposed: yes)*
-- 022-Q4: which controls should change before a first build?
+- ~~022-Q1~~ **Decided:** yes, the Android full-height sheet as drawn (replaces Home's RN `Modal` `pageSheet` for Filters).
+- ~~022-Q2~~ **Decided:** yes, keep each screen's wording (Filters: On time / Bit late OK / Flexible; Settings keeps its own).
+- ~~022-Q3~~ **Decided:** yes, place search stays inside the sheet.
+- ~~022-Q4~~ **Decided — changes from the frame:** (a) **no car chip** under Modes; (b) **Advanced limits start collapsed**; (c) the **Agent mark** goes on every field the agent set or recommended (provenance `'agent'`), not only the ones drawn; (d) **no Budget control** at all: budget is not a hard limit.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.
@@ -54,10 +54,10 @@ Filters and the agent edit one `TripDraft`. Hard limits exclude routes. Preferen
 - Frames: `Android · 03 Filters (full sheet, scrolled length)` (`2004:1253`) and its dark twin `2018:1721`.
 - Android sheet (`2004:1341`): title "Trip filters", close icon, "Reset", then:
   - Where & when: From "Current location · Beacon Hill", To "Office · 200 Clarendon St", a Depart / Arrive segmented control, and a locked time "9:00 AM".
-  - Modes: filter chips. The drawn selected set is the product default walk, bus, and train, plus bike and car available. Map chips to `draft.modes`. At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
+  - Modes: filter chips for walk, bus, train and bike (022-Q4: **no car chip**, even though the frame draws one; driving is the Drive tab). Map chips to `draft.modes`; leave any mode without a chip untouched in the draft. At least one mode stays on. Walk, bus, and rail start selected for a new draft (`TripDraftSchema` default).
   - "How strict is the arrival time?" Material segmented button with the labels "On time", "Bit late OK", "Flexible". Map them to `preferences.lateTolerance`: `strict`, `some`, `flexible`.
-  - Three sliders: Cheaper ↔ Comfier (`comfortVsCost`), Safe transfers ↔ Tight (`transferRisk`), Less walking ↔ More (`activeTravel`). Values are 0..1. The walking slider shows an "Agent" mark when `provenance['preferences.activeTravel'] === 'agent'`.
-  - Advanced limits, expanded in the frame: Max walk (lock, "15 min", agent edit icon), Max transfers (lock, "1"), Budget (lock, "$10"), Step-free access (lock, "Off"). Locks are the visual for constraints. Clearing a limit sends `null` in the patch, not `0`.
+  - Three sliders: Cheaper ↔ Comfier (`comfortVsCost`), Safe transfers ↔ Tight (`transferRisk`), Less walking ↔ More (`activeTravel`). Values are 0..1. Any control whose provenance key is `'agent'` shows the "Agent" mark (022-Q4: every agent-set or agent-recommended field, not only the walking slider drawn in the frame), e.g. `provenance['preferences.activeTravel'] === 'agent'`.
+  - Advanced limits, **collapsed by default** (022-Q4; the frame draws them expanded). Opening Filters on a limit field from an agent chip expands them. Rows: Max walk (lock, "15 min", agent mark when set by the agent), Max transfers (lock, "1"), Step-free access (lock, "Off"). **No Budget row** (022-Q4: budget is not a hard limit; leave any budget constraint in the draft untouched, and do not change `packages/shared`). Locks are the visual for constraints. Clearing a limit sends `null` in the patch, not `0`.
   - Footer: "3 routes match" / "1 almost works" from the latest plan response when plan 021 has run, otherwise hide the counts. Button "Show routes" closes the sheet and leaves the results sheet up.
 - `applyDraftPatch` is the only writer. Source is `'user'` for every control in this screen. An agent chip disappears once the user edits that field, because the reducer records the new source. Do not delete the chip by hand.
 - Provenance keys look like `constraints.maxWalkMinutes` and `preferences.activeTravel` (`packages/shared/src/client/trip-draft-state.ts`).
@@ -118,6 +118,7 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 - [ ] Android shows the full sheet, not `presentationStyle="formSheet"`
 - [ ] A hard limit control sends `null` when cleared
 - [ ] `lateTolerance` and `transferRisk` are two controls
+- [ ] No car chip and no Budget row; Advanced limits start collapsed
 - [ ] No files outside Scope are modified
 
 ## STOP conditions

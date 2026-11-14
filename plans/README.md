@@ -86,7 +86,7 @@ Answer on the linked issue by question number. Each plan uses the proposed defau
   1. ~~#66 route-color dot~~ **Decided:** no dot; result cards match the Figma exactly, and colors are for saved trips.
   2. **iOS in `npm run check`:** keep exporting the iOS bundle so iOS keeps working (recommended; iOS runs fine, it just gets no iOS-specific design), or drop it.
   3. **018 Android location / deep-link checks:** retry in Expo Go first (recommended), or keep them as a dev-build step.
-- **@Cattn, design (taken over from @Rad1ee):** 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 023-Q3 ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · the 030 look ([#56](https://github.com/Cattn/transit-agent/issues/56)) · 026/027 when someone picks web up.
+- **@Cattn, design (taken over from @Rad1ee):** 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 023-Q3 ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · the 030 look ([#56](https://github.com/Cattn/transit-agent/issues/56)) · 026/027 when someone picks web up.
 - **@Cattn, server:** 029-Q1–Q2 stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55)) · 008-Q3 watch cadence ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)).
 - **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 030-Q1–Q3 ([#56](https://github.com/Cattn/transit-agent/issues/56)).
 - **@DMFriends:** none blocking; may propose answers on #40 and #44.
@@ -186,6 +186,8 @@ Mobile map via Expo DOM (Cattn, 2026-11-14): mobile renders `@transit/maps/web` 
 - *A separate web MVP check* (2026-11-14): the MVP is Android (plan 035); plan 027 Step 3 is the web version, done when web is picked up.
 
 ## Reconcile log
+
+- **2026-11-14:** 022-Q1–Q4 answered by @Cattn on #46: full sheet, keep wording, search in the sheet; no car chip, Advanced limits collapsed, Agent mark on every agent-set field, no Budget control.
 
 - **2026-11-14 at `3a55b10`:** 021 merged (#66). 022 → DMFriends, refreshed: Expo UI Compose components instead of RN `Switch` and the community slider, open on the tapped field (Home drops it today), footer from Home's `plan`. 024 after 022. 034 started in a worker thread. 009 notes that search results follow Figma frame 02 and only saved trips get distinct colors. 035 no longer waits on 021.
 
