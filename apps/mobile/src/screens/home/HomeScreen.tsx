@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { DraftChangeSource, Itinerary, LngLat, Place, PlanResponse, SavedItinerary, TravelProfile, TripDraft, TripDraftPatch, TripRequest } from '@transit/shared';
+import { toTripRequest, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { assignRouteColors } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
@@ -93,7 +93,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const api = useApi();
   const foreground = useAppForeground();
   const now = useNow(15_000);
-  const { state, apply, reset, request } = useTripDraft();
+  const { state, apply, reset, restore, request } = useTripDraft();
   const { items, save } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
   const [profile, setProfile] = useState<TravelProfile>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
@@ -180,6 +180,15 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, []);
 
   const chat = useChatSession(state, applyAgent, onAgentPlan);
+
+  const selectAgentCard = useCallback((snapshot: DraftState, agent: PlanResponse, id: string) => {
+    edited.current = true;
+    restore(snapshot);
+    setAgentPlan({ plan: agent, draft: snapshot.draft });
+    const next = toTripRequest(snapshot.draft);
+    setSelection({ key: next.ok ? JSON.stringify(next.request) : '', id });
+    showRoutes();
+  }, [restore, showRoutes]);
 
   const group = groupForModes(state.draft.modes);
   const onGroupChange = useCallback((next: ModeGroupName) => {
@@ -329,7 +338,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         />
       )}
       {sheet === 'chat' ? (
-        <ChatScreen draft={state} chat={chat} onOpenFilters={(field) => { setChatBehind(true); openFilters(field); }} onClose={closeSheet} />
+        <ChatScreen draft={state} chat={chat} now={now} onOpenFilters={(field) => { setChatBehind(true); openFilters(field); }} onSelectCard={selectAgentCard} onClose={closeSheet} />
       ) : null}
       {sheet === 'filters' ? (
         <FiltersScreen

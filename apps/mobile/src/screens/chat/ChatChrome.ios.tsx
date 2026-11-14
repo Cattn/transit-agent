@@ -3,6 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Pressable, ScrollView, 
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AppColors } from '../../theme/colors';
+import { ItineraryCard } from '../results/ItineraryCard';
 import type { ChatChromeProps, ChatEntry } from './ChatScreen';
 
 function Bubble({ text, mine, colors }: { text: string; mine: boolean; colors: AppColors }) {
@@ -13,11 +14,21 @@ function Bubble({ text, mine, colors }: { text: string; mine: boolean; colors: A
   );
 }
 
-function Entry({ entry, colors, pending, onSend, onChip }: { entry: ChatEntry; colors: AppColors; pending: boolean; onSend: (text: string) => void; onChip: (field: string) => void }) {
+function Entry({ entry, colors, pending, onSend, onChip, onCard }: {
+  entry: ChatEntry;
+  colors: AppColors;
+  pending: boolean;
+  onSend: (text: string) => void;
+  onChip: (field: string) => void;
+  onCard: (entryId: string) => void;
+}) {
   if (entry.role === 'user') return <Bubble text={entry.text} mine colors={colors} />;
   return (
     <View style={styles.entry}>
       <Bubble text={entry.text} mine={false} colors={colors} />
+      {entry.card ? (
+        <ItineraryCard text={entry.card.text} selected={false} saved={false} canSave={false} colors={colors} onPress={() => onCard(entry.id)} onSave={() => undefined} />
+      ) : null}
       {entry.chips.length ? (
         <View style={styles.wrap}>
           {entry.chips.map((chip) => (
@@ -47,7 +58,7 @@ function Entry({ entry, colors, pending, onSend, onChip }: { entry: ChatEntry; c
   );
 }
 
-export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onClose }: ChatChromeProps) {
+export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onCard, onClose }: ChatChromeProps) {
   const insets = useSafeAreaInsets();
   const dark = colors.scheme === 'dark';
   const scroll = useRef<ScrollViewInstance>(null);
@@ -90,7 +101,7 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
                 Tell the agent about your trip, like &quot;cheap, walk at most 10 min, to Harvard&quot;.
               </Text>
             ) : null}
-            {entries.map((entry) => <Entry key={entry.id} entry={entry} colors={colors} pending={pending} onSend={onSend} onChip={onChip} />)}
+            {entries.map((entry) => <Entry key={entry.id} entry={entry} colors={colors} pending={pending} onSend={onSend} onChip={onChip} onCard={onCard} />)}
             {pending ? <ActivityIndicator style={styles.pending} color={colors.onSurfaceVariant} /> : null}
             {error ? (
               <View style={[styles.error, { backgroundColor: colors.errorContainer }]}>

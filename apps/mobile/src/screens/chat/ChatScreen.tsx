@@ -3,6 +3,8 @@ import { describePatch, type DraftChangeSource, type DraftState, type PlanRespon
 import { useAgentChat } from '@transit/client-react';
 import { useAppColors } from '../../theme/appearance';
 import type { AppColors } from '../../theme/colors';
+import { itineraryCardText } from '../results/ItineraryCard';
+import type { ResultCard } from '../results/ResultsScreen';
 import { ChatChrome } from './ChatChrome';
 
 export interface AgentChip {
@@ -17,6 +19,7 @@ export interface ChatEntry {
   chips: AgentChip[];
   questions: string[];
   replies: string[];
+  card?: ResultCard;
 }
 
 export interface ChatChromeProps {
@@ -26,6 +29,7 @@ export interface ChatChromeProps {
   error?: string;
   onSend: (text: string) => void;
   onChip: (field: string) => void;
+  onCard: (entryId: string) => void;
   onClose: () => void;
 }
 
@@ -34,7 +38,9 @@ export type ChatSession = ReturnType<typeof useAgentChat> & { changed: string[] 
 export interface ChatScreenProps {
   draft: DraftState;
   chat: ChatSession;
+  now: Date;
   onOpenFilters: (field: string) => void;
+  onSelectCard: (draft: DraftState, plan: PlanResponse, itineraryId: string) => void;
   onClose: () => void;
 }
 
@@ -77,7 +83,7 @@ export function useChatSession(draft: DraftState, apply: (patch: TripDraftPatch,
   return { ...chat, changed };
 }
 
-export function ChatScreen({ draft, chat, onOpenFilters, onClose }: ChatScreenProps) {
+export function ChatScreen({ draft, chat, now, onOpenFilters, onSelectCard, onClose }: ChatScreenProps) {
   const colors = useAppColors();
   const { messages, pending, error, send, changed } = chat;
 
@@ -85,15 +91,19 @@ export function ChatScreen({ draft, chat, onOpenFilters, onClose }: ChatScreenPr
     const lastAgent = messages.findLastIndex((message) => message.role === 'agent');
     const lastWithOptions = messages.findLastIndex((message) => message.questions?.some((question) => question.options?.length));
     const chips = agentChips(draft, changed);
-    return messages.map((message, index) => ({
-      id: message.id,
-      role: message.role,
-      text: message.text,
-      chips: index === lastAgent ? chips : [],
-      questions: message.questions?.map((question) => question.question) ?? [],
-      replies: index === lastWithOptions && index === messages.length - 1 ? (message.questions ?? []).flatMap((question) => question.options ?? []) : []
-    }));
-  }, [messages, draft, changed]);
+    return messages.map((message, index) => {
+      const best = message.plan?.itineraries[0];
+      return {
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        chips: index === lastAgent ? chips : [],
+        questions: message.questions?.map((question) => question.question) ?? [],
+        replies: index === lastWithOptions && index === messages.length - 1 ? (message.questions ?? []).flatMap((question) => question.options ?? []) : [],
+        card: best && message.draft ? { id: best.id, text: itineraryCardText(best, now, message.draft.draft.timeZone), selected: false, saved: false } : undefined
+      };
+    });
+  }, [messages, draft, changed, now]);
 
   const errorText = error
     ? error.status === 503 || error.code === 'agent_unavailable' ? 'The agent is not available yet.' : 'Could not reach the agent. Try again.'
@@ -107,6 +117,11 @@ export function ChatScreen({ draft, chat, onOpenFilters, onClose }: ChatScreenPr
       error={errorText}
       onSend={(text) => void send(text.trim())}
       onChip={onOpenFilters}
+      onCard={(entryId) => {
+        const message = messages.find((item) => item.id === entryId);
+        const best = message?.plan?.itineraries[0];
+        if (message?.draft && message.plan && best) onSelectCard(message.draft, message.plan, best.id);
+      }}
       onClose={onClose}
     />
   );
