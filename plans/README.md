@@ -70,10 +70,10 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason).
 
 Answer on the linked issue by question number. Each plan uses the proposed default until then.
 
-- **@Cattn:** 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 dark/light toggle in scope, with Rad1ee ([#25](https://github.com/Cattn/transit-agent/issues/25)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
-- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, P4 color policy (with DMFriends), 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
-- **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44)) · 017-Q2 unique vs permanent route colors ([#25](https://github.com/Cattn/transit-agent/issues/25))
-- **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43)) · 017-Q3 with Cattn ([#25](https://github.com/Cattn/transit-agent/issues/25))
+- **@Cattn:** 008-Q3 watch cadence, rail types, where the preference lives ([#12](https://github.com/Cattn/transit-agent/issues/12)) · 019-Q1 Clovis completeness ([#28](https://github.com/Cattn/transit-agent/issues/28)) · 011-Q3 Europe stays backlog ([#15](https://github.com/Cattn/transit-agent/issues/15)) · 023-Q1–Q2 agent chat behavior ([#43](https://github.com/Cattn/transit-agent/issues/43)) · geocoding service for real place search ([#53](https://github.com/Cattn/transit-agent/issues/53)) · 029-Q1–Q2 progress stream format and JSON fallback ([#55](https://github.com/Cattn/transit-agent/issues/55))
+- **@KrakenTheJaken:** P1 overlap chooser, P2 mode filtering, 009-Q5 one style URL for web + native, iOS device access ([#13](https://github.com/Cattn/transit-agent/issues/13)) · 027-Q1, Q3–Q5 web results ([#45](https://github.com/Cattn/transit-agent/issues/45)) · 030-Q1–Q3 map build animation ([#56](https://github.com/Cattn/transit-agent/issues/56); Rad1ee reviews the look) · 017-Q1 move the route palette into shared ([#25](https://github.com/Cattn/transit-agent/issues/25))
+- **@DMFriends:** 020-Q1–Q4 ([#39](https://github.com/Cattn/transit-agent/issues/39)) · 021-Q2–Q4 ([#40](https://github.com/Cattn/transit-agent/issues/40)) · 024-Q1–Q4 ([#44](https://github.com/Cattn/transit-agent/issues/44))
+- **@Rad1ee:** 026-Q1–Q5 ([#42](https://github.com/Cattn/transit-agent/issues/42)) · 022-Q1–Q4 ([#46](https://github.com/Cattn/transit-agent/issues/46)) · 025-Q1–Q5 ([#41](https://github.com/Cattn/transit-agent/issues/41)) · 023-Q3 chat sheet design ([#43](https://github.com/Cattn/transit-agent/issues/43))
 
 ## How to contribute
 
@@ -140,7 +140,9 @@ Other settled answers (#17, #6): hosting on Cattn's laptop for the demo; agent a
 
 Transit defaults (Cattn, plan 007 research thread, 2026-11-14): one or two checks before two hours unless overridden, then ramp nearer departure; subway around 1 h/30/20/10 min with issue-driven adjustments; commuter rail broadly similar with some earlier checking. Include first morning returns and clearly show long waits/next-day dates. Exact early/final scheduling, intercity treatment and preference storage remain with 008-Q3.
 
-**Open:** map behavior P1/P2/P4 and 009-Q5 (#13); palette move and theme scope (#25); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
+Theme and route colors (Cattn on [#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), 2026-11-14): dark + light with a Settings toggle ship now (017-Q3). Route colors are permanent per trip, not reassigned per screen (017-Q2, settles 009 P4's color policy); persisting them is separate future work.
+
+**Open:** map behavior P1/P2 and 009-Q5 (#13); palette move 017-Q1 (#25); watch cadence 008-Q3 (#12); Clovis completeness 019-Q1 (#28); UI first-pass questions on #39–#46; iOS tester availability (@KrakenTheJaken).
 
 ## Backlog (deliberately unplanned)
 

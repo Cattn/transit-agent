@@ -22,13 +22,16 @@
 
 - **Status:** 🔄 **Assigned to @DMFriends.** Rescoped 2026-11-14 so it is no longer blocked: this plan now ships only badge (tone) and mode colors. Route-line colors already exist in `@transit/maps` and apps import them from there.
 - **Owner:** @DMFriends
-- **Waiting on:** nothing for Steps 1–3. Moving the route palette into shared (Later, below) waits on questions 1 and 2.
+- **Waiting on:** nothing for Steps 1–3. Moving the route palette into shared (Later, below) waits on question 1.
 
 **Open questions** (answer by number in a comment on #25):
 
 1. @KrakenTheJaken: should the route palette eventually move from `@transit/maps` into shared? Until then, apps import `assignRouteColors` from `@transit/maps`, which is fine.
-2. Route colors: unique per screen (current `assignRouteColors`) vs a permanent color per saved trip (plan 009 decision P4).
-3. @Cattn / @Rad1ee: confirm dark + light with a Settings toggle is in UI scope now (@DMFriends' direction). This plan defines both schemes either way.
+
+**Answered** ([#25](https://github.com/Cattn/transit-agent/issues/25#issuecomment-6877423429), @Cattn, 2026-11-14):
+
+- 017-Q2: route colors are **per trip**: a trip keeps its color, rather than colors being reassigned per screen. This also settles the color half of plan 009's P4. Persisting a trip's color is not part of this plan.
+- 017-Q3: **yes**, dark + light with a Settings toggle is in UI scope now (matches @DMFriends). This plan defines both schemes.
 
 <!-- help:end -->
 
@@ -111,4 +114,5 @@ export const modeColors: Record<ColorScheme, Record<TravelMode, string>>; // chi
 ## Maintenance notes
 
 - Apps map `Badge.tone` → `toneColors[scheme][tone]`. Do not add per-badge colors.
-- **Later (after questions 1 and 2):** move `PALETTE` / `routeColor` / `assignRouteColors` into `packages/shared/src/theme/` keeping the exact colors and order, and have `@transit/maps` re-export them so no import breaks. That is a separate PR coordinated with @KrakenTheJaken.
+- Per-trip route colors (017-Q2) need a stable color per trip across screens and sessions. That is new work for maps + saves, planned separately; until then `assignRouteColors` stays as is.
+- **Later (after question 1):** move `PALETTE` / `routeColor` / `assignRouteColors` into `packages/shared/src/theme/` keeping the exact colors and order, and have `@transit/maps` re-export them so no import breaks. That is a separate PR coordinated with @KrakenTheJaken.

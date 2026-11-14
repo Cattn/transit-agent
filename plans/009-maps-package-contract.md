@@ -161,7 +161,7 @@ Do not close #13 or mark all of 009 done just because the native JS bundle build
 
 - **P1 — picker ownership, maps + UI:** keep the map-owned overlap picker or return choosing entirely to the app? Current web code has a picker and still passes `candidates`; do not drop that argument without agreement.
 - **P2 — mode filtering, maps + UI:** confirm whole-trip filtering rather than per-leg filtering. Current web code uses `isItineraryVisible`; any results-list integration must use the same rule.
-- **P4 / #25 — color policy, maps + UI:** confirm collision-resolved colors versus permanent per-trip colors across changing sets/sessions, and palette ownership in shared. Order-independent allocation and caller overrides are implemented; these do not settle persistence policy.
+- **P4 / #25 — color policy, maps + UI:** colors decided: **permanent per-trip colors** (@Cattn, 017-Q2 on #25, 2026-11-14). Palette ownership in shared is still open (017-Q1). Order-independent allocation and caller overrides are implemented; these do not settle persistence policy.
 - **009-Q5 — style compatibility, Kraken:** same OpenFreeMap style URL on web/native, or platform-specific URLs? Establish during native verification.
 - **iOS availability:** Kraken is nominated; confirm device/simulator access. Nomination is not completed verification.
 
