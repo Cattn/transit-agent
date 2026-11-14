@@ -19,21 +19,8 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 🟢 **Up for grabs now.** Nothing to wait for.
-- **Owner:** Nobody yet
-- **Up for grabs?** Yes. Small server-side TypeScript, no APIs or keys needed.
-
-**Open questions** (answer by number in a comment on #22):
-
-1. $25/day default parking when an airport's rate is unknown. OK?
-
-**How to help**
-- **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
-- **With a coding agent** (Claude Code, Codex, Cursor, ...): pull `main`, then tell your agent:
-  > Read `plans/014-flight-ground-cost-model.md` and follow it step by step. Run every verification command and check the output matches. Only change files listed under Scope. If a STOP condition happens, stop and tell me instead of working around it. Don't push. When done, show me the diff and the check results.
-
-  Review what it did, then open a PR that says `Closes #22`.
-- **Just feedback:** answer the open questions above by number in a comment.
+- **Status:** 🔄 **In progress** by @DMFriends.
+- **Owner:** @DMFriends
 
 <!-- help:end -->
 
@@ -81,12 +68,12 @@ Branch `plan/014-flight-ground-cost`. One commit. Do not push unless told.
 ### Step 1: Airports (`airports.ts`)
 
 ```ts
-export interface Airport { iata: string; name: string; coordinates: LngLat; metro: string; parkingUsdPerDay?: number }
+export interface Airport { iata: string; name: string; coordinates: LngLat; metro: string; /** IANA zone, e.g. 'America/New_York'. Needed to turn local flight times into ISO times with offsets (plan 019). */ timeZone: string; parkingUsdPerDay?: number }
 export const AIRPORTS: readonly Airport[]
 export function airportsNear(point: LngLat, radiusKm: number): Array<Airport & { distanceKm: number }>   // sorted nearest first
 export function airportToPlace(a: Airport): Place   // { name, coordinates, kind: 'airport', code: iata }
 ```
-About 25 entries: BOS, PVD, MHT, BDL, HVN, ALB, PWM, JFK, LGA, EWR, HPN, ISP, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO. Use real coordinates (look each up; 3 decimals is enough). `parkingUsdPerDay` only where you can cite a public long-term rate; otherwise leave it undefined. Add a header comment saying where the coordinates came from.
+About 25 entries: BOS, PVD, MHT, BDL, HVN, ALB, PWM, JFK, LGA, EWR, HPN, ISP, PHL, BWI, DCA, IAD, ORD, ATL, DFW, DEN, LAX, SFO, SEA, MIA, MCO. Use real coordinates (look each up; 3 decimals is enough) and each airport's IANA time zone. `parkingUsdPerDay` only where you can cite a public long-term rate; otherwise leave it undefined. Add a header comment saying where the coordinates came from.
 
 **Reference (from @Cattn):** [`Cattn/clovis` `client/src/lib/airports.ts`](https://github.com/Cattn/clovis/blob/main/client/src/lib/airports.ts) has IATA codes, cities and names for every large and scheduled-medium airport (sourced from OurAirports). Use it for codes and names. It has **no coordinates**, so take those from OurAirports' `airports.csv` (`latitude_deg`, `longitude_deg`; mind the `[lng, lat]` order). Keep v1 to the ~25 airports above; the full list can come later with plan 011.
 
@@ -103,16 +90,21 @@ export function gasPriceFromEnv(env = process.env): number   // GAS_USD_PER_GALL
 ### Step 3: Fares (`fares.ts`)
 
 ```ts
-export interface FareQuote { from: string; to: string; departAt: string; arriveAt: string; stops: number;
-  layovers: { airport: string; minutes: number }[]; carrier: string; priceUsd: number; bagsIncluded: number; bookingUrl?: string; fetchedAt: string }
-export interface FlightFareProvider { readonly name: string; search(q: { from: string[]; to: string[]; date: string }): Promise<FareQuote[]> }
+export interface FareQuote { id: string; from: string; to: string; /** ISO with offset */ departAt: string; /** ISO with offset */ arriveAt: string; durationMinutes: number; stops: number;
+  layovers: { airport: string; minutes: number }[]; carrier: string; flightNumbers: string[];
+  /** null when the source listed the flight without a price. Keep these: the agent can still use the schedule. */ priceUsd: number | null;
+  bagsIncluded: number; bookingUrl?: string; source: string; fetchedAt: string }
+export interface FareSearch { from: string[]; to: string[]; date: string }   // several origins AND destinations (plan 019 uses both)
+// FlightFareProvider.search takes a FareSearch and returns ALL quotes found, unsorted-by-contract (callers sort).
+export interface FlightFareProvider { readonly name: string; search(q: FareSearch, signal?: AbortSignal): Promise<FareQuote[]> }
 export class FixtureFareProvider implements FlightFareProvider { name = 'fixture-fares' }
 ```
 Fixture fares are deterministic and make the comparison interesting. For any destination `X`, from each requested origin:
 - BOS: $240 nonstop. PVD: $150 nonstop. MHT: $200 nonstop. JFK: $130 nonstop. EWR: $135, 1 stop with a **45 min** layover at ORD. BDL: $190, 1 stop with a **2 h** layover at PHL.
 - Departure `date` at 09:00 local offset `-05:00`; flight time = great-circle distance ÷ 800 km/h + 30 min (+ layover if any).
 - Destination coordinates come from `AIRPORTS`; unknown IATA → skip it.
-- `fetchedAt` = `new Date().toISOString()`; `carrier: 'Sample Air'`; no `bookingUrl`.
+- `fetchedAt` = `new Date().toISOString()`; `carrier: 'Sample Air'`; `source: 'fixture-fares'`; no `bookingUrl`.
+- Return **two flights per origin** (09:00 and a $40-cheaper 06:00 red-eye-style early flight), so callers see "all flights", not just one. `id` = `` `fx-${from}-${to}-${date}-${hhmm}` ``; `flightNumbers` like `['SA101']`.
 
 ### Step 4: Tests
 
@@ -124,7 +116,7 @@ Fixture fares are deterministic and make the comparison interesting. For any des
   - PVD ≈ 150 fare + ~$12 gas + $25 parking ≈ **$187**
   - JFK ≈ 130 fare + ~$47 gas + $25 parking ≈ **$202**
   - BOS ≈ 240 fare + $4.10 transit (two subway fares) ≈ **$244**
-  Assert the **order** PVD < JFK < BOS, computing totals from the modules (not hard-coded numbers). The cheapest fare (JFK) is not the cheapest trip: that's the point of issue #1.
+  (Those use the 09:00 fares; with each origin's cheaper 06:00 flight every fare drops $40 and the order is the same.) Assert the **order** PVD < JFK < BOS, computing totals from the modules (not hard-coded numbers). The cheapest fare (JFK) is not the cheapest trip: that's the point of issue #1.
 
 **Verify**: `npm run check` → exit 0.
 
@@ -146,4 +138,4 @@ Fixture fares are deterministic and make the comparison interesting. For any des
 ## Open questions for review
 
 - ~~014-Q1~~ **Decided (@Cattn, 2026-11-14):** yes, include the NYC airports. Plan 011 uses a default search radius of **350 km** so JFK, LGA and EWR are in by default from Boston.
-- 014-Q2: $25/day default parking when an airport's rate is unknown. OK?
+- ~~014-Q2~~ **Decided (@DMFriends, 2026-11-14):** $25/day default is OK.

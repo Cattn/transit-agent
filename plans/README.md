@@ -98,11 +98,12 @@ Every plan issue (#5–#16) starts with a **"Who's on it & how to help"** box: s
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | 🟢 up for grabs (later) | P2 | L | 003, 014 (D10, D11) | TODO |
 | 012 | [Mock API client (UI builds without the server)](012-mock-api-client.md) ([#20](https://github.com/Cattn/transit-agent/issues/20)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004 | TODO |
 | 013 | ["When do I leave" logic, pure + shared](013-watch-status-logic.md) ([#21](https://github.com/Cattn/transit-agent/issues/21)) | 🟢 up for grabs **now** | P1 | S | 002 | TODO |
-| 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | 🟢 up for grabs **now** | P2 | S | 002 | TODO |
+| 014 | [Airports, drive cost model, sample fares](014-flight-ground-cost-model.md) ([#22](https://github.com/Cattn/transit-agent/issues/22)) | DMFriends | P2 | S | 002 | IN PROGRESS |
 | 015 | [Shared React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | 🟢 up for grabs (good fit: UI) | P1 | M | 004, 012 | TODO |
 | 016 | [Shared display text (formatters)](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | 🟢 up for grabs **now** (cheap agent OK) | P1 | S | 002 | TODO |
 | 017 | [Shared colors (map ↔ cards)](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | 🟢 up for grabs; maps + UI review | P1 | S | 016 | TODO |
 | 018 | [Mobile platform plumbing](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | 🟢 up for grabs **now** (good fit: mobile) | P1 | M | — (015 optional) | TODO |
+| 019 | [Real flight prices: adapted Clovis (all flights)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | 🟢 up for grabs once 014 lands (strong model) | P2 | L | 014 (D10) | TODO |
 | — | [UI direction](ui-direction.md) ([#16](https://github.com/Cattn/transit-agent/issues/16)) | Rad1ee, DMFriends | — | — | 012 for mock data | IN PROGRESS (living doc) |
 | — | [UI slices](ui-slices.md) (draft, on [#16](https://github.com/Cattn/transit-agent/issues/16)) | UI team to confirm format | — | — | 012, 015 | DRAFT |
 
@@ -117,7 +118,7 @@ only on the client (004) and the mock (012), and several pure pieces start right
 Server (Cattn):     003 ──→ 005 ──→ 006 ──────────→ 008 ──→ 011
                      │                               ↑        ↑
 Start now, anyone:  013 (leave-by logic) ────────────┘        │
-                    014 (airports + drive cost) ──────────────┘
+                    014 (airports + drive cost) → 019 (Clovis) ┘
                     016 (formatters) → 017 (colors, with maps)
                     007 research spike → 010 research
 
@@ -189,7 +190,7 @@ transit data (007) can land afterwards without any client changes.
 | D7 | How clients learn of watch updates | A Poll `GET /api/itineraries` every 30–60 s · B SSE · C Expo push notifications | **A now, C later.** Push needs EAS credentials and a deployed server. | 008 |
 | D8 | Basemap tiles | A MapTiler (free tier, key) · B OpenFreeMap / Protomaps (no key) · C Stadia | **Maps team decides.** The contract in 009 hides it behind a `styleUrl` prop. | 009 |
 | D9 | Map package location | A `packages/maps` with `/web` and `/native` subpath exports · B Map code inside each app | **A**, per the map-architecture thread. | 009 |
-| D10 | Flight price data | A Port Clovis's Google Flights client · B Run Clovis as a separate local service · C Duffel API · D SerpApi Google Flights · E Fixture only · (+ agent orchestrates searches on top of any source) | **Sample fares now (014); then A, with E as fallback.** Details below the table. | 011, 014, 006 |
+| D10 | Flight price data | A Port Clovis's Google Flights client · B Run Clovis as a separate local service · C Duffel API · D SerpApi Google Flights · E Fixture only · (+ agent orchestrates searches on top of any source) | **Decided (@Cattn, 2026-11-14): E for testing + A, adapted to return all flights (plan 019).** Details below the table. | 011, 014, 019, 006 |
 | D11 | Flight scope for v1 | A US domestic + "nearby airports + drive/train" · B Also Europe/Eurail | **A.** Europe/Eurail goes in the backlog. Eurail fares have no simple public API. | 011 |
 
 
@@ -207,7 +208,7 @@ transit data (007) can land afterwards without any client changes.
 
 **"Have the agent check flights itself"** works as a layer on top of any source, not as a source by itself. Letting the model read prices off web pages is slow and can't be checked, and it breaks the rule that the agent never invents a route. Instead, give the agent a `search_flights` tool backed by A–E, and let it *decide which searches to run*: try other airports, shift dates ±2 days, or for Europe, try several landing cities and compare the train onward. That's where the agent adds value (plan 006 tool + plan 011 step 7).
 
-**Recommended path:** keep sample fares (014) for development and the demo fallback; build A as plan 011 step 6 with caching and the existing throttle; add the agent's `search_flights` tool on top. Revisit C if booking ever matters.
+**Decided:** keep sample fares for testing; copy Clovis in and adapt it to return *all* flights, not just the cheapest (plan 019). Original recommendation: keep sample fares (014) for development and the demo fallback; build A as plan 011 step 6 with caching and the existing throttle; add the agent's `search_flights` tool on top. Revisit C if booking ever matters.
 
 ---
 

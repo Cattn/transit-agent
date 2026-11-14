@@ -12,7 +12,7 @@
 - **Priority**: P2
 - **Effort**: L
 - **Risk**: MED (fare data access is the hard part; the comparison logic is not)
-- **Depends on**: plans/003, plans/014; uses 007's ground routing when available (falls back to fixture)
+- **Depends on**: plans/003, plans/014, plans/019 (real prices; sample fares work without it); uses 007's ground routing when available (falls back to fixture)
 - **Category**: direction
 - **Blocked by decisions**: D10 (fare source), D11 (scope: US domestic + nearby airports first)
 - **Planned at**: commit `c9e33cc`, 2026-11-13
@@ -28,8 +28,7 @@
 
 **Open questions** (answer by number in a comment on #15):
 
-1. Where flight prices come from (D10): port Cattn's Clovis Google Flights client (suggested), Duffel, SerpApi, or sample fares only? Options and trade-offs are in `plans/README.md` → D10.
-2. Show "take Amtrak instead" as an option in Fly mode (e.g. Boston → DC)? *(suggested: yes)*
+1. Show "take Amtrak instead" as an option in Fly mode (e.g. Boston → DC)? *(suggested: yes)*
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself, so two people don't build the same thing.
@@ -81,11 +80,14 @@ plan 014, which can start before plan 003 lands. Check they exist; if not, STOP.
 
 ### Step 6 (after D10): Real fare provider
 
-Implement the `FlightFareProvider` chosen in D10 (options and trade-offs in `plans/README.md` → D10; the leading option is porting Cattn's Clovis Google Flights client). Whatever the source: respect rate limits, cache identical queries for 15 min, record one real sample response for mapper tests, and keep fixture fares selectable via `FLIGHT_FARES=fixture` (the demo fallback if the live source breaks).
+**Done by plan 019** (D10 decided: sample fares for testing + an adapted copy of Clovis that returns *all* flights). Use `selectFareProvider()` from `flights/select-provider.ts`, and put its fallback warning into `PlanResponse.warnings`. The composer ranks fares; the provider never sorts or trims.
 
 ### Step 7: Agent
 
 Add tools `compare_airports` (runs this provider for the current draft) and an instruction section: ask about budget ("how rich are you"), tolerance for going out of the way (max drive/train minutes), and connection tightness when they're missing. **No booking.** If a quote has `bookingUrl`, the agent may share it.
+
+
+The `search_flights` tool returns `summarizeFares()` (plan 019) plus quote ids, not raw rows. Add a second tool, `filter_flights`, backed by `filterFares()`, so the agent can drill in ("only nonstops after 8 am", "layovers of at least 90 min"). The agent decides which searches to run (other airports, dates ±2 days, several landing cities); the server does the searching.
 
 ## Done criteria
 
