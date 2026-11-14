@@ -178,6 +178,16 @@ If ADK forbids changing the agent/tools for an existing session's runner, keep o
 `ServerDeps` gains `agent?: PlannerAgent`. In `index.ts`, construct `AdkPlanner` only if `GEMINI_API_KEY` is set. Otherwise, the route returns 503 `{ error: { code: 'agent_unavailable', message: 'Set GEMINI_API_KEY on the server' } }`. Log at startup whether the agent is enabled. **Never log the key.**
 Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory token bucket in the route file).
 
+### Shared development server (owner decision, 2026-11-14)
+
+Cattn runs the Gemini-enabled server on their own machine. Teammates run their web/mobile apps locally and point them at that server only when testing live AI or available live API integrations. They do not need Cattn's Gemini account, credentials, or a local Gemini key. Mock clients and fake planners remain the normal development/CI path.
+
+- Keep `GEMINI_API_KEY` only in the host machine's server environment or ignored `apps/server/.env`. Never send it to clients, teammates, logs, or source control.
+- Document the host setup in README: run the API with `HOST=0.0.0.0`, port `3001`, and `CORS_ORIGIN` listing teammates' actual browser origins (comma-separated; each teammate's `http://localhost:5173` works for their local browser). Existing server configuration already supports this; no separate hosted service is required.
+- Teammates set `VITE_API_URL=http://HOST_LAN_IP:3001` for web or `EXPO_PUBLIC_API_URL=http://HOST_LAN_IP:3001` for mobile, then restart their app. These variables contain only the API address. `localhost` and `10.0.2.2` on their machines do not address Cattn's server. Check `/api/health` from the teammate's machine first.
+- A LAN address works when the devices can reach that network. Off-network testing needs a reachable private-network address or separately arranged API tunnel; Expo's bundle tunnel does not expose the API. Document this distinction without provisioning a tunnel as part of 006.
+- The host server must be running for live calls. Without a configured key, agent requests retain the planned 503 behavior. Plan 006 enables live Gemini, not real transit/flight sources still owned by other plans; label fixture data accordingly.
+
 ### Step 9: Tests
 
 - `tools.test.ts`: `update_trip_draft` accumulates patches across 2 calls; `search_routes` with incomplete draft → `incomplete` + missing list; complete draft → `turn.plan` set and model-facing result has no `geometry` key; `ask_user` queues.
@@ -198,6 +208,7 @@ Rate-limit lightly: max 20 agent requests/minute per device (simple in-memory to
 - [ ] `grep -rln "@google/adk" apps/server/src` → only `agent/adk-planner.ts` (and possibly `agent/tools.ts` for `FunctionTool`)
 - [ ] `grep -rn "GEMINI" apps/web apps/mobile` → no matches
 - [ ] Server starts without `GEMINI_API_KEY` and `/api/agent/messages` returns 503
+- [ ] README documents Cattn-hosted shared-server setup, teammate API URLs, browser CORS origins, and mock-first development without distributing the Gemini key
 - [ ] Eval run recorded in PR
 
 ## STOP conditions
