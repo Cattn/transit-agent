@@ -7,6 +7,7 @@ import { SavedItinerarySchema, type SavedItinerary } from '../../domain/itinerar
 import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
 import { mockItineraries } from './mock-routes.js';
+import { mockAgentReply } from './mock-agent.js';
 
 export type MockScenario = 'normal' | 'empty' | 'nearMissOnly' | 'serverError' | 'offline';
 
@@ -110,9 +111,9 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
       saved.delete(id);
       return z.undefined().parse(undefined);
     },
-    async sendAgentMessage() {
-      await beforeCall();
-      return AgentMessageResponseSchema.parse({ sessionId: 'mock-session', reply: '', draftPatch: {}, questions: [] });
+    async sendAgentMessage(body) {
+      const scenario = await beforeCall();
+      return AgentMessageResponseSchema.parse(mockAgentReply(body, now(), (request) => planTrip(request, scenario)));
     },
     async searchPlaces() {
       await beforeCall();
