@@ -49,6 +49,17 @@ Copy the relevant app's `.env.example` to `.env` when overriding defaults. Resta
 
 Client environment variables are public. Keep provider keys and secrets on the server.
 
+## Mobile platform helpers
+
+`apps/mobile/src/platform` holds the phone-only pieces screens share:
+- `getApiUrl()` picks the API address: `EXPO_PUBLIC_API_URL` if set, else the LAN address Expo serves from (works on a real phone), else the emulator/simulator default.
+- `secureStoreDeviceIdStorage` keeps the anonymous device ID in the OS keychain/keystore.
+- `getCurrentPlace()` is "use my location". It asks for permission only when called, and only for when-in-use location; the app never requests background location.
+- `useAppForeground()` lets screens pause polling while the app is in the background.
+- `tripLink()`, `parseTripLink()` and `useIncomingTripLink()` handle `transit-agent://trip/<id>` links.
+
+These use `expo-secure-store`, `expo-location`, `expo-linking` and `expo-constants`. Expo Go already includes them, but a development build must be rebuilt (`npm run build:android`, and `npm run build:ios` for iPhone) after pulling this change or any new permission text in `app.json`. Run the pure helpers' tests with `npm run test:unit -w @transit/mobile`.
+
 ## Test on your Android phone
 
 1. Install [Expo Go](https://expo.dev/go) and put your phone and PC on the same Wi-Fi.
