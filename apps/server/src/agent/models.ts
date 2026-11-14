@@ -10,7 +10,7 @@ export function modelFor(task: AgentTask, env = process.env): string {
 
 export function thinkingFor(task: AgentTask, env = process.env): ThinkingLevel {
   const level = env[`AGENT_THINKING_${task.toUpperCase()}`]?.trim().toUpperCase();
-  return Object.values(ThinkingLevel).find((value) => value === level) ?? defaultThinking[task];
+  return [ThinkingLevel.LOW, ThinkingLevel.MEDIUM, ThinkingLevel.HIGH].find((value) => value === level) ?? defaultThinking[task];
 }
 
 const truthy = (value: string | undefined) => ['true', '1'].includes(value?.trim().toLowerCase() ?? '');
