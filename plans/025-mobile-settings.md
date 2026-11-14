@@ -127,6 +127,8 @@ Do not add tests or a runner. Run the typecheck and lint commands above.
 
 ## Maintenance notes
 
+- Missed-trip behavior is automatic switching ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)), implemented by plan 008. Any drawn “suggest next” row is not a persisted control for choosing automatic versus tap-to-confirm behavior. Keep unsaved reminder rows consistent with this decision; do not add a competing setting or imply a tap is required.
+
 When a question is answered or a frame changes, update this same plan and its issue. Strike answered questions and keep the decision and source link. Do not open a second plan for the same screen.
 
 - When a later plan adds a real field for the watch default or the leave buffer, persist the row then. Until that, the row is visual.
