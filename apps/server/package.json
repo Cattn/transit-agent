@@ -9,7 +9,8 @@
     "start": "node --env-file-if-exists=.env dist/index.js",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
-    "test": "npm run typecheck && npm run test:unit"
+    "test": "npm run typecheck && npm run test:unit",
+    "airports:northeast": "node scripts/northeast-airports.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^11.4.3",
