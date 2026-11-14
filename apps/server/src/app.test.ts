@@ -185,6 +185,6 @@ describe('planner tool declarations', () => {
 describe('planner instructions', () => {
   it('include the current local date and time so "now" resolves', () => {
     const text = instructions('America/New_York', new Date('2026-11-14T09:05:00Z'));
-    expect(text).toContain('Today is 2026-11-14 and the current time is 04:05, timezone America/New_York.');
+    expect(text).toContain('Today is Saturday 2026-11-14 and the current time is 04:05, timezone America/New_York.');
   });
 });
