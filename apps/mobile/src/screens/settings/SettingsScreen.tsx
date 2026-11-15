@@ -193,6 +193,7 @@ export function SettingsScreen() {
   useEffect(() => {
     let active = true;
     generation.current += 1;
+    locationRequest.current += 1;
     saved.current = EMPTY;
     desired.current = EMPTY;
     profileSaved().then(() => api.getProfile()).then((loaded) => {
