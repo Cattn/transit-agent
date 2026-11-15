@@ -4,38 +4,45 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
 import {
   AlertDialog,
-  Button,
   Column,
+  FilledTonalButton,
   FilterChip,
   FlowRow,
   Icon,
-  HorizontalDivider,
   IconButton,
   ListItem,
+  OutlinedTextField,
   RadioButton,
   Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
   Slider,
+  Surface,
   Text,
   TextButton,
   TimePickerDialog,
   useMaterialColors,
+  useNativeState,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
 import { background, clickable, clip, fillMaxWidth, padding, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
 import ArrowDown from '../../../assets/icons/keyboard_arrow_down_fill.xml';
 import ArrowUp from '../../../assets/icons/keyboard_arrow_up_fill.xml';
+import Check from '../../../assets/icons/check_fill.xml';
 import Close from '../../../assets/icons/close_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
+import LocationOn from '../../../assets/icons/location_on_fill.xml';
+import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
 import { useAppColors } from '../../theme/appearance';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
+import { corners } from '../results/RouteCard.android';
 import type { ChipMode, FilterFocus, FiltersChromeProps } from './FiltersScreen';
+import { parseCustomLimit } from './limits';
 import { PlaceField, type PlaceFieldColors } from './PlaceField';
 
 const MODE_ICONS: Record<ChipMode, number> = {
@@ -60,6 +67,38 @@ function AgentMark({ show, m }: { show: boolean; m: MaterialColors }) {
     <Row modifiers={[clip(Shapes.RoundedCorner(8)), background(m.tertiaryContainer), padding(8, 2, 8, 2)]}>
       <Text color={m.onTertiaryContainer} style={m3Text('labelMedium')}>✦ Agent</Text>
     </Row>
+  );
+}
+
+function SectionLabel({ text, agent, m }: { text: string; agent: boolean; m: MaterialColors }) {
+  return (
+    <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
+      <Text color={m.onSurfaceVariant} style={m3Text('titleSmall')}>{text}</Text>
+      <AgentMark show={agent} m={m} />
+    </Row>
+  );
+}
+
+function PlaceRow({ label, value, agent, icon, tint, m, onClick }: { label: string; value: string; agent: boolean; icon: number; tint: string; m: MaterialColors; onClick: () => void }) {
+  return (
+    <Surface
+      color={m.surfaceContainerLow}
+      contentColor={m.onSurface}
+      shape={corners(16)}
+      border={{ width: 1, color: m.outline }}
+      modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(16)), clickable(onClick)]}
+    >
+      <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 16 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 8)]}>
+        <Icon source={icon} size={24} tint={tint} />
+        <Column modifiers={[weight(1)]}>
+          <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>{label}</Text>
+          <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+            <Text color={m.onSurface} maxLines={1} style={m3Text('bodyLarge')}>{value}</Text>
+            <AgentMark show={agent} m={m} />
+          </Row>
+        </Column>
+      </Row>
+    </Surface>
   );
 }
 
@@ -111,6 +150,16 @@ function LimitRow({ title, value, agent, m, onClick }: { title: string; value: s
 }
 
 function LimitDialog({ item, m, onPick, onDismiss }: { item: LimitItem; m: MaterialColors; onPick: (value: number | null) => void; onDismiss: () => void }) {
+  const [custom, setCustom] = useState(false);
+  const initial = item.custom.current === undefined ? '' : String(item.custom.current);
+  const field = useNativeState(initial);
+  const [text, setText] = useState(initial);
+  const [error, setError] = useState<string>();
+  const submit = (value: string) => {
+    const parsed = parseCustomLimit(value, item.custom);
+    if ('error' in parsed) setError(parsed.error);
+    else onPick(parsed.value);
+  };
   return (
     <AlertDialog onDismissRequest={onDismiss}>
       <AlertDialog.Title>
@@ -118,14 +167,49 @@ function LimitDialog({ item, m, onPick, onDismiss }: { item: LimitItem; m: Mater
       </AlertDialog.Title>
       <AlertDialog.Text>
         <Column modifiers={[fillMaxWidth()]}>
-          {item.options.map((option) => (
+          {custom ? null : item.options.map((option) => (
             <Row key={option.label} verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), clickable(() => onPick(option.value)), padding(0, 4, 0, 4)]}>
               <RadioButton selected={option.selected} onClick={() => onPick(option.value)} />
               <Text color={m.onSurface} style={m3Text('bodyLarge')}>{option.label}</Text>
             </Row>
           ))}
+          {custom ? null : (
+            <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), clickable(() => setCustom(true)), padding(0, 4, 0, 4)]}>
+              <RadioButton selected={false} onClick={() => setCustom(true)} />
+              <Text color={m.onSurface} style={m3Text('bodyLarge')}>Custom</Text>
+            </Row>
+          )}
+          {custom ? (
+            <OutlinedTextField
+              autoFocus
+              value={field}
+              singleLine
+              isError={error !== undefined}
+              onValueChange={(value) => {
+                setText(value);
+                setError(undefined);
+              }}
+              keyboardOptions={{ keyboardType: 'number', imeAction: 'done' }}
+              keyboardActions={{ onDone: submit }}
+              modifiers={[fillMaxWidth()]}
+            >
+              <OutlinedTextField.Suffix>
+                <Text style={m3Text('bodyLarge')}>{item.custom.suffix}</Text>
+              </OutlinedTextField.Suffix>
+              {error ? (
+                <OutlinedTextField.SupportingText>
+                  <Text style={m3Text('bodySmall')}>{error}</Text>
+                </OutlinedTextField.SupportingText>
+              ) : null}
+            </OutlinedTextField>
+          ) : null}
         </Column>
       </AlertDialog.Text>
+      <AlertDialog.ConfirmButton>
+        <TextButton enabled={custom} onClick={() => submit(text)}>
+          <Text style={m3Text('labelLarge')}>Set</Text>
+        </TextButton>
+      </AlertDialog.ConfirmButton>
       <AlertDialog.DismissButton>
         <TextButton onClick={onDismiss}>
           <Text style={m3Text('labelLarge')}>Cancel</Text>
@@ -169,7 +253,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
           <IconButton onClick={props.onClose}>
             <Icon source={Close} size={24} contentDescription="Close" />
           </IconButton>
-          <Text modifiers={[weight(1)]} style={{ ...m3Text('titleLarge'), textAlign: 'center' }}>Trip filters</Text>
+          <Text modifiers={[weight(1), padding(8, 0, 0, 0)]} style={m3Text('titleLarge')}>Trip filters</Text>
           <TextButton onClick={props.onReset}>
             <Text style={m3Text('labelLarge')}>Reset</Text>
           </TextButton>
@@ -178,68 +262,40 @@ export function FiltersChrome(props: FiltersChromeProps) {
       <ScrollView ref={scroll} onScrollBeginDrag={() => { scrolled.current = true; }} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} style={styles.list}>
         <View onLayout={(event) => remember('where', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
-              <Text style={m3Text('titleMedium')}>Where & when</Text>
+            <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
+              <SectionLabel text="Where & when" agent={false} m={m} />
+              <PlaceRow label="From" value={props.origin.label} agent={props.origin.agent} icon={MyLocation} tint={m.primary} m={m} onClick={() => props.onSearch('origin')} />
             </Column>
           </Block>
-          <Block scheme={scheme}>
-            <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => props.onSearch('origin'))]}>
-              <ListItem.OverlineContent>
-                <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>From</Text>
-              </ListItem.OverlineContent>
-              <ListItem.HeadlineContent>
-                <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                  <Text style={m3Text('bodyLarge')}>{props.origin.label}</Text>
-                  <AgentMark show={props.origin.agent} m={m} />
-                </Row>
-              </ListItem.HeadlineContent>
-            </ListItem>
-          </Block>
           {props.search?.which === 'origin' ? (
-            <PlaceField near={props.search.near} showLocation locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+            <View style={styles.searchGap}>
+              <PlaceField near={props.search.near} showLocation locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+            </View>
           ) : null}
           <Block scheme={scheme}>
-            <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => props.onSearch('destination'))]}>
-              <ListItem.OverlineContent>
-                <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>To</Text>
-              </ListItem.OverlineContent>
-              <ListItem.HeadlineContent>
-                <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                  <Text style={m3Text('bodyLarge')}>{props.destination.label}</Text>
-                  <AgentMark show={props.destination.agent} m={m} />
-                </Row>
-              </ListItem.HeadlineContent>
-            </ListItem>
+            <Column modifiers={[fillMaxWidth(), padding(16, 12, 16, 0)]}>
+              <PlaceRow label="To" value={props.destination.label} agent={props.destination.agent} icon={LocationOn} tint={m.error} m={m} onClick={() => props.onSearch('destination')} />
+            </Column>
           </Block>
           {props.search?.which === 'destination' ? (
-            <PlaceField near={props.search.near} showLocation={false} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+            <View style={styles.searchGap}>
+              <PlaceField near={props.search.near} showLocation={false} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+            </View>
           ) : null}
           <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 4)]}>
-              <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
+            <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 4)]}>
+              <SingleChoiceSegmentedButtonRow modifiers={[weight(1)]}>
                 {props.timeOptions.map((option) => (
                   <SegmentedButton key={option.value} selected={option.selected} onClick={() => props.onTimeType(option.value)}>
                     <SegmentedButton.Label>
-                      <Text style={m3Text('labelLarge')}>{option.label}</Text>
+                      <Text maxLines={1} style={m3Text('labelLarge')}>{option.label}</Text>
                     </SegmentedButton.Label>
                   </SegmentedButton>
                 ))}
               </SingleChoiceSegmentedButtonRow>
-            </Column>
-          </Block>
-          <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth()]}>
-              <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => setPickingTime(props.time.at ?? new Date().toISOString()))]}>
-                <ListItem.HeadlineContent>
-                  <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                    <Text style={m3Text('bodyLarge')}>{props.time.label}</Text>
-                    <AgentMark show={props.time.agent} m={m} />
-                  </Row>
-                </ListItem.HeadlineContent>
-                <ListItem.TrailingContent>
-                  <Text color={m.primary} style={m3Text('labelLarge')}>{props.time.set ? 'Change' : 'Set'}</Text>
-                </ListItem.TrailingContent>
-              </ListItem>
+              <FilledTonalButton onClick={() => setPickingTime(props.time.at ?? new Date().toISOString())}>
+                <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.agent ? `✦ ${props.time.label}` : props.time.label}</Text>
+              </FilledTonalButton>
               {pickingTime ? (
                 <TimePickerDialog
                   initialDate={pickingTime}
@@ -252,22 +308,19 @@ export function FiltersChrome(props: FiltersChromeProps) {
                   onDismissRequest={() => setPickingTime(undefined)}
                 />
               ) : null}
-            </Column>
+            </Row>
           </Block>
         </View>
 
         <View onLayout={(event) => remember('modes', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
             <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 8)]}>
-              <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                <Text style={m3Text('titleMedium')}>Modes</Text>
-                <AgentMark show={props.modesAgent} m={m} />
-              </Row>
-              <FlowRow horizontalArrangement={{ spacedBy: 8 }} verticalArrangement={{ spacedBy: 8 }}>
+              <SectionLabel text="Modes" agent={props.modesAgent} m={m} />
+              <FlowRow horizontalArrangement={{ spacedBy: 8 }} verticalArrangement={{ spacedBy: 0 }}>
                 {props.modes.map((mode) => (
                   <FilterChip key={mode.mode} selected={mode.selected} onClick={() => props.onToggleMode(mode.mode)}>
                     <FilterChip.LeadingIcon>
-                      <Icon source={MODE_ICONS[mode.mode]} size={18} />
+                      <Icon source={mode.selected ? Check : MODE_ICONS[mode.mode]} size={18} />
                     </FilterChip.LeadingIcon>
                     <FilterChip.Label>
                       <Text style={m3Text('labelLarge')}>{mode.label}</Text>
@@ -282,10 +335,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
         <View onLayout={(event) => remember('strict', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
             <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 8)]}>
-              <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
-                <Text modifiers={[weight(1)]} style={m3Text('titleMedium')}>How strict is the arrival time?</Text>
-                <AgentMark show={props.lateAgent} m={m} />
-              </Row>
+              <SectionLabel text="How strict is the arrival time?" agent={props.lateAgent} m={m} />
               <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
                 {props.lateOptions.map((option) => (
                   <SegmentedButton key={option.value} selected={option.selected} onClick={() => props.onLateTolerance(option.value)}>
@@ -301,15 +351,15 @@ export function FiltersChrome(props: FiltersChromeProps) {
 
         <View onLayout={(event) => remember('prefs', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
-            <Column verticalArrangement={{ spacedBy: 16 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 8)]}>
-              <Text style={m3Text('titleMedium')}>Preferences (rank, never exclude)</Text>
+            <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 8)]}>
+              <SectionLabel text="Preferences (rank, never exclude)" agent={false} m={m} />
               {props.preferences.map((row) => (
-                <Column key={row.key} verticalArrangement={{ spacedBy: 4 }}>
+                <Column key={row.key} verticalArrangement={{ spacedBy: 0 }}>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
-                    <Text style={m3Text('bodyLarge')}>{row.start}</Text>
+                    <Text color={m.onSurface} style={m3Text('bodyLarge')}>{row.start}</Text>
                     <AgentMark show={row.agent} m={m} />
                     <Row modifiers={[weight(1)]}>{null}</Row>
-                    <Text style={m3Text('bodyLarge')}>{row.end}</Text>
+                    <Text color={m.onSurface} style={m3Text('bodyLarge')}>{row.end}</Text>
                   </Row>
                   <PreferenceSlider value={row.value} onChange={(value) => props.onPreference(row.key, value)} />
                 </Column>
@@ -320,9 +370,9 @@ export function FiltersChrome(props: FiltersChromeProps) {
 
         <View onLayout={(event) => remember('limits', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth(), padding(16, 8, 16, 16)]}>
+            <Column modifiers={[fillMaxWidth(), padding(16, 16, 16, 16)]}>
               <Column modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(16)), background(m.surfaceContainerLowest)]}>
-                <Row verticalAlignment="center" modifiers={[fillMaxWidth(), clickable(props.onToggleLimits), padding(16, 16, 16, 8)]}>
+                <Row verticalAlignment="center" modifiers={[fillMaxWidth(), clickable(props.onToggleLimits), padding(16, 10, 16, 12)]}>
                   <Text modifiers={[weight(1)]} style={m3Text('titleSmall')}>Advanced limits</Text>
                   <Icon source={props.limitsOpen ? ArrowUp : ArrowDown} size={24} tint={m.onSurfaceVariant} contentDescription={props.limitsOpen ? 'Collapse advanced limits' : 'Expand advanced limits'} />
                 </Row>
@@ -350,20 +400,6 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </Block>
         </View>
       </ScrollView>
-      <Block scheme={scheme}>
-        <Column modifiers={[fillMaxWidth()]}>
-          <HorizontalDivider color={m.outlineVariant} />
-          <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 16 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 12)]}>
-            <Column modifiers={[weight(1)]}>
-              {props.counts ? <Text color={m.onSurface} style={m3Text('titleSmall')}>{props.counts.routes}</Text> : null}
-              {props.counts ? <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.counts.almost}</Text> : null}
-            </Column>
-            <Button onClick={props.onShowRoutes}>
-              <Text style={m3Text('labelLarge')}>Show routes</Text>
-            </Button>
-          </Row>
-        </Column>
-      </Block>
       <View style={{ height: insets.bottom, backgroundColor: m.surfaceContainerLow }} />
     </View>
   );
@@ -375,5 +411,6 @@ const styles = StyleSheet.create({
   handleRow: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
   handle: { width: 32, height: 4, borderRadius: 2, opacity: 0.4 },
   list: { flex: 1 },
-  content: { paddingBottom: 8 }
+  content: { paddingBottom: 8 },
+  searchGap: { paddingTop: 8 }
 });

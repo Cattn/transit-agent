@@ -333,7 +333,14 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         label,
         icon: presetIcon(key, profile),
         color: presetColor(key, profile),
-        onPress: () => (place ? void searchTo(place) : openFilters()),
+        onPress: () => {
+          if (place) {
+            void searchTo(place);
+            return;
+          }
+          setPresetError(undefined);
+          setPresetEditing(key);
+        },
         onEdit: () => {
           setPresetError(undefined);
           setPresetEditing(key);
@@ -341,7 +348,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
       };
     };
     return [chip('home', 'Home'), chip('office', 'Office'), chip('gym', 'Gym')];
-  }, [profile, searchTo, openFilters]);
+  }, [profile, searchTo]);
 
   const closeResults = useCallback(() => {
     setResultsOpen(false);
@@ -517,7 +524,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           field={filterField}
           plan={plan}
           startSearch={filterSearch}
-          onClose={closeSheet}
+          defaults={profile?.defaults}
+          onClose={!chatBehind && (resultsOpen || state.draft.destination) ? showRoutes : closeSheet}
           onShowRoutes={showRoutes}
         />
       ) : null}
