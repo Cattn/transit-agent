@@ -189,20 +189,13 @@ function LimitDialog({ item, m, onPick, onDismiss }: { item: LimitItem; m: Mater
                 setText(value);
                 setError(undefined);
               }}
-              keyboardOptions={{ keyboardType: item.custom.decimal ? 'decimal' : 'number', imeAction: 'done' }}
+              keyboardOptions={{ keyboardType: 'number', imeAction: 'done' }}
               keyboardActions={{ onDone: submit }}
               modifiers={[fillMaxWidth()]}
             >
-              {item.custom.prefix ? (
-                <OutlinedTextField.Prefix>
-                  <Text style={m3Text('bodyLarge')}>{item.custom.prefix}</Text>
-                </OutlinedTextField.Prefix>
-              ) : null}
-              {item.custom.suffix ? (
-                <OutlinedTextField.Suffix>
-                  <Text style={m3Text('bodyLarge')}>{item.custom.suffix}</Text>
-                </OutlinedTextField.Suffix>
-              ) : null}
+              <OutlinedTextField.Suffix>
+                <Text style={m3Text('bodyLarge')}>{item.custom.suffix}</Text>
+              </OutlinedTextField.Suffix>
               {error ? (
                 <OutlinedTextField.SupportingText>
                   <Text style={m3Text('bodySmall')}>{error}</Text>

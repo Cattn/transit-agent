@@ -9,7 +9,6 @@ import { filtersResetPatch } from './reset';
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
 const TRANSFER_STEPS = [0, 1, 2, 3, 4, 5, 6];
-const BUDGET_STEPS = [3, 5, 10, 15, 20, 30, 50];
 const TIME_OPTIONS = [
   { value: 'departAt', label: 'Depart at' },
   { value: 'arriveBy', label: 'Arrive by' }
@@ -27,7 +26,7 @@ const PREFERENCE_ROWS = [
 
 export type FilterFocus = 'where' | 'modes' | 'strict' | 'prefs' | 'limits';
 export type ChipMode = (typeof CHIP_MODES)[number];
-export type LimitKey = 'maxWalkMinutes' | 'maxTransfers' | 'maxBudgetUsd';
+export type LimitKey = 'maxWalkMinutes' | 'maxTransfers';
 export type PreferenceKey = (typeof PREFERENCE_ROWS)[number]['key'];
 export type TimeType = (typeof TIME_OPTIONS)[number]['value'];
 export type LateTolerance = (typeof LATE_OPTIONS)[number]['value'];
@@ -170,7 +169,6 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
 
   const walkLabel = (value: number) => `${value} min`;
   const transferLabel = (value: number) => (value === 0 ? 'No transfers' : String(value));
-  const budgetLabel = (value: number) => `$${Number.isInteger(value) ? value : value.toFixed(2)}`;
 
   const data = plan && !plan.loading ? plan.data : undefined;
   const near = searching === 'destination' ? draft.origin?.coordinates : draft.destination?.coordinates;
@@ -248,7 +246,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
         label: draft.constraints.maxWalkMinutes === undefined ? 'No limit' : walkLabel(draft.constraints.maxWalkMinutes),
         agent: agent('constraints.maxWalkMinutes'),
         options: limitOptions(draft.constraints.maxWalkMinutes, WALK_STEPS, walkLabel),
-        custom: { suffix: 'min', decimal: false, max: 240, current: draft.constraints.maxWalkMinutes }
+        custom: { suffix: 'min', max: 240, current: draft.constraints.maxWalkMinutes }
       },
       {
         key: 'maxTransfers',
@@ -256,22 +254,13 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
         label: draft.constraints.maxTransfers === undefined ? 'No limit' : transferLabel(draft.constraints.maxTransfers),
         agent: agent('constraints.maxTransfers'),
         options: limitOptions(draft.constraints.maxTransfers, TRANSFER_STEPS, transferLabel),
-        custom: { suffix: 'transfers', decimal: false, max: 10, current: draft.constraints.maxTransfers }
-      },
-      {
-        key: 'maxBudgetUsd',
-        title: 'Budget',
-        label: draft.constraints.maxBudgetUsd === undefined ? 'No limit' : budgetLabel(draft.constraints.maxBudgetUsd),
-        agent: agent('constraints.maxBudgetUsd'),
-        options: limitOptions(draft.constraints.maxBudgetUsd, BUDGET_STEPS, budgetLabel),
-        custom: { prefix: '$', decimal: true, max: 1000, current: draft.constraints.maxBudgetUsd }
+        custom: { suffix: 'transfers', max: 10, current: draft.constraints.maxTransfers }
       }
     ],
     onLimit: (key, value) => {
       if (value === (draft.constraints[key] ?? null)) return;
       if (key === 'maxWalkMinutes') apply({ constraints: { maxWalkMinutes: value } }, 'user');
-      else if (key === 'maxTransfers') apply({ constraints: { maxTransfers: value } }, 'user');
-      else apply({ constraints: { maxBudgetUsd: value } }, 'user');
+      else apply({ constraints: { maxTransfers: value } }, 'user');
     },
     stepFree: { on: draft.constraints.wheelchairAccessible === true, agent: agent('constraints.wheelchairAccessible') },
     onStepFree: (on) => apply({ constraints: { wheelchairAccessible: on ? true : null } }, 'user'),
