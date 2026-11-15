@@ -1,148 +1,96 @@
 # Transit Agent
 
-React web, React Native mobile, and a shared Node API in an npm workspace. Starter screens cover Flight, Commute, Biking, and Agent. Trip planning integrations are ready to be implemented.
+A trip planner for Boston that you can talk to. Describe a trip in plain language, or search for it directly, and Transit Agent plans door-to-door routes across bus, train, bike and car, draws them on a map, and watches saved trips so it can tell you when to leave.
+
+- **Map first.** Routes are drawn on a full-screen map; saved trips keep their own colours.
+- **Agent.** A Gemini planner turns a request into a trip, searches, and explains the best option while you watch it work.
+- **Watched trips.** Saved trips refresh in the background with leave-by times and live delays.
+- **Place shortcuts.** Home, Office and Gym plan a trip in one tap.
+
+Android is the primary platform (Expo with Material 3 Compose controls). iOS runs but is not yet designed; the web app is a lower priority. Flight comparisons are planned.
 
 ## Quick start
 
-Use Node.js 24.13+ and npm 11.8+. From the repository root:
+Requires Node.js 24.13+ and npm 11.8+.
 
 ```sh
 npm install
 npm run dev
 ```
 
-This builds and watches shared code and starts the API, web app, and Expo together. Open http://localhost:5173 for web. The API listens on http://localhost:3001/api/health. Scan the Expo terminal QR code with Expo Go on your phone.
+This starts the API (http://localhost:3001), the web app (http://localhost:5173) and Expo; scan the Expo QR code with [Expo Go](https://expo.dev/go). By default everything runs on fixture data, with no API keys or external calls.
 
-## Run it on a laptop and test on phones
+With an Android phone connected over USB:
 
-Put the server settings in `apps/server/.env` first (copy `apps/server/.env.example`). Each script builds what it needs and stops everything on Ctrl+C.
+```sh
+npm run phone        # app on the phone, using the API on this machine
+npm run phone:mock   # app on the phone with built-in sample data, no server
+```
 
-| Command | What it does |
-|---|---|
-| `npm run host` | Builds and starts the API on this laptop. Prints the Wi-Fi address and a QR code for `<server>/connect`. |
-| `npm run host:public` | Same, plus a public HTTPS URL through Tailscale Funnel (or a cloudflared quick tunnel if Tailscale isn't installed). Anyone can reach it. |
-| `npm run share` | `host:public` plus Metro over an Expo tunnel, so testers can also open the live dev build in Expo Go. |
-| `npm run phone` | USB Android phone: starts the API (or reuses a running one), runs `adb reverse`, starts Metro and opens the app in Expo Go against the real server. |
-| `npm run phone:mock` | Same, with mock data and no server. |
-| `npm run phone:apk` | Downloads the latest release APK, installs it over USB and connects it to this laptop's server. |
-| `npm run phone:app` | Connects an already installed APK to this laptop's server over USB. |
+## Repository
 
-Options: `--port=<api port>`, `--metro-port=<port>`, `--serial=<adb device>`, `--no-build` (host), `--no-server` (phone), `--tunnel=tailscale|cloudflared`.
+| Path | Contents |
+| --- | --- |
+| `apps/mobile` | Expo app: map, search and filters, results, agent chat, saved trips, settings |
+| `apps/server` | Fastify API: trip planning, place search, the agent, profiles, saved trips and the watch job |
+| `apps/web` | React + Vite client |
+| `packages/shared` | Schemas, types, formatting and the API client, including a mock client |
+| `packages/client-react` | React hooks for the API client |
+| `packages/maps` | The MapLibre route map, shared by web and mobile ([documentation](packages/maps/README.md)) |
+| `plans/` | Implementation plans; the source of truth for what is being built ([index](plans/README.md)) |
 
-**Testers** open `<server>/connect` on their phone (the host script prints it as a link and a QR code). The page has two buttons: install the latest APK, then connect the app to that server. The app saves the server, so this is a one-time step. A connect link is `transit-agent://connect?url=<server URL>` (in Expo Go: `exp://…/--/connect?url=…`). An empty `url` forgets the saved server. A saved server takes priority over `EXPO_PUBLIC_API_URL`.
-
-On Windows, allow Node.js through the firewall on private networks the first time, or Wi-Fi phones can't reach the API.
-
-## Android APK releases
-
-Push a tag starting with `v` (for example `git tag v0.2.0 && git push origin v0.2.0`) to build a release APK in GitHub Actions and attach it to a GitHub release as `transit-agent.apk`. Tags with a hyphen (`v0.2.0-rc.1`) become prereleases. You can also run **Release Android APK** from the Actions tab with a tag name. The latest APK is always at `https://github.com/Cattn/transit-agent/releases/latest/download/transit-agent.apk`.
-
-- The APK runs in server mode. Set the `EXPO_PUBLIC_API_URL` repository variable to bake in a default server; without it, testers connect through the `/connect` page.
-- Signing: add the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` secrets to sign with your own key. Without them, the build uses Expo's shared debug key. That works for testing, but anyone can sign an APK with that key.
-- The version name comes from the tag and the version code from the workflow run number, so each release installs over the previous one.
-
-## Workspace
-
-- `apps/web`: React + Vite with a development proxy for `/api`.
-- `apps/mobile`: Expo + React Native for Android and iOS.
-- `apps/server`: Fastify API with request logging, CORS, and graceful shutdown.
-- `packages/shared`: API types, planning sections, and an API client used by both apps.
-- `packages/maps`: the route map (`@transit/maps`). Draws `Itinerary[]` on MapLibre; see [`packages/maps/README.md`](packages/maps/README.md) for how to put a route on the map.
-
-Keep reusable types and platform-independent logic in `packages/shared/src`. Each client owns its platform UI. Shared output is compiled into `packages/shared/dist`; `npm run dev` rebuilds it automatically.
+Platform-independent logic belongs in `packages/shared`; each app owns its UI. Shared packages compile to `dist/`, which `npm run dev` rebuilds automatically.
 
 ## Commands
 
-- `npm run dev`: run everything with shared-package watching.
-- `npm run dev:web`, `npm run dev:server`, `npm run dev:mobile`: run individual apps after `npm run build:shared`.
-- `npm run demo:maps`: the route map demo with sample routes at http://localhost:5180. No server or build needed.
-- `npm run android`: open Expo Go on an Android emulator or connected Android phone.
-- `npm run ios`: open an iOS simulator on macOS.
-- `npm run mobile:tunnel`: expose the Expo development server through a tunnel.
-- `npm test`: lint, type-check, and run Vitest unit tests (`packages/shared`, `apps/server`). Run `npm run test:unit` for tests only.
-- `npm run smoke`: build the API and check health, section responses, and CORS without opening a port.
-- `npm run build`: compile shared/server code, build web, and export Android/iOS JavaScript bundles.
-- `npm run check`: run validation, all builds, and API smoke checks.
-- `npm run mobile:doctor`: check Expo compatibility.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Run all apps with shared packages in watch mode |
+| `npm run dev:server`, `dev:web`, `dev:mobile` | Run one app (after `npm run build:packages`) |
+| `npm run demo:maps` | Route map demo at http://localhost:5180 |
+| `npm run check` | Lint, type-check, test, build everything and run the API smoke test. Required before pushing |
+| `npm test` | Lint, type-check and unit tests |
+| `npm run build` | Build all apps and export the Android and iOS bundles |
 
-Every workspace also has `test`, `typecheck`, and `build` scripts. Use `npm run <script> -w @transit/<web|mobile|server|shared>` to run one independently. Build shared code first.
+Each workspace also has `test`, `typecheck` and `build` scripts: `npm run <script> -w @transit/<name>`.
 
-Mobile export checks JavaScript bundling; installable native apps use EAS Build below.
+## Configuration
 
-## Environment
+Copy an app's `.env.example` to `.env` to override defaults. Client variables are public; keep keys on the server.
 
-Copy the relevant app's `.env.example` to `.env` when overriding defaults. Restart after changing variables.
+**Server** (`apps/server/.env`)
 
-- Server: `HOST` defaults to `0.0.0.0`, `PORT` to `3001`, and `CORS_ORIGIN` to `http://localhost:5173`. Multiple browser origins can be comma-separated.
-- Web: leave `VITE_API_URL` empty for the local proxy. Set the deployed API URL before a production build, or configure your host to proxy `/api`.
-- Mobile: `EXPO_PUBLIC_API_URL` must be reachable from the device. Android emulators default to `http://10.0.2.2:3001`; iOS simulators default to `http://localhost:3001`.
+| Variable | Purpose |
+| --- | --- |
+| `ROUTE_PROVIDERS` | `fixture` (default) or `transitous` for live routing. Transitous also requires `ROUTING_USER_AGENT` with a contact address |
+| `GEMINI_API_KEY` | Enables the AI planner. Vertex AI works instead: `GOOGLE_GENAI_USE_ENTERPRISE=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` |
+| `GEMINI_MODEL`, `AGENT_MODEL_PLANNER`, `AGENT_THINKING_PLANNER` | Planner model (default `gemini-3.8-flash`) and thinking level (`LOW`, `MEDIUM`, `HIGH`) |
+| `PHOTON_URL` | Photon place search; unset uses a built-in place list |
+| `MBTA_API_KEY` | Optional; raises the MBTA live-prediction rate limit |
+| `WATCH_ENABLED`, `WATCH_INTERVAL_SECONDS` | Background refresh of watched trips (on, every 60 s) |
+| `DATABASE_PATH` | SQLite file for profiles and saved trips |
+| `HOST`, `PORT`, `CORS_ORIGIN` | Defaults `0.0.0.0`, `3001`, `http://localhost:5173` |
 
-Client environment variables are public. Keep provider keys and secrets on the server.
+See `apps/server/.env.example` for the full list. CI never calls Gemini, and enabling it does not enable live transit data.
 
-## Mobile platform helpers
+**Web:** `VITE_API_URL` is empty for the local `/api` proxy; set it for production builds.
+**Mobile:** `EXPO_PUBLIC_API_URL` must be reachable from the device. Without it, the app uses Expo's LAN address, or the emulator or simulator default.
 
-`apps/mobile/src/platform` holds the phone-only pieces screens share:
-- `getApiUrl()` picks the API address: `EXPO_PUBLIC_API_URL` if set, else the LAN address Expo serves from (works on a real phone), else the emulator/simulator default.
-- `secureStoreDeviceIdStorage` keeps the anonymous device ID in the OS keychain/keystore.
-- `getCurrentPlace()` is "use my location". It asks for permission only when called, and only for when-in-use location; the app never requests background location.
-- `useAppForeground()` lets screens pause polling while the app is in the background.
+## Testing on devices
 
-These use `expo-secure-store`, `expo-location` and `expo-constants`. Expo Go already includes them, but a development build must be rebuilt (`npm run build:android`, and `npm run build:ios` for iPhone) after pulling this change or any new permission text in `app.json`. Run the pure helpers' tests with `npm run test:unit -w @transit/mobile`.
+| Command | Description |
+| --- | --- |
+| `npm run phone`, `phone:mock` | USB Android phone in Expo Go, against this machine's API or sample data |
+| `npm run phone:apk` | Install the latest release APK over USB and connect it to this machine |
+| `npm run host` | Serve the API on the local network, with a QR code for `<server>/connect` |
+| `npm run host:public` | Also expose it over HTTPS (Tailscale Funnel or cloudflared) |
+| `npm run share` | `host:public` plus the Expo dev server over a tunnel |
 
-## Test on your Android phone
+Testers open `<server>/connect` on their phone to install the APK and connect it to that server; the app remembers the choice. On Windows, allow Node.js through the firewall for private networks so phones on Wi-Fi can reach the API. For emulators, see [Expo's environment guide](https://docs.expo.dev/get-started/set-up-your-environment/) and run `npm run android:setup`.
 
-1. Install [Expo Go](https://expo.dev/go) and put your phone and PC on the same Wi-Fi.
-2. Copy `apps/mobile/.env.example` to `apps/mobile/.env`. Set `EXPO_PUBLIC_API_URL=http://YOUR_PC_LAN_IP:3001`. Run `ipconfig` to find your PC's Wi-Fi IPv4 address.
-3. Run `npm run dev`, allow Node through Windows Firewall on your private network if prompted, and scan the Expo QR code in Expo Go.
-4. The home screen should show **Server connected**. Check `http://YOUR_PC_LAN_IP:3001/api/health` in the phone browser if needed.
+## Contributing
 
-If Wi-Fi fails, stop Expo and run `npm run mobile:tunnel`. The Expo tunnel only carries the app bundle: the API still needs a reachable LAN address or its own HTTPS deployment/tunnel. If Expo Go reports an SDK mismatch, use the Android build linked at [expo.dev/go](https://expo.dev/go) for SDK 58 or an EAS development build.
-
-## Android emulator on Windows
-
-1. Install [Android Studio](https://developer.android.com/studio).
-2. In SDK Manager, install an Android SDK platform, Android SDK Platform-Tools, and Android Emulator.
-3. In Device Manager, create a virtual Pixel with a Google Play system image and start it. Enable hardware virtualization and Windows Hypervisor Platform if requested.
-4. Set the Windows user variable `ANDROID_HOME` to `%LOCALAPPDATA%\Android\Sdk`. Add `%ANDROID_HOME%\platform-tools` and `%ANDROID_HOME%\emulator` to your user `Path`, then restart your terminal.
-5. Run `npm run android:setup` to list available emulators and connected devices.
-6. Leave `EXPO_PUBLIC_API_URL=http://10.0.2.2:3001` in `apps/mobile/.env`. Run `npm run dev`, then press `a` in Expo, or run `npm run android` while the API is running.
-
-For a USB phone, enable Developer options and USB debugging, approve the PC connection, and check `adb devices`. Run `adb reverse tcp:3001 tcp:3001` and set the mobile API URL to `http://localhost:3001`, or use your PC's LAN address.
-
-See [Expo's Android environment guide](https://docs.expo.dev/get-started/set-up-your-environment/?device=simulated&mode=expo-go&platform=android).
-
-## Cloud builds and installable APKs
-
-[EAS Build](https://docs.expo.dev/build/introduction/) builds native apps without installing Android build tools locally. An Expo account is required. From the root:
-
-```sh
-npm run build:shared
-cd apps/mobile
-npx eas-cli@27.10.0 login
-npx eas-cli@27.10.0 init
-npm run build:preview
-```
-
-`eas init` links your Expo project and writes its project ID into app config. The first interactive build configures signing credentials. Commit the resulting project configuration. Replace `com.transitagent.app` in `app.json` with your own application ID before publishing.
-
-- `preview` produces an installable Android APK that runs without Metro. Set a reachable API URL before building. For hosted builds, configure it with `npx eas-cli@27.10.0 env:create --environment preview --name EXPO_PUBLIC_API_URL --value https://YOUR_API_HOST --visibility plaintext`.
-- `development` includes Expo's dev client. Run `npm run build:android`, install the APK, then `npm run dev:client`. Rebuild when adding native dependencies.
-- `production` produces store builds. iOS device builds require Apple signing credentials; local iOS simulation requires macOS and Xcode. EAS can build iOS from Windows.
-
-See [installable APK builds](https://docs.expo.dev/build-reference/apk/) and [development builds](https://docs.expo.dev/tutorial/eas/configure-development-build/).
-
-## GitHub Actions
-
-`ci.yml` runs lint, type checks, web/server builds, Android/iOS bundle exports, and API smoke checks on pushes and pull requests. Outputs are uploaded as a seven-day artifact. Deploy the server with its workspace dependencies and built shared package, not only its `dist` folder; web `dist` is standalone static output.
-
-`android.yml` manually queues a cloud APK build. First link the Expo project and complete an interactive Android build to create signing credentials. Set repository secret `EXPO_TOKEN` to an Expo access token and repository variable `EXPO_PUBLIC_API_URL` to your HTTPS API. Run **Android preview APK** from Actions. The job prints the EAS build link; it does not wait for native compilation or publish to a store.
-
-Use Node.js 24.13+ and npm 11.8+. Set GEMINI_API_KEY only on the server to enable the planner, or use Vertex AI with Application Default Credentials: `GOOGLE_GENAI_USE_ENTERPRISE=true` (the older `GOOGLE_GENAI_USE_VERTEXAI=true` also works), `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION` (see `apps/server/.env.example`). AGENT_MODEL_PLANNER overrides GEMINI_MODEL; the default is gemini-3.8-flash. AGENT_THINKING_PLANNER sets the planner's thinking level (LOW by default; MEDIUM or HIGH).
-
-### Shared development server
-
-For occasional live AI/API tests, Cattn can run the API with `HOST=0.0.0.0`, `PORT=3001`, and a server-only `GEMINI_API_KEY`. Set `CORS_ORIGIN` to the actual teammate browser origins, comma-separated (local web commonly uses `http://localhost:5173`). Start the API with `npm run dev:server` after setting those variables in its environment. Teammates do not need Gemini credentials.
-
-Teammates set `VITE_API_URL=http://HOST_LAN_IP:3001` for web or `EXPO_PUBLIC_API_URL=http://HOST_LAN_IP:3001` for mobile, replacing `HOST_LAN_IP` with the API host's LAN address. Restart clients after changing environment variables and check `http://HOST_LAN_IP:3001/api/health`. The LAN must be reachable. Off-network access needs a separately arranged network or tunnel; an Expo bundle tunnel does not provide API access.
-
-Mocks and fakes remain the default development path, and CI never calls Gemini. Enabling live Gemini does not enable live transit or flight providers.
+- Start from the relevant plan in [`plans/`](plans/README.md); GitHub issues mirror them.
+- `npm run check` must pass before pushing.
+- Pull requests are reviewed against the house rules: no new code comments, no removed logging, new test cases go in existing test files, and no AI attribution in commits.
+- Changes to a screen include screenshots or video of each main feature on Android, in light and dark mode.
