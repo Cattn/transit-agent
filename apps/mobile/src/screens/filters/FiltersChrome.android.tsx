@@ -141,7 +141,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const scroll = useRef<ScrollViewInstance>(null);
   const scrolled = useRef(false);
-  const [pickingTime, setPickingTime] = useState(false);
+  const [pickingTime, setPickingTime] = useState<string>();
   const [pickingLimit, setPickingLimit] = useState<LimitItem['key']>();
   const editing = props.limits.find((item) => item.key === pickingLimit);
   const placeColors: PlaceFieldColors = {
@@ -229,7 +229,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </Block>
           <Block scheme={scheme}>
             <Column modifiers={[fillMaxWidth()]}>
-              <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => setPickingTime(true))]}>
+              <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={[fillMaxWidth(), clickable(() => setPickingTime(props.time.at ?? new Date().toISOString()))]}>
                 <ListItem.HeadlineContent>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
                     <Text style={m3Text('bodyLarge')}>{props.time.label}</Text>
@@ -242,14 +242,14 @@ export function FiltersChrome(props: FiltersChromeProps) {
               </ListItem>
               {pickingTime ? (
                 <TimePickerDialog
-                  initialDate={props.time.at ?? new Date().toISOString()}
+                  initialDate={pickingTime}
                   is24Hour={false}
                   confirmButtonLabel="Set time"
                   onDateSelected={(at) => {
-                    setPickingTime(false);
+                    setPickingTime(undefined);
                     props.onSetTime(at);
                   }}
-                  onDismissRequest={() => setPickingTime(false)}
+                  onDismissRequest={() => setPickingTime(undefined)}
                 />
               ) : null}
             </Column>

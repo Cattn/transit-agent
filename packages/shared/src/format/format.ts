@@ -40,6 +40,14 @@ export function formatClock(iso: string, timeZone?: string): string {
   return plainSpaces(clockFormatter(timeZone).format(Date.parse(iso)));
 }
 
+export function formatClockOnDay(iso: string, now: Date, timeZone?: string): string {
+  const clock = formatClock(iso, timeZone);
+  const days = dayNumber(Date.parse(iso), timeZone) - dayNumber(now.getTime(), timeZone);
+  if (days === 0) return clock;
+  if (days === 1) return `${clock} tomorrow`;
+  return `${clock} on ${formatDay(iso, timeZone)}`;
+}
+
 export function formatDay(iso: string, timeZone?: string): string {
   const opts: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
   if (timeZone !== undefined) opts.timeZone = timeZone;
