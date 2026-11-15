@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import type { PlannerAgent } from './agent/types.js';
 import { agentRoutes } from './routes/agent.js';
+import { connectRoutes } from './routes/connect.js';
 import cors from '@fastify/cors';
 import { sections, type HealthResponse } from '@transit/shared';
 import { registerErrorHandler } from './http/errors.js';
@@ -52,6 +53,7 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
   app.register(profileRoutes, resolved);
   app.register(placeRoutes, resolved);
   app.register(agentRoutes, resolved);
+  app.register(connectRoutes);
 
   return app;
 }

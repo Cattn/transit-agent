@@ -35,6 +35,27 @@ describe('server', () => {
     const res = await app.inject({ method: 'GET', url: '/api/nope' });
     expect(res.statusCode).toBe(404);
   });
+
+  it('GET /connect links the app to the server it was opened from', async () => {
+    app = createServer();
+    const res = await app.inject({ method: 'GET', url: '/connect', headers: { host: 'laptop.example.ts.net', 'x-forwarded-proto': 'https' } });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.body).toContain('href="transit-agent://connect?url=https%3A%2F%2Flaptop.example.ts.net"');
+    expect(res.body).toContain('releases/latest/download/transit-agent.apk');
+    expect(res.body).not.toContain('Expo Go');
+  });
+
+  it('GET /connect uses PUBLIC_URL, APK_URL and EXPO_GO_URL when set', async () => {
+    vi.stubEnv('PUBLIC_URL', 'https://public.example/');
+    vi.stubEnv('APK_URL', 'https://example.test/a.apk?x=1&y=2');
+    vi.stubEnv('EXPO_GO_URL', 'exp://abc.exp.direct');
+    app = createServer();
+    const res = await app.inject({ method: 'GET', url: '/connect', headers: { host: 'localhost:3001' } });
+    expect(res.body).toContain('transit-agent://connect?url=https%3A%2F%2Fpublic.example"');
+    expect(res.body).toContain('href="https://example.test/a.apk?x=1&#38;y=2"');
+    expect(res.body).toContain('href="exp://abc.exp.direct/--/connect?url=https%3A%2F%2Fpublic.example"');
+  });
 });
 
 describe('GET /api/places', () => {
