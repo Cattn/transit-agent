@@ -6,4 +6,5 @@ export interface RouteProvider {
   supports(request: TripRequest): boolean;
   /** Return candidate itineraries. risk/violations may be left empty — planTrip fills them. */
   search(request: TripRequest, signal?: AbortSignal): Promise<Itinerary[]>;
+  refresh?(it: Itinerary, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined>;
 }

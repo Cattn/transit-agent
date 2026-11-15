@@ -233,4 +233,25 @@ export class FixtureProvider implements RouteProvider {
     const fetchedAt = new Date().toISOString();
     return optionsFor(request, distanceMeters).map((option) => buildItinerary(request, option, distanceMeters, hash, fetchedAt));
   }
+
+  async refresh(it: Itinerary, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined> {
+    const legIds = it.legs.map((leg) => leg.id).join();
+    const match = (await this.search(request, signal)).find((candidate) => candidate.legs.map((leg) => leg.id).join() === legIds);
+    const raw = process.env.FIXTURE_DELAY_MINUTES?.trim();
+    if (!match || !raw) return match;
+    const delay = Number(raw);
+    const start = match.legs.findIndex((leg) => leg.mode === 'bus' || leg.mode === 'rail');
+    if (!Number.isFinite(delay) || start < 0) return match;
+    const shift = (iso: string) => formatIso(Date.parse(iso) + delay * 60_000, offsetOf(iso));
+    const legs = match.legs.map((leg, index): Leg => {
+      if (index < start) return leg;
+      const next: Leg = { ...leg, departAt: shift(leg.departAt), arriveAt: shift(leg.arriveAt) };
+      if (leg.mode === 'bus' || leg.mode === 'rail') {
+        next.timeSource = 'realtime';
+        next.delayMinutes = delay;
+      }
+      return next;
+    });
+    return { ...match, legs, arriveAt: legs[legs.length - 1]!.arriveAt, departAt: legs[0]!.departAt };
+  }
 }

@@ -195,6 +195,32 @@ describe('TransitousProvider', () => {
     expect(new Headers(calls[0]?.[1]?.headers).get('User-Agent')).toBe('transit-agent-test');
   });
 
+  it('refreshes the same trips and marks them live only when MBTA confirms the prediction', async () => {
+    const body = sample('007-transitous-early.json');
+    const [saved] = mapTransitousPlan(body, liveRequest(), { fetchedAt });
+    const bus = saved!.legs.find((leg) => leg.mode === 'bus')!;
+    const raw = body.itineraries!.find((it) => it.legs.some((leg) => leg.tripId === bus.trip?.tripId))!.legs.find((leg) => leg.tripId === bus.trip?.tripId)!;
+    const mbtaCalls: string[] = [];
+    const provider = (uncertainty: number) => new TransitousProvider({
+      baseUrl: 'https://api.transitous.org', userAgent: 'ua', logger: silentLogger, mbtaApiKey: 'key',
+      fetch: async (url, init) => {
+        if (String(url).includes('api/v6/plan')) return jsonResponse(body);
+        mbtaCalls.push(`${String(url)} ${new Headers(init?.headers).get('x-api-key')}`);
+        return jsonResponse({ data: [{ attributes: { departure_uncertainty: uncertainty } }] });
+      }
+    });
+    const live = await provider(120).refresh(saved!, liveRequest());
+    const liveBus = live?.legs.find((leg) => leg.mode === 'bus');
+    expect(liveBus).toMatchObject({ timeSource: 'realtime', delayMinutes: Math.round((Date.parse(raw.startTime) - Date.parse(raw.scheduledStartTime!)) / 60_000) });
+    expect(mbtaCalls[0]).toContain(`filter%5Btrip%5D=${bus.trip?.agencyTripId}`);
+    expect(mbtaCalls[0]).toMatch(/ key$/);
+    const scheduleBased = await provider(300).refresh(saved!, liveRequest());
+    expect(scheduleBased?.legs.find((leg) => leg.mode === 'bus')).toMatchObject({ timeSource: 'estimated' });
+    expect(scheduleBased?.legs.find((leg) => leg.mode === 'bus')?.delayMinutes).toBeUndefined();
+    const other = { ...saved!, legs: saved!.legs.map((leg) => (leg.trip ? { ...leg, trip: { ...leg.trip, tripId: 'gone' } } : leg)) };
+    expect(await provider(120).refresh(other, liveRequest())).toBeUndefined();
+  });
+
   it('fails honestly on upstream errors and malformed bodies', async () => {
     const failing = new TransitousProvider({ baseUrl: 'https://x.test', userAgent: 'ua', fetch: async () => jsonResponse({ error: 'busy' }, 503) });
     await expect(failing.search(liveRequest())).rejects.toThrow('Transitous returned 503');

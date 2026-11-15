@@ -14,7 +14,7 @@ export function createRouteProviders(env: Record<string, string | undefined> = p
     if (name === 'transitous') {
       const userAgent = env.ROUTING_USER_AGENT?.trim();
       if (!userAgent) throw new Error('ROUTING_USER_AGENT is required for the transitous provider');
-      return new TransitousProvider({ baseUrl: env.TRANSITOUS_URL?.trim() || DEFAULT_TRANSITOUS_URL, userAgent, fetch: fetchImpl, gasUsdPerGallon: gasPriceFromEnv(env) });
+      return new TransitousProvider({ baseUrl: env.TRANSITOUS_URL?.trim() || DEFAULT_TRANSITOUS_URL, userAgent, fetch: fetchImpl, gasUsdPerGallon: gasPriceFromEnv(env), mbtaUrl: env.MBTA_URL?.trim() || undefined, mbtaApiKey: env.MBTA_API_KEY?.trim() || undefined });
     }
     throw new Error(`Unknown route provider "${name}" in ROUTE_PROVIDERS`);
   });

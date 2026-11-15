@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ItinerarySchema, SavedItinerarySchema } from './itinerary.js';
+import { LngLatSchema } from './places.js';
 import { TripRequestSchema } from './trip-draft.js';
 
 export const PlanRequestSchema = TripRequestSchema;
@@ -40,6 +41,12 @@ export const SaveItineraryRequestSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional()
 });
 export type SaveItineraryRequest = z.infer<typeof SaveItineraryRequestSchema>;
+
+export const WatchLocationReportSchema = z.object({
+  coordinates: LngLatSchema,
+  accuracyMeters: z.number().nonnegative().optional()
+}).strict();
+export type WatchLocationReport = z.infer<typeof WatchLocationReportSchema>;
 
 export const SavedItineraryListSchema = z.object({ itineraries: z.array(SavedItinerarySchema) });
 

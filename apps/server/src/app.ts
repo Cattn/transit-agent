@@ -15,6 +15,7 @@ import { planRoutes } from './routes/plan.js';
 import { MemoryItineraryStore } from './store/memory.js';
 import type { ItineraryStore } from './store/types.js';
 import { createPlaceSearcher, type PlaceSearcher } from './places/geocoder.js';
+import { TripLocations } from './watch/boarding.js';
 
 export interface ServerDeps {
   agent?: PlannerAgent;
@@ -22,6 +23,7 @@ export interface ServerDeps {
   itineraries: ItineraryStore;
   profiles: ProfileStore;
   places: PlaceSearcher;
+  locations: TripLocations;
 }
 
 export function createServer(deps: Partial<ServerDeps> = {}) {
@@ -30,7 +32,8 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
     providers: deps.providers ?? [new FixtureProvider()],
     itineraries: deps.itineraries ?? new MemoryItineraryStore(),
     profiles: deps.profiles ?? new MemoryProfileStore(),
-    places: deps.places ?? createPlaceSearcher({})
+    places: deps.places ?? createPlaceSearcher({}),
+    locations: deps.locations ?? new TripLocations()
   };
 
   const app = Fastify({ logger: true });

@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { SaveItineraryRequestSchema, type SavedItinerary } from '@transit/shared';
+import { SaveItineraryRequestSchema, WatchLocationReportSchema, type SavedItinerary } from '@transit/shared';
 import type { ServerDeps } from '../app.js';
 import { getDeviceId } from '../http/device.js';
 import { ApiError } from '../http/errors.js';
@@ -49,8 +49,19 @@ export const itineraryRoutes: FastifyPluginAsync<ServerDeps> = async (app, deps)
   });
 
   app.delete<IdParams>('/api/itineraries/:id', async (request, reply) => {
-    const removed = await store.remove(getDeviceId(request), request.params.id);
+    const deviceId = getDeviceId(request);
+    const removed = await store.remove(deviceId, request.params.id);
     if (!removed) throw notFound(request.params.id);
+    deps.locations.forget(deviceId, request.params.id);
+    return reply.status(204).send();
+  });
+
+  app.post<IdParams>('/api/itineraries/:id/location', async (request, reply) => {
+    const deviceId = getDeviceId(request);
+    const report = parse(WatchLocationReportSchema, request.body);
+    const item = await store.get(deviceId, request.params.id);
+    if (!item?.watch) throw notFound(request.params.id);
+    deps.locations.report(deviceId, request.params.id, report);
     return reply.status(204).send();
   });
 };
