@@ -102,6 +102,7 @@ export function RouteMap({
   userHeading,
   locateKey,
   fitKey,
+  fitItineraryId,
   padding = DEFAULT_PADDING,
   routeColors,
   unfocusedColors = 'trip',
@@ -255,7 +256,8 @@ export function RouteMap({
   }, [locateKey]);
 
   const fitToRoutes = () => {
-    const bounds = boundsOf(itineraries, visibleModes);
+    const focused = itineraries.filter((it) => it.id === fitItineraryId);
+    const bounds = boundsOf(focused.length ? focused : itineraries, visibleModes);
     if (!bounds) return; // nothing visible (e.g. the Fly tab with no flights): leave the camera alone
     const room = variant === 'choosing' ? LEG_BUBBLE_ROOM : 0;
     const fitPadding = { ...padding, left: padding.left + room, right: padding.right + room };
