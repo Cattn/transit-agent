@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { fetch as expoFetch } from 'expo/fetch';
 import { createApiClient, createMockApiClient, type ApiClient } from '@transit/shared';
 import { useDeviceId } from '@transit/client-react';
 import { getApiUrl, secureStoreDeviceIdStorage } from '../platform';
@@ -16,5 +17,5 @@ void mockClient?.putProfile({
 
 export function useAppClient(): ApiClient | undefined {
   const deviceId = useDeviceId(secureStoreDeviceIdStorage);
-  return useMemo(() => mockClient ?? (deviceId ? createApiClient(getApiUrl(), { deviceId }) : undefined), [deviceId]);
+  return useMemo(() => mockClient ?? (deviceId ? createApiClient(getApiUrl(), { deviceId, streamFetch: expoFetch as unknown as typeof fetch }) : undefined), [deviceId]);
 }

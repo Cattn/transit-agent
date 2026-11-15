@@ -6,7 +6,13 @@ import {
   type PlanResponse,
   type SaveItineraryRequest
 } from '../domain/api.js';
-import { AgentMessageResponseSchema, type AgentMessageRequest, type AgentMessageResponse } from '../domain/agent.js';
+import {
+  AgentMessageResponseSchema,
+  AgentProgressEventSchema,
+  type AgentMessageRequest,
+  type AgentMessageResponse,
+  type AgentProgressEvent
+} from '../domain/agent.js';
 import { PlaceSearchResponseSchema } from '../domain/place-search.js';
 import type { LngLat, Place } from '../domain/places.js';
 import { SavedItinerarySchema, type SavedItinerary } from '../domain/itinerary.js';
@@ -34,9 +40,25 @@ export interface ApiClientOptions {
   timeoutMs?: number;
   /** Override the fetch implementation (tests, custom transports). Defaults to the global fetch. */
   fetch?: typeof fetch;
+  streamFetch?: typeof fetch;
 }
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
+
+function errorFromBody(status: number, text: string): ApiClientError {
+  let json: unknown;
+  try {
+    json = text ? JSON.parse(text) : undefined;
+  } catch {
+    json = undefined;
+  }
+  const parsed = ApiErrorSchema.safeParse(json);
+  if (parsed.success) {
+    const { code, message, details } = parsed.data.error;
+    return new ApiClientError(status, code, message, details);
+  }
+  return new ApiClientError(status, 'http_error', `API request failed (${status})`, text || undefined);
+}
 
 interface RequestOptions<T> {
   body?: unknown;
@@ -108,14 +130,7 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
         try { json = JSON.parse(text); } catch { isJson = false; }
       }
 
-      if (!response.ok) {
-        const parsed = ApiErrorSchema.safeParse(json);
-        if (isJson && parsed.success) {
-          const { code, message, details } = parsed.data.error;
-          throw new ApiClientError(response.status, code, message, details);
-        }
-        throw new ApiClientError(response.status, 'http_error', `API request failed (${response.status})`, text || undefined);
-      }
+      if (!response.ok) throw errorFromBody(response.status, text);
       if (!isJson) {
         throw new ApiClientError(response.status, 'invalid_response', `API response for ${method} ${path} was not valid JSON`, text || undefined);
       }
@@ -126,6 +141,88 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
   }
 
   const itineraryPath = (id: string) => `/api/itineraries/${encodeURIComponent(id)}`;
+
+  const sendAgentMessage = (body: AgentMessageRequest): Promise<AgentMessageResponse> =>
+    request('POST', '/api/agent/messages', { body, schema: AgentMessageResponseSchema, timeoutMs: 45_000 });
+
+  async function streamAgentMessage(body: AgentMessageRequest, onEvent: (event: AgentProgressEvent) => void): Promise<AgentMessageResponse> {
+    const doFetch = options.streamFetch ?? options.fetch ?? globalThis.fetch;
+    const path = '/api/agent/messages/stream';
+    const headers: Record<string, string> = { accept: 'application/x-ndjson', 'content-type': 'application/json' };
+    const deviceId = currentDeviceId();
+    if (deviceId) headers['x-device-id'] = deviceId;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+    const aborted = new Promise<never>((_resolve, reject) => {
+      controller.signal.addEventListener('abort', () => reject(new Error('timed out')), { once: true });
+    });
+    aborted.catch(() => undefined);
+    const networkError = (error: unknown) => {
+      const reason = controller.signal.aborted ? 'timed out' : error instanceof Error ? error.message : String(error);
+      return new ApiClientError(0, 'network', `API request POST ${path} failed: ${reason}`, error);
+    };
+
+    try {
+      let response: Response;
+      try {
+        response = await Promise.race([doFetch(`${url}${path}`, { method: 'POST', headers, body: JSON.stringify(body), signal: controller.signal }), aborted]);
+      } catch (error) {
+        throw networkError(error);
+      }
+      if (!response.ok && response.status !== 404) {
+        let text: string;
+        try {
+          text = await Promise.race([response.text(), aborted]);
+        } catch (error) {
+          throw networkError(error);
+        }
+        throw errorFromBody(response.status, text);
+      }
+      if (!response.body || response.status === 404) {
+        const result = await sendAgentMessage(body);
+        onEvent({ type: 'done', seq: 0, at: new Date().toISOString(), response: result });
+        return result;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      const handle = (line: string): AgentMessageResponse | undefined => {
+        if (!line.trim()) return undefined;
+        let json: unknown;
+        try {
+          json = JSON.parse(line);
+        } catch {
+          throw new ApiClientError(response.status, 'invalid_response', `API stream ${path} sent a line that was not JSON`, line);
+        }
+        const event = AgentProgressEventSchema.parse(json);
+        onEvent(event);
+        if (event.type === 'error') throw new ApiClientError(500, event.code, event.message);
+        return event.type === 'done' ? event.response : undefined;
+      };
+      let buffer = '';
+      for (;;) {
+        let chunk: ReadableStreamReadResult<Uint8Array>;
+        try {
+          chunk = await Promise.race([reader.read(), aborted]);
+        } catch (error) {
+          throw networkError(error);
+        }
+        if (chunk.done) break;
+        buffer += decoder.decode(chunk.value, { stream: true });
+        let newline: number;
+        while ((newline = buffer.indexOf('\n')) >= 0) {
+          const result = handle(buffer.slice(0, newline));
+          buffer = buffer.slice(newline + 1);
+          if (result) return result;
+        }
+      }
+      const result = handle(buffer + decoder.decode());
+      if (result) return result;
+      throw new ApiClientError(0, 'network', `API stream ${path} ended before the turn finished`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
 
   return {
     health: (): Promise<HealthResponse> => request<HealthResponse>('GET', '/api/health'),
@@ -165,8 +262,9 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
     },
 
     /** POST /api/agent/messages (plan 006). Long timeout: the agent may call tools and plan a trip. */
-    sendAgentMessage: (body: AgentMessageRequest): Promise<AgentMessageResponse> =>
-      request('POST', '/api/agent/messages', { body, schema: AgentMessageResponseSchema, timeoutMs: 45_000 }),
+    sendAgentMessage,
+
+    streamAgentMessage,
 
     /** GET /api/places?q=&near=lng,lat (plan 007). `near` biases results toward a point. */
     searchPlaces: async (q: string, near?: LngLat): Promise<Place[]> => {

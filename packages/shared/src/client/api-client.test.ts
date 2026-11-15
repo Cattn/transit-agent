@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { sampleItinerary } from '../domain/fixtures.js';
 import { ApiClientError, createApiClient } from './api-client.js';
+import type { AgentProgressEvent } from '../domain/agent.js';
 
 function stubFetch(response: Response) {
   return vi.fn(async (url: string, init: RequestInit) => {
@@ -191,4 +192,88 @@ it('returns undefined only for profile 404s and validates profile responses', as
   const invalid = createApiClient('http://x', { fetch: stubFetch(json({ updatedAt: 'bad' })) });
   await expect(invalid.getProfile()).rejects.toBeInstanceOf(ZodError);
   await expect(invalid.putProfile({})).rejects.toBeInstanceOf(ZodError);
+});
+
+describe('streamAgentMessage (plan 029)', () => {
+  const at = '2026-11-14T09:00:00.000Z';
+  const response = { sessionId: 's1', reply: 'Here you go.', draftPatch: {}, questions: [] };
+  const line = (event: object) => `${JSON.stringify({ at, ...event })}\n`;
+  const chunked = (text: string, sizes: number[]) => {
+    const bytes = new TextEncoder().encode(text);
+    const parts: Uint8Array[] = [];
+    let offset = 0;
+    for (const size of sizes) {
+      parts.push(bytes.slice(offset, offset + size));
+      offset += size;
+    }
+    parts.push(bytes.slice(offset));
+    return new ReadableStream<Uint8Array>({ start(controller) { for (const part of parts) controller.enqueue(part); controller.close(); } });
+  };
+  const streamed = (text: string, sizes: number[] = []) =>
+    vi.fn(async (url: string, init: RequestInit) => {
+      void url; void init;
+      return new Response(chunked(text, sizes), { status: 200, headers: { 'content-type': 'application/x-ndjson' } });
+    });
+
+  it('reports every event in order, even when lines are split across chunks, and resolves with done.response', async () => {
+    const text = line({ type: 'thinking', seq: 0 }) + line({ type: 'searching', seq: 1, origin: tripRequest.origin, destination: tripRequest.destination }) + line({ type: 'done', seq: 2, response });
+    const fetch = streamed(text, [5, 40, 3]);
+    const events: AgentProgressEvent[] = [];
+    const result = await createApiClient('http://x', { fetch, deviceId: 'd1' }).streamAgentMessage({ message: 'hi', draft: tripRequest }, (event) => events.push(event));
+    expect(events.map((event) => event.type)).toEqual(['thinking', 'searching', 'done']);
+    expect(result).toEqual(response);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(url).toBe('http://x/api/agent/messages/stream');
+    expect((init.headers as Record<string, string>)['x-device-id']).toBe('d1');
+  });
+
+  it('falls back to the JSON route and reports one done event when the fetch cannot stream', async () => {
+    const fetch = vi.fn(async (url: string, init: RequestInit) => {
+      void init;
+      return url.endsWith('/stream') ? new Response(null, { status: 200 }) : json(response);
+    });
+    const events: AgentProgressEvent[] = [];
+    const result = await createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, (event) => events.push(event));
+    expect(result).toEqual(response);
+    expect(events.map((event) => event.type)).toEqual(['done']);
+    expect(fetch.mock.calls.map(([url]) => url)).toEqual(['http://x/api/agent/messages/stream', 'http://x/api/agent/messages']);
+  });
+
+  it('falls back to the JSON route when the server has no stream route (404)', async () => {
+    const fetch = vi.fn(async (url: string, init: RequestInit) => {
+      void init;
+      return url.endsWith('/stream') ? json({ error: { code: 'not_found', message: 'Route not found' } }, 404) : json(response);
+    });
+    const events: AgentProgressEvent[] = [];
+    const result = await createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, (event) => events.push(event));
+    expect(result).toEqual(response);
+    expect(events.map((event) => event.type)).toEqual(['done']);
+  });
+
+  it('uses streamFetch for the stream only, when given', async () => {
+    const fetch = stubFetch(json(response));
+    const streamFetch = streamed(line({ type: 'done', seq: 0, response }));
+    await createApiClient('http://x', { fetch, streamFetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, () => undefined);
+    expect(streamFetch).toHaveBeenCalledTimes(1);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects with ApiClientError on an error event', async () => {
+    const fetch = streamed(line({ type: 'thinking', seq: 0 }) + line({ type: 'error', seq: 1, code: 'internal', message: 'Internal error' }));
+    const error = await catchError(createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, () => undefined));
+    expect(error).toBeInstanceOf(ApiClientError);
+    expect(error).toMatchObject({ code: 'internal', message: 'Internal error' });
+  });
+
+  it('uses the JSON error body when the server refuses before streaming', async () => {
+    const fetch = stubFetch(json({ error: { code: 'agent_unavailable', message: 'No agent' } }, 503));
+    const error = await catchError(createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, () => undefined));
+    expect(error).toMatchObject({ status: 503, code: 'agent_unavailable' });
+  });
+
+  it('rejects as a network error when the stream ends before done', async () => {
+    const fetch = streamed(line({ type: 'thinking', seq: 0 }));
+    const error = await catchError(createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, () => undefined));
+    expect(error).toMatchObject({ status: 0, code: 'network' });
+  });
 });
