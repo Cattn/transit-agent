@@ -17,6 +17,7 @@ import { ChatScreen, useChatSession } from '../chat/ChatScreen';
 import { FiltersScreen } from '../filters/FiltersScreen';
 import { FlyScreen } from '../fly/FlyScreen';
 import { ResultsScreen } from '../results/ResultsScreen';
+import { profileSaved } from '../settings/SettingsScreen';
 import { HomeChrome } from './HomeChrome';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
@@ -146,7 +147,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   useFocusEffect(useCallback(() => {
     let active = true;
-    api.getProfile().then((loaded) => {
+    profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active || !loaded) return;
       setProfile(loaded);
       if (!edited.current) reset(loaded.defaults);

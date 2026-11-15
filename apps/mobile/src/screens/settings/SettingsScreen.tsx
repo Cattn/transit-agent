@@ -78,6 +78,12 @@ type Profile = Omit<TravelProfile, 'updatedAt'>;
 
 const EMPTY: Profile = { defaults: {} };
 
+let profileSaves: Promise<void> = Promise.resolve();
+
+export function profileSaved(): Promise<void> {
+  return profileSaves;
+}
+
 function placeName(place: Place): string {
   return place.name ?? `${place.coordinates[1].toFixed(4)}, ${place.coordinates[0].toFixed(4)}`;
 }
@@ -135,7 +141,7 @@ export function SettingsScreen() {
   const [notice, setNotice] = useState<string>();
   const saved = useRef<Profile>(EMPTY);
   const desired = useRef<Profile>(EMPTY);
-  const queue = useRef<Promise<void>>(Promise.resolve());
+  const locationRequest = useRef(0);
   const generation = useRef(0);
   const live = useRef(true);
 
@@ -158,14 +164,20 @@ export function SettingsScreen() {
     return () => { active = false; };
   }, [api, loadKey]);
 
+  const cancelLocation = useCallback(() => {
+    locationRequest.current += 1;
+    setLocating(false);
+  }, []);
+
   useEffect(() => {
     if (!editingPlace) return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      cancelLocation();
       setEditingPlace(undefined);
       return true;
     });
     return () => subscription.remove();
-  }, [editingPlace]);
+  }, [editingPlace, cancelLocation]);
 
   const save = useCallback((change: (current: Profile) => Profile) => {
     const next = change(desired.current);
@@ -174,7 +186,7 @@ export function SettingsScreen() {
     setSaveError(undefined);
     const gen = generation.current;
     const body: PutProfileRequest = next;
-    queue.current = queue.current.then(async () => {
+    profileSaves = profileSaves.then(async () => {
       if (gen !== generation.current) return;
       try {
         await api.putProfile(body);
@@ -194,10 +206,11 @@ export function SettingsScreen() {
   }, [save]);
 
   const pickPlace = useCallback((key: PlaceKey, place: Place) => {
+    cancelLocation();
     setEditingPlace(undefined);
     setNotice(undefined);
     save((current) => ({ ...current, [key]: place }));
-  }, [save]);
+  }, [save, cancelLocation]);
 
   const draft = useMemo(() => {
     try {
@@ -231,6 +244,7 @@ export function SettingsScreen() {
     ],
     editingPlace,
     onEditPlace: (key) => {
+      cancelLocation();
       setNotice(undefined);
       setEditingPlace((current) => (current === key ? undefined : key));
     },
@@ -242,10 +256,11 @@ export function SettingsScreen() {
       onUseLocation: () => {
         const key = editingPlace;
         if (!key) return;
+        const request = ++locationRequest.current;
         setLocating(true);
         setNotice(undefined);
         void getCurrentPlace().then((result) => {
-          if (!live.current) return;
+          if (!live.current || request !== locationRequest.current) return;
           setLocating(false);
           if (result.ok) pickPlace(key, result.place);
           else setNotice(result.reason === 'denied' ? 'Location is off for Transit Agent. You can turn it on in Settings.' : 'Could not find your location. Try again.');
