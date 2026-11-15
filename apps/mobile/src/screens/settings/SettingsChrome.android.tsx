@@ -332,7 +332,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
               <Rows>
                 <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(4)), background(m.surfaceContainerLow), padding(16, 14, 16, 14)]}>
                   <Text color={m.onSurface} style={m3Text('bodyLarge')}>Modes a new trip includes</Text>
-                  <FlowRow horizontalArrangement={{ spacedBy: 8 }} verticalArrangement={{ spacedBy: 8 }}>
+                  <FlowRow horizontalArrangement={{ spacedBy: 8 }}>
                     {props.modes.map((mode) => {
                       return (
                         <FilterChip key={mode.mode} selected={mode.selected} onClick={() => props.onToggleMode(mode.mode)}>
