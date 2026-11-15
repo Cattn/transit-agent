@@ -320,12 +320,13 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
-  const turnPlan = chat.pending ? chat.progress.plan : undefined;
+  const handingOff = !chat.pending && chat.progress.phase === 'done' && chat.lastPlan !== undefined && chat.progress.plan === chat.lastPlan && agentPlan?.plan !== chat.lastPlan;
+  const turnPlan = chat.pending || handingOff ? chat.progress.plan : undefined;
   const buildPreview = useMemo(() => (chat.pending ? agentBuildPreview(chat.progress) : undefined), [chat.pending, chat.progress]);
   const choosing = resultsOpen || turnPlan !== undefined;
   const mapTrips = useMemo<Itinerary[]>(() => {
-    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])];
     if (turnPlan) return [...turnPlan.itineraries, ...turnPlan.nearMisses];
+    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])];
     return openSaved && !openSaved.watch ? [...watched, openSaved] : watched;
   }, [resultsOpen, plan.data, turnPlan, watched, openSaved]);
   const shownIds = mapTrips.map((it) => it.id).join(' ');

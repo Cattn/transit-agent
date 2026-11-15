@@ -227,16 +227,17 @@ describe('streamAgentMessage (plan 029)', () => {
     expect((init.headers as Record<string, string>)['x-device-id']).toBe('d1');
   });
 
-  it('falls back to the JSON route and reports one done event when the fetch cannot stream', async () => {
+  it('reads the whole body as text when the fetch cannot stream, without sending the message again', async () => {
+    const text = line({ type: 'thinking', seq: 0 }) + line({ type: 'routes', seq: 1, plan: { itineraries: [], nearMisses: [], warnings: [] } }) + line({ type: 'done', seq: 2, response });
     const fetch = vi.fn(async (url: string, init: RequestInit) => {
-      void init;
-      return url.endsWith('/stream') ? new Response(null, { status: 200 }) : json(response);
+      void url; void init;
+      return { ok: true, status: 200, body: null, text: async () => text } as unknown as Response;
     });
     const events: AgentProgressEvent[] = [];
     const result = await createApiClient('http://x', { fetch }).streamAgentMessage({ message: 'hi', draft: tripRequest }, (event) => events.push(event));
     expect(result).toEqual(response);
-    expect(events.map((event) => event.type)).toEqual(['done']);
-    expect(fetch.mock.calls.map(([url]) => url)).toEqual(['http://x/api/agent/messages/stream', 'http://x/api/agent/messages']);
+    expect(events.map((event) => event.type)).toEqual(['thinking', 'routes', 'done']);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to the JSON route when the server has no stream route (404)', async () => {

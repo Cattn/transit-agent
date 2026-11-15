@@ -178,14 +178,12 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
         }
         throw errorFromBody(response.status, text);
       }
-      if (!response.body || response.status === 404) {
+      if (response.status === 404) {
         const result = await sendAgentMessage(body);
         onEvent({ type: 'done', seq: 0, at: new Date().toISOString(), response: result });
         return result;
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
       const handle = (line: string): AgentMessageResponse | undefined => {
         if (!line.trim()) return undefined;
         let json: unknown;
@@ -199,6 +197,23 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
         if (event.type === 'error') throw new ApiClientError(500, event.code, event.message);
         return event.type === 'done' ? event.response : undefined;
       };
+      const endedEarly = () => new ApiClientError(0, 'network', `API stream ${path} ended before the turn finished`);
+      if (!response.body) {
+        let text: string;
+        try {
+          text = await Promise.race([response.text(), aborted]);
+        } catch (error) {
+          throw networkError(error);
+        }
+        for (const line of text.split('\n')) {
+          const result = handle(line);
+          if (result) return result;
+        }
+        throw endedEarly();
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       let buffer = '';
       for (;;) {
         let chunk: ReadableStreamReadResult<Uint8Array>;
@@ -218,7 +233,7 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
       }
       const result = handle(buffer + decoder.decode());
       if (result) return result;
-      throw new ApiClientError(0, 'network', `API stream ${path} ended before the turn finished`);
+      throw endedEarly();
     } finally {
       clearTimeout(timeout);
     }
