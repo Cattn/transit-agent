@@ -182,7 +182,7 @@ starting from `blob:` URLs and no request for a worker file or any CDN.
 Props going into a DOM component must be JSON. So:
 
 - `routeColors` (a `Map`) is sent as an object and rebuilt on the other side.
-- Callbacks (`onRouteSelect`, `onDeselect`) become **async**; the map doesn't wait for them.
+- Callbacks (`onRouteSelect`, `onDeselect`, `onLoad`, `onLoadError`) become **async**; the map doesn't wait for them.
 - `userLocation` is copied into a plain `[lng, lat]` array.
 - `dom={{ scrollEnabled: false, bounces: false, overScrollMode: 'never' }}` stops the web view itself from scrolling.
 
@@ -197,6 +197,7 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 | Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given. **Location presets (plan 038):** a saved trip whose destination is within 150 m of Home, Office or Gym draws in that preset's colour (`withPresetColors(stored, presetTripColors(...))`: preset colours win, and an unrelated trip stored in a preset's colour is given a free one), so changing a preset's colour recolours its trips at once, and saving a result to a preset stores the preset's colour |
 | Accent | `accentColor={light.primary}` (`#6750A4`), always the light theme's purple, because the basemap is always light |
 | Basemap | OpenFreeMap Positron |
+| Loading (#103) | Until the map calls `onLoad` (MapLibre's `load`: style fetched and first frame drawn), `MapLoading` covers the map in `colors.map`, centred between the top bar and the sheet, then fades out. It shows "Loading map…"; "No internet connection" while `expo-network` reports no connection (the map reloads by itself when it's back); and "Map couldn't load" with **Retry** after 20 s. If the map calls `onLoadError` (an error before it has loaded, e.g. the style fetch failed because the connection wasn't ready yet), Home reloads it after 3 s; those reloads don't restart the 20 s. Reloading remounts the map (`key`). Only Retry takes taps |
 | Padding | Top: the bottom edge of the search bar + mode tabs (`HomeChrome` reports it with `onTopLayout`) + 16. Right: 16 + 64 for the locate / layers button column. Bottom: the sheet's height. Left: 16 |
 | Location | Loads **when the app opens** (`getCurrentPlace`, then live tracking). The locate button also bumps `locateKey`, which pans the map to you |
 | Deselect | Tapping empty map clears the selection |

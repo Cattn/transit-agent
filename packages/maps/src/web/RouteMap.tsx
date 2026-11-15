@@ -18,7 +18,7 @@
  *   - setWorkerUrl(...) for MapLibre v6, or the map stays blank
  */
 import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { Layer, Map, Marker, Source, type LayerProps, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
+import { Layer, Map, Marker, Source, type ErrorEvent, type LayerProps, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
 import { boundsOf, nextRouteToSelect, uniqueItineraryIds } from '../bounds.js';
 import { previewFeatures, revealFeatures } from '../build-preview.js';
 import type { BuildPreview, RouteMapProps } from '../contract.js';
@@ -107,10 +107,13 @@ export function RouteMap({
   unfocusedColors = 'trip',
   variant,
   accentColor,
-  buildPreview
+  buildPreview,
+  onLoad,
+  onLoadError
 }: RouteMapProps) {
   // A handle on the underlying map so we can call camera methods like fitBounds().
   const mapRef = useRef<MapRef>(null);
+  const loadedRef = useRef(false);
   // Is the mouse over a clickable route right now? Drives the cursor.
   const [hoveringRoute, setHoveringRoute] = useState(false);
   const zoomPause = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -237,6 +240,8 @@ export function RouteMap({
       });
     }
     fitToRoutes();
+    loadedRef.current = true;
+    onLoad?.();
   };
 
   const panToUser = useEffectEvent(() => {
@@ -287,6 +292,10 @@ export function RouteMap({
       initialViewState={INITIAL_VIEW}
       style={{ width: '100%', height: '100%' }}
       onLoad={handleLoad} // first fit, once the map is ready (the effect above may run before that)
+      onError={(event: ErrorEvent) => {
+        console.error(event.error);
+        if (!loadedRef.current) onLoadError?.();
+      }}
       // Only these layers report clicks/hover. Not the white casing, not the dots.
       interactiveLayerIds={clickableLayerIds}
       onClick={handleClick}

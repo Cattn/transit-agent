@@ -29,10 +29,12 @@ export interface RouteMapDomProps {
   variant?: 'saved' | 'choosing';
   accentColor?: string;
   buildPreview?: BuildPreview;
+  onLoad?: () => Promise<void>;
+  onLoadError?: () => Promise<void>;
   dom?: DOMProps;
 }
 
-export default function RouteMapDom({ onRouteSelect, onDeselect, routeColors, ...props }: RouteMapDomProps) {
+export default function RouteMapDom({ onRouteSelect, onDeselect, onLoad, onLoadError, routeColors, ...props }: RouteMapDomProps) {
   return (
     <>
       <style>{PAGE_STYLE}</style>
@@ -42,6 +44,8 @@ export default function RouteMapDom({ onRouteSelect, onDeselect, routeColors, ..
           routeColors={routeColors ? new Map(Object.entries(routeColors)) : undefined}
           onRouteSelect={(id, candidates) => void onRouteSelect(id, candidates)}
           onDeselect={onDeselect ? () => void onDeselect() : undefined}
+          onLoad={onLoad ? () => void onLoad() : undefined}
+          onLoadError={onLoadError ? () => void onLoadError() : undefined}
         />
       </div>
     </>
