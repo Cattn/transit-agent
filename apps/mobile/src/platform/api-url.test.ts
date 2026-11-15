@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseConnectLink, resolveApiUrl } from './api-url';
+import { normalizeServerUrl, parseConnectLink, resolveApiUrl } from './api-url';
 
 describe('resolveApiUrl', () => {
   it.each([
@@ -33,5 +33,25 @@ describe('parseConnectLink', () => {
     ['bad encoding', 'transit-agent://connect?url=%E0%A4%A', undefined]
   ])('%s', (_name, link, expected) => {
     expect(parseConnectLink(link)).toBe(expected);
+  });
+});
+
+describe('normalizeServerUrl', () => {
+  it.each([
+    ['LAN address without a scheme', '192.168.1.20:3001', 'http://192.168.1.20:3001'],
+    ['trims and drops trailing slashes', '  http://192.168.1.20:3001//  ', 'http://192.168.1.20:3001'],
+    ['https tunnel', 'https://laptop.tail1234.ts.net/', 'https://laptop.tail1234.ts.net'],
+    ['hostname without a scheme', 'localhost:3001', 'http://localhost:3001'],
+    ['IPv6 with port', 'http://[fe80::1]:3001', 'http://[fe80::1]:3001'],
+    ['empty', '   ', undefined],
+    ['other scheme', 'ftp://192.168.1.20', undefined],
+    ['path', 'http://192.168.1.20:3001/api', undefined],
+    ['query', 'http://192.168.1.20?x=1', undefined],
+    ['spaces in host', 'my laptop', undefined],
+    ['port out of range', '192.168.1.20:70000', undefined],
+    ['port zero', '192.168.1.20:0', undefined],
+    ['scheme only', 'http://', undefined]
+  ])('%s', (_name, input, expected) => {
+    expect(normalizeServerUrl(input)).toBe(expected);
   });
 });

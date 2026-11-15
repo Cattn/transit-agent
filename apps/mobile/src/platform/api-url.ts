@@ -56,3 +56,13 @@ export function parseConnectLink(link: string): string | undefined {
   }
   return undefined;
 }
+
+export function normalizeServerUrl(input: string): string | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return undefined;
+  const url = (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`).replace(/\/+$/, '');
+  const match = /^https?:\/\/(?:\[[0-9a-f:.]+\]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\d{1,5}))?$/i.exec(url);
+  if (!match) return undefined;
+  const port = match[1] === undefined ? undefined : Number(match[1]);
+  return port === undefined || (port > 0 && port <= 65535) ? url : undefined;
+}
