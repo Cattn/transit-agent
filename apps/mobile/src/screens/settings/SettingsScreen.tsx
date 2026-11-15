@@ -70,7 +70,6 @@ export interface SettingsChromeProps {
   theme: { label: string; options: Choice<AppearancePreference>[] };
   onTheme: (value: AppearancePreference) => void;
   deviceId: string;
-  dataSources: string;
   version: string;
 }
 
@@ -332,7 +331,6 @@ export function SettingsScreen() {
     },
     onTheme: setPreference,
     deviceId: shortId(deviceId),
-    dataSources: 'Sample data until live MBTA feeds land (#11)',
     version: packageJson.version
   };
 
