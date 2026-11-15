@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Host } from '@expo/ui';
 import {
   AlertDialog,
@@ -266,7 +266,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
         backgroundStyle={[styles.sheetBackground, { backgroundColor: m.surfaceContainerLow }]}
         handleIndicatorStyle={[styles.handle, { backgroundColor: m.onSurfaceVariant }]}
       >
-        <BottomSheetView style={styles.sheetContent}>
+        <View style={styles.sheetContent}>
           <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
             <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(16, 4, 16, 10)]}>
               <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
@@ -393,7 +393,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
               </Host>
             ) : null}
           </BottomSheetScrollView>
-        </BottomSheetView>
+        </View>
       </BottomSheet>
       <View pointerEvents="none" style={[styles.navStrip, { height: insets.bottom, backgroundColor: m.surfaceContainerLow }]} />
     </View>
