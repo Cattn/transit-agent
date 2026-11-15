@@ -170,7 +170,11 @@ describe.each(['memory', 'sqlite'])('%s persistence API', (implementation) => {
       expect((await app.inject({ method, url: '/api/profile', ...(method === 'PUT' ? { payload: {} } : {}) })).statusCode).toBe(400);
       expect((await app.inject({ method, url: '/api/profile', headers: { 'x-device-id': 'bad' }, ...(method === 'PUT' ? { payload: {} } : {}) })).statusCode).toBe(400);
     }
-    for (const invalid of [{ displayName: 'a'.repeat(61) }, { home: { coordinates: [181, 0] } }, { defaults: { preferences: { comfortVsCost: 2 } } }]) {
+    const presets = { gym: { color: '#16a34a', icon: 'fitness', place: sampleItinerary.legs[0]!.to }, office: { color: '#2563eb', icon: 'work' } };
+    const withPresets = await app.inject({ method: 'PUT', url: '/api/profile', headers, payload: { ...payload, presets } });
+    expect(withPresets.json().presets).toEqual(presets);
+    expect((await app.inject({ method: 'GET', url: '/api/profile', headers })).json().presets).toEqual(presets);
+    for (const invalid of [{ displayName: 'a'.repeat(61) }, { home: { coordinates: [181, 0] } }, { defaults: { preferences: { comfortVsCost: 2 } } }, { presets: { gym: { icon: 'rocket' } } }, { presets: { gym: { color: 'green' } } }, { presets: { cinema: { color: '#16a34a' } } }]) {
       expect((await app.inject({ method: 'PUT', url: '/api/profile', headers, payload: invalid })).statusCode).toBe(400);
     }
     const preflight = await app.inject({ method: 'OPTIONS', url: '/api/profile', headers: { origin: 'http://localhost:5173', 'access-control-request-method': 'PUT', 'access-control-request-headers': 'x-device-id,content-type' } });

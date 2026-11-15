@@ -153,7 +153,7 @@ export function SettingsScreen() {
     let active = true;
     profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active) return;
-      const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults } : EMPTY;
+      const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults, presets: loaded.presets } : EMPTY;
       saved.current = next;
       desired.current = next;
       setProfile(next);
