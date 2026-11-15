@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
-import { formatClock, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
+import { formatClockOnDay, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
 
@@ -213,7 +213,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       onUseLocation
     } : undefined,
     time: {
-      label: draft.time ? formatClock(draft.time.at, draft.timeZone) : 'Set a time',
+      label: draft.time ? formatClockOnDay(draft.time.at, new Date(), draft.timeZone) : 'Set a time',
       set: draft.time !== undefined,
       agent: agent('time'),
       at: draft.time?.at

@@ -3,6 +3,7 @@ import {
   describePatch,
   formatAge,
   formatClock,
+  formatClockOnDay,
   formatDay,
   formatDuration,
   itineraryFreshness,
@@ -103,9 +104,9 @@ function placeLabel(place: Place | undefined, fallback: string): string {
 function timeLabel(state: DraftState, now: Date): string | undefined {
   const time = state.draft.time;
   if (!time) return undefined;
-  if (time.type === 'arriveBy') return `Arrive by ${formatClock(time.at, state.draft.timeZone)}`;
+  if (time.type === 'arriveBy') return `Arrive by ${formatClockOnDay(time.at, now, state.draft.timeZone)}`;
   if (Math.abs(Date.parse(time.at) - now.getTime()) < LEAVE_NOW_MS) return 'Leave now';
-  return `Leave at ${formatClock(time.at, state.draft.timeZone)}`;
+  return `Leave at ${formatClockOnDay(time.at, now, state.draft.timeZone)}`;
 }
 
 function resultChips(state: DraftState, now: Date): ResultChip[] {
