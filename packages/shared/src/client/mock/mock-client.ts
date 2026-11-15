@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ApiClientError, type ApiClient } from '../api-client.js';
 import { PlanResponseSchema } from '../../domain/api.js';
-import { AgentMessageResponseSchema } from '../../domain/agent.js';
+import { AgentMessageResponseSchema, AgentProgressEventSchema, type AgentProgressUpdate } from '../../domain/agent.js';
 import { PlaceSearchResponseSchema } from '../../domain/place-search.js';
 import { SavedItinerarySchema, type SavedItinerary } from '../../domain/itinerary.js';
 import { TravelProfileSchema, type TravelProfile } from '../../domain/profile.js';
@@ -10,6 +10,7 @@ import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js'
 import { mockItineraries } from './mock-routes.js';
 import { mockAgentReply } from './mock-agent.js';
 import { mockSearchPlaces } from './mock-places.js';
+import { applyDraftPatch, toTripRequest } from '../trip-draft-state.js';
 
 export type MockScenario = 'normal' | 'empty' | 'nearMissOnly' | 'serverError' | 'offline';
 
@@ -128,6 +129,35 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     async sendAgentMessage(body) {
       const scenario = await beforeCall();
       return AgentMessageResponseSchema.parse(mockAgentReply(body, now(), (request) => planTrip(request, scenario)));
+    },
+    async streamAgentMessage(body, onEvent) {
+      const scenario = await beforeCall();
+      const gap = () => new Promise((resolve) => setTimeout(resolve, options.latencyMs ?? 400));
+      let seq = 0;
+      const send = (update: AgentProgressUpdate) => onEvent(AgentProgressEventSchema.parse({ ...update, seq: seq++, at: now().toISOString() }));
+      send({ type: 'thinking' });
+      const response = AgentMessageResponseSchema.parse(mockAgentReply(body, now(), (request) => planTrip(request, scenario)));
+      const query = response.draftPatch.destination?.name;
+      if (query) {
+        await gap();
+        send({ type: 'places', query, places: mockSearchPlaces(query) });
+      }
+      const draft = applyDraftPatch({ draft: body.draft, provenance: {} }, response.draftPatch, 'agent').draft;
+      if (Object.keys(response.draftPatch).length) {
+        await gap();
+        send({ type: 'draft', patch: response.draftPatch, draft });
+      }
+      const request = toTripRequest(draft);
+      if (response.plan && request.ok) {
+        await gap();
+        send({ type: 'searching', origin: request.request.origin, destination: request.request.destination });
+        await gap();
+        send({ type: 'routes', plan: response.plan });
+      }
+      for (const question of response.questions) send({ type: 'question', question });
+      await gap();
+      send({ type: 'done', response });
+      return response;
     },
     async searchPlaces(q) {
       await beforeCall();

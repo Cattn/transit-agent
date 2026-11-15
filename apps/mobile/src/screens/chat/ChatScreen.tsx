@@ -26,6 +26,7 @@ export interface ChatChromeProps {
   colors: AppColors;
   entries: ChatEntry[];
   pending: boolean;
+  status?: string;
   error?: string;
   onSend: (text: string) => void;
   onChip: (field: string) => void;
@@ -85,7 +86,7 @@ export function useChatSession(draft: DraftState, apply: (patch: TripDraftPatch,
 
 export function ChatScreen({ draft, chat, now, onOpenFilters, onSelectCard, onClose }: ChatScreenProps) {
   const colors = useAppColors();
-  const { messages, pending, error, send, changed } = chat;
+  const { messages, pending, error, send, changed, progress } = chat;
 
   const entries = useMemo<ChatEntry[]>(() => {
     const lastAgent = messages.findLastIndex((message) => message.role === 'agent');
@@ -105,6 +106,8 @@ export function ChatScreen({ draft, chat, now, onOpenFilters, onSelectCard, onCl
     });
   }, [messages, draft, changed, now]);
 
+  const status = { idle: 'Thinking…', thinking: 'Thinking…', locating: 'Finding places…', searching: 'Searching routes…', routes: 'Found routes, finishing up…', done: 'Finishing up…', error: 'Thinking…' }[progress.phase];
+
   const errorText = error
     ? error.status === 503 || error.code === 'agent_unavailable' ? 'The agent is not available yet.' : 'Could not reach the agent. Try again.'
     : undefined;
@@ -114,6 +117,7 @@ export function ChatScreen({ draft, chat, now, onOpenFilters, onSelectCard, onCl
       colors={colors}
       entries={entries}
       pending={pending}
+      status={status}
       error={errorText}
       onSend={(text) => void send(text.trim())}
       onChip={onOpenFilters}

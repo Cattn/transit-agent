@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { toTripRequest, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest } from '@transit/shared';
+import { toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
-import { assignRouteColors } from '@transit/maps';
+import { assignRouteColors, type BuildPreview } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { RouteMap } from '../../map/RouteMap';
@@ -70,9 +70,19 @@ interface MapSlotProps {
   locateKey?: number;
   unfocusedColors: 'trip' | 'mode';
   variant: 'saved' | 'choosing';
+  buildPreview?: BuildPreview;
+  fitKey: string;
 }
 
-function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onSelect, onDeselect, userLocation, userHeading, locateKey, unfocusedColors, variant }: MapSlotProps) {
+function agentBuildPreview({ phase, candidates, origin, destination, plan }: AgentProgress): BuildPreview | undefined {
+  const ends = { origin: origin?.coordinates, destination: destination?.coordinates };
+  if (phase === 'thinking' || phase === 'locating') return { phase: 'locating', candidates: candidates.map((place) => place.coordinates), ...ends };
+  if (phase === 'searching') return { phase: 'searching', ...ends };
+  if ((phase === 'routes' || phase === 'done') && plan) return { phase: 'drawing', ...ends };
+  return undefined;
+}
+
+function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onSelect, onDeselect, userLocation, userHeading, locateKey, unfocusedColors, variant, buildPreview, fitKey }: MapSlotProps) {
   return (
     <View accessibilityLabel={`Map, ${trips.length} routes`} accessibilityValue={{ text: selectedItineraryId }} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map }]}>
       <RouteMap
@@ -84,12 +94,13 @@ function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onS
         userLocation={userLocation}
         userHeading={userHeading}
         locateKey={locateKey}
-        fitKey={trips.map((trip) => trip.id).join()}
+        fitKey={fitKey}
         padding={padding}
         routeColors={routeColors}
         unfocusedColors={unfocusedColors}
         variant={variant}
         accentColor={lightTheme.primary}
+        buildPreview={buildPreview}
       />
     </View>
   );
@@ -208,8 +219,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     apply(patch, source);
   }, [apply]);
 
+  const [handedPlan, setHandedPlan] = useState<PlanResponse>();
   const onAgentPlan = useCallback((agent: PlanResponse, draft: TripDraft) => {
     closeSaved();
+    setHandedPlan(agent);
     setAgentPlan({ plan: agent, draft });
     setResultsOpen(true);
   }, [closeSaved]);
@@ -311,10 +324,15 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
+  const handingOff = !chat.pending && chat.progress.phase === 'done' && chat.lastPlan !== undefined && chat.progress.plan === chat.lastPlan && handedPlan !== chat.lastPlan;
+  const turnPlan = chat.pending || handingOff ? chat.progress.plan : undefined;
+  const buildPreview = useMemo(() => (chat.pending ? agentBuildPreview(chat.progress) : undefined), [chat.pending, chat.progress]);
+  const choosing = resultsOpen || turnPlan !== undefined;
   const mapTrips = useMemo<Itinerary[]>(() => {
+    if (turnPlan) return [...turnPlan.itineraries, ...turnPlan.nearMisses, ...(turnPlan.returnPlan?.options.map((option) => option.itinerary) ?? [])];
     if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? []), ...(plan.data?.returnPlan?.options.map((option) => option.itinerary) ?? [])];
     return openSaved && !openSaved.watch ? [...watched, openSaved] : watched;
-  }, [resultsOpen, plan.data, watched, openSaved]);
+  }, [resultsOpen, plan.data, turnPlan, watched, openSaved]);
   const shownIds = mapTrips.map((it) => it.id).join(' ');
   const savedPlan = useMemo(() => (openSaved ? { data: { itineraries: [openSaved], nearMisses: [], warnings: [] }, loading: false } : undefined), [openSaved]);
   const routeColors = useMemo(() => assignRouteColors(shownIds ? shownIds.split(' ') : [], savedColors), [shownIds, savedColors]);
@@ -343,8 +361,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         userLocation={live.location ?? here}
         userHeading={live.heading}
         locateKey={locateKey}
-        unfocusedColors={resultsOpen ? 'mode' : 'trip'}
-        variant={resultsOpen ? 'choosing' : 'saved'}
+        unfocusedColors={choosing ? 'mode' : 'trip'}
+        variant={choosing ? 'choosing' : 'saved'}
+        buildPreview={buildPreview}
+        fitKey={`${shownIds}|${resultsOpen ? sheetHeight : 'home'}`}
       />
       {resultsOpen ? (
         <ResultsScreen
