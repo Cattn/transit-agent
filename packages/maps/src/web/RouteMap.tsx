@@ -17,22 +17,27 @@
  *   - import 'maplibre-gl/dist/maplibre-gl.css'
  *   - setWorkerUrl(...) for MapLibre v6, or the map stays blank
  */
-import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Layer, Map, Marker, Source, type LayerProps, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
 import { boundsOf, nextRouteToSelect, uniqueItineraryIds } from '../bounds.js';
-import type { RouteMapProps } from '../contract.js';
+import { previewFeatures, revealFeatures } from '../build-preview.js';
+import type { BuildPreview, RouteMapProps } from '../contract.js';
 import {
   DEFAULT_ACCENT_COLOR,
   END_ICON_ID,
   HIT_LINE_WIDTH,
   interactiveLayerIds,
   POINT_SOURCE_ID,
+  PREVIEW_SOURCE_ID,
+  previewLayers,
   ROUTE_SOURCE_ID,
   routeLayers,
   TOUCH_HIT_LINE_WIDTH,
   type RouteLayer
 } from '../layers.js';
-import { itinerariesToFeatures, itineraryPoints, transitLegLabels } from '../to-geojson.js';
+import type { FeatureCollection, LineString } from 'geojson';
+import type { LngLat } from '@transit/shared';
+import { itinerariesToFeatures, itineraryPoints, transitLegLabels, type RouteFeatureProps } from '../to-geojson.js';
 import { addEndIcon } from './end-icon.js';
 import { LegBubble } from './LegBubble.js';
 
@@ -44,6 +49,26 @@ const COARSE_POINTER = '(pointer: coarse)';
 const ROUTE_TAP_ZOOM_PAUSE_MS = 600;
 const LOCATE_MIN_ZOOM = 15;
 const LOCATION_BLUE = '#2563eb';
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+const PREVIEW_FIT_MS = 800;
+const PREVIEW_MAX_ZOOM = 15;
+const ROUTE_SIMPLIFY_TOLERANCE = 4;
+
+type GeoJSONSourceLike = { setData: (data: unknown) => void };
+
+interface RevealState {
+  animate: ReadonlySet<string>;
+  order: string[];
+  initial: FeatureCollection<LineString, RouteFeatureProps>;
+}
+
+function subscribeToReducedMotion(onChange: () => void): () => void {
+  const query = window.matchMedia(REDUCED_MOTION);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+const prefersReducedMotion = () => window.matchMedia(REDUCED_MOTION).matches;
 
 function subscribeToPointer(onChange: () => void): () => void {
   const query = window.matchMedia(COARSE_POINTER);
@@ -81,7 +106,8 @@ export function RouteMap({
   routeColors,
   unfocusedColors = 'trip',
   variant,
-  accentColor
+  accentColor,
+  buildPreview
 }: RouteMapProps) {
   // A handle on the underlying map so we can call camera methods like fitBounds().
   const mapRef = useRef<MapRef>(null);
@@ -108,6 +134,78 @@ export function RouteMap({
     [itineraries, selectedItineraryId, visibleModes, routeColors]
   );
 
+  const reducedMotion = useSyncExternalStore(subscribeToReducedMotion, prefersReducedMotion, isTouchScreenOnServer);
+  const tripIds = itineraries.map((it) => it.id);
+  const tripKey = tripIds.join(' ');
+  const [shownTrips, setShownTrips] = useState({ key: tripKey, ids: tripIds });
+  const [reveal, setReveal] = useState<RevealState>();
+  if (shownTrips.key !== tripKey) {
+    const fresh = buildPreview?.phase === 'drawing' && !reducedMotion ? tripIds.filter((id) => !shownTrips.ids.includes(id)) : [];
+    const animate = new Set(fresh);
+    setShownTrips({ key: tripKey, ids: tripIds });
+    setReveal(fresh.length > 0 ? { animate, order: tripIds, initial: revealFeatures(lines, 0, 0, { animate, order: tripIds }).data } : undefined);
+  }
+  const linesRef = useRef(lines);
+  useLayoutEffect(() => {
+    linesRef.current = lines;
+  }, [lines]);
+
+  useLayoutEffect(() => {
+    if (!reveal) return;
+    let frame = 0;
+    const startedAt = performance.now();
+    const step = () => {
+      const { data, finished } = revealFeatures(linesRef.current, startedAt, performance.now(), { animate: reveal.animate, order: reveal.order });
+      if (finished) {
+        setReveal(undefined);
+        return;
+      }
+      (mapRef.current?.getMap().getSource(ROUTE_SOURCE_ID) as GeoJSONSourceLike | undefined)?.setData(data);
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [reveal]);
+
+  const shownPoints = useMemo(
+    () => (reveal ? { ...points, features: points.features.filter((f) => !reveal.animate.has(f.properties.itineraryId)) } : points),
+    [points, reveal]
+  );
+
+  const previewKey = JSON.stringify(buildPreview ?? null);
+  const previewData = useMemo(() => previewFeatures((JSON.parse(previewKey) as BuildPreview | null) ?? undefined, 0), [previewKey]);
+  const previewLayerList = useMemo(() => previewLayers(accentColor), [accentColor]);
+
+  useLayoutEffect(() => {
+    const preview = JSON.parse(previewKey) as BuildPreview | null;
+    if (reducedMotion || preview?.phase !== 'searching' || !preview.origin || !preview.destination) return;
+    let frame = 0;
+    const step = () => {
+      (mapRef.current?.getMap().getSource(PREVIEW_SOURCE_ID) as GeoJSONSourceLike | undefined)?.setData(previewFeatures(preview, performance.now()));
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [previewKey, reducedMotion]);
+
+  const previewEnds =
+    buildPreview?.origin && buildPreview.destination && (buildPreview.phase === 'locating' || buildPreview.phase === 'searching')
+      ? JSON.stringify([buildPreview.origin, buildPreview.destination])
+      : '';
+  const fitToEnds = useEffectEvent((ends: string) => {
+    const [a, b] = JSON.parse(ends) as [LngLat, LngLat];
+    mapRef.current?.fitBounds(
+      [
+        [Math.min(a[0], b[0]), Math.min(a[1], b[1])],
+        [Math.max(a[0], b[0]), Math.max(a[1], b[1])]
+      ],
+      { padding, maxZoom: PREVIEW_MAX_ZOOM, duration: reducedMotion ? 0 : PREVIEW_FIT_MS }
+    );
+  });
+  useEffect(() => {
+    if (previewEnds) fitToEnds(previewEnds);
+  }, [previewEnds]);
+
   // The layer definitions never change, so build them once.
   const touchScreen = useSyncExternalStore(subscribeToPointer, isTouchScreen, isTouchScreenOnServer);
   const layers = useMemo(
@@ -121,10 +219,10 @@ export function RouteMap({
     [touchScreen, unfocusedColors, variant, accentColor]
   );
   const legLabels = useMemo(() => {
-    if (variant !== 'choosing') return [];
+    if (variant !== 'choosing' || reveal) return [];
     const selected = itineraries.find((it) => it.id === selectedItineraryId);
     return selected ? transitLegLabels(selected) : [];
-  }, [variant, itineraries, selectedItineraryId]);
+  }, [variant, itineraries, selectedItineraryId, reveal]);
   const lineLayers = layers.filter((layer) => layer.source === ROUTE_SOURCE_ID);
   const pointLayers = layers.filter((layer) => layer.source === POINT_SOURCE_ID);
   const clickableLayerIds = useMemo(() => interactiveLayerIds(), []);
@@ -198,18 +296,26 @@ export function RouteMap({
       cursor={hoveringRoute ? 'pointer' : 'grab'}
     >
       {/* The routes. When `lines` changes, react-map-gl updates the source and MapLibre redraws. */}
-      <Source id={ROUTE_SOURCE_ID} type="geojson" data={lines}>
+      <Source id={ROUTE_SOURCE_ID} type="geojson" data={reveal ? reveal.initial : lines} tolerance={ROUTE_SIMPLIFY_TOLERANCE}>
         {lineLayers.map((layer) => (
           <Layer key={layer.id} {...toLayerProps(layer)} />
         ))}
       </Source>
 
       {/* Start, end and transfer dots. This source comes second, so its layers draw on top of the lines. */}
-      <Source id={POINT_SOURCE_ID} type="geojson" data={points}>
+      <Source id={POINT_SOURCE_ID} type="geojson" data={shownPoints}>
         {pointLayers.map((layer) => (
           <Layer key={layer.id} {...toLayerProps(layer)} />
         ))}
       </Source>
+
+      {buildPreview && (
+        <Source id={PREVIEW_SOURCE_ID} type="geojson" data={previewData}>
+          {previewLayerList.map((layer) => (
+            <Layer key={layer.id} {...toLayerProps(layer)} />
+          ))}
+        </Source>
+      )}
 
       {/* "You are here". A <Marker> is plain HTML positioned on the map, so normal inline styles work. */}
       {userLocation && (

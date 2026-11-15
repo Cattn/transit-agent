@@ -21,6 +21,7 @@ dropped, and what is decided but not built yet. Read it before changing the map.
 3. [Use it on mobile (Expo DOM)](#use-it-on-mobile-expo-dom)
 4. [What the map looks like](#what-the-map-looks-like)
 5. [How the map behaves](#how-the-map-behaves)
+   - [Animating while the agent works](#animating-while-the-agent-works-plan-030)
 6. [`<RouteMap>` props](#routemap-props)
 7. [How it works inside](#how-it-works-inside)
 8. [Decisions and why](#decisions-and-why)
@@ -47,6 +48,8 @@ Open **http://localhost:5180**. No server, no API key and no build step needed.
 
 - **Transit / drive**: one trip (MIT → South Station) by Red Line, bus and car.
 - **Flying**: MIT → Orlando, flying from Boston, Providence (into Sanford) or Manchester.
+- **Agent building**: the scripted plan 030 preview. MIT and two "South Station" candidates appear, the camera moves to
+  the trip, a searching line pulses between them, then the three routes draw in one after another. **Replay** runs it again.
 - Click a route, or a card on the left, to select it. Click again where routes overlap to cycle through them.
 
 The demo's code is small: [`demo/App.tsx`](demo/App.tsx) is the whole page. It plays the app's role (it owns the
@@ -289,6 +292,52 @@ Lines get thicker as you zoom in so they're easier to tap; they do not scale wit
 | Tabs (`visibleModes`) | A trip shows only if every leg's mode is allowed; otherwise the whole trip hides |
 | Overlapping trips | **Side by side (lanes):** every line layer (visible lines, white casing, invisible tap line) is shifted `lane × direction × LANE_SPACING` (10 px) sideways, so trips on the same street, even in opposite directions, show as parallel lines. The selected one is always on top |
 
+### Animating while the agent works (plan 030)
+
+While the agent builds a trip, the app passes `buildPreview` and the map shows the trip being built. Omit it (or pass
+`phase: 'idle'`) and the map behaves exactly as before.
+
+```ts
+buildPreview?: {
+  phase: 'idle' | 'locating' | 'searching' | 'drawing';
+  origin?: LngLat;        // [lng, lat]
+  destination?: LngLat;
+  candidates?: LngLat[];  // place matches the agent is choosing between
+};
+```
+
+| `phase` | What the map shows |
+| --- | --- |
+| `locating` | Small faded grey pins for `candidates`, plus accent dots for `origin` / `destination` once known |
+| `searching` | The two ends, a faint dashed line between them and a bright segment travelling along it (loops every 1.2 s) |
+| `drawing` | Trips in `itineraries` that are **new** draw themselves leg by leg: each takes 600 ms, starting 150 ms apart (3 trips ≈ 0.9 s). Their markers and bubbles appear when they finish. Trips already on the map (saved trips) are not re-animated |
+| `idle` / omitted | Nothing extra |
+
+- **Camera:** when origin and destination are both known (or one changes) during `locating` / `searching`, the camera
+  fits to them (800 ms). When the routes arrive, the app's `fitKey` changes as usual and the camera fits to the routes
+  **once, as they start drawing**, so they draw into view. Selecting never moves the camera.
+- **Selection, colours, lanes and looks** work during the draw: tapping a half-drawn route selects it, and the drawing
+  uses the same features as the finished routes.
+- **Reduced motion:** with the system's "reduce motion" setting (`prefers-reduced-motion: reduce`), nothing animates.
+  Routes appear complete, the searching line holds still and the camera jumps to the trip.
+- **Mobile:** `buildPreview` is plain JSON, so it crosses into the DOM map unchanged (`RouteMapDom` accepts it).
+- **How:** the pure helpers in [`src/build-preview.ts`](src/build-preview.ts) (`sliceLine`, `revealFeatures`,
+  `previewFeatures`) compute each frame; the renderer only calls `setData` on two small sources per frame. Both loops
+  run in `useLayoutEffect`, so a frame can never land after React has replaced the data (that left a stale searching line).
+
+**Wiring it to the agent (plan 029, #55).** Build `buildPreview` from `useAgentChat().progress` (Place → its
+`coordinates`):
+
+| `progress.phase` (plan 029) | `buildPreview` | `itineraries` |
+| --- | --- | --- |
+| `thinking`, `locating` | `{ phase: 'locating', candidates, origin?, destination? }` | unchanged |
+| `searching` | `{ phase: 'searching', origin, destination }` | unchanged |
+| `routes`, `done` (with a plan) | `{ phase: 'drawing', origin, destination }` | `progress.plan.itineraries` (and change `fitKey`) |
+| `idle`, `error` | omit | unchanged |
+
+Pass the itineraries and `phase: 'drawing'` **in the same render**: only trips that are new while the phase is
+`drawing` draw in. Clear the preview on a new turn, cancel or error.
+
 ### How legs join up
 
 Real Transitous data has small gaps (9 to 48 m) between legs: a walk ends on the pavement, the bus starts at the stop
@@ -323,6 +372,7 @@ The contract is [`src/contract.ts`](src/contract.ts) (`RouteMapProps`). Mobile's
 | `userLocation` | | `[lng, lat]` for the "you are here" dot |
 | `userHeading` | | Compass heading in degrees (0 = north) for the cone. The map never asks for permission |
 | `locateKey` | | Change it to pan to `userLocation` (e.g. a counter bumped by the locate button) |
+| `buildPreview` | | While the agent builds a trip: `{ phase, origin?, destination?, candidates? }`. See [Animating while the agent works](#animating-while-the-agent-works-plan-030) |
 
 `onDeselect`, `userHeading`, `locateKey`, `unfocusedColors`, `variant` and `accentColor` are new in this PR and all
 optional, and leaving them out keeps the original look, so existing callers (web, demo) look exactly as before.
@@ -339,6 +389,9 @@ optional, and leaving them out keeps the original look, so existing callers (web
 | `itinerariesToFeatures`, `itineraryPoints` | GeoJSON for lines and markers |
 | `routeLayers({ hitLineWidth, unfocused, variant, accentColor })` | The MapLibre style layers |
 | `boundsOf`, `uniqueItineraryIds`, `nextRouteToSelect` | Camera box, tap handling, cycling |
+| `sliceLine`, `revealFeatures`, `previewFeatures` | The build animation's frames (plan 030) |
+| `previewLayers(accentColor?)`, `PREVIEW_SOURCE_ID` | The pins / searching-line layers |
+| `metersBetween(a, b)` | Distance in metres between two `[lng, lat]` points |
 | `DEFAULT_ACCENT_COLOR`, `END_ICON_ID`, size constants | Shared constants |
 
 ---
@@ -363,6 +416,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript with no React or MapL
 | [`src/to-geojson.ts`](src/to-geojson.ts) | Features (each leg: colour, mode colour, main mode colour, dash, selected, sort key), markers, leg joining, main mode, bubble labels |
 | [`src/layers.ts`](src/layers.ts) | Line, casing, hit, marker and end-icon layers; the lane shift; the three looks (`look()`) |
 | [`src/bounds.ts`](src/bounds.ts) | Camera bounds, ids under a tap, tap cycling |
+| [`src/build-preview.ts`](src/build-preview.ts) | The build animation: line slicing, route reveal, pins and searching line |
 | [`src/web/RouteMap.tsx`](src/web/RouteMap.tsx) | The React component: sources, layers, taps, camera, location dot, bubbles |
 | [`src/web/LegBubble.tsx`](src/web/LegBubble.tsx) | One line bubble (Material bus / train / ferry icons) |
 | [`src/web/end-icon.ts`](src/web/end-icon.ts) | Draws the end icon into the map's image store |
@@ -412,6 +466,11 @@ Decided with @KrakenTheJaken, mostly on 2026-11-14 while testing on an iPhone in
 | **Bubble text drops "Bus" and AM/PM** | `SL1 · 8:58` fits; the icon already says it's a bus |
 | **Material icons in bubbles** | Hand-drawn 14 px icons made the train look like a bus |
 | **Keep the right 80 px clear** | The ferry bubble was cut off and routes ran under the locate / layers buttons |
+| **030-Q1: routes draw in about 1.2 s** (600 ms each, 150 ms apart) | Fast enough not to delay the result, slow enough to see the trip being built |
+| **030-Q2: a moving searching line** | Shows the agent is working on *this* trip; it disappears when routes start drawing. A travelling segment, because MapLibre can't animate a dash pattern from data |
+| **030-Q3: faded candidate pins** | Shows the agent comparing places; they disappear once both ends are set |
+| **Fit when routes arrive, not after they draw** | Home already re-fits on new trips; fitting again after the draw would move the camera twice |
+| **Route lines simplified per zoom** (`tolerance: 4` on the route source) | Real legs end in tiny kinks (a bus's last 9 m turning into the stop, an 11 m walk between stops). Shifted 10 px for lanes, a kink only ~2 px long stuck out as a visible "hook". MapLibre now drops kinks too small to see at the current zoom, so lanes stay smooth; zoomed in, the bends are big enough to shift properly. Whole routes look the same |
 
 ---
 
@@ -455,7 +514,7 @@ Go and is otherwise parked.
 | ✅ Web map (`@transit/maps/web`) | `RouteMap`, two looks, markers + end icon, bubbles, location dot + cone, pan to location, deselect |
 | ✅ Mobile map | DOM component in Home's `MapSlot`; worker built into the bundle (no CDN, works in exported builds); live location + compass; top padding from `HomeChrome` |
 | ✅ Example routes + demo | `@transit/maps/samples` (incl. `testScenarios`), `npm run demo:maps` |
-| ✅ Tests | 104 unit tests in `@transit/maps` |
+| ✅ Tests | 122 unit tests in `@transit/maps` |
 | ✅ Android proof | Pixel 10, Android 17 (beta), Expo Go 58.0.5, light and dark; see [Android proof](#android-proof-pr-76) |
 
 ### Android proof (PR #76)
@@ -477,6 +536,22 @@ Plan 009 step 6, in Expo Go on a Pixel 10 (Android 17 beta, Expo Go 58.0.5), dar
 
 Not tested: a low-end Android phone; iOS beyond Expo Go on an iPhone (iOS is parked).
 
+**Plan 030 (#56, in progress):** renderer, pure helpers, tests and the demo scenario are built. Live wiring is
+@Cattn's #55 (plan 029); #56 closes with Android proof of the real agent flow.
+
+Scripted Android check (temporary consumer, not committed), Pixel 10, Android 17 beta, Expo Go 58.0.5:
+
+| Check | Result |
+| --- | --- |
+| Pins → camera to the trip → searching line → routes draw in | ✅ dark and light |
+| Smoothness while drawing (measured in the map's web view) | ✅ 182 frames in 1.5 s (≈120 fps), longest gap 8 ms |
+| Tap a route mid-draw | ✅ it is selected while drawing; bubbles appear when it finishes |
+| Reduced motion (Android "Remove animations") | ✅ the web view reports it; no pulse, routes appear complete |
+| Saved trips | ✅ unchanged before the build starts |
+
+Found on the way (not map code): with "Remove animations" on, Home's Android sheet reports 80 px instead of its real
+~376 px, so every fit (normal or animated) puts routes under the sheet. Reported for `HomeChrome.android.tsx`.
+
 **Later (decided to wait):**
 
 - [ ] **Basemap switch** in the UI: Positron (light default), Liberty (colourful), Fiord (dark). Keep `styleUrl` app-supplied.
@@ -484,8 +559,8 @@ Not tested: a low-end Android phone; iOS beyond Expo Go on an iPhone (iOS is par
 - [ ] **Colours**: final review of mode colours against the mockup.
 - [ ] **Sizes**: line widths, marker sizes, end icon and bubble / bubble icon size from the final mockup.
 - [ ] **Bubbles over markers**: a bubble can cover a marker of another route; consider hiding overlapping bubbles.
-- [ ] **Fancier lanes** (plan 009 follow-up): markers shifted with their lane, and no small hooks where a very short
-  walk meets a bus at a sharp angle.
+- [ ] **Fancier lanes** (plan 009 follow-up): markers shifted with their lane (with 3+ trips, the outer lines sit up to
+  10 px beside their markers). The hooks at stops are fixed by per-zoom simplification.
 - [ ] **Results fit**: a little gap between the routes and the top of the results sheet (`bottom: sheetHeight + 16`).
 - [ ] **Faded line ends**: where two faded legs meet, their see-through round ends overlap into a darker dot; fade
   with lighter solid colours instead of transparency.
@@ -523,7 +598,7 @@ Q3–Q5; 030-Q1–Q3) are answered by @KrakenTheJaken.
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 104 tests
+npm run test:unit -w @transit/maps   # 122 tests
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 npm run typecheck -w @transit/maps   # package + demo
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)
@@ -566,3 +641,5 @@ selection, take screenshots, then put it back. Don't commit that.
 - **EAS builds** run `eas-build-post-install` (builds shared → maps → client-react), because the app imports the
   built packages.
 - **Changed the package but the phone shows the old map?** Rebuild `@transit/maps`, then reload Expo Go.
+- **Hooks or spikes where a route turns into a stop:** lanes shift lines sideways, and a kink shorter than the shift
+  sticks out. Keep `tolerance` on the route source (see Decisions); don't add new route sources without it.

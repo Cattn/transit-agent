@@ -120,7 +120,7 @@ function lineLength(coordinates: readonly LngLat[]): number {
 
 const MAX_JOIN_GAP_METERS = 100;
 
-function metersBetween([lng0, lat0]: LngLat, [lng1, lat1]: LngLat): number {
+export function metersBetween([lng0, lat0]: LngLat, [lng1, lat1]: LngLat): number {
   const rad = Math.PI / 180;
   const dLat = (lat1 - lat0) * rad;
   const dLng = (lng1 - lng0) * rad;

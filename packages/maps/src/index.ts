@@ -8,3 +8,4 @@ export * from './colors.js';
 export * from './to-geojson.js';
 export * from './layers.js';
 export * from './bounds.js';
+export * from './build-preview.js';

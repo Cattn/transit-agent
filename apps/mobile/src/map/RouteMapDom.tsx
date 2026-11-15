@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { setWorkerUrl } from 'maplibre-gl';
 import type { DOMProps } from 'expo/dom';
 import type { Itinerary, TravelMode } from '@transit/shared';
+import type { BuildPreview } from '@transit/maps';
 import { RouteMap } from '@transit/maps/web';
 import workerSource from './maplibre-gl-worker';
 
@@ -27,6 +28,7 @@ export interface RouteMapDomProps {
   unfocusedColors?: 'grey' | 'trip' | 'mode';
   variant?: 'saved' | 'choosing';
   accentColor?: string;
+  buildPreview?: BuildPreview;
   dom?: DOMProps;
 }
 
