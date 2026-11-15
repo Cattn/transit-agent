@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiClientError, createDeviceId, type AgentMessageResponse, type DraftState, type DraftChangeSource, type TripDraftPatch, type PlanResponse } from '@transit/shared';
+import { ApiClientError, applyDraftPatch, createDeviceId, type AgentMessageResponse, type DraftState, type DraftChangeSource, type TripDraftPatch, type PlanResponse } from '@transit/shared';
 import { useApi } from './api-context.js';
 
-export interface ChatMessage { id: string; role: 'user' | 'agent'; text: string; questions?: AgentMessageResponse['questions']; at: string }
+export interface ChatMessage { id: string; role: 'user' | 'agent'; text: string; questions?: AgentMessageResponse['questions']; plan?: PlanResponse; draft?: DraftState; at: string }
+
+function resultingDraft(draft: DraftState, patch: TripDraftPatch): DraftState {
+  try {
+    return applyDraftPatch(draft, patch, 'agent');
+  } catch {
+    return draft;
+  }
+}
 
 export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void) {
   const api = useApi();
@@ -35,12 +43,13 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
       session.current = response.sessionId;
       apply(response.draftPatch, 'agent');
       setLastPlan(response.plan);
-      setMessages((items) => [...items, { id: createDeviceId(), role: 'agent', text: response.reply, questions: response.questions, at: new Date().toISOString() }]);
+      const snapshot = response.plan ? { plan: response.plan, draft: resultingDraft(draft, response.draftPatch) } : {};
+      setMessages((items) => [...items, { id: createDeviceId(), role: 'agent', text: response.reply, questions: response.questions, ...snapshot, at: new Date().toISOString() }]);
     } catch (error) {
       if (current === generation.current) setError(error instanceof ApiClientError ? error : new ApiClientError(0, 'unknown', String(error)));
     } finally {
       if (current === generation.current) { busy.current = false; setPending(false); }
     }
-  }, [api, draft.draft, apply]);
+  }, [api, draft, apply]);
   return { messages, pending, error, send, lastPlan };
 }

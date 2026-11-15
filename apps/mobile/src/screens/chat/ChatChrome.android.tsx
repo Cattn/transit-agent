@@ -20,18 +20,20 @@ import {
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
 import { background, clip, fillMaxWidth, height, imePadding, padding, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import Check from '../../../assets/icons/check_fill.xml';
 import Close from '../../../assets/icons/close_fill.xml';
+import Edit from '../../../assets/icons/edit_fill.xml';
 import Send from '../../../assets/icons/send_fill.xml';
-import Tune from '../../../assets/icons/tune_fill.xml';
 import WandShine from '../../../assets/icons/wand_shine_fill.xml';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
+import { RouteCard } from '../results/RouteCard.android';
 import type { ChatChromeProps, ChatEntry } from './ChatScreen';
 
 const BUBBLE_INSET = 48;
 const SHEET_SHARE = 0.85;
 
-function Bubble({ text, mine, m }: { text: string; mine: boolean; m: MaterialColors }) {
+function Bubble({ text, mine, m, children }: { text: string; mine: boolean; m: MaterialColors; children?: ReactElement }) {
   return (
     <Row horizontalArrangement={mine ? 'end' : 'start'} modifiers={[fillMaxWidth(), padding(mine ? BUBBLE_INSET : 0, 0, mine ? 0 : BUBBLE_INSET, 0)]}>
       <Column
@@ -42,6 +44,7 @@ function Bubble({ text, mine, m }: { text: string; mine: boolean; m: MaterialCol
         ]}
       >
         <Text color={mine ? m.onPrimary : m.onSurface} style={m3Text('bodyLarge')}>{text}</Text>
+        {children ? <Column modifiers={[padding(0, 10, 0, 0)]}>{children}</Column> : null}
       </Column>
     </Row>
   );
@@ -55,21 +58,33 @@ function Block({ scheme, children }: { scheme: 'light' | 'dark'; children: React
   );
 }
 
-function Entry({ entry, m, pending, onSend, onChip }: { entry: ChatEntry; m: MaterialColors; pending: boolean; onSend: (text: string) => void; onChip: (field: string) => void }) {
+function Entry({ entry, m, pending, onSend, onChip, onCard }: {
+  entry: ChatEntry;
+  m: MaterialColors;
+  pending: boolean;
+  onSend: (text: string) => void;
+  onChip: (field: string) => void;
+  onCard: (entryId: string) => void;
+}) {
   if (entry.role === 'user') return <Bubble text={entry.text} mine m={m} />;
   return (
     <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
-      <Bubble text={entry.text} mine={false} m={m} />
+      <Bubble text={entry.text} mine={false} m={m}>
+        {entry.card ? <RouteCard card={entry.card} canSave={false} m={m} onSelect={() => onCard(entry.id)} onSave={() => undefined} /> : undefined}
+      </Bubble>
       {entry.chips.length ? (
         <FlowRow horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
           {entry.chips.map((chip) => (
             <AssistChip key={chip.field} onClick={() => onChip(chip.field)}>
               <AssistChip.LeadingIcon>
-                <Icon source={Tune} size={18} />
+                <Icon source={Check} size={18} />
               </AssistChip.LeadingIcon>
               <AssistChip.Label>
                 <Text style={m3Text('labelLarge')}>{chip.label}</Text>
               </AssistChip.Label>
+              <AssistChip.TrailingIcon>
+                <Icon source={Edit} size={18} />
+              </AssistChip.TrailingIcon>
             </AssistChip>
           ))}
         </FlowRow>
@@ -88,7 +103,7 @@ function Entry({ entry, m, pending, onSend, onChip }: { entry: ChatEntry; m: Mat
   );
 }
 
-export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onClose }: ChatChromeProps) {
+export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onCard, onClose }: ChatChromeProps) {
   const scheme = colors.scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const { height: windowHeight } = useWindowDimensions();
@@ -141,7 +156,7 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
               ) : null}
               {entries.map((entry) => (
                 <Block key={entry.id} scheme={scheme}>
-                  <Entry entry={entry} m={m} pending={pending} onSend={onSend} onChip={onChip} />
+                  <Entry entry={entry} m={m} pending={pending} onSend={onSend} onChip={onChip} onCard={onCard} />
                 </Block>
               ))}
               {pending ? (
