@@ -219,8 +219,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     apply(patch, source);
   }, [apply]);
 
+  const [handedPlan, setHandedPlan] = useState<PlanResponse>();
   const onAgentPlan = useCallback((agent: PlanResponse, draft: TripDraft) => {
     closeSaved();
+    setHandedPlan(agent);
     setAgentPlan({ plan: agent, draft });
     setResultsOpen(true);
   }, [closeSaved]);
@@ -320,7 +322,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
-  const handingOff = !chat.pending && chat.progress.phase === 'done' && chat.lastPlan !== undefined && chat.progress.plan === chat.lastPlan && agentPlan?.plan !== chat.lastPlan;
+  const handingOff = !chat.pending && chat.progress.phase === 'done' && chat.lastPlan !== undefined && chat.progress.plan === chat.lastPlan && handedPlan !== chat.lastPlan;
   const turnPlan = chat.pending || handingOff ? chat.progress.plan : undefined;
   const buildPreview = useMemo(() => (chat.pending ? agentBuildPreview(chat.progress) : undefined), [chat.pending, chat.progress]);
   const choosing = resultsOpen || turnPlan !== undefined;
