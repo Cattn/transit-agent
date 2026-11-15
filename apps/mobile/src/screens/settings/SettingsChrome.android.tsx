@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
@@ -35,6 +35,7 @@ import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
+import Dns from '../../../assets/icons/dns_fill.xml';
 import Home from '../../../assets/icons/home_fill.xml';
 import Info from '../../../assets/icons/info_fill.xml';
 import Language from '../../../assets/icons/language_fill.xml';
@@ -43,6 +44,7 @@ import Notifications from '../../../assets/icons/notifications_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
+import { normalizeServerUrl } from '../../platform';
 import { useAppColors } from '../../theme/appearance';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
@@ -191,6 +193,109 @@ function MpgDialog({ current, m, onSave, onDismiss }: { current?: number; m: Mat
   );
 }
 
+function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string | null; m: MaterialColors; onCheck: (url: string) => Promise<boolean>; onSave: (url: string | null) => void; onDismiss: () => void }) {
+  const value = useNativeState(saved ?? '');
+  const selection = useNativeState({ start: saved?.length ?? 0, end: saved?.length ?? 0 });
+  const [text, setText] = useState(saved ?? '');
+  const [error, setError] = useState<string>();
+  const [unreachable, setUnreachable] = useState<string>();
+  const [checking, setChecking] = useState(false);
+  const attempt = useRef(0);
+
+  useEffect(() => () => { attempt.current += 1; }, []);
+
+  const edit = (next: string) => {
+    attempt.current += 1;
+    setText(next);
+    setError(undefined);
+    setUnreachable(undefined);
+    setChecking(false);
+  };
+
+  const submit = (force: boolean) => {
+    const url = normalizeServerUrl(text);
+    if (!url) {
+      setError('Enter an address like 192.168.1.20:3001 or https://name.example.com');
+      return;
+    }
+    if (force) {
+      onSave(url);
+      return;
+    }
+    const id = ++attempt.current;
+    setChecking(true);
+    setError(undefined);
+    setUnreachable(undefined);
+    void onCheck(url).then((ok) => {
+      if (id !== attempt.current) return;
+      setChecking(false);
+      if (ok) {
+        onSave(url);
+        return;
+      }
+      setUnreachable(url);
+      setError("Couldn't reach that server");
+    });
+  };
+
+  return (
+    <AlertDialog onDismissRequest={onDismiss}>
+      <AlertDialog.Title>
+        <Text style={m3Text('headlineSmall')}>Server</Text>
+      </AlertDialog.Title>
+      <AlertDialog.Text>
+        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
+          <OutlinedTextField
+            value={value}
+            selection={selection}
+            autoFocus
+            singleLine
+            isError={error !== undefined}
+            onValueChange={edit}
+            keyboardOptions={{ keyboardType: 'uri', capitalization: 'none', autoCorrectEnabled: false, imeAction: 'done' }}
+            keyboardActions={{ onDone: () => { if (!checking) submit(false); } }}
+            modifiers={[fillMaxWidth()]}
+          >
+            <OutlinedTextField.Placeholder>
+              <Text style={m3Text('bodyLarge')}>192.168.1.20:3001</Text>
+            </OutlinedTextField.Placeholder>
+            {error ? (
+              <OutlinedTextField.SupportingText>
+                <Text style={m3Text('bodySmall')}>{error}</Text>
+              </OutlinedTextField.SupportingText>
+            ) : null}
+          </OutlinedTextField>
+          <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Open /connect on this phone to set this automatically.</Text>
+        </Column>
+      </AlertDialog.Text>
+      <AlertDialog.ConfirmButton>
+        <Row>
+          {unreachable ? (
+            <TextButton onClick={() => submit(true)}>
+              <Text style={m3Text('labelLarge')}>Save anyway</Text>
+            </TextButton>
+          ) : null}
+          <TextButton enabled={!checking} onClick={() => submit(false)}>
+            <Text style={m3Text('labelLarge')}>{checking ? 'Checking…' : 'Save'}</Text>
+          </TextButton>
+        </Row>
+      </AlertDialog.ConfirmButton>
+      <AlertDialog.DismissButton>
+        <Row>
+          {saved ? (
+            <TextButton onClick={() => onSave(null)}>
+              <Text style={m3Text('labelLarge')}>Use default</Text>
+            </TextButton>
+          ) : null}
+          <TextButton onClick={onDismiss}>
+            <Text style={m3Text('labelLarge')}>Cancel</Text>
+          </TextButton>
+        </Row>
+      </AlertDialog.DismissButton>
+    </AlertDialog>
+  );
+}
+
 function ComfortSlider({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   const latest = useRef(value);
   const moved = useRef(false);
@@ -220,7 +325,7 @@ function ComfortSlider({ value, onChange }: { value: number; onChange: (value: n
   );
 }
 
-type Dialog = { kind: 'limit'; key: LimitKey } | { kind: 'late' } | { kind: 'zone' } | { kind: 'theme' } | { kind: 'mpg' };
+type Dialog = { kind: 'limit'; key: LimitKey } | { kind: 'late' } | { kind: 'zone' } | { kind: 'theme' } | { kind: 'mpg' } | { kind: 'server' };
 
 const MODE_ICONS = { walk: DirectionsWalk, bus: DirectionsBus, rail: Train, bike: DirectionsBike, car: DirectionsCar } as const;
 const LIMIT_ICONS: Record<LimitKey, number> = { maxWalkMinutes: DirectionsWalk, maxTransfers: DirectionsBus };
@@ -233,6 +338,11 @@ export function SettingsChrome(props: SettingsChromeProps) {
   const close = () => setDialog(undefined);
   const placeColors: PlaceFieldColors = { surface: m.surface, onSurface: m.onSurface, onSurfaceVariant: m.onSurfaceVariant, primary: m.primary, outline: m.outline };
   const limit = dialog?.kind === 'limit' ? props.limits.find((item) => item.key === dialog.key) : undefined;
+
+  const serverRow = <SettingRow m={m} icon={Dns} title="Server" subtitle={props.server.label} chevron disabled={props.server.loading} onClick={() => setDialog({ kind: 'server' })} />;
+  const serverDialog = dialog?.kind === 'server' ? (
+    <ServerDialog saved={props.server.saved} m={m} onCheck={props.onCheckServer} onDismiss={close} onSave={(url) => { close(); props.onSaveServer(url); }} />
+  ) : null;
 
   const header = (
     <Block scheme={scheme}>
@@ -261,6 +371,8 @@ export function SettingsChrome(props: SettingsChromeProps) {
             ) : (
               <LoadingIndicator modifiers={[size(40, 40)]} />
             )}
+            <Rows>{serverRow}</Rows>
+            {serverDialog}
           </Column>
         </Block>
       </View>
@@ -396,6 +508,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
             <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
               <GroupLabel m={m}>About</GroupLabel>
               <Rows>
+                {serverRow}
                 <SettingRow m={m} icon={Smartphone} title="Device ID" subtitle={props.deviceId} />
                 <SettingRow m={m} icon={Info} title="Version" subtitle={props.version} />
               </Rows>
@@ -413,6 +526,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
             {dialog?.kind === 'theme' ? (
               <ChoiceDialog title="Theme" options={props.theme.options} m={m} onDismiss={close} onPick={(value) => { close(); props.onTheme(value); }} />
             ) : null}
+            {serverDialog}
             {dialog?.kind === 'mpg' ? (
               <MpgDialog current={props.carMpg} m={m} onDismiss={close} onSave={(value) => { close(); props.onCarMpg(value); }} />
             ) : null}

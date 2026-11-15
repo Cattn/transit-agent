@@ -3,7 +3,8 @@ import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { initialDraftState, type Place, type PutProfileRequest, type TravelMode, type TravelProfile, type TripDraftPatch } from '@transit/shared';
 import { useApi, useDeviceId } from '@transit/client-react';
-import { getCurrentPlace, secureStoreDeviceIdStorage } from '../../platform';
+import { getApiUrl, getCurrentPlace, secureStoreDeviceIdStorage, setServerUrl, useServerUrl } from '../../platform';
+import { apiMode } from '../../data/client';
 import { useAppearance, type AppearancePreference } from '../../theme/appearance';
 import packageJson from '../../../package.json';
 import { SettingsChrome } from './SettingsChrome';
@@ -24,6 +25,7 @@ const THEME_OPTIONS = [
 ] as const;
 const SERVICE_ZONE = 'America/New_York';
 const START_ZONE_LABEL = "Trip's starting point";
+const HEALTH_TIMEOUT_MS = 5000;
 
 export type ChipMode = (typeof CHIP_MODES)[number];
 export type PlaceKey = 'home' | 'work';
@@ -69,6 +71,9 @@ export interface SettingsChromeProps {
   onTimeZone: (value: string | null) => void;
   theme: { label: string; options: Choice<AppearancePreference>[] };
   onTheme: (value: AppearancePreference) => void;
+  server: { label: string; saved: string | null; loading: boolean };
+  onCheckServer: (url: string) => Promise<boolean>;
+  onSaveServer: (url: string | null) => void;
   deviceId: string;
   version: string;
 }
@@ -126,11 +131,36 @@ function shortId(id: string | undefined): string {
   return `${short} · stored on this phone`;
 }
 
+function withoutScheme(url: string): string {
+  return url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+}
+
+function serverLabel(saved: string | null | undefined): string {
+  if (saved === undefined) return 'Loading…';
+  if (saved) return withoutScheme(getApiUrl(saved));
+  if (apiMode === 'mock') return 'Sample data (no server)';
+  return `${withoutScheme(getApiUrl(null))} (default)`;
+}
+
+async function reachServer(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${url}/api/health`, { signal: controller.signal });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function SettingsScreen() {
   const navigation = useNavigation();
   const api = useApi();
   const deviceId = useDeviceId(secureStoreDeviceIdStorage);
   const { preference, setPreference } = useAppearance();
+  const serverUrl = useServerUrl();
   const [profile, setProfile] = useState<Profile>();
   const [loadError, setLoadError] = useState<string>();
   const [saveError, setSaveError] = useState<string>();
@@ -143,6 +173,16 @@ export function SettingsScreen() {
   const locationRequest = useRef(0);
   const generation = useRef(0);
   const live = useRef(true);
+  const [profileApi, setProfileApi] = useState(api);
+  if (profileApi !== api) {
+    setProfileApi(api);
+    setProfile(undefined);
+    setLoadError(undefined);
+    setSaveError(undefined);
+    setEditingPlace(undefined);
+    setLocating(false);
+    setNotice(undefined);
+  }
 
   useEffect(() => {
     live.current = true;
@@ -151,6 +191,10 @@ export function SettingsScreen() {
 
   useEffect(() => {
     let active = true;
+    generation.current += 1;
+    locationRequest.current += 1;
+    saved.current = EMPTY;
+    desired.current = EMPTY;
     profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active) return;
       const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults, presets: loaded.presets } : EMPTY;
@@ -191,6 +235,7 @@ export function SettingsScreen() {
         await api.putProfile(body);
         saved.current = next;
       } catch {
+        if (gen !== generation.current) return;
         generation.current += 1;
         desired.current = saved.current;
         if (!live.current) return;
@@ -330,6 +375,15 @@ export function SettingsScreen() {
       options: THEME_OPTIONS.map((option) => ({ ...option, selected: option.value === preference }))
     },
     onTheme: setPreference,
+    server: { label: serverLabel(serverUrl), saved: serverUrl ?? null, loading: serverUrl === undefined },
+    onCheckServer: reachServer,
+    onSaveServer: (url) => {
+      if (loadError) {
+        setLoadError(undefined);
+        setLoadKey((key) => key + 1);
+      }
+      void setServerUrl(url);
+    },
     deviceId: shortId(deviceId),
     version: packageJson.version
   };
