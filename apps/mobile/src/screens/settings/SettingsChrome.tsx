@@ -141,7 +141,6 @@ export function SettingsChrome(props: SettingsChromeProps) {
 
       <Label colors={colors}>About</Label>
       <Row colors={colors} title="Device ID" value={props.deviceId} />
-      <Row colors={colors} title="Data sources" value={props.dataSources} />
       <Row colors={colors} title="Version" value={props.version} />
     </ScrollView>
   );

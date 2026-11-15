@@ -397,7 +397,6 @@ export function SettingsChrome(props: SettingsChromeProps) {
               <GroupLabel m={m}>About</GroupLabel>
               <Rows>
                 <SettingRow m={m} icon={Smartphone} title="Device ID" subtitle={props.deviceId} />
-                <SettingRow m={m} icon={Info} title="Data sources" subtitle={props.dataSources} />
                 <SettingRow m={m} icon={Info} title="Version" subtitle={props.version} />
               </Rows>
             </Column>
