@@ -23,6 +23,7 @@ import {
 } from '@expo/ui/jetpack-compose';
 import { background, clip, fillMaxWidth, height, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
+import Add from '../../../assets/icons/add_fill.xml';
 import AutoAwesome from '../../../assets/icons/auto_awesome_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import Edit from '../../../assets/icons/edit_fill.xml';
@@ -34,6 +35,7 @@ import LocalCafe from '../../../assets/icons/local_cafe_fill.xml';
 import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Notifications from '../../../assets/icons/notifications_fill.xml';
 import Park from '../../../assets/icons/park_fill.xml';
+import Restaurant from '../../../assets/icons/restaurant_fill.xml';
 import School from '../../../assets/icons/school_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
@@ -50,7 +52,7 @@ import { MODE_OPTIONS, type ModeGroupName } from './ModeSlider';
 import { tileRole, tripCardText } from './TrackedTripCard';
 
 const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, fly: Flight };
-const CHIP_ICONS: Record<SavedPlaceChip['icon'], number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park };
+const CHIP_ICONS: Record<SavedPlaceChip['icon'], number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park, restaurant: Restaurant };
 const HANDLE_HEIGHT = 24;
 const LIST_CAP = 212;
 const COLLAPSED_MAX_SHARE = 0.55;
@@ -307,6 +309,16 @@ export function HomeChrome(props: HomeChromeProps) {
                     </AssistChip.Label>
                   </AssistChip>
                 ))}
+                {props.onAddPlace ? (
+                  <AssistChip onClick={props.onAddPlace}>
+                    <AssistChip.LeadingIcon>
+                      <Icon source={Add} size={18} />
+                    </AssistChip.LeadingIcon>
+                    <AssistChip.Label>
+                      <Text style={m3Text('labelLarge')}>Add</Text>
+                    </AssistChip.Label>
+                  </AssistChip>
+                ) : null}
                 <DropdownMenu expanded={editMenu} onDismissRequest={() => setEditMenu(false)}>
                   <DropdownMenu.Trigger>
                     <AssistChip onClick={() => setEditMenu(true)}>

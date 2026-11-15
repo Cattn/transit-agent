@@ -3,7 +3,7 @@
 ## Status
 
 - Owner: KrakenTheJaken (maps + Home chips). DMFriends filed #85 and owns Settings (#87); Cattn accepts design.
-- State: in progress on `plan/038-location-presets`; steps 1–5 done and checked on Android (Pixel, Expo Go, mock and server mode, light and dark). Step 6 (PR) left.
+- State: done (#98). Custom places continue in plan 040 (#104).
 - Priority: P1; effort M; risk MED (touches the shared profile contract and Home's chip row).
 - Category: product / maps.
 - Planned at: `fde2fea`, 2026-11-15.

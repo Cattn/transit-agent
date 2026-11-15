@@ -24,12 +24,13 @@ dropped, and what is decided but not built yet. Read it before changing the map.
    - [Animating while the agent works](#animating-while-the-agent-works-plan-030)
 6. [`<RouteMap>` props](#routemap-props)
 7. [How it works inside](#how-it-works-inside)
-8. [Decisions and why](#decisions-and-why)
-9. [Tried and dropped](#tried-and-dropped)
-10. [Status and what's next](#status-and-whats-next)
-11. [Rules (people and coding agents)](#rules-people-and-coding-agents)
-12. [Development](#development)
-13. [Gotchas](#gotchas)
+8. [Limits you can change](#limits-you-can-change)
+9. [Decisions and why](#decisions-and-why)
+10. [Tried and dropped](#tried-and-dropped)
+11. [Status and what's next](#status-and-whats-next)
+12. [Rules (people and coding agents)](#rules-people-and-coding-agents)
+13. [Development](#development)
+14. [Gotchas](#gotchas)
 
 ---
 
@@ -195,6 +196,7 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 | Which trips | Results open: the results' itineraries plus near misses. Otherwise: the saved, watched trips |
 | Look | Results open: `variant="choosing"`, `unfocusedColors="mode"`. Otherwise: `variant="saved"`, `unfocusedColors="trip"` |
 | Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given. **Location presets (plan 038):** a saved trip whose destination is within 150 m of Home, Office or Gym draws in that preset's colour (`withPresetColors(stored, presetTripColors(...))`: preset colours win, and an unrelated trip stored in a preset's colour is given a free one), so changing a preset's colour recolours its trips at once, and saving a result to a preset stores the preset's colour |
+| Custom places (plan 040) | Up to `MAX_CUSTOM_PLACES` (5) extra places in `profile.places`, each `{ id, name, icon, color, place }`. They get chips after Gym and count as presets for colours: `profilePlaces(profile)` lists Home, Office, Gym and the custom places, and `placeFor` / `presetTripColors` match a saved trip to the closest of all of them. A new place starts on `nextPlaceColor(profile)`. Added with the **Add** chip on Home or "Add a place" in Settings; edited from the Edit menu or the Settings row; both open `PresetSheet` with a name field and **Delete place** |
 | Accent | `accentColor={light.primary}` (`#6750A4`), always the light theme's purple, because the basemap is always light |
 | Basemap | OpenFreeMap Positron |
 | Loading (#103) | Until the map calls `onLoad` (MapLibre's `load`: style fetched and first frame drawn), `MapLoading` covers the map in `colors.map`, centred between the top bar and the sheet, then fades out. It shows "Loading map…"; "No internet connection" while `expo-network` reports no connection (the map reloads by itself when it's back); and "Map couldn't load" with **Retry** after 20 s. If the map calls `onLoadError` (an error before it has loaded, e.g. the style fetch failed because the connection wasn't ready yet), Home reloads it after 3 s; those reloads don't restart the 20 s. Reloading remounts the map (`key`). Only Retry takes taps |
@@ -394,8 +396,10 @@ optional, and leaving them out keeps the original look, so existing callers (web
 | `previewLayers(accentColor?)`, `PREVIEW_SOURCE_ID` | The pins / searching-line layers |
 | `metersBetween(a, b)` | Distance in metres between two `[lng, lat]` points |
 | `presetColor`, `presetIcon`, `presetPlace(key, profile)` | A location preset's colour / icon / place, with defaults (plan 038) |
-| `presetForPlace(place, profile)`, `presetTripColors(trips, profile)` | Which preset a place belongs to (closest within `PRESET_MATCH_METERS`, 150 m); saved-trip id → preset colour |
+| `profilePlaces(profile)`, `placeFor(place, profile)`, `presetTripColors(trips, profile)` | Home, Office, Gym and the custom places (plan 040) as one list; which of them a place belongs to (closest within `PRESET_MATCH_METERS`, 150 m); saved-trip id → that place's colour |
+| `nextPlaceColor(profile)` | Colour for a new custom place: the first `PALETTE` colour no place uses, else the least-used one |
 | `withPresetColors(stored, presetColors)` | The fixed colours for `assignRouteColors`: preset colours win, and a stored colour that clashes with a preset is dropped so that trip gets a free colour |
+| `upsertCustomPlace(places, key, choice, newId)`, `removeCustomPlace(places, key)`, `isPresetKey(key)` | Add / edit / remove one custom place in a profile's `places` (others untouched); whether a place key is Home, Office or Gym |
 | `DEFAULT_PRESET_COLORS`, `DEFAULT_PRESET_ICONS` | Home purple, Office blue, Gym green (all from `PALETTE`); `home`, `work`, `fitness` |
 | `DEFAULT_ACCENT_COLOR`, `END_ICON_ID`, size constants | Shared constants |
 
@@ -438,6 +442,18 @@ Notes:
   overlap 100% (see Decisions). Bringing lanes back would be one `line-offset` paint property.
 - Touch screens are detected with the `(pointer: coarse)` media query (`useSyncExternalStore`), which picks the wider
   tap area.
+
+---
+
+## Limits you can change
+
+Choices we made that nobody asked for, kept in one place so they are easy to review or change.
+
+| Limit | Where | Why this value | If you change it |
+| --- | --- | --- | --- |
+| Up to **5** custom places | `MAX_CUSTOM_PLACES` in `packages/shared/src/domain/profile.ts` (the schema, the **Add** chip and Settings all read it) | 3 defaults + 5 = 8, the size of `PALETTE`, so every place can have its own colour | More places: `nextPlaceColor` falls back to the least-used colour, so some places (and their routes) share a colour. Fewer: profiles saved with more places stop parsing, so only raise it, or migrate first |
+| Place names up to **30** characters | `MAX_PLACE_NAME` in `profile.ts` (schema and the sheet's Save button) | Fits on a chip | Shorter: saved longer names stop parsing, so migrate first |
+| A saved trip belongs to a place within **150 m** | `PRESET_MATCH_METERS` in `presets.ts` | Close enough for a door-to-door destination, far enough apart for two nearby places | Larger: trips near (not to) a place take its colour |
 
 ---
 

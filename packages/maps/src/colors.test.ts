@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PALETTE, assignRouteColors, hashString, routeColor } from './colors.js';
-import { DEFAULT_PRESET_COLORS, DEFAULT_PRESET_ICONS, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors } from './presets.js';
+import { DEFAULT_PRESET_COLORS, DEFAULT_PRESET_ICONS, isPresetKey, nextPlaceColor, placeFor, presetColor, presetIcon, presetPlace, presetTripColors, profilePlaces, removeCustomPlace, upsertCustomPlace, withPresetColors } from './presets.js';
 
 describe('PALETTE', () => {
   it('has 8 distinct hex colours', () => {
@@ -203,16 +203,16 @@ describe('place presets (plan 038)', () => {
   });
 
   it('matches a place within 150 m of a preset, and nothing further away', () => {
-    expect(presetForPlace(near(office, 100), profile)).toBe('office');
-    expect(presetForPlace(near(office, 200), profile)).toBeUndefined();
-    expect(presetForPlace(near(gym, 0), profile)).toBe('gym');
-    expect(presetForPlace(near(gym, 0), { home, work: office })).toBeUndefined();
+    expect(placeFor(near(office, 100), profile)?.key).toBe('office');
+    expect(placeFor(near(office, 200), profile)?.key).toBeUndefined();
+    expect(placeFor(near(gym, 0), profile)?.key).toBe('gym');
+    expect(placeFor(near(gym, 0), { home, work: office })?.key).toBeUndefined();
   });
 
   it('picks the closest preset when two are within 150 m', () => {
     const together = { home, work: near(home, 120) };
-    expect(presetForPlace(near(home, 100), together)).toBe('office');
-    expect(presetForPlace(near(home, 10), together)).toBe('home');
+    expect(placeFor(near(home, 100), together)?.key).toBe('office');
+    expect(placeFor(near(home, 10), together)?.key).toBe('home');
   });
 
   it('colours saved trips that go to a preset, and leaves the others alone', () => {
@@ -245,6 +245,58 @@ describe('place presets (plan 038)', () => {
     expect(colors.get('to-home')).toBe(orange);
     expect(colors.get('kept')).toBe(PALETTE[1]);
     expect(new Set(colors.values()).size).toBe(3);
+  });
+
+  it('lists Home, Office, Gym, then the custom places (plan 040)', () => {
+    const dinner = { id: 'dinner', name: 'Dinner', icon: 'restaurant' as const, color: '#7c3aed', place: near(gym, 3000) };
+    expect(profilePlaces({ ...profile, places: [dinner] })).toEqual([
+      { key: 'home', name: 'Home', icon: 'home', color: DEFAULT_PRESET_COLORS.home, place: home },
+      { key: 'office', name: 'Office', icon: 'work', color: DEFAULT_PRESET_COLORS.office, place: office },
+      { key: 'gym', name: 'Gym', icon: 'fitness', color: '#db2777', place: gym },
+      { key: 'place:dinner', name: 'Dinner', icon: 'restaurant', color: '#7c3aed', place: dinner.place }
+    ]);
+    expect(profilePlaces(undefined).map((place) => place.key)).toEqual(['home', 'office', 'gym']);
+  });
+
+  it('matches and colours saved trips to a custom place, and the closest place wins across presets and custom places (plan 040)', () => {
+    const dinner = { id: 'dinner', name: 'Dinner', icon: 'restaurant' as const, color: '#7c3aed', place: near(gym, 3000) };
+    const cafe = { id: 'cafe', name: 'Cafe', icon: 'cafe' as const, color: '#0891b2', place: near(office, 80) };
+    const withPlaces = { ...profile, places: [dinner, cafe] };
+    expect(placeFor(near(dinner.place, 50), withPlaces)?.key).toBe('place:dinner');
+    expect(placeFor(near(office, 70), withPlaces)?.key).toBe('place:cafe');
+    expect(placeFor(near(office, 10), withPlaces)?.key).toBe('office');
+    expect(presetTripColors([{ id: 'to-dinner', request: { destination: dinner.place } }, { id: 'to-office', request: { destination: office } }], withPlaces)).toEqual(new Map([
+      ['to-dinner', '#7c3aed'],
+      ['to-office', DEFAULT_PRESET_COLORS.office]
+    ]));
+  });
+
+  it('starts a new place on a palette colour no place uses yet, then the least-used one (plan 040)', () => {
+    const custom = (id: string, color: string) => ({ id, name: id, icon: 'favorite' as const, color, place: gym });
+    const used = new Set([DEFAULT_PRESET_COLORS.home, DEFAULT_PRESET_COLORS.office, DEFAULT_PRESET_COLORS.gym]);
+    const first = nextPlaceColor(undefined);
+    expect(used.has(first)).toBe(false);
+    expect(PALETTE).toContain(first);
+    const places = PALETTE.filter((color) => !used.has(color)).map((color, index) => custom(`p${index}`, color.toUpperCase()));
+    expect(nextPlaceColor({ places: places.slice(0, -1) })).toBe(places.at(-1)!.color.toLowerCase());
+    expect(nextPlaceColor({ places })).toBe(PALETTE[0]);
+    expect(nextPlaceColor({ places: [...places, custom('extra', PALETTE[0]!)] })).toBe(PALETTE[1]);
+  });
+
+  it('adds, edits and removes custom places without touching the others (plan 040)', () => {
+    const dinner = { id: 'dinner', name: 'Dinner', icon: 'restaurant' as const, color: '#7c3aed', place: gym };
+    const school = { id: 'school', name: 'School', icon: 'school' as const, color: '#0891b2', place: office };
+    expect(upsertCustomPlace([dinner], 'new', { name: '  School ', icon: 'school', color: '#0891b2', place: office }, 'school')).toEqual([dinner, school]);
+    expect(upsertCustomPlace([dinner], 'new', { name: 'No place', icon: 'school', color: '#0891b2' }, 'x')).toEqual([dinner]);
+    expect(upsertCustomPlace(undefined, 'new', { name: 'Dinner', icon: 'restaurant', color: '#7c3aed', place: gym }, 'dinner')).toEqual([dinner]);
+    expect(upsertCustomPlace([dinner, school], 'place:dinner', { name: 'Supper', icon: 'cafe', color: '#db2777' }, 'unused')).toEqual([
+      { ...dinner, name: 'Supper', icon: 'cafe', color: '#db2777' },
+      school
+    ]);
+    expect(upsertCustomPlace([dinner], 'place:dinner', { name: 'Dinner', icon: 'restaurant', color: '#7c3aed', place: home }, 'unused')).toEqual([{ ...dinner, place: home }]);
+    expect(removeCustomPlace([dinner, school], 'place:dinner')).toEqual([school]);
+    expect(removeCustomPlace(undefined, 'place:dinner')).toEqual([]);
+    expect(['home', 'office', 'gym', 'place:dinner'].map(isPresetKey)).toEqual([true, true, true, false]);
   });
 
   it('matches preset colours regardless of hex case', () => {

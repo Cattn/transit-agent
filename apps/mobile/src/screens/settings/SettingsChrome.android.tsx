@@ -46,6 +46,7 @@ import Train from '../../../assets/icons/train_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
 import { normalizeServerUrl } from '../../platform';
 import { useAppColors } from '../../theme/appearance';
+import { PRESET_ICON_SOURCES } from '../home/PresetSheet.android';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
 import { PlaceField, type PlaceFieldColors } from '../filters/PlaceField';
@@ -80,6 +81,7 @@ function Rows({ children }: { children: ReactNode }) {
 interface SettingRowProps {
   m: MaterialColors;
   icon?: number;
+  iconTint?: string;
   title: string;
   subtitle?: string;
   trailing?: ReactNode;
@@ -88,7 +90,7 @@ interface SettingRowProps {
   onClick?: () => void;
 }
 
-function SettingRow({ m, icon, title, subtitle, trailing, chevron, disabled, onClick }: SettingRowProps) {
+function SettingRow({ m, icon, iconTint, title, subtitle, trailing, chevron, disabled, onClick }: SettingRowProps) {
   const modifiers = [fillMaxWidth(), clip(Shapes.RoundedCorner(4))];
   if (onClick && !disabled) modifiers.push(clickable(onClick));
   if (disabled) modifiers.push(alpha(0.38));
@@ -96,7 +98,7 @@ function SettingRow({ m, icon, title, subtitle, trailing, chevron, disabled, onC
     <ListItem colors={{ containerColor: m.surfaceContainerLow }} modifiers={modifiers}>
       {icon !== undefined ? (
         <ListItem.LeadingContent>
-          <Icon source={icon} size={24} tint={m.onSurfaceVariant} />
+          <Icon source={icon} size={24} tint={iconTint ?? m.onSurfaceVariant} />
         </ListItem.LeadingContent>
       ) : null}
       <ListItem.HeadlineContent>
@@ -431,8 +433,20 @@ export function SettingsChrome(props: SettingsChromeProps) {
                 ) : null}
               </View>
             ))}
+            {props.customPlaces.map((place) => (
+              <Block key={place.key} scheme={scheme}>
+                <SettingRow m={m} icon={PRESET_ICON_SOURCES[place.icon]} iconTint={place.color} title={place.title} subtitle={place.value} chevron onClick={() => props.onEditCustomPlace(place.key)} />
+              </Block>
+            ))}
             <Block scheme={scheme}>
-              <SettingRow m={m} icon={Add} title="Add a place" subtitle={COMING_SOON} disabled />
+              <SettingRow
+                m={m}
+                icon={Add}
+                title="Add a place"
+                subtitle={props.onAddPlace ? undefined : `Up to ${props.placeLimit} places`}
+                disabled={!props.onAddPlace}
+                onClick={props.onAddPlace}
+              />
             </Block>
           </View>
         </View>
