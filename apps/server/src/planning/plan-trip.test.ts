@@ -138,6 +138,36 @@ describe('planTrip returns', () => {
     expect(plan.warnings).toEqual(['Next return leaves Mon, Nov 16 at 5:20 AM, a 3 h 20 min wait']);
   });
 
+  it('still searches the morning when the only morning candidate breaks a constraint', async () => {
+    const base = (await new FixtureProvider().search(request()))[0]!;
+    const provider: RouteProvider = {
+      name: 'scripted',
+      supports: () => true,
+      search: async (r) => {
+        if (r.time.at === '2026-11-16T00:30:00-05:00') return [{ ...at(base, 'long-walk', '2026-11-16T10:10:00Z'), walkMinutes: 40 }];
+        if (r.time.at === '2026-11-16T10:00:00Z') return [{ ...at(base, 'ok', '2026-11-16T10:20:00Z'), walkMinutes: 5 }];
+        return [at(base, 'out', r.time.at)];
+      }
+    };
+    const plan = (await planTrip(request({ timeZone: NY, returnTime: '2026-11-16T00:30:00-05:00', constraints: { maxWalkMinutes: 10 } }), [provider], undefined, silent)).returnPlan!;
+    expect(plan.status).toBe('ok');
+    expect(plan.firstMorningOptionId).toBe('ok');
+    expect(plan.nearMisses.map((it) => it.id)).toEqual(['long-walk']);
+  });
+
+  it('reports the return as unavailable when the morning search fails after an empty night', async () => {
+    const provider: RouteProvider = {
+      name: 'flaky',
+      supports: () => true,
+      search: async (r) => {
+        if (r.time.at === '2026-11-16T10:00:00Z') throw new Error('timeout');
+        return r.time.at === request().time.at ? new FixtureProvider().search(r) : [];
+      }
+    };
+    const plan = (await planTrip(request({ timeZone: NY, returnTime: '2026-11-16T02:00:00-05:00' }), [provider], undefined, silent)).returnPlan!;
+    expect(plan).toMatchObject({ status: 'unavailable', options: [], warnings: ['flaky unavailable for the return'] });
+  });
+
   it('keeps outbound results when only the return search fails', async () => {
     const flaky: RouteProvider = {
       name: 'flaky',

@@ -142,6 +142,14 @@ describe('Transitous mapping (recorded /api/v6/plan responses)', () => {
     expect(results[1]?.cost).toEqual({ totalUsd: 0, lines: [] });
   });
 
+  it('gives id-less direct routes with different endpoints different ids', () => {
+    const [car] = sample('007-transitous-street.json').direct!;
+    const moved = { ...car!, legs: car!.legs.map((leg) => ({ ...leg, to: { ...leg.to, lat: leg.to.lat + 0.01 } })) };
+    const ids = mapTransitousPlan({ direct: [car!, moved] }, liveRequest(), { fetchedAt }).map((it) => it.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+  });
+
   it('subtracts the transfer walk from the boarding slack', () => {
     const results = mapTransitousPlan(sample('007-transitous-return.json'), liveRequest(), { fetchedAt });
     const bus = results[2]?.legs.find((leg) => leg.mode === 'bus');

@@ -128,7 +128,7 @@ function withTransferBuffers(legs: Leg[]): void {
 }
 
 export function mapTransitousItinerary(raw: TransitousItinerary, req: TripRequest, options: MapOptions): Itinerary | string {
-  const id = `tr-${createHash('sha1').update(raw.id || JSON.stringify(raw.legs.map((leg) => [leg.mode, leg.startTime, leg.tripId]))).digest('hex').slice(0, 12)}`;
+  const id = `tr-${createHash('sha1').update(raw.id || JSON.stringify(raw.legs.map((leg) => [leg.mode, leg.startTime, leg.endTime, leg.tripId, leg.from.lat, leg.from.lon, leg.to.lat, leg.to.lon, leg.distance]))).digest('hex').slice(0, 12)}`;
   const legs: Leg[] = [];
   for (const [index, rawLeg] of raw.legs.entries()) {
     const mode = legMode(rawLeg);

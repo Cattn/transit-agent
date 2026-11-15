@@ -94,12 +94,14 @@ async function planReturn(req: TripRequest, returnTime: string, providers: Route
 
   const first = await searchProviders(request, active, signal, logger, suffix);
   const warnings = [...first.warnings];
-  const unavailable = first.failed === active.length;
+  let unavailable = first.failed === active.length;
   const candidates = [...first.candidates];
-  if (!unavailable && overnight && !candidates.some((it) => Date.parse(it.departAt) >= morningMs)) {
+  const feasibleMorning = (it: Itinerary) => Date.parse(it.departAt) >= morningMs && checkConstraints(it, request).length === 0;
+  if (!unavailable && overnight && !candidates.some(feasibleMorning)) {
     const morning = await searchProviders({ ...request, time: { type: 'departAt', at: isoAt(morningMs) } }, active, signal, logger, suffix);
     warnings.push(...morning.warnings.filter((warning) => !warnings.includes(warning)));
     for (const it of morning.candidates) if (!candidates.some((other) => other.id === it.id)) candidates.push(it);
+    if (morning.failed === active.length && candidates.length === 0) unavailable = true;
   }
 
   const annotated = annotate(candidates.filter((it) => Date.parse(it.departAt) >= requestedMs), request);
