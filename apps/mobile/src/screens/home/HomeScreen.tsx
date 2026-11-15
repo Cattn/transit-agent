@@ -312,7 +312,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
   const mapTrips = useMemo<Itinerary[]>(() => {
-    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])];
+    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? []), ...(plan.data?.returnPlan?.options.map((option) => option.itinerary) ?? [])];
     return openSaved && !openSaved.watch ? [...watched, openSaved] : watched;
   }, [resultsOpen, plan.data, watched, openSaved]);
   const shownIds = mapTrips.map((it) => it.id).join(' ');

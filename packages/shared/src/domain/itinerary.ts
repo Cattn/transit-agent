@@ -12,6 +12,20 @@ export const LineStringSchema = z.object({
 
 export const TimeSourceSchema = z.enum(['realtime', 'scheduled', 'estimated']);
 
+export const TripRefSchema = z.object({
+  provider: z.string().min(1),
+  tripId: z.string().min(1),
+  feed: z.string().optional(),
+  agencyTripId: z.string().optional(),
+  serviceDate: z.iso.date().optional(),
+  routeId: z.string().optional(),
+  directionId: z.string().optional(),
+  boardStopId: z.string().optional(),
+  alightStopId: z.string().optional(),
+  boardStopSequence: z.number().int().nonnegative().optional()
+});
+export type TripRef = z.infer<typeof TripRefSchema>;
+
 export const LegSchema = z.object({
   id: z.string().min(1),
   mode: TravelModeSchema,
@@ -29,7 +43,8 @@ export const LegSchema = z.object({
   /** Realtime minus scheduled, minutes. Present only when timeSource === 'realtime'. */
   delayMinutes: z.number().optional(),
   /** Minutes between previous leg's arrival and this leg's departure (transfers only). */
-  transferBufferMinutes: z.number().optional()
+  transferBufferMinutes: z.number().optional(),
+  trip: TripRefSchema.optional()
 });
 export type Leg = z.infer<typeof LegSchema>;
 
