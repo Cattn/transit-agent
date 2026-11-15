@@ -37,6 +37,7 @@ jobs:
         run: |
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             git checkout --detach "refs/tags/$TAG"
+            echo "TAG_EXISTS=true" >> "$GITHUB_ENV"
           elif [ "$GITHUB_EVENT_NAME" = push ]; then
             echo "::error::Tag $TAG not found"; exit 1
           else
@@ -104,10 +105,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          prerelease=()
-          [[ "$TAG" == *-* ]] && prerelease=(--prerelease)
+          extra=()
+          [[ "$TAG" == *-* ]] && extra+=(--prerelease)
+          if [ "$TAG_EXISTS" = true ]; then extra+=(--verify-tag); else extra+=(--target "$BUILD_SHA"); fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$RUNNER_TEMP/transit-agent.apk" --clobber
           else
-            gh release create "$TAG" "$RUNNER_TEMP/transit-agent.apk" --target "$BUILD_SHA" --title "Transit Agent $TAG" --generate-notes "${prerelease[@]}"
+            gh release create "$TAG" "$RUNNER_TEMP/transit-agent.apk" --title "Transit Agent $TAG" --generate-notes "${extra[@]}"
           fi
