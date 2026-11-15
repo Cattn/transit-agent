@@ -32,7 +32,7 @@
 - ~~022-Q1~~ **Decided:** yes, the Android full-height sheet as drawn (replaces Home's RN `Modal` `pageSheet` for Filters).
 - ~~022-Q2~~ **Decided:** yes, keep each screen's wording (Filters: On time / Bit late OK / Flexible; Settings keeps its own).
 - ~~022-Q3~~ **Decided:** yes, place search stays inside the sheet.
-- ~~022-Q4~~ **Decided — changes from the frame:** (a) ~~no car chip under Modes~~ **superseded by D12: the car chip comes back as the Drive filter** (see Modes and Step 4); (b) **Advanced limits start collapsed**; (c) the **Agent mark** goes on every field the agent set or recommended (provenance `'agent'`), not only the ones drawn; (d) **no Budget control** at all: budget is not a hard limit.
+- ~~022-Q4~~ **Decided — changes from the frame:** (a) ~~no car chip under Modes~~ **superseded by D12: the car chip comes back as the Drive filter** (see Modes and Step 4); (b) **Advanced limits start collapsed**; (c) the **Agent mark** goes on every field the agent set or recommended (provenance `'agent'`), not only the ones drawn; (d) **no Budget control** at all: budget is not a hard limit. **Revised 2026-11-15 (@DMFriends, follow the Figma frame):** (b) Advanced limits start **open**; (d) a **Budget** row comes back under Advanced limits (`constraints.maxBudgetUsd`), and every limit takes a custom value; the car chip is labelled **Car**; the "Show routes" footer is dropped (closing Filters shows the routes when a destination is set); Reset clears From/To, sets the time to now (Depart at) and returns modes, sliders and limits to the profile defaults; preset chips open the map with routes instead of Filters.
 
 **How to help**
 - **Take it:** comment "taking this" and assign yourself.

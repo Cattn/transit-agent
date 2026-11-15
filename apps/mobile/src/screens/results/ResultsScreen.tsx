@@ -109,13 +109,11 @@ function timeLabel(state: DraftState, now: Date): string | undefined {
   return `Leave at ${formatClockOnDay(time.at, now, state.draft.timeZone)}`;
 }
 
-function resultChips(state: DraftState, now: Date): ResultChip[] {
+function resultChips(state: DraftState): ResultChip[] {
   const chips: ResultChip[] = [];
-  const time = timeLabel(state, now);
-  if (time) chips.push({ key: 'time', label: time, kind: 'time' });
   const constraints = state.draft.constraints as TripConstraints;
   for (const [key, value] of Object.entries(constraints)) {
-    if (value === undefined) continue;
+    if (value === undefined || key === 'maxBudgetUsd') continue;
     const line = describePatch({ constraints: { [key]: value } })[0];
     if (!line) continue;
     const agent = state.provenance[`constraints.${key}`] === 'agent';
@@ -164,7 +162,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
     colors: props.colors,
     origin: placeLabel(draftState.draft.origin, 'Choose start'),
     destination: placeLabel(draftState.draft.destination, 'Choose destination'),
-    chips: resultChips(draftState, now),
+    chips: resultChips(draftState),
     title: props.savedTrip ? props.savedTrip.title : data && !message ? `${itineraries.length} ${itineraries.length === 1 ? 'route' : 'routes'}` : 'Routes',
     subtitle,
     updated: oldest && !message ? `updated ${formatAge(oldest, now)}` : undefined,

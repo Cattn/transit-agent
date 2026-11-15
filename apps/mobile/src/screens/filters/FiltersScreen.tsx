@@ -3,13 +3,16 @@ import { BackHandler } from 'react-native';
 import { formatClockOnDay, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
+import type { LimitCustom } from './limits';
+import { filtersResetPatch } from './reset';
 
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
 const TRANSFER_STEPS = [0, 1, 2, 3, 4, 5, 6];
+const BUDGET_STEPS = [3, 5, 10, 15, 20, 30, 50];
 const TIME_OPTIONS = [
-  { value: 'departAt', label: 'Depart' },
-  { value: 'arriveBy', label: 'Arrive' }
+  { value: 'departAt', label: 'Depart at' },
+  { value: 'arriveBy', label: 'Arrive by' }
 ] as const;
 const LATE_OPTIONS = [
   { value: 'strict', label: 'On time' },
@@ -24,7 +27,7 @@ const PREFERENCE_ROWS = [
 
 export type FilterFocus = 'where' | 'modes' | 'strict' | 'prefs' | 'limits';
 export type ChipMode = (typeof CHIP_MODES)[number];
-export type LimitKey = 'maxWalkMinutes' | 'maxTransfers';
+export type LimitKey = 'maxWalkMinutes' | 'maxTransfers' | 'maxBudgetUsd';
 export type PreferenceKey = (typeof PREFERENCE_ROWS)[number]['key'];
 export type TimeType = (typeof TIME_OPTIONS)[number]['value'];
 export type LateTolerance = (typeof LATE_OPTIONS)[number]['value'];
@@ -59,7 +62,7 @@ export interface FiltersChromeProps {
   onLateTolerance: (value: LateTolerance) => void;
   preferences: { key: PreferenceKey; start: string; end: string; value: number; agent: boolean }[];
   onPreference: (key: PreferenceKey, value: number) => void;
-  limits: { key: LimitKey; title: string; label: string; agent: boolean; options: { value: number | null; label: string; selected: boolean }[] }[];
+  limits: { key: LimitKey; title: string; label: string; agent: boolean; options: { value: number | null; label: string; selected: boolean }[]; custom: LimitCustom }[];
   onLimit: (key: LimitKey, value: number | null) => void;
   stepFree: { on: boolean; agent: boolean };
   onStepFree: (on: boolean) => void;
@@ -73,6 +76,7 @@ export interface FiltersScreenProps {
   field?: string;
   plan?: { data?: PlanResponse; loading: boolean };
   startSearch?: 'destination';
+  defaults?: TripDraftPatch;
   onClose: () => void;
   onShowRoutes: () => void;
 }
@@ -123,10 +127,10 @@ function countCopy(routes: number, almost: number): { routes: string; almost: st
   };
 }
 
-const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike', car: 'Drive' };
+const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike', car: 'Car' };
 
-export function FiltersScreen({ draft, provenance, apply, field, plan, startSearch, onClose, onShowRoutes }: FiltersScreenProps) {
-  const [limitsOpen, setLimitsOpen] = useState(() => field?.startsWith('constraints.') ?? false);
+export function FiltersScreen({ draft, provenance, apply, field, plan, startSearch, defaults, onClose, onShowRoutes }: FiltersScreenProps) {
+  const [limitsOpen, setLimitsOpen] = useState(true);
   const [searching, setSearching] = useState<'origin' | 'destination' | undefined>(startSearch);
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
@@ -166,6 +170,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
 
   const walkLabel = (value: number) => `${value} min`;
   const transferLabel = (value: number) => (value === 0 ? 'No transfers' : String(value));
+  const budgetLabel = (value: number) => `$${Number.isInteger(value) ? value : value.toFixed(2)}`;
 
   const data = plan && !plan.loading ? plan.data : undefined;
   const near = searching === 'destination' ? draft.origin?.coordinates : draft.destination?.coordinates;
@@ -175,20 +180,11 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
     limitsOpen,
     onToggleLimits: () => setLimitsOpen((open) => !open),
     onClose,
-    onReset: () => apply({
-      modes: draft.modes.includes('flight') ? ['walk', 'bus', 'rail', 'flight'] : ['walk', 'bus', 'rail'],
-      preferences: { comfortVsCost: 0.5, transferRisk: 0.3, lateTolerance: 'some', activeTravel: 0.5 },
-      constraints: {
-        arriveBy: null,
-        maxBudgetUsd: null,
-        maxWalkMinutes: null,
-        maxBikeMinutes: null,
-        maxTransfers: null,
-        minTransferBufferMinutes: null,
-        maxDriveMinutes: null,
-        wheelchairAccessible: null
-      }
-    }, 'user'),
+    onReset: () => {
+      setSearching(undefined);
+      setNotice(undefined);
+      apply(filtersResetPatch(draft, defaults, new Date()), 'user');
+    },
     onShowRoutes,
     origin: { label: placeLabel(draft.origin), agent: agent('origin') },
     destination: { label: placeLabel(draft.destination), agent: agent('destination') },
@@ -251,20 +247,31 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
         title: 'Max walk',
         label: draft.constraints.maxWalkMinutes === undefined ? 'No limit' : walkLabel(draft.constraints.maxWalkMinutes),
         agent: agent('constraints.maxWalkMinutes'),
-        options: limitOptions(draft.constraints.maxWalkMinutes, WALK_STEPS, walkLabel)
+        options: limitOptions(draft.constraints.maxWalkMinutes, WALK_STEPS, walkLabel),
+        custom: { suffix: 'min', decimal: false, max: 240, current: draft.constraints.maxWalkMinutes }
       },
       {
         key: 'maxTransfers',
         title: 'Max transfers',
         label: draft.constraints.maxTransfers === undefined ? 'No limit' : transferLabel(draft.constraints.maxTransfers),
         agent: agent('constraints.maxTransfers'),
-        options: limitOptions(draft.constraints.maxTransfers, TRANSFER_STEPS, transferLabel)
+        options: limitOptions(draft.constraints.maxTransfers, TRANSFER_STEPS, transferLabel),
+        custom: { suffix: 'transfers', decimal: false, max: 10, current: draft.constraints.maxTransfers }
+      },
+      {
+        key: 'maxBudgetUsd',
+        title: 'Budget',
+        label: draft.constraints.maxBudgetUsd === undefined ? 'No limit' : budgetLabel(draft.constraints.maxBudgetUsd),
+        agent: agent('constraints.maxBudgetUsd'),
+        options: limitOptions(draft.constraints.maxBudgetUsd, BUDGET_STEPS, budgetLabel),
+        custom: { prefix: '$', decimal: true, max: 1000, current: draft.constraints.maxBudgetUsd }
       }
     ],
     onLimit: (key, value) => {
       if (value === (draft.constraints[key] ?? null)) return;
       if (key === 'maxWalkMinutes') apply({ constraints: { maxWalkMinutes: value } }, 'user');
-      else apply({ constraints: { maxTransfers: value } }, 'user');
+      else if (key === 'maxTransfers') apply({ constraints: { maxTransfers: value } }, 'user');
+      else apply({ constraints: { maxBudgetUsd: value } }, 'user');
     },
     stepFree: { on: draft.constraints.wheelchairAccessible === true, agent: agent('constraints.wheelchairAccessible') },
     onStepFree: (on) => apply({ constraints: { wheelchairAccessible: on ? true : null } }, 'user'),
