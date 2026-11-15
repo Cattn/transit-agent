@@ -16,17 +16,24 @@ const serverUrl = publicUrl ?? (lan[0] ? `http://${lan[0].address}:${port}` : `h
 
 let expoGoUrl;
 if (withExpo) {
+  const metroPort = option('metro-port', '8081');
   log(`Starting Metro for Expo Go (${isPublic ? 'Expo tunnel' : 'same Wi-Fi'})…`);
-  expoGoUrl = await new Promise((resolve) => {
-    start('metro', ...expo(['start', '--go', isPublic ? '--tunnel' : '--lan', '--port', option('metro-port', '8081')]), {
+  const ready = new Promise((resolve) => {
+    start('metro', ...expo(['start', '--go', isPublic ? '--tunnel' : '--lan', '--port', metroPort]), {
       cwd: mobileDir,
       env: { EXPO_PUBLIC_API_MODE: 'server', EXPO_PUBLIC_API_URL: serverUrl },
       onLine: (line) => {
-        const url = /exp:\/\/[^\s'"]+/.exec(line)?.[0];
-        if (url) resolve(url);
+        const url = /Waiting on (https?):\/\/(\S+?)\/?$/.exec(line.trim());
+        if (!url) return;
+        const local = /^(localhost|127\.0\.0\.1)(:|$)/.test(url[2]);
+        resolve(url[1] === 'https' ? `exps://${url[2]}` : `exp://${local ? `${lan[0]?.address ?? '127.0.0.1'}:${metroPort}` : url[2]}`);
       }
     });
   });
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(undefined), 180_000));
+  expoGoUrl = await Promise.race([ready, timeout]);
+  if (!expoGoUrl) fail(isPublic ? 'The Expo tunnel did not come up within 3 minutes.' : 'Metro did not start within 3 minutes.');
+  if (isPublic && !expoGoUrl.startsWith('exps://')) fail(`Expo did not report a tunnel URL (got ${expoGoUrl}).`);
 }
 
 startServer(port, {

@@ -30,6 +30,19 @@ jobs:
       KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check out the tag
+        shell: bash
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            git checkout --detach "refs/tags/$TAG"
+          elif [ "$GITHUB_EVENT_NAME" = push ]; then
+            echo "::error::Tag $TAG not found"; exit 1
+          else
+            echo "Tag $TAG does not exist yet; it will be created at $(git rev-parse HEAD)."
+          fi
+          echo "BUILD_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -96,5 +109,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$RUNNER_TEMP/transit-agent.apk" --clobber
           else
-            gh release create "$TAG" "$RUNNER_TEMP/transit-agent.apk" --target "$GITHUB_SHA" --title "Transit Agent $TAG" --generate-notes "${prerelease[@]}"
+            gh release create "$TAG" "$RUNNER_TEMP/transit-agent.apk" --target "$BUILD_SHA" --title "Transit Agent $TAG" --generate-notes "${prerelease[@]}"
           fi

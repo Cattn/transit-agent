@@ -78,6 +78,6 @@ if (useApp) {
     return (await res.text()).includes('running');
   }, { label: 'Metro' }).catch((error) => fail(error.message));
   log('Opening Expo Go on the phone…');
-  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `exp://127.0.0.1:${metroPort}`, EXPO_GO);
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `"exp://127.0.0.1:${metroPort}/--/connect?url=${mock ? '' : encodeURIComponent(apiUrl)}"`, EXPO_GO);
   log('\x1b[32mRunning.\x1b[0m Edits reload on the phone. Press Ctrl+C to stop.');
 }

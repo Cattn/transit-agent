@@ -33,7 +33,7 @@ export function log(message) {
 
 export function fail(message) {
   console.error(`\x1b[31m✖ ${message}\x1b[0m`);
-  process.exit(1);
+  stopAll(1);
 }
 
 export function npm(args) {
