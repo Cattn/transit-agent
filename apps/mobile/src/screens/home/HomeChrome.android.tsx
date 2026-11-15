@@ -6,6 +6,9 @@ import { Host } from '@expo/ui';
 import {
   AssistChip,
   Column,
+  DropdownMenu,
+  DropdownMenuItem,
+  ExtendedFloatingActionButton,
   FilledTonalIconButton,
   FloatingActionButton,
   Icon,
@@ -23,16 +26,23 @@ import { background, clip, fillMaxWidth, height, horizontalScroll, padding, padd
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
 import AutoAwesome from '../../../assets/icons/auto_awesome_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
+import Edit from '../../../assets/icons/edit_fill.xml';
+import Favorite from '../../../assets/icons/favorite_fill.xml';
 import FitnessCenter from '../../../assets/icons/fitness_center_fill.xml';
 import Flight from '../../../assets/icons/flight_fill.xml';
 import HomeIcon from '../../../assets/icons/home_fill.xml';
+import LocalCafe from '../../../assets/icons/local_cafe_fill.xml';
 import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Notifications from '../../../assets/icons/notifications_fill.xml';
+import Park from '../../../assets/icons/park_fill.xml';
+import School from '../../../assets/icons/school_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
 import Warning from '../../../assets/icons/warning_fill.xml';
 import Sensors from '../../../assets/icons/sensors_fill.xml';
 import Settings from '../../../assets/icons/settings_fill.xml';
+import ShoppingBag from '../../../assets/icons/shopping_bag_fill.xml';
+import WandShine from '../../../assets/icons/wand_shine_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
 import type { SavedItinerary } from '@transit/shared';
 import { materialSeedColor } from '../../theme/colors';
@@ -42,7 +52,7 @@ import { MODE_OPTIONS, type ModeGroupName } from './ModeSlider';
 import { tileRole, tripCardText } from './TrackedTripCard';
 
 const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, fly: Flight };
-const CHIP_ICONS: Record<SavedPlaceChip['key'], number> = { home: HomeIcon, office: Work, gym: FitnessCenter };
+const CHIP_ICONS: Record<SavedPlaceChip['icon'], number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park };
 const HANDLE_HEIGHT = 24;
 const LIST_CAP = 212;
 const COLLAPSED_MAX_SHARE = 0.55;
@@ -127,6 +137,7 @@ export function HomeChrome(props: HomeChromeProps) {
   const [titleHeight, setTitleHeight] = useState(36);
   const [headerHeight, setHeaderHeight] = useState(48);
   const [footerHeight, setFooterHeight] = useState(64 + insets.bottom);
+  const [editMenu, setEditMenu] = useState(false);
   const [listHeight, setListHeight] = useState(LIST_CAP);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
   const [topHeight, setTopHeight] = useState(126);
@@ -288,15 +299,45 @@ export function HomeChrome(props: HomeChromeProps) {
             <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
               <Row horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), horizontalScroll()]}>
                 {chips.map((chip) => (
-                  <AssistChip key={chip.key} onClick={chip.onPress}>
+                  <AssistChip key={chip.key} onClick={chip.onPress} colors={{ leadingIconContentColor: chip.color }}>
                     <AssistChip.LeadingIcon>
-                      <Icon source={CHIP_ICONS[chip.key]} size={18} />
+                      <Icon source={CHIP_ICONS[chip.icon]} size={18} tint={chip.color} />
                     </AssistChip.LeadingIcon>
                     <AssistChip.Label>
                       <Text style={m3Text('labelLarge')}>{chip.label}</Text>
                     </AssistChip.Label>
                   </AssistChip>
                 ))}
+                <DropdownMenu expanded={editMenu} onDismissRequest={() => setEditMenu(false)}>
+                  <DropdownMenu.Trigger>
+                    <AssistChip onClick={() => setEditMenu(true)}>
+                      <AssistChip.LeadingIcon>
+                        <Icon source={Edit} size={18} />
+                      </AssistChip.LeadingIcon>
+                      <AssistChip.Label>
+                        <Text style={m3Text('labelLarge')}>Edit</Text>
+                      </AssistChip.Label>
+                    </AssistChip>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Items>
+                    {chips.map((chip) => (
+                      <DropdownMenuItem
+                        key={chip.key}
+                        onClick={() => {
+                          setEditMenu(false);
+                          chip.onEdit();
+                        }}
+                      >
+                        <DropdownMenuItem.LeadingIcon>
+                          <Icon source={CHIP_ICONS[chip.icon]} size={24} tint={chip.color} />
+                        </DropdownMenuItem.LeadingIcon>
+                        <DropdownMenuItem.Text>
+                          <Text style={m3Text('bodyLarge')}>{chip.label}</Text>
+                        </DropdownMenuItem.Text>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenu.Items>
+                </DropdownMenu>
                 <AssistChip onClick={props.onOpenSettings}>
                   <AssistChip.LeadingIcon>
                     <Icon source={Settings} size={18} />

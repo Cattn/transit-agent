@@ -3,9 +3,9 @@ import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest } from '@transit/shared';
+import { PRESET_ICONS, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
-import { assignRouteColors, type BuildPreview } from '@transit/maps';
+import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { RouteMap } from '../../map/RouteMap';
@@ -19,12 +19,16 @@ import { FlyScreen } from '../fly/FlyScreen';
 import { ResultsScreen } from '../results/ResultsScreen';
 import { profileSaved } from '../settings/SettingsScreen';
 import { HomeChrome } from './HomeChrome';
+import { PresetSheet, type PresetChoice } from './PresetSheet';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
 export interface SavedPlaceChip {
-  key: 'home' | 'office' | 'gym';
+  key: PresetKey;
   label: string;
+  icon: PresetIcon;
+  color: string;
   onPress: () => void;
+  onEdit: () => void;
 }
 
 export interface HomeChromeProps {
@@ -55,6 +59,7 @@ export interface HomeChromeProps {
 type TripAction = { id: string; kind: 'watch'; watch: boolean } | { id: string; kind: 'delete' };
 
 const MAP_PADDING = 16;
+const PRESET_LABELS: Record<PresetKey, string> = { home: 'Home', office: 'Office', gym: 'Gym' };
 const MAP_BUTTON_COLUMN = 64;
 
 const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
@@ -121,6 +126,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [openSavedId, setOpenSavedId] = useState<string>();
   const [tripAction, setTripAction] = useState<TripAction>();
   const [profile, setProfile] = useState<TravelProfile>();
+  const [presetEditing, setPresetEditing] = useState<PresetKey>();
+  const [presetSaving, setPresetSaving] = useState(false);
+  const [presetError, setPresetError] = useState<string>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
   const [sheetHeight, setSheetHeight] = useState(0);
   const [topBarEdge, setTopBarEdge] = useState(0);
@@ -292,13 +300,41 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [state.draft.time, state.draft.origin, editDraft]);
 
+  const savePreset = useCallback(async (key: PresetKey, choice: PresetChoice) => {
+    setPresetSaving(true);
+    setPresetError(undefined);
+    try {
+      await profileSaved();
+      const current = await api.getProfile();
+      const { updatedAt, ...base } = current ?? ({} as Partial<TravelProfile>);
+      void updatedAt;
+      const preset = key === 'gym' ? { ...choice, place: choice.place ?? base.presets?.gym?.place } : { color: choice.color, icon: choice.icon };
+      const saved = await api.putProfile({ ...base, presets: { ...base.presets, [key]: preset } });
+      setProfile(saved);
+      setPresetEditing(undefined);
+    } catch {
+      setPresetError('Could not save. Try again.');
+    } finally {
+      setPresetSaving(false);
+    }
+  }, [api]);
+
   const chips = useMemo<SavedPlaceChip[]>(() => {
-    const chip = (key: SavedPlaceChip['key'], label: string, place: Place | undefined): SavedPlaceChip => ({
-      key,
-      label,
-      onPress: () => (place ? void searchTo(place) : openFilters())
-    });
-    return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
+    const chip = (key: PresetKey, label: string): SavedPlaceChip => {
+      const place = presetPlace(key, profile);
+      return {
+        key,
+        label,
+        icon: presetIcon(key, profile),
+        color: presetColor(key, profile),
+        onPress: () => (place ? void searchTo(place) : openFilters()),
+        onEdit: () => {
+          setPresetError(undefined);
+          setPresetEditing(key);
+        }
+      };
+    };
+    return [chip('home', 'Home'), chip('office', 'Office'), chip('gym', 'Gym')];
   }, [profile, searchTo, openFilters]);
 
   const closeResults = useCallback(() => {
@@ -328,7 +364,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, [requestKey, currentPlan, runPlan, clearPlan]);
 
   const savedIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
-  const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
+  const savedColors = useMemo(
+    () => withPresetColors(new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), presetTripColors(items, profile)),
+    [items, profile]
+  );
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
   const handingOff = !chat.pending && chat.progress.phase === 'done' && chat.lastPlan !== undefined && chat.progress.plan === chat.lastPlan && handedPlan !== chat.lastPlan;
@@ -346,8 +385,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
     setSaveFailed(undefined);
-    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
-  }, [save, routeColors]);
+    const preset = presetForPlace(tripRequest.destination, profile);
+    save({ itinerary, request: tripRequest, watch: true, color: preset ? presetColor(preset, profile) : routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
+  }, [save, routeColors, profile]);
 
   const padding = useMemo(
     () => ({ top: topBarEdge + MAP_PADDING, right: MAP_PADDING + MAP_BUTTON_COLUMN, bottom: sheetHeight, left: MAP_PADDING }),
@@ -440,6 +480,26 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onTopLayout={setTopBarEdge}
         />
       )}
+      {presetEditing ? (
+        <PresetSheet
+          colors={colors}
+          presetKey={presetEditing}
+          label={PRESET_LABELS[presetEditing]}
+          value={{ color: presetColor(presetEditing, profile), icon: presetIcon(presetEditing, profile), place: presetPlace(presetEditing, profile) }}
+          palette={PALETTE}
+          icons={PRESET_ICONS}
+          placeEditable={presetEditing === 'gym'}
+          near={live.location ?? here}
+          saving={presetSaving}
+          error={presetError}
+          onSave={(choice) => void savePreset(presetEditing, choice)}
+          onOpenSettings={() => {
+            setPresetEditing(undefined);
+            navigation.navigate('Settings');
+          }}
+          onClose={() => setPresetEditing(undefined)}
+        />
+      ) : null}
       {sheet === 'chat' ? (
         <ChatScreen draft={state} chat={chat} now={now} onOpenFilters={(field) => { setChatBehind(true); openFilters(field); }} onSelectCard={selectAgentCard} onClose={closeSheet} />
       ) : null}
