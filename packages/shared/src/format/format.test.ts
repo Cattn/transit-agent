@@ -124,14 +124,14 @@ describe('legFreshness', () => {
     ['live, early', { ...bus, timeSource: 'realtime', delayMinutes: -2 }, { label: 'Live · 2 min early', tone: 'info' }],
     ['live, zero delay', { ...bus, timeSource: 'realtime', delayMinutes: 0 }, { label: 'Live · on time', tone: 'ok' }],
     ['live, no delay field', { ...bus, timeSource: 'realtime', delayMinutes: undefined }, { label: 'Live · on time', tone: 'ok' }],
-    ['scheduled', { ...bus, timeSource: 'scheduled', delayMinutes: undefined }, { label: 'Scheduled (not live)', tone: 'neutral' }],
+    ['scheduled', { ...bus, timeSource: 'scheduled', delayMinutes: undefined }, { label: 'Scheduled', tone: 'neutral' }],
     ['estimated', walk, { label: 'Estimated', tone: 'neutral' }]
   ] as [string, Leg, unknown][])('%s', (_name, leg, expected) => {
     expect(legFreshness(leg)).toEqual(expected);
   });
 
-  it('says "not live" for schedule-only times and "early" for a negative delay', () => {
-    expect(legFreshness({ ...bus, timeSource: 'scheduled', delayMinutes: undefined }).label).toContain('not live');
+  it('never calls schedule-only times live and says "early" for a negative delay', () => {
+    expect(legFreshness({ ...bus, timeSource: 'scheduled', delayMinutes: undefined }).label).not.toContain('Live');
     expect(legFreshness({ ...bus, timeSource: 'realtime', delayMinutes: -3 }).label).toContain('early');
   });
 });
@@ -141,7 +141,7 @@ describe('itineraryFreshness', () => {
 
   it.each([
     ['a live leg', withBus({ timeSource: 'realtime' }), { label: 'Live', tone: 'ok' }],
-    ['schedule-only transit', withBus({ timeSource: 'scheduled', delayMinutes: undefined }), { label: 'Scheduled (not live)', tone: 'neutral' }],
+    ['schedule-only transit', withBus({ timeSource: 'scheduled', delayMinutes: undefined }), { label: 'Scheduled', tone: 'neutral' }],
     ['only estimates', withBus({ timeSource: 'estimated', delayMinutes: undefined }), { label: 'Estimated', tone: 'neutral' }]
   ] as [string, Itinerary, unknown][])('%s', (_name, it_, expected) => {
     expect(itineraryFreshness(it_)).toEqual(expected);
@@ -202,7 +202,7 @@ describe('toneColors', () => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('keeps neutral (e.g. "Scheduled (not live)") apart from ok', () => {
+  it('keeps neutral (e.g. "Scheduled") apart from ok', () => {
     expect(toneColors.light.neutral.bg).not.toBe(toneColors.light.ok.bg);
     expect(toneColors.dark.neutral.bg).not.toBe(toneColors.dark.ok.bg);
   });

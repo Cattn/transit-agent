@@ -60,7 +60,7 @@ export function HomeChrome(props: HomeChromeProps) {
       >
         <Glass dark={dark} style={styles.search}>
           <Text style={[styles.icon, { color: colors.onSurfaceVariant }]}>⌕</Text>
-          <Text style={[styles.searchText, { color: colors.onSurfaceVariant }]}>Where to?</Text>
+          <Text accessibilityRole="button" onPress={props.onSearch} style={[styles.searchText, { color: colors.onSurfaceVariant }]}>Where to?</Text>
           <Text accessibilityLabel="Voice search (not available yet)" style={[styles.icon, { color: colors.onSurfaceVariant }]}>🎙</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={props.onOpenSettings} style={[styles.avatar, { backgroundColor: colors.primary }]}>
             <Text style={[styles.avatarText, { color: colors.onPrimary }]}>👤</Text>
@@ -124,10 +124,19 @@ export function HomeChrome(props: HomeChromeProps) {
               <Text style={[styles.watching, { color: colors.onSurfaceVariant }]}>🔔 {props.watchingCount} watching</Text>
             </View>
             {notice ? <Text accessibilityLiveRegion="polite" style={[styles.notice, { color: colors.onSurface }]}>{notice}</Text> : null}
+            {props.tripsError ? (
+              <Text accessibilityLiveRegion="polite" accessibilityRole="button" onPress={props.onRetryTrips} style={[styles.notice, { color: colors.onSurface }]}>{`${props.tripsError} Tap to retry.`}</Text>
+            ) : null}
           </View>
           <BottomSheetScrollView style={styles.list} contentContainerStyle={styles.listContent} onContentSizeChange={(_, height) => setListHeight(height)}>
-            {trips.length ? trips.map((trip) => <TrackedTripCard key={trip.id} trip={trip} now={now} colors={colors} />) : (
-              <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>No tracked trips yet.</Text>
+            {trips.length ? trips.map((trip) => (
+              <Pressable key={trip.id} accessibilityRole="button" onPress={() => props.onOpenTrip(trip.id)}>
+                <TrackedTripCard trip={trip} now={now} colors={colors} />
+              </Pressable>
+            )) : (
+              <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>
+                {props.tripsLoading ? 'Loading saved trips…' : props.tripsError ? 'Saved trips are not available right now.' : 'No tracked trips yet.'}
+              </Text>
             )}
           </BottomSheetScrollView>
           <View onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)} style={styles.footer}>
