@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TripDraftPatchSchema } from '../client/trip-draft-state.js';
 import { PlanResponseSchema } from './api.js';
-import { PlaceSchema } from './places.js';
+import { LngLatSchema, PlaceSchema } from './places.js';
 import { TripDraftSchema } from './trip-draft.js';
 
 /** POST /api/agent/messages body. */
@@ -9,7 +9,8 @@ export const AgentMessageRequestSchema = z.object({
   sessionId: z.string().optional(),
   message: z.string().min(1).max(2000),
   /** Client's current draft (filters state). The agent edits relative to this. */
-  draft: TripDraftSchema
+  draft: TripDraftSchema,
+  location: LngLatSchema.optional()
 });
 
 /** A focused clarifying question, tied to the draft field it would fill (e.g. 'constraints.arriveBy'). */

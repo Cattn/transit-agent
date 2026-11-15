@@ -249,7 +249,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [closeSaved]);
 
-  const chat = useChatSession(state, applyAgent, onAgentPlan);
+  const chat = useChatSession(state, applyAgent, onAgentPlan, live.location ?? here);
 
   const selectAgentCard = useCallback((snapshot: DraftState, agent: PlanResponse, id: string) => {
     edited.current = true;

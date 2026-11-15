@@ -83,6 +83,12 @@ describe('GET /api/places', () => {
     expect(res.json()).toEqual({ places: [] });
   });
 
+  it.each([['42.3601, -71.0589'], ['42.3601 -71.0589']])('turns %s into a place at those coordinates', async (q) => {
+    const res = await get(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().places).toEqual([{ name: '42.3601, -71.0589', coordinates: [-71.0589, 42.3601], kind: 'address' }]);
+  });
+
   it('rejects a missing q with invalid_request', async () => {
     const res = await get('/api/places');
     expect(res.statusCode).toBe(400);
@@ -190,6 +196,16 @@ describe('Photon place search', () => {
     const findPlace = tools.find((tool) => tool.name === 'find_place')!;
     const places = await findPlace.runAsync({ args: { query: 'Union Square' }, toolContext: {} as never });
     expect((places as { name?: string }[]).map((place) => place.name)).toContain('Kendall Square, Cambridge');
+  });
+
+  it('biases find_place toward the device location and skips Photon for coordinates', async () => {
+    const { calls, fn } = fakeFetch(ok(kendallSample));
+    const findPlace = createPlannerTools({ location: [-71.06, 42.36], places: createPlaceSearcher({ photonUrl: 'https://photon.test', fetch: fn }) } as never).find((tool) => tool.name === 'find_place')!;
+    await findPlace.runAsync({ args: { query: 'Union Square' }, toolContext: {} as never });
+    expect(calls[0]?.searchParams.get('lat')).toBe('42.36');
+    const places = await findPlace.runAsync({ args: { query: '42.35,-71.05' }, toolContext: {} as never });
+    expect(places).toEqual([{ name: '42.35, -71.05', coordinates: [-71.05, 42.35], kind: 'address' }]);
+    expect(calls).toHaveLength(1);
   });
 });
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { describePatch, type DraftChangeSource, type DraftState, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
+import { describePatch, type DraftChangeSource, type DraftState, type LngLat, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { useAgentChat } from '@transit/client-react';
 import { useAppColors } from '../../theme/appearance';
 import type { AppColors } from '../../theme/colors';
@@ -65,13 +65,13 @@ function agentChips({ draft, provenance }: DraftState, changed: string[]): Agent
   return chips;
 }
 
-export function useChatSession(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void, onPlan: (plan: PlanResponse, draft: TripDraft) => void): ChatSession {
+export function useChatSession(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void, onPlan: (plan: PlanResponse, draft: TripDraft) => void, location?: LngLat): ChatSession {
   const [changed, setChanged] = useState<string[]>([]);
   const track = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     setChanged(changedFields(patch));
     apply(patch, source);
   }, [apply]);
-  const chat = useAgentChat(draft, track);
+  const chat = useAgentChat(draft, track, location);
   const { lastPlan } = chat;
 
   const forwarded = useRef<PlanResponse>(undefined);
