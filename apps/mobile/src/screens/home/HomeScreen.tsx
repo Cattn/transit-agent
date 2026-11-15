@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PRESET_ICONS, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
-import { getCurrentPlace, useAppForeground } from '../../platform';
+import { currentLocationPlace, getCurrentPlace, getLastKnownLocation, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { MapLoading, useMapLoad } from '../../map/MapLoading';
 import { RouteMap } from '../../map/RouteMap';
@@ -267,6 +267,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   useEffect(() => {
     let active = true;
+    void getLastKnownLocation().then((coordinates) => {
+      if (active && coordinates) setHere((current) => current ?? coordinates);
+    });
     getCurrentPlace().then((result) => {
       if (!active || !result.ok) return;
       setHere(result.place.coordinates);
@@ -297,14 +300,18 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     if (!state.draft.time) patch.time = { type: 'departAt', at: new Date().toISOString() };
     const origin = state.draft.origin;
     if (!origin || (origin.coordinates[0] === destination.coordinates[0] && origin.coordinates[1] === destination.coordinates[1])) {
-      setLocating(true);
-      const result = await getCurrentPlace();
-      setLocating(false);
-      if (result.ok) patch.origin = result.place;
+      if (known) {
+        patch.origin = currentLocationPlace(known);
+      } else {
+        setLocating(true);
+        const result = await getCurrentPlace();
+        setLocating(false);
+        if (result.ok) patch.origin = result.place;
+      }
     }
     editDraft(patch);
     setResultsOpen(true);
-  }, [state.draft.time, state.draft.origin, editDraft]);
+  }, [state.draft.time, state.draft.origin, editDraft, known]);
 
   const savePreset = useCallback(async (key: PresetKey, choice: PresetChoice) => {
     setPresetSaving(true);
