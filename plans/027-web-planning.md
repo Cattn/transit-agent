@@ -30,7 +30,7 @@
 **Open questions** — **@Cattn answers these (design).** Reply as `027-Q1: ...`. Use the proposed defaults until answered.
 
 - 027-Q1: "All filters" does not open a page yet? *(proposed: yes)*
-- ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
+- ~~027-Q2~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled".
 - 027-Q3: Share copies the summary and does nothing else? *(proposed: yes)*
 - 027-Q4: quick replies come from the agent response, and "Yes, watch it" saves with `watch: true`? *(proposed: yes)*
 - 027-Q5: what in this frame should change first?
@@ -106,7 +106,7 @@ When origin, destination, and time are set, call `run(request)` from `usePlanTri
 
 ### Step 2: List, card, thread
 
-Render the left panel and the map card from Current state. Use `itineraryFreshness`, `legFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
+Render the left panel and the map card from Current state. Use `itineraryFreshness`, `legFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Keep "Safe / Some risk / Tight", "Scheduled", and "Estimated" exactly as returned.
 
 The agent thread uses `useAgentChat(draft, apply)` (plan 015), the same hook plan 026 uses. When `lastPlan` changes, show it in the left panel.
 

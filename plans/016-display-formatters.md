@@ -28,9 +28,9 @@
 ## Why this matters
 
 Web, mobile, the map popups and the agent's replies all print the same things: "8:12 AM",
-"1 h 5 min", "~$4.10", "Live · 4 min late", "Scheduled (not live)". If each place formats them
-itself, they'll disagree. The worst case is a scheduled bus time shown without the "not live"
-label, which breaks the product's main promise (bus schedules can't be trusted, so we never
+"1 h 5 min", "~$4.10", "Live · 4 min late", "Scheduled". If each place formats them
+itself, they'll disagree. The worst case is a scheduled bus time shown as "Live",
+which breaks the product's main promise (bus schedules can't be trusted, so we never
 present them as live). One tested module fixes the wording once.
 
 ## Current state
@@ -73,8 +73,8 @@ export function modeLabel(mode: TravelMode): string                         // w
 export function legLabel(leg: Leg): string                                  // walk/bike/car: "Walk 5 min"; transit: routeName ?? modeLabel
 export function legFreshness(leg: Leg): Badge
   // realtime + delay>0: "Live · 4 min late" (warn) · realtime + delay<0: "Live · 2 min early" (info) · realtime, 0/undefined: "Live · on time" (ok)
-  // scheduled: "Scheduled (not live)" (neutral) · estimated: "Estimated" (neutral)
-export function itineraryFreshness(it: Itinerary): Badge                    // any realtime leg → "Live" (ok); any scheduled transit leg and none live → "Scheduled (not live)" (neutral); else "Estimated" (neutral)
+  // scheduled: "Scheduled" (neutral) · estimated: "Estimated" (neutral)
+export function itineraryFreshness(it: Itinerary): Badge                    // any realtime leg → "Live" (ok); any scheduled transit leg and none live → "Scheduled" (neutral); else "Estimated" (neutral)
 export function riskBadge(risk: Itinerary['risk']): Badge                   // low "Safe" ok · medium "Some risk" warn · high "Tight" danger
 export function watchStateBadge(state: 'scheduled' | 'onTrack' | 'leaveSoon' | 'leaveNow' | 'atRisk' | 'missed' | 'done'): Badge
   // scheduled "Later" neutral · onTrack "On track" ok · leaveSoon "Leave soon" warn · leaveNow "Leave now" danger · atRisk "Might be late" danger · missed "Missed" danger · done "Done" neutral
@@ -83,7 +83,7 @@ Use `Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone
 
 ### Step 2: Tests (`format/format.test.ts`)
 
-One `describe` per function, table-driven. Use `timeZone: 'America/New_York'` in time tests so they pass on any machine. Must include: the `(+1 day)` case; 65 min; `~` when only one cost line is estimated; every `travelModes` entry has a non-empty `modeLabel` (loop over `travelModes`); `legFreshness` for a scheduled leg contains `"not live"`; negative delay says "early".
+One `describe` per function, table-driven. Use `timeZone: 'America/New_York'` in time tests so they pass on any machine. Must include: the `(+1 day)` case; 65 min; `~` when only one cost line is estimated; every `travelModes` entry has a non-empty `modeLabel` (loop over `travelModes`); `legFreshness` for a scheduled leg never says "Live"; negative delay says "early".
 
 **Verify**: `npm run check` → exit 0.
 
@@ -91,7 +91,7 @@ One `describe` per function, table-driven. Use `timeZone: 'America/New_York'` in
 
 - [ ] `npm run check` exits 0; ≥ 20 new test cases
 - [ ] All names in Step 1 exported from `@transit/shared`
-- [ ] `grep -n "Scheduled (not live)" packages/shared/src/format/format.ts` → at least 1 match
+- [ ] `grep -n "'Scheduled'" packages/shared/src/format/format.ts` → at least 1 match
 
 ## STOP conditions
 
@@ -104,4 +104,4 @@ One `describe` per function, table-driven. Use `timeZone: 'America/New_York'` in
 
 ## Open questions for review
 
-- ~~016-Q1~~ **Decided (@DMFriends, 2026-11-14, [#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** no changes. Keep "Safe / Some risk / Tight" and "Scheduled (not live)" exactly as written in Step 1.
+- ~~016-Q1~~ **Decided (@DMFriends, 2026-11-14, [#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** no changes. Keep "Safe / Some risk / Tight" exactly as written in Step 1. (2026-11-14, @DMFriends: the schedule badge is now just "Scheduled" so the source label fits on mobile cards.)
