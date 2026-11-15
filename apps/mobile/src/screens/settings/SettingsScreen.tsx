@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { initialDraftState, type Place, type PutProfileRequest, type TravelMode, type TravelProfile, type TripDraftPatch } from '@transit/shared';
+import { MAX_CUSTOM_PLACES, PRESET_ICONS, initialDraftState, type Place, type PresetIcon, type PutProfileRequest, type TravelMode, type TravelProfile, type TripDraftPatch } from '@transit/shared';
+import { PALETTE, nextPlaceColor, profilePlaces, removeCustomPlace, upsertCustomPlace, type PlaceKey as ProfilePlaceKey } from '@transit/maps';
 import { useApi, useDeviceId } from '@transit/client-react';
 import { getApiUrl, getCurrentPlace, secureStoreDeviceIdStorage, setServerUrl, useServerUrl } from '../../platform';
 import { apiMode } from '../../data/client';
-import { useAppearance, type AppearancePreference } from '../../theme/appearance';
+import { useAppColors, useAppearance, type AppearancePreference } from '../../theme/appearance';
 import packageJson from '../../../package.json';
+import { PresetSheet } from '../home/PresetSheet';
+import { newPlaceId } from '../home/place-id';
 import { SettingsChrome } from './SettingsChrome';
 
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
@@ -47,6 +50,10 @@ export interface SettingsChromeProps {
   places: { key: PlaceKey; title: string; value: string }[];
   editingPlace?: PlaceKey;
   onEditPlace: (key: PlaceKey | undefined) => void;
+  customPlaces: { key: ProfilePlaceKey; title: string; value: string; icon: PresetIcon; color: string }[];
+  onEditCustomPlace: (key: ProfilePlaceKey) => void;
+  onAddPlace?: () => void;
+  placeLimit: number;
   placeSearch: {
     near?: Place['coordinates'];
     locating: boolean;
@@ -166,6 +173,8 @@ export function SettingsScreen() {
   const [saveError, setSaveError] = useState<string>();
   const [loadKey, setLoadKey] = useState(0);
   const [editingPlace, setEditingPlace] = useState<PlaceKey>();
+  const [placeSheet, setPlaceSheet] = useState<ProfilePlaceKey | 'new'>();
+  const colors = useAppColors();
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const saved = useRef<Profile>(EMPTY);
@@ -180,6 +189,7 @@ export function SettingsScreen() {
     setLoadError(undefined);
     setSaveError(undefined);
     setEditingPlace(undefined);
+    setPlaceSheet(undefined);
     setLocating(false);
     setNotice(undefined);
   }
@@ -197,7 +207,7 @@ export function SettingsScreen() {
     desired.current = EMPTY;
     profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active) return;
-      const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults, presets: loaded.presets } : EMPTY;
+      const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults, presets: loaded.presets, places: loaded.places } : EMPTY;
       saved.current = next;
       desired.current = next;
       setProfile(next);
@@ -287,6 +297,16 @@ export function SettingsScreen() {
       { key: 'work', title: 'Work', value: profile?.work ? placeName(profile.work) : 'Not set' }
     ],
     editingPlace,
+    customPlaces: profilePlaces(profile).filter((entry) => entry.key.startsWith('place:')).map((entry) => ({
+      key: entry.key,
+      title: entry.name,
+      value: entry.place ? placeName(entry.place) : 'Not set',
+      icon: entry.icon,
+      color: entry.color
+    })),
+    onEditCustomPlace: (key) => setPlaceSheet(key),
+    onAddPlace: (profile?.places?.length ?? 0) < MAX_CUSTOM_PLACES ? () => setPlaceSheet('new') : undefined,
+    placeLimit: MAX_CUSTOM_PLACES,
     onEditPlace: (key) => {
       cancelLocation();
       setNotice(undefined);
@@ -388,5 +408,38 @@ export function SettingsScreen() {
     version: packageJson.version
   };
 
-  return <SettingsChrome {...props} />;
+  const sheetPlace = placeSheet && placeSheet !== 'new' ? profilePlaces(profile).find((entry) => entry.key === placeSheet) : undefined;
+  const closeSheet = () => setPlaceSheet(undefined);
+
+  return (
+    <>
+      <SettingsChrome {...props} />
+      {placeSheet === 'new' || sheetPlace ? (
+        <PresetSheet
+          colors={colors}
+          label={sheetPlace?.name ?? 'New place'}
+          value={sheetPlace ? { name: sheetPlace.name, color: sheetPlace.color, icon: sheetPlace.icon, place: sheetPlace.place } : { name: '', color: nextPlaceColor(profile), icon: 'favorite' }}
+          palette={PALETTE}
+          icons={PRESET_ICONS}
+          placeEditable
+          nameEditable
+          near={profile?.home?.coordinates}
+          saving={false}
+          onSave={(choice) => {
+            const key = sheetPlace?.key ?? 'new';
+            const id = newPlaceId();
+            save((current) => ({ ...current, places: upsertCustomPlace(current.places, key, { ...choice, name: choice.name ?? '' }, id) }));
+            closeSheet();
+          }}
+          onDelete={sheetPlace ? () => {
+            const key = sheetPlace.key;
+            save((current) => ({ ...current, places: removeCustomPlace(current.places, key) }));
+            closeSheet();
+          } : undefined}
+          onOpenSettings={closeSheet}
+          onClose={closeSheet}
+        />
+      ) : null}
+    </>
+  );
 }

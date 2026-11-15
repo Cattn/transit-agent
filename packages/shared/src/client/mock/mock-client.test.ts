@@ -4,6 +4,7 @@ import type { ApiClient } from '../api-client.js';
 import { createMockApiClient } from './mock-client.js';
 import type { MockScenario } from './mock-client.js';
 import { TripRequestSchema } from '../../domain/trip-draft.js';
+import { MAX_CUSTOM_PLACES, MAX_PLACE_NAME } from '../../domain/profile.js';
 
 const now = () => new Date('2026-11-13T12:00:00Z');
 const request = TripRequestSchema.parse({
@@ -132,6 +133,26 @@ it('keeps place presets (colour, icon, gym place) and still loads profiles witho
   expect((await api.getProfile())?.presets).toEqual(presets);
   expect((await api.putProfile({ home: request.origin })).presets).toBeUndefined();
   await expect(api.putProfile({ presets: { gym: { icon: 'rocket' as never } } })).rejects.toThrow(ZodError);
+});
+
+it('keeps custom places, trims names, and rejects too many, duplicate ids, empty names and bad colours (plan 040)', async () => {
+  const api = client();
+  const place = (id: string) => ({ id, name: `Place ${id}`, icon: 'restaurant' as const, color: '#7c3aed', place: request.destination });
+  const places = [{ ...place('dinner'), name: '  Dinner  ' }, place('school')];
+  expect((await api.putProfile({ places })).places).toEqual([{ ...place('dinner'), name: 'Dinner' }, place('school')]);
+  expect((await api.getProfile())?.places?.map((saved) => saved.id)).toEqual(['dinner', 'school']);
+  expect((await api.putProfile({ places: Array.from({ length: MAX_CUSTOM_PLACES }, (_, index) => place(`p${index}`)) })).places).toHaveLength(MAX_CUSTOM_PLACES);
+  for (const invalid of [
+    Array.from({ length: MAX_CUSTOM_PLACES + 1 }, (_, index) => place(`p${index}`)),
+    [place('same'), place('same')],
+    [{ ...place('blank'), name: '   ' }],
+    [{ ...place('long'), name: 'x'.repeat(MAX_PLACE_NAME + 1) }],
+    [{ ...place('bad-colour'), color: 'purple' }],
+    [{ ...place('Bad Id') }]
+  ]) {
+    await expect(api.putProfile({ places: invalid })).rejects.toThrow(ZodError);
+  }
+  expect((await api.getProfile())?.places).toHaveLength(MAX_CUSTOM_PLACES);
 });
 
 it('validates profile writes and keeps the previous profile on failure', async () => {

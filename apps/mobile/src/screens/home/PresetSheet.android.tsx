@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Host } from '@expo/ui';
-import { Button, Column, FlowRow, Icon, ListItem, LoadingIndicator, ModalBottomSheet, OutlinedButton, OutlinedTextField, Row, Text, TextButton, useMaterialColors, type TextFieldRef } from '@expo/ui/jetpack-compose';
+import { Button, Column, FlowRow, Icon, ListItem, LoadingIndicator, ModalBottomSheet, OutlinedButton, OutlinedTextField, Row, Text, TextButton, useMaterialColors, useNativeState, type TextFieldRef } from '@expo/ui/jetpack-compose';
 import { background, clickable, clip, fillMaxWidth, imePadding, padding, Shapes, size, verticalScroll, weight } from '@expo/ui/jetpack-compose/modifiers';
 import { usePlaceSearch } from '@transit/client-react';
 import type { Place, PresetIcon } from '@transit/shared';
@@ -12,6 +12,7 @@ import FitnessCenter from '../../../assets/icons/fitness_center_fill.xml';
 import HomeIcon from '../../../assets/icons/home_fill.xml';
 import LocalCafe from '../../../assets/icons/local_cafe_fill.xml';
 import Park from '../../../assets/icons/park_fill.xml';
+import Restaurant from '../../../assets/icons/restaurant_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
 import School from '../../../assets/icons/school_fill.xml';
 import ShoppingBag from '../../../assets/icons/shopping_bag_fill.xml';
@@ -19,17 +20,20 @@ import Work from '../../../assets/icons/work_fill.xml';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
 import type { PresetSheetProps } from './PresetSheet';
+import { presetChoiceReady } from './preset-choice';
 
-export const PRESET_ICON_SOURCES: Record<PresetIcon, number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park };
+export const PRESET_ICON_SOURCES: Record<PresetIcon, number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park, restaurant: Restaurant };
 
 function placeName(place: Place | undefined): string {
   if (!place) return 'Not set';
   return place.name ?? `${place.coordinates[1].toFixed(4)}, ${place.coordinates[0].toFixed(4)}`;
 }
 
-export function PresetSheet({ colors, label, value, palette, icons, placeEditable, near, saving, error, onSave, onOpenSettings, onClose }: PresetSheetProps) {
+export function PresetSheet({ colors, label, value, palette, icons, placeEditable, nameEditable, near, saving, error, onSave, onDelete, onOpenSettings, onClose }: PresetSheetProps) {
   const scheme = colors.scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
+  const [name, setName] = useState(value.name ?? '');
+  const nameField = useNativeState(value.name ?? '');
   const [color, setColor] = useState(value.color);
   const [icon, setIcon] = useState(value.icon);
   const [place, setPlace] = useState(value.place);
@@ -60,8 +64,22 @@ export function PresetSheet({ colors, label, value, palette, icons, placeEditabl
             <Column horizontalAlignment="center" verticalArrangement="center" modifiers={[size(40, 40), clip(Shapes.Circle), background(m.surfaceContainerHighest)]}>
               <Icon source={PRESET_ICON_SOURCES[icon]} size={22} tint={color} />
             </Column>
-            <Text color={m.onSurface} style={m3Text('titleLarge')}>{label}</Text>
+            <Text color={m.onSurface} style={m3Text('titleLarge')}>{nameEditable ? name.trim() || label : label}</Text>
           </Row>
+
+          {nameEditable ? (
+            <OutlinedTextField
+              value={nameField}
+              singleLine
+              onValueChange={setName}
+              keyboardOptions={{ capitalization: 'words', imeAction: 'done' }}
+              modifiers={[fillMaxWidth()]}
+            >
+              <OutlinedTextField.Label>
+                <Text style={m3Text('bodyLarge')}>Name</Text>
+              </OutlinedTextField.Label>
+            </OutlinedTextField>
+          ) : null}
 
           <Text color={m.onSurfaceVariant} style={m3Text('labelLarge')}>Colour</Text>
           <FlowRow horizontalArrangement={{ spacedBy: 12 }} verticalArrangement={{ spacedBy: 12 }}>
@@ -146,10 +164,15 @@ export function PresetSheet({ colors, label, value, palette, icons, placeEditabl
             <OutlinedButton onClick={onClose} modifiers={[weight(1)]}>
               <Text style={m3Text('labelLarge')}>Cancel</Text>
             </OutlinedButton>
-            <Button enabled={!saving} onClick={() => onSave({ color, icon, place })} modifiers={[weight(1)]}>
+            <Button enabled={!saving && presetChoiceReady({ name, color, icon, place }, nameEditable)} onClick={() => onSave({ name: name.trim(), color, icon, place })} modifiers={[weight(1)]}>
               <Text style={m3Text('labelLarge')}>{saving ? 'Saving…' : 'Save'}</Text>
             </Button>
           </Row>
+          {onDelete ? (
+            <TextButton enabled={!saving} onClick={onDelete} modifiers={[fillMaxWidth()]}>
+              <Text color={m.error} style={m3Text('labelLarge')}>Delete place</Text>
+            </TextButton>
+          ) : null}
         </Column>
       </ModalBottomSheet>
     </Host>

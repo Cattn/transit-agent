@@ -3,9 +3,9 @@ import { BackHandler, Modal, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PRESET_ICONS, scheduledModes, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey, type UpdateItineraryRequest } from '@transit/shared';
+import { MAX_CUSTOM_PLACES, PRESET_ICONS, scheduledModes, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PutProfileRequest, type UpdateItineraryRequest } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
-import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
+import { PALETTE, assignRouteColors, isPresetKey, nextPlaceColor, placeFor, presetTripColors, profilePlaces, removeCustomPlace, upsertCustomPlace, withPresetColors, type BuildPreview, type PlaceKey } from '@transit/maps';
 import { currentLocationPlace, getCurrentPlace, getLastKnownLocation, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { MapLoading, useMapLoad } from '../../map/MapLoading';
@@ -23,10 +23,11 @@ import { ResultsScreen } from '../results/ResultsScreen';
 import { profileSaved } from '../settings/SettingsScreen';
 import { HomeChrome } from './HomeChrome';
 import { PresetSheet, type PresetChoice } from './PresetSheet';
+import { newPlaceId } from './place-id';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
 export interface SavedPlaceChip {
-  key: PresetKey;
+  key: PlaceKey;
   label: string;
   icon: PresetIcon;
   color: string;
@@ -49,6 +50,7 @@ export interface HomeChromeProps {
   onAskAgent: () => void;
   onOpenSettings: () => void;
   onOpenFilters: () => void;
+  onAddPlace?: () => void;
   onSearch: () => void;
   onOpenTrip: (id: string) => void;
   tripsLoading: boolean;
@@ -62,7 +64,6 @@ export interface HomeChromeProps {
 type TripAction = { id: string; kind: 'watch'; watch: boolean } | { id: string; kind: 'delete' } | { id: string; kind: 'update'; patch: UpdateItineraryRequest };
 
 const MAP_PADDING = 16;
-const PRESET_LABELS: Record<PresetKey, string> = { home: 'Home', office: 'Office', gym: 'Gym' };
 const MAP_BUTTON_COLUMN = 64;
 
 const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
@@ -83,6 +84,7 @@ interface MapSlotProps {
   buildPreview?: BuildPreview;
   fitKey: string;
 }
+
 
 function agentBuildPreview({ phase, candidates, origin, destination, plan }: AgentProgress): BuildPreview | undefined {
   const ends = { origin: origin?.coordinates, destination: destination?.coordinates };
@@ -143,7 +145,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const sharingIds = JSON.stringify(items.filter((trip) => sharedIds.has(trip.id) && trip.watch && trip.watchStatus?.state !== 'done' && Date.parse(trip.arriveAt) > now.getTime() && Date.parse(trip.departAt) - now.getTime() < 60 * 60_000).map((trip) => trip.id));
   const locationError = useWatchLocation(api, sharingIds, foreground);
   const [profile, setProfile] = useState<TravelProfile>();
-  const [presetEditing, setPresetEditing] = useState<PresetKey>();
+  const [presetEditing, setPresetEditing] = useState<PlaceKey | 'new'>();
   const [presetSaving, setPresetSaving] = useState(false);
   const [presetError, setPresetError] = useState<string>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
@@ -334,7 +336,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [state.draft.time, state.draft.origin, editDraft, known]);
 
-  const savePreset = useCallback(async (key: PresetKey, choice: PresetChoice) => {
+  const writeProfile = useCallback(async (change: (base: Omit<Partial<TravelProfile>, 'updatedAt'>) => PutProfileRequest) => {
     setPresetSaving(true);
     setPresetError(undefined);
     try {
@@ -342,8 +344,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
       const current = await api.getProfile();
       const { updatedAt, ...base } = current ?? ({} as Partial<TravelProfile>);
       void updatedAt;
-      const preset = key === 'gym' ? { ...choice, place: choice.place ?? base.presets?.gym?.place } : { color: choice.color, icon: choice.icon };
-      const saved = await api.putProfile({ ...base, presets: { ...base.presets, [key]: preset } });
+      const saved = await api.putProfile(change(base));
       setProfile(saved);
       setPresetEditing(undefined);
     } catch {
@@ -353,30 +354,40 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     }
   }, [api]);
 
-  const chips = useMemo<SavedPlaceChip[]>(() => {
-    const chip = (key: PresetKey, label: string): SavedPlaceChip => {
-      const place = presetPlace(key, profile);
-      return {
-        key,
-        label,
-        icon: presetIcon(key, profile),
-        color: presetColor(key, profile),
-        onPress: () => {
-          if (place) {
-            void searchTo(place);
-            return;
-          }
-          setPresetError(undefined);
-          setPresetEditing(key);
-        },
-        onEdit: () => {
-          setPresetError(undefined);
-          setPresetEditing(key);
-        }
-      };
-    };
-    return [chip('home', 'Home'), chip('office', 'Office'), chip('gym', 'Gym')];
-  }, [profile, searchTo]);
+  const savePlace = useCallback((key: PlaceKey | 'new', choice: PresetChoice) => writeProfile((base) => {
+    if (key !== 'new' && isPresetKey(key)) {
+      const preset = key === 'gym' ? { color: choice.color, icon: choice.icon, place: choice.place ?? base.presets?.gym?.place } : { color: choice.color, icon: choice.icon };
+      return { ...base, presets: { ...base.presets, [key]: preset } };
+    }
+    return { ...base, places: upsertCustomPlace(base.places, key, { ...choice, name: choice.name ?? '' }, newPlaceId()) };
+  }), [writeProfile]);
+
+  const deletePlace = useCallback((key: PlaceKey) => writeProfile((base) => ({ ...base, places: removeCustomPlace(base.places, key) })), [writeProfile]);
+
+  const places = useMemo(() => profilePlaces(profile), [profile]);
+  const chips = useMemo<SavedPlaceChip[]>(() => places.map((entry) => ({
+    key: entry.key,
+    label: entry.name,
+    icon: entry.icon,
+    color: entry.color,
+    onPress: () => {
+      if (entry.place) {
+        void searchTo(entry.place);
+        return;
+      }
+      setPresetError(undefined);
+      setPresetEditing(entry.key);
+    },
+    onEdit: () => {
+      setPresetError(undefined);
+      setPresetEditing(entry.key);
+    }
+  })), [places, searchTo]);
+  const addPlace = useMemo(() => ((profile?.places?.length ?? 0) < MAX_CUSTOM_PLACES ? () => {
+    setPresetError(undefined);
+    setPresetEditing('new');
+  } : undefined), [profile]);
+  const editing = presetEditing && presetEditing !== 'new' ? places.find((entry) => entry.key === presetEditing) : undefined;
 
   const closeResults = useCallback(() => {
     setResultsOpen(false);
@@ -452,8 +463,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
     setSaveFailed(undefined);
-    const preset = presetForPlace(tripRequest.destination, profile);
-    save({ itinerary, request: tripRequest, watch: true, color: preset ? presetColor(preset, profile) : routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
+    save({ itinerary, request: tripRequest, watch: true, color: placeFor(tripRequest.destination, profile)?.color ?? routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
   }, [save, routeColors, profile]);
 
   const padding = useMemo(
@@ -539,6 +549,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           watchingCount={watched.length}
           now={now}
           chips={chips}
+          onAddPlace={addPlace}
           locating={locating}
           notice={notice}
           status={status}
@@ -556,19 +567,20 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onTopLayout={setTopBarEdge}
         />
       )}
-      {presetEditing ? (
+      {presetEditing === 'new' || editing ? (
         <PresetSheet
           colors={colors}
-          presetKey={presetEditing}
-          label={PRESET_LABELS[presetEditing]}
-          value={{ color: presetColor(presetEditing, profile), icon: presetIcon(presetEditing, profile), place: presetPlace(presetEditing, profile) }}
+          label={editing?.name ?? 'New place'}
+          value={editing ? { name: editing.name, color: editing.color, icon: editing.icon, place: editing.place } : { name: '', color: nextPlaceColor(profile), icon: 'favorite' }}
           palette={PALETTE}
           icons={PRESET_ICONS}
-          placeEditable={presetEditing === 'gym'}
+          placeEditable={!editing || !isPresetKey(editing.key) || editing.key === 'gym'}
+          nameEditable={!editing || !isPresetKey(editing.key)}
           near={live.location ?? here}
           saving={presetSaving}
           error={presetError}
-          onSave={(choice) => void savePreset(presetEditing, choice)}
+          onSave={(choice) => void savePlace(editing?.key ?? 'new', choice)}
+          onDelete={editing && !isPresetKey(editing.key) ? () => void deletePlace(editing.key) : undefined}
           onOpenSettings={() => {
             setPresetEditing(undefined);
             navigation.navigate('Settings');
