@@ -152,7 +152,7 @@ export function SettingsScreen() {
 
   useEffect(() => {
     let active = true;
-    api.getProfile().then((loaded) => {
+    profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active) return;
       const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults } : EMPTY;
       saved.current = next;
