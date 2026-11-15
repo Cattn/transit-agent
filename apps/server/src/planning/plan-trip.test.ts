@@ -168,6 +168,22 @@ describe('planTrip returns', () => {
     expect(plan).toMatchObject({ status: 'unavailable', options: [], warnings: ['flaky unavailable for the return'] });
   });
 
+  it('reports the return as unavailable when the night has only near misses and the morning search fails', async () => {
+    const base = (await new FixtureProvider().search(request()))[0]!;
+    const provider: RouteProvider = {
+      name: 'flaky',
+      supports: () => true,
+      search: async (r) => {
+        if (r.time.at === '2026-11-16T10:00:00Z') throw new Error('timeout');
+        if (r.time.at === '2026-11-16T02:00:00-05:00') return [{ ...at(base, 'long-walk', '2026-11-16T07:20:00Z'), walkMinutes: 50 }];
+        return [at(base, 'out', r.time.at)];
+      }
+    };
+    const plan = (await planTrip(request({ timeZone: NY, returnTime: '2026-11-16T02:00:00-05:00', constraints: { maxWalkMinutes: 10 } }), [provider], undefined, silent)).returnPlan!;
+    expect(plan).toMatchObject({ status: 'unavailable', options: [], warnings: ['flaky unavailable for the return'] });
+    expect(plan.nearMisses.map((it) => it.id)).toEqual(['long-walk']);
+  });
+
   it('keeps outbound results when only the return search fails', async () => {
     const flaky: RouteProvider = {
       name: 'flaky',

@@ -94,14 +94,15 @@ async function planReturn(req: TripRequest, returnTime: string, providers: Route
 
   const first = await searchProviders(request, active, signal, logger, suffix);
   const warnings = [...first.warnings];
-  let unavailable = first.failed === active.length;
+  const unavailable = first.failed === active.length;
+  let morningFailed = false;
   const candidates = [...first.candidates];
   const feasibleMorning = (it: Itinerary) => Date.parse(it.departAt) >= morningMs && checkConstraints(it, request).length === 0;
   if (!unavailable && overnight && !candidates.some(feasibleMorning)) {
     const morning = await searchProviders({ ...request, time: { type: 'departAt', at: isoAt(morningMs) } }, active, signal, logger, suffix);
     warnings.push(...morning.warnings.filter((warning) => !warnings.includes(warning)));
     for (const it of morning.candidates) if (!candidates.some((other) => other.id === it.id)) candidates.push(it);
-    if (morning.failed === active.length && candidates.length === 0) unavailable = true;
+    morningFailed = morning.failed === active.length;
   }
 
   const annotated = annotate(candidates.filter((it) => Date.parse(it.departAt) >= requestedMs), request);
@@ -127,7 +128,7 @@ async function planReturn(req: TripRequest, returnTime: string, providers: Route
 
   let status: ReturnPlan['status'] = 'ok';
   if (options.length === 0) {
-    status = unavailable ? 'unavailable' : 'no_routes';
+    status = unavailable || morningFailed ? 'unavailable' : 'no_routes';
     if (status === 'no_routes') warnings.push('No return routes found');
   }
   const plan: ReturnPlan = { ...base, status, options, nearMisses, warnings };
