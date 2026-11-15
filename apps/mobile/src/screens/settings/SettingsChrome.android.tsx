@@ -38,7 +38,7 @@ import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
 import Home from '../../../assets/icons/home_fill.xml';
 import Info from '../../../assets/icons/info_fill.xml';
 import Language from '../../../assets/icons/language_fill.xml';
-import Mobile from '../../../assets/icons/mobile_fill.xml';
+import Smartphone from '../../../assets/icons/smartphone.xml';
 import Notifications from '../../../assets/icons/notifications_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
@@ -284,7 +284,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
           <Column verticalArrangement={{ spacedBy: 20 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
             <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 16 }} modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(28)), background(m.primaryContainer), paddingAll(16)]}>
               <Column horizontalAlignment="center" verticalArrangement="center" modifiers={[size(48, 48), clip(Shapes.Circle), background(m.primary)]}>
-                <Icon source={Mobile} size={24} tint={m.onPrimary} />
+                <Icon source={Smartphone} size={24} tint={m.onPrimary} />
               </Column>
               <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
                 <Text color={m.onPrimaryContainer} style={m3Text('titleMedium')}>This device&apos;s profile</Text>
@@ -396,7 +396,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
             <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
               <GroupLabel m={m}>About</GroupLabel>
               <Rows>
-                <SettingRow m={m} icon={Mobile} title="Device ID" subtitle={props.deviceId} />
+                <SettingRow m={m} icon={Smartphone} title="Device ID" subtitle={props.deviceId} />
                 <SettingRow m={m} icon={Info} title="Data sources" subtitle={props.dataSources} />
                 <SettingRow m={m} icon={Info} title="Version" subtitle={props.version} />
               </Rows>
