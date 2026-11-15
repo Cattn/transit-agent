@@ -8,7 +8,6 @@ import {
   Column,
   DropdownMenu,
   DropdownMenuItem,
-  ExtendedFloatingActionButton,
   FilledTonalIconButton,
   FloatingActionButton,
   Icon,
@@ -42,7 +41,6 @@ import Warning from '../../../assets/icons/warning_fill.xml';
 import Sensors from '../../../assets/icons/sensors_fill.xml';
 import Settings from '../../../assets/icons/settings_fill.xml';
 import ShoppingBag from '../../../assets/icons/shopping_bag_fill.xml';
-import WandShine from '../../../assets/icons/wand_shine_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
 import type { SavedItinerary } from '@transit/shared';
 import { materialSeedColor } from '../../theme/colors';
