@@ -1,6 +1,6 @@
 import { FunctionTool, type ToolInputParameters } from '@google/adk';
 import { z } from 'zod';
-import { AgentQuestionSchema, TripDraftPatchSchema, applyDraftPatch, describePatch, toTripRequest, type AgentQuestion, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
+import { AgentQuestionSchema, TripDraftPatchSchema, applyDraftPatch, describePatch, toTripRequest, type AgentQuestion, type LngLat, type PlanResponse, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import type { RouteProvider } from '../providers/types.js';
 import type { ItineraryStore } from '../store/types.js';
 import { planTrip } from '../planning/plan-trip.js';
@@ -10,6 +10,7 @@ import type { ProgressEmitter } from './types.js';
 export interface TurnContext {
   deviceId: string;
   draft: TripDraft;
+  location?: LngLat;
   patch: TripDraftPatch;
   questions: AgentQuestion[];
   plan?: PlanResponse;
@@ -60,8 +61,8 @@ export function createPlannerTools(turn: TurnContext) {
       const request = toTripRequest(turn.draft);
       return { status: 'updated', draftSummary: describePatch(patch), missing: request.ok ? [] : request.missing };
     } }),
-    new PlannerTool({ name: 'find_place', description: 'Find up to five places (stations, airports, landmarks, addresses) by name, address or airport code. Look up all places in the same step.', parameters: z.object({ query: z.string() }), execute: async ({ query }: { query: string }) => {
-      const places = await turn.places.search(query);
+    new PlannerTool({ name: 'find_place', description: 'Find up to five places (stations, airports, landmarks, addresses) by name, address, airport code or "lat, lng" coordinates. Look up all places in the same step.', parameters: z.object({ query: z.string() }), execute: async ({ query }: { query: string }) => {
+      const places = await turn.places.search(query, turn.location ?? turn.draft?.origin?.coordinates);
       report({ type: 'places', query, places });
       return places;
     } }),

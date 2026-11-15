@@ -23,6 +23,15 @@ function distanceMeters([lng1, lat1]: [number, number], [lng2, lat2]: [number, n
   return 2 * 6_371_000 * Math.asin(Math.sqrt(a));
 }
 
+const coordinatePattern = /^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
+
+export function coordinatePlace(q: string): Place | undefined {
+  const match = coordinatePattern.exec(q);
+  if (!match) return undefined;
+  const result = PlaceSchema.safeParse({ name: `${match[1]}, ${match[2]}`, coordinates: [Number(match[2]), Number(match[1])], kind: 'address' });
+  return result.success ? result.data : undefined;
+}
+
 function text(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
@@ -77,6 +86,8 @@ export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.f
 
   return {
     async search(q, near) {
+      const point = coordinatePlace(q);
+      if (point) return [point];
       const local = searchPlaces(q).flatMap((place) => {
         const result = PlaceSchema.safeParse(place);
         return result.success ? [result.data] : [];

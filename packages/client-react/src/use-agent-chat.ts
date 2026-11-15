@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiClientError, applyDraftPatch, createDeviceId, initialAgentProgress, reduceAgentProgress, type AgentMessageResponse, type AgentProgress, type DraftState, type DraftChangeSource, type TripDraftPatch, type PlanResponse } from '@transit/shared';
+import { ApiClientError, applyDraftPatch, createDeviceId, initialAgentProgress, reduceAgentProgress, type AgentMessageResponse, type AgentProgress, type DraftState, type DraftChangeSource, type LngLat, type TripDraftPatch, type PlanResponse } from '@transit/shared';
 import { useApi } from './api-context.js';
 
 export interface ChatMessage { id: string; role: 'user' | 'agent'; text: string; questions?: AgentMessageResponse['questions']; plan?: PlanResponse; draft?: DraftState; at: string }
@@ -12,7 +12,7 @@ function resultingDraft(draft: DraftState, patch: TripDraftPatch): DraftState {
   }
 }
 
-export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void) {
+export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, source: DraftChangeSource) => void, location?: LngLat) {
   const api = useApi();
   const session = useRef<string | undefined>(undefined);
   const busy = useRef(false);
@@ -41,7 +41,7 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
     setProgress(initialAgentProgress);
     setMessages((items) => [...items, { id: createDeviceId(), role: 'user', text, at: new Date().toISOString() }]);
     try {
-      const body = { sessionId: session.current, message: text, draft: draft.draft };
+      const body = { sessionId: session.current, message: text, draft: draft.draft, location };
       const response = api.streamAgentMessage
         ? await api.streamAgentMessage(body, (event) => {
           if (current === generation.current) setProgress((state) => reduceAgentProgress(state, event));
@@ -61,6 +61,6 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
     } finally {
       if (current === generation.current) { busy.current = false; setPending(false); }
     }
-  }, [api, draft, apply]);
+  }, [api, draft, apply, location]);
   return { messages, pending, error, send, lastPlan, progress };
 }
