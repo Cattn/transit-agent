@@ -194,7 +194,7 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 | --- | --- |
 | Which trips | Results open: the results' itineraries plus near misses. Otherwise: the saved, watched trips |
 | Look | Results open: `variant="choosing"`, `unfocusedColors="mode"`. Otherwise: `variant="saved"`, `unfocusedColors="trip"` |
-| Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given |
+| Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given. **Location presets (plan 038):** a saved trip whose destination is within 150 m of Home, Office or Gym draws in that preset's colour (`presetTripColors` is merged over the stored colours), so changing a preset's colour recolours its trips at once, and saving a result to a preset stores the preset's colour |
 | Accent | `accentColor={light.primary}` (`#6750A4`), always the light theme's purple, because the basemap is always light |
 | Basemap | OpenFreeMap Positron |
 | Padding | Top: the bottom edge of the search bar + mode tabs (`HomeChrome` reports it with `onTopLayout`) + 16. Right: 16 + 64 for the locate / layers button column. Bottom: the sheet's height. Left: 16 |
@@ -392,6 +392,9 @@ optional, and leaving them out keeps the original look, so existing callers (web
 | `sliceLine`, `revealFeatures`, `previewFeatures` | The build animation's frames (plan 030) |
 | `previewLayers(accentColor?)`, `PREVIEW_SOURCE_ID` | The pins / searching-line layers |
 | `metersBetween(a, b)` | Distance in metres between two `[lng, lat]` points |
+| `presetColor`, `presetIcon`, `presetPlace(key, profile)` | A location preset's colour / icon / place, with defaults (plan 038) |
+| `presetForPlace(place, profile)`, `presetTripColors(trips, profile)` | Which preset a place belongs to (closest within `PRESET_MATCH_METERS`, 150 m); saved-trip id → preset colour |
+| `DEFAULT_PRESET_COLORS`, `DEFAULT_PRESET_ICONS` | Home purple, Office blue, Gym green (all from `PALETTE`); `home`, `work`, `fitness` |
 | `DEFAULT_ACCENT_COLOR`, `END_ICON_ID`, size constants | Shared constants |
 
 ---
@@ -469,6 +472,11 @@ Decided with @KrakenTheJaken, mostly on 2026-11-14 while testing on an iPhone in
 | **030-Q2: a moving searching line** | Shows the agent is working on *this* trip; it disappears when routes start drawing. A travelling segment, because MapLibre can't animate a dash pattern from data |
 | **030-Q3: faded candidate pins** | Shows the agent comparing places; they disappear once both ends are set |
 | **Fit when routes arrive, not after they draw** | Home already re-fits on new trips; fitting again after the draw would move the camera twice |
+| **Location presets own their colour** (plan 038, #85) | "The green line is my gym trip". The colour lives with the place (`profile.presets`), so every saved trip there matches and follows changes live. Colours come from `PALETTE`; other trips never borrow a preset colour because fixed colours count as taken in `assignRouteColors` |
+| **150 m to match a trip to a preset** | Close enough for "the same place" (a station entrance vs the building), far enough apart that Home and a nearby café don't clash; the closest preset wins |
+| **Gym's place lives in `presets.gym.place`; Home / Office stay `profile.home` / `profile.work`** | Settings (#87) already edits Home and Work; the preset sheet links there instead of duplicating it |
+| **An "Edit" chip opens the preset menu, not long-press** (plan 038 STOP condition) | Long-press needs the `combinedClickable` modifier, which Expo Go 58 rejects on Android ("Cannot set prop 'modifiers'"). The Edit chip sits after Gym in the chip row and opens a menu (Home / Office / Gym, icons in their colours); tapping a preset chip still plans the trip |
+| **The Gym place search is drawn in Compose inside the sheet** | The shared `PlaceField` hosted in the sheet (`RNHostView`) got no keyboard input. The sheet copies its field + results in Compose, and uses `imePadding()` + `verticalScroll()` so Save and Cancel stay above the keyboard |
 | **Route lines simplified per zoom** (`tolerance: 4` on the route source) | Real legs end in tiny kinks (a bus's last 9 m turning into the stop, an 11 m walk between stops). With lanes, a kink only ~2 px long stuck out as a visible "hook". MapLibre now drops kinks too small to see at the current zoom; kept after lanes were removed because it also keeps lines tidy into stops. Whole routes look the same |
 
 ---
@@ -492,6 +500,9 @@ So nobody repeats them:
   two looks above.
 - **The dark theme accent** `#D0BCFF` on the light basemap. Too pale.
 - **`React.memo` around the DOM component.** Caused a red box ("Object is not a function") during Fast Refresh.
+- **Long-press on the preset chips** (`combinedClickable`). Unsupported in Expo Go on Android; replaced by the Edit chip.
+- **`PlaceField` inside the preset sheet via `RNHostView`.** The keyboard never reached it and the buttons went off-screen;
+  replaced by a Compose search field in the sheet.
 - **Joining gaps by bending the transit line** to the walk's end. Left a "T" stub at stops; now the walk is extended.
 
 The example routes come from **Transitous** (MOTIS v5, transit) and **OSRM** (driving), fetched by
@@ -514,7 +525,7 @@ Go and is otherwise parked.
 | ✅ Web map (`@transit/maps/web`) | `RouteMap`, two looks, markers + end icon, bubbles, location dot + cone, pan to location, deselect |
 | ✅ Mobile map | DOM component in Home's `MapSlot`; worker built into the bundle (no CDN, works in exported builds); live location + compass; top padding from `HomeChrome` |
 | ✅ Example routes + demo | `@transit/maps/samples` (incl. `testScenarios`), `npm run demo:maps` |
-| ✅ Tests | 122 unit tests in `@transit/maps` |
+| ✅ Tests | 127 unit tests in `@transit/maps` |
 | ✅ Android proof | Pixel 10, Android 17 (beta), Expo Go 58.0.5, light and dark; see [Android proof](#android-proof-pr-76) |
 
 ### Android proof (PR #76)
@@ -596,7 +607,7 @@ Q3–Q5; 030-Q1–Q3) are answered by @KrakenTheJaken.
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 122 tests
+npm run test:unit -w @transit/maps   # 127 tests
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 npm run typecheck -w @transit/maps   # package + demo
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)

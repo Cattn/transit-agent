@@ -125,6 +125,15 @@ it('round-trips and replaces one profile per instance without exposing stored st
   expect(await api.putProfile({ displayName: 'Replacement' })).toEqual({ displayName: 'Replacement', defaults: {}, updatedAt: now().toISOString() });
 });
 
+it('keeps place presets (colour, icon, gym place) and still loads profiles without them (plan 038)', async () => {
+  const api = client();
+  const presets = { home: { color: '#9333ea', icon: 'home' as const }, gym: { color: '#16a34a', icon: 'fitness' as const, place: request.destination } };
+  expect((await api.putProfile({ presets })).presets).toEqual(presets);
+  expect((await api.getProfile())?.presets).toEqual(presets);
+  expect((await api.putProfile({ home: request.origin })).presets).toBeUndefined();
+  await expect(api.putProfile({ presets: { gym: { icon: 'rocket' as never } } })).rejects.toThrow(ZodError);
+});
+
 it('validates profile writes and keeps the previous profile on failure', async () => {
   const api = client();
   const saved = await api.putProfile({ displayName: 'Valid' });

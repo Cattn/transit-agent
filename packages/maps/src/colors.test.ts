@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PALETTE, assignRouteColors, hashString, routeColor } from './colors.js';
+import { DEFAULT_PRESET_COLORS, DEFAULT_PRESET_ICONS, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors } from './presets.js';
 
 describe('PALETTE', () => {
   it('has 8 distinct hex colours', () => {
@@ -169,5 +170,70 @@ describe('assignRouteColors with saved colours (plan 009 step 5)', () => {
       expect([...assignRouteColors(ids, undefined)]).toEqual(before);
       expect([...assignRouteColors(ids, new Map())]).toEqual(before);
     }
+  });
+});
+
+describe('place presets (plan 038)', () => {
+  const home = { name: 'Home', coordinates: [-71.0652, 42.3592] as [number, number] };
+  const office = { name: 'Office', coordinates: [-71.0752, 42.3496] as [number, number] };
+  const gym = { name: 'Gym', coordinates: [-71.1, 42.37] as [number, number] };
+  const near = (place: { coordinates: [number, number] }, metresNorth: number) => ({ name: 'Somewhere', coordinates: [place.coordinates[0], place.coordinates[1] + metresNorth / 111_320] as [number, number] });
+  const profile = { home, work: office, presets: { gym: { place: gym, color: '#db2777' } } };
+
+  it('gives each preset a different palette colour and its own icon by default', () => {
+    const defaults = Object.values(DEFAULT_PRESET_COLORS);
+    expect(new Set(defaults).size).toBe(defaults.length);
+    for (const color of defaults) expect(PALETTE).toContain(color);
+    expect(DEFAULT_PRESET_ICONS).toEqual({ home: 'home', office: 'work', gym: 'fitness' });
+  });
+
+  it('uses the chosen colour and icon when set, the defaults otherwise', () => {
+    expect(presetColor('gym', profile)).toBe('#db2777');
+    expect(presetColor('home', profile)).toBe(DEFAULT_PRESET_COLORS.home);
+    expect(presetColor('office', undefined)).toBe(DEFAULT_PRESET_COLORS.office);
+    expect(presetIcon('gym', { presets: { gym: { icon: 'park' } } })).toBe('park');
+    expect(presetIcon('gym', profile)).toBe('fitness');
+  });
+
+  it('takes Home and Office from the profile places and Gym from its preset', () => {
+    expect(presetPlace('home', profile)).toBe(home);
+    expect(presetPlace('office', profile)).toBe(office);
+    expect(presetPlace('gym', profile)).toBe(gym);
+    expect(presetPlace('gym', { home })).toBeUndefined();
+  });
+
+  it('matches a place within 150 m of a preset, and nothing further away', () => {
+    expect(presetForPlace(near(office, 100), profile)).toBe('office');
+    expect(presetForPlace(near(office, 200), profile)).toBeUndefined();
+    expect(presetForPlace(near(gym, 0), profile)).toBe('gym');
+    expect(presetForPlace(near(gym, 0), { home, work: office })).toBeUndefined();
+  });
+
+  it('picks the closest preset when two are within 150 m', () => {
+    const together = { home, work: near(home, 120) };
+    expect(presetForPlace(near(home, 100), together)).toBe('office');
+    expect(presetForPlace(near(home, 10), together)).toBe('home');
+  });
+
+  it('colours saved trips that go to a preset, and leaves the others alone', () => {
+    const trips = [
+      { id: 'to-office-1', request: { destination: near(office, 20) } },
+      { id: 'to-office-2', request: { destination: near(office, 60) } },
+      { id: 'to-gym', request: { destination: gym } },
+      { id: 'elsewhere', request: { destination: near(gym, 2000) } }
+    ];
+    expect(presetTripColors(trips, profile)).toEqual(new Map([
+      ['to-office-1', DEFAULT_PRESET_COLORS.office],
+      ['to-office-2', DEFAULT_PRESET_COLORS.office],
+      ['to-gym', '#db2777']
+    ]));
+  });
+
+  it('keeps preset colours when combined with assignRouteColors, so no other trip borrows them', () => {
+    const fixed = presetTripColors([{ id: 'to-gym', request: { destination: gym } }], profile);
+    const ids = ['to-gym', ...Array.from({ length: 6 }, (_, i) => `other-${i}`)];
+    const colors = assignRouteColors(ids, fixed);
+    expect(colors.get('to-gym')).toBe('#db2777');
+    expect(ids.slice(1).map((id) => colors.get(id))).not.toContain('#db2777');
   });
 });
