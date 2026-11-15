@@ -25,12 +25,13 @@ export function useLiveLocation(active: boolean): { location?: LngLat; heading?:
       const permission = await Location.getForegroundPermissionsAsync();
       if (!permission.granted || stopped) return;
       keep(
-        await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, distanceInterval: 5 }, ({ coords }) =>
-          setLocation([coords.longitude, coords.latitude])
-        )
+        await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, distanceInterval: 5 }, ({ coords }) => {
+          if (!stopped) setLocation([coords.longitude, coords.latitude]);
+        })
       );
       keep(
         await Location.watchHeadingAsync(({ trueHeading, magHeading }) => {
+          if (stopped) return;
           const next = trueHeading >= 0 ? trueHeading : magHeading;
           setHeading((previous) =>
             previous !== undefined && angleBetween(previous, next) < HEADING_STEP ? previous : Math.round(next)
@@ -42,6 +43,8 @@ export function useLiveLocation(active: boolean): { location?: LngLat; heading?:
     return () => {
       stopped = true;
       subscriptions.forEach((subscription) => subscription.remove());
+      setLocation(undefined);
+      setHeading(undefined);
     };
   }, [active]);
 

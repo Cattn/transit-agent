@@ -139,6 +139,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [sheetHeight, setSheetHeight] = useState(0);
   const [topBarEdge, setTopBarEdge] = useState(0);
   const [here, setHere] = useState<LngLat>();
+  const initialLocation = useRef(true);
   const [locateKey, setLocateKey] = useState<number>();
   const [tracking, setTracking] = useState(false);
   const live = useLiveLocation(tracking && foreground);
@@ -266,17 +267,24 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, [editDraft, state.draft.modes]);
 
   useEffect(() => {
+    if (!foreground) return;
     let active = true;
-    void getLastKnownLocation().then((coordinates) => {
-      if (active && coordinates) setHere((current) => current ?? coordinates);
-    });
+    if (initialLocation.current) {
+      initialLocation.current = false;
+      void getLastKnownLocation().then((coordinates) => {
+        if (active && coordinates) setHere((current) => current ?? coordinates);
+      });
+    }
     getCurrentPlace().then((result) => {
       if (!active || !result.ok) return;
       setHere(result.place.coordinates);
       setTracking(true);
     }).catch(() => undefined);
-    return () => { active = false; };
-  }, []);
+    return () => {
+      active = false;
+      setHere(undefined);
+    };
+  }, [foreground]);
 
   const known = live.location ?? here;
   const onLocate = useCallback(async () => {
