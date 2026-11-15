@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactElement, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
 import {
@@ -23,7 +23,7 @@ import {
   useNativeState,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, weight, width } from '@expo/ui/jetpack-compose/modifiers';
+import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import Accessible from '../../../assets/icons/accessible_fill.xml';
 import Add from '../../../assets/icons/add_fill.xml';
 import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
@@ -230,8 +230,6 @@ export function SettingsChrome(props: SettingsChromeProps) {
   const scheme = useAppColors().scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const [dialog, setDialog] = useState<Dialog>();
-  const { fontScale } = useWindowDimensions();
-  const chipWidth = Math.ceil(90 * fontScale);
   const close = () => setDialog(undefined);
   const placeColors: PlaceFieldColors = { surface: m.surface, onSurface: m.onSurface, onSurfaceVariant: m.onSurfaceVariant, primary: m.primary, outline: m.outline };
   const limit = dialog?.kind === 'limit' ? props.limits.find((item) => item.key === dialog.key) : undefined;
@@ -334,15 +332,10 @@ export function SettingsChrome(props: SettingsChromeProps) {
               <Rows>
                 <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(4)), background(m.surfaceContainerLow), padding(16, 14, 16, 14)]}>
                   <Text color={m.onSurface} style={m3Text('bodyLarge')}>Modes a new trip includes</Text>
-                  <FlowRow horizontalArrangement={{ spacedBy: 8 }}>
+                  <FlowRow horizontalArrangement={{ spacedBy: 8 }} verticalArrangement={{ spacedBy: -8 }}>
                     {props.modes.map((mode) => {
                       return (
-                        <FilterChip
-                          key={mode.mode}
-                          selected={mode.selected}
-                          onClick={() => props.onToggleMode(mode.mode)}
-                          modifiers={[width(chipWidth)]}
-                        >
+                        <FilterChip key={mode.mode} selected={mode.selected} onClick={() => props.onToggleMode(mode.mode)}>
                           <FilterChip.LeadingIcon>
                             <Icon source={mode.selected ? Check : MODE_ICONS[mode.mode]} size={18} />
                           </FilterChip.LeadingIcon>
