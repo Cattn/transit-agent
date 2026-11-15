@@ -33,6 +33,7 @@ import ChevronRight from '../../../assets/icons/chevron_right_fill.xml';
 import Contrast from '../../../assets/icons/contrast_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
+import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
 import Home from '../../../assets/icons/home_fill.xml';
 import Info from '../../../assets/icons/info_fill.xml';
@@ -77,7 +78,6 @@ function Rows({ children }: { children: ReactNode }) {
 interface SettingRowProps {
   m: MaterialColors;
   icon?: number;
-  indent?: boolean;
   title: string;
   subtitle?: string;
   trailing?: ReactNode;
@@ -86,7 +86,7 @@ interface SettingRowProps {
   onClick?: () => void;
 }
 
-function SettingRow({ m, icon, indent, title, subtitle, trailing, chevron, disabled, onClick }: SettingRowProps) {
+function SettingRow({ m, icon, title, subtitle, trailing, chevron, disabled, onClick }: SettingRowProps) {
   const modifiers = [fillMaxWidth(), clip(Shapes.RoundedCorner(4))];
   if (onClick && !disabled) modifiers.push(clickable(onClick));
   if (disabled) modifiers.push(alpha(0.38));
@@ -95,10 +95,6 @@ function SettingRow({ m, icon, indent, title, subtitle, trailing, chevron, disab
       {icon !== undefined ? (
         <ListItem.LeadingContent>
           <Icon source={icon} size={24} tint={m.onSurfaceVariant} />
-        </ListItem.LeadingContent>
-      ) : indent ? (
-        <ListItem.LeadingContent>
-          <Row modifiers={[size(24, 24)]}>{null}</Row>
         </ListItem.LeadingContent>
       ) : null}
       <ListItem.HeadlineContent>
@@ -376,7 +372,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
             <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
               <GroupLabel m={m}>Vehicles</GroupLabel>
               <Rows>
-                <SettingRow m={m} indent title="Car fuel economy" subtitle="Used for drive costs if using car" trailing={<Value m={m}>{props.carMpgLabel}</Value>} onClick={() => setDialog({ kind: 'mpg' })} />
+                <SettingRow m={m} icon={DirectionsCar} title="Car fuel economy" subtitle="Used for drive costs if using car" trailing={<Value m={m}>{props.carMpgLabel}</Value>} onClick={() => setDialog({ kind: 'mpg' })} />
               </Rows>
             </Column>
 
