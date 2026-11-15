@@ -34,6 +34,8 @@ export interface RouteMapProps {
   locateKey?: string | number;
   /** Change this value to re-fit the camera to the visible itineraries. */
   fitKey?: string | number;
+  /** When set, fitKey fits the camera to this itinerary only, not every visible one. */
+  fitItineraryId?: string;
   /** Extra padding when panels cover part of the map (web side panel, mobile bottom sheet). */
   padding?: { top: number; right: number; bottom: number; left: number };
   /**

@@ -23,6 +23,7 @@ export interface RouteMapDomProps {
   userHeading?: number;
   locateKey?: string | number;
   fitKey?: string | number;
+  fitItineraryId?: string;
   padding?: { top: number; right: number; bottom: number; left: number };
   routeColors?: Record<string, string>;
   unfocusedColors?: 'grey' | 'trip' | 'mode';

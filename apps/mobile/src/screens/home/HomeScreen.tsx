@@ -83,6 +83,7 @@ interface MapSlotProps {
   variant: 'saved' | 'choosing';
   buildPreview?: BuildPreview;
   fitKey: string;
+  fitItineraryId?: string;
 }
 
 
@@ -94,7 +95,7 @@ function agentBuildPreview({ phase, candidates, origin, destination, plan }: Age
   return undefined;
 }
 
-function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onSelect, onDeselect, userLocation, userHeading, locateKey, unfocusedColors, variant, buildPreview, fitKey }: MapSlotProps) {
+function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onSelect, onDeselect, userLocation, userHeading, locateKey, unfocusedColors, variant, buildPreview, fitKey, fitItineraryId }: MapSlotProps) {
   const mapLoad = useMapLoad();
   return (
     <View accessibilityLabel={`Map, ${trips.length} routes`} accessibilityValue={{ text: selectedItineraryId }} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map }]}>
@@ -109,6 +110,7 @@ function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onS
         userHeading={userHeading}
         locateKey={locateKey}
         fitKey={fitKey}
+        fitItineraryId={fitItineraryId}
         padding={padding}
         routeColors={routeColors}
         unfocusedColors={unfocusedColors}
@@ -488,7 +490,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         unfocusedColors={choosing ? 'mode' : 'trip'}
         variant={choosing ? 'choosing' : 'saved'}
         buildPreview={buildPreview}
-        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}|${openSaved?.request.time.at ?? ''}`}
+        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}|${openSaved?.id ?? ''}|${openSaved?.request.time.at ?? ''}`}
+        fitItineraryId={openSaved?.id}
       />
       {resultsOpen ? (
         <ResultsScreen
