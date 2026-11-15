@@ -1,4 +1,4 @@
-import { ItinerarySchema, type SavedItinerary, type SaveItineraryRequest } from '@transit/shared';
+import { applyWatchAction, ItinerarySchema, type SavedItinerary, type SaveItineraryRequest, type UpdateItineraryRequest } from '@transit/shared';
 import type { ItineraryStore, WatchedItinerary, WatchStore, WatchUpdate } from './types.js';
 
 /** Process-local store (lost on restart). Plan 005 adds a SQLite implementation of the same interface. */
@@ -40,7 +40,7 @@ export class MemoryItineraryStore implements ItineraryStore, WatchStore {
   async update(
     deviceId: string,
     id: string,
-    patch: { label?: string; watch?: boolean }
+    patch: UpdateItineraryRequest
   ): Promise<SavedItinerary | undefined> {
     const items = this.byDevice.get(deviceId);
     const current = items?.get(id);
@@ -48,6 +48,7 @@ export class MemoryItineraryStore implements ItineraryStore, WatchStore {
     const next: SavedItinerary = { ...current };
     if (patch.label !== undefined) next.label = patch.label;
     if (patch.watch !== undefined) next.watch = patch.watch;
+    next.watchStatus = applyWatchAction(current, patch);
     items.set(id, next);
     return structuredClone(next);
   }
@@ -60,7 +61,7 @@ export class MemoryItineraryStore implements ItineraryStore, WatchStore {
     const activeAfter = Date.parse(activeAfterIso);
     const departBefore = Date.parse(departBeforeIso);
     return [...this.byDevice].flatMap(([deviceId, items]) => [...items.values()]
-      .filter((item) => item.watch && Date.parse(item.arriveAt) >= activeAfter && Date.parse(item.departAt) <= departBefore)
+      .filter((item) => item.watch && Math.max(Date.parse(item.arriveAt), ...item.legs.map((leg) => Date.parse(leg.arriveAt))) >= activeAfter && Date.parse(item.departAt) <= departBefore)
       .map((item) => ({ deviceId, item: structuredClone(item) })));
   }
 
@@ -68,6 +69,7 @@ export class MemoryItineraryStore implements ItineraryStore, WatchStore {
     const items = this.byDevice.get(deviceId);
     const current = items?.get(id);
     if (!items || !current) return undefined;
+    if (Object.hasOwn(update, 'previousStatus') && (!current.watch || JSON.stringify(current.watchStatus) !== JSON.stringify(update.previousStatus))) return undefined;
     const next: SavedItinerary = {
       ...structuredClone(ItinerarySchema.parse(update.itinerary)),
       id,

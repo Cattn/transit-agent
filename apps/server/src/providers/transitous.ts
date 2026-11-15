@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { ItinerarySchema, legLabel, type Itinerary, type Leg, type Place, type TravelMode, type TripRef, type TripRequest } from '@transit/shared';
+import { ItinerarySchema, legLabel, type Itinerary, type Leg, type Place, type TravelMode, type TripRef, type TripRequest, type WatchStatus } from '@transit/shared';
 import { DEFAULT_GAS_USD_PER_GALLON, driveCost, type CostLine } from '../flights/ground-cost.js';
 import { decodePolyline } from '../planning/geo.js';
 import type { RouteProvider } from './types.js';
@@ -258,7 +258,7 @@ export class TransitousProvider implements RouteProvider {
     });
   }
 
-  async refresh(it: Itinerary, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined> {
+  async refresh(it: Itinerary & { watchStatus?: WatchStatus }, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined> {
     const tripIds = transitTripIds(it.legs).join();
     if (!tripIds) return undefined;
     const at = new Date(Date.parse(it.departAt) - REFRESH_LOOKBACK_MS).toISOString();
@@ -276,7 +276,43 @@ export class TransitousProvider implements RouteProvider {
       }
       return mapped;
     }
-    return undefined;
+    const boarded = it.watchStatus?.boardedLegIndex;
+    if (boarded === undefined) return undefined;
+    const legs: Leg[] = it.legs.map((leg) => ({ ...leg, timeSource: leg.timeSource === 'realtime' ? 'estimated' : leg.timeSource, delayMinutes: undefined }));
+    const start = it.watchStatus?.phase === 'riding' ? boarded : boarded + 1;
+    for (let index = start; index < legs.length; index++) {
+      const old = legs[index]!;
+      if (!old.trip) continue;
+      const legRequest = { ...request, origin: old.from, destination: old.to, time: { type: 'departAt' as const, at: new Date(Date.parse(old.departAt) - REFRESH_LOOKBACK_MS).toISOString() } };
+      const response = await this.fetchPlan(legRequest, signal);
+      let found = false;
+      for (const raw of response.itineraries ?? []) {
+        const mapped = mapTransitousItinerary(raw, legRequest, options);
+        if (typeof mapped === 'string') continue;
+        const candidateIndex = mapped.legs.findIndex((leg) => leg.trip?.tripId === old.trip!.tripId && leg.trip?.boardStopId === old.trip!.boardStopId && leg.trip?.alightStopId === old.trip!.alightStopId);
+        if (candidateIndex < 0) continue;
+        const candidate = mapped.legs[candidateIndex]!;
+        const rawLeg = raw.legs[candidateIndex]!;
+        if (rawLeg.realTime && rawLeg.scheduledStartTime && await this.mbtaConfirmsLive(candidate.trip!, signal)) {
+          candidate.timeSource = 'realtime';
+          candidate.delayMinutes = Math.round((Date.parse(rawLeg.startTime) - Date.parse(rawLeg.scheduledStartTime)) / 60_000);
+        }
+        legs[index] = { ...candidate, id: old.id };
+        found = true;
+        break;
+      }
+      if (!found) return undefined;
+    }
+    for (let index = boarded + 1; index < legs.length; index++) {
+      const leg = legs[index]!;
+      if (STREET_MODES.includes(leg.mode)) {
+        const departure = legs[index - 1]!.arriveAt;
+        legs[index] = { ...leg, departAt: departure, arriveAt: new Date(Date.parse(departure) + leg.durationMinutes * 60_000).toISOString() };
+      }
+    }
+    withTransferBuffers(legs);
+    const arriveAt = legs.at(-1)!.arriveAt;
+    return { ...it, legs, arriveAt, durationMinutes: Math.max(0, Math.round((Date.parse(arriveAt) - Date.parse(it.departAt)) / 60_000)), source: { ...it.source, fetchedAt: options.fetchedAt } };
   }
 
   private async mbtaConfirmsLive(trip: TripRef, signal?: AbortSignal): Promise<boolean> {

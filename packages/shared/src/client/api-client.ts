@@ -4,7 +4,9 @@ import {
   PlanResponseSchema,
   SavedItineraryListSchema,
   type PlanResponse,
-  type SaveItineraryRequest
+  type SaveItineraryRequest,
+  type UpdateItineraryRequest,
+  type WatchLocationReport
 } from '../domain/api.js';
 import {
   AgentMessageResponseSchema,
@@ -269,8 +271,11 @@ export function createApiClient(baseUrl: string, options: ApiClientOptions = {})
     saveItinerary: (input: SaveItineraryRequest): Promise<SavedItinerary> =>
       request('POST', '/api/itineraries', { body: input, schema: SavedItinerarySchema }),
 
-    updateItinerary: (id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary> =>
+    updateItinerary: (id: string, patch: UpdateItineraryRequest): Promise<SavedItinerary> =>
       request('PATCH', itineraryPath(id), { body: patch, schema: SavedItinerarySchema }),
+
+    reportWatchLocation: (id: string, report: WatchLocationReport): Promise<void> =>
+      request('POST', `${itineraryPath(id)}/location`, { body: report }),
 
     deleteItinerary: async (id: string): Promise<void> => {
       await request<undefined>('DELETE', itineraryPath(id));

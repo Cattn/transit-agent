@@ -1,11 +1,11 @@
-import type { Itinerary, SavedItinerary, SaveItineraryRequest, TripRequest, WatchStatus } from '@transit/shared';
+import type { Itinerary, SavedItinerary, SaveItineraryRequest, TripRequest, UpdateItineraryRequest, WatchStatus } from '@transit/shared';
 
 export interface ItineraryStore {
   list(deviceId: string): Promise<SavedItinerary[]>;
   get(deviceId: string, id: string): Promise<SavedItinerary | undefined>;
   /** id = itinerary.id; re-saving the same id overwrites. */
   save(deviceId: string, input: SaveItineraryRequest): Promise<SavedItinerary>;
-  update(deviceId: string, id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary | undefined>;
+  update(deviceId: string, id: string, patch: UpdateItineraryRequest): Promise<SavedItinerary | undefined>;
   remove(deviceId: string, id: string): Promise<boolean>;
 }
 
@@ -18,6 +18,7 @@ export interface WatchUpdate {
   itinerary: Itinerary;
   request: TripRequest;
   watchStatus: WatchStatus;
+  previousStatus?: WatchStatus;
 }
 
 export interface WatchStore {

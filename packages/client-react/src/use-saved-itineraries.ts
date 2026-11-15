@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiClientError, type SavedItinerary, type SaveItineraryRequest } from '@transit/shared';
+import { ApiClientError, applyWatchAction, type SavedItinerary, type SaveItineraryRequest, type UpdateItineraryRequest } from '@transit/shared';
 import { useApi } from './api-context.js';
 
 export function useSavedItineraries(opts?: { pollMs?: number; enabled?: boolean }) {
@@ -83,7 +83,7 @@ export function useSavedItineraries(opts?: { pollMs?: number; enabled?: boolean 
     return task;
   }, [perform]);
   const save = useCallback((input: SaveItineraryRequest) => mutate((items) => [{ ...input.itinerary, request: input.request, label: input.label, watch: input.watch, savedAt: new Date().toISOString() }, ...items.filter((item) => item.id !== input.itinerary.id)], () => api.saveItinerary(input)), [api, mutate]);
-  const update = useCallback(async (id: string, patch: { label?: string; watch?: boolean }) => { await mutate((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item), () => api.updateItinerary(id, patch)); }, [api, mutate]);
+  const update = useCallback(async (id: string, patch: UpdateItineraryRequest) => { await mutate((items) => items.map((item) => item.id === id ? { ...item, label: patch.label ?? item.label, watch: patch.watch ?? item.watch, watchStatus: applyWatchAction(item, patch) } : item), () => api.updateItinerary(id, patch)); }, [api, mutate]);
   const remove = useCallback(async (id: string) => { await mutate((items) => items.filter((item) => item.id !== id), () => api.deleteItinerary(id)); }, [api, mutate]);
   return { items, loading, error, refresh, save, update, remove };
 }

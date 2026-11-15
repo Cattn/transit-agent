@@ -219,6 +219,18 @@ describe('TransitousProvider', () => {
     expect(scheduleBased?.legs.find((leg) => leg.mode === 'bus')?.delayMinutes).toBeUndefined();
     const other = { ...saved!, legs: saved!.legs.map((leg) => (leg.trip ? { ...leg, trip: { ...leg.trip, tripId: 'gone' } } : leg)) };
     expect(await provider(120).refresh(other, liveRequest())).toBeUndefined();
+    const ongoing = { ...saved!, watchStatus: { state: 'onTrack' as const, message: '', usedRealtime: false, checkedAt: fetchedAt, boardedLegIndex: saved!.legs.indexOf(bus), phase: 'riding' as const } };
+    let searches = 0;
+    const remainingProvider = new TransitousProvider({
+      baseUrl: 'https://api.transitous.org', userAgent: 'ua', logger: silentLogger,
+      fetch: async (url) => {
+        if (String(url).includes('api/v6/plan')) return jsonResponse(++searches === 1 ? { itineraries: [] } : body);
+        return jsonResponse({ data: [{ attributes: { departure_uncertainty: 120 } }] });
+      }
+    });
+    const remaining = await remainingProvider.refresh(ongoing, liveRequest());
+    expect(searches).toBeGreaterThan(1);
+    expect(remaining?.legs.find((leg) => leg.trip?.tripId === bus.trip?.tripId)).toMatchObject({ id: bus.id, timeSource: 'realtime' });
   });
 
   it('fails honestly on upstream errors and malformed bodies', async () => {

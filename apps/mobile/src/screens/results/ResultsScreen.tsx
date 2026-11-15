@@ -50,6 +50,15 @@ export interface SavedTripActions {
   onToggleWatch: (watch: boolean) => void;
   onDelete: () => void;
   onRetry: () => void;
+  status?: string;
+  rerouting?: boolean;
+  change?: string;
+  onDismissChange?: () => Promise<boolean>;
+  boardingLabel?: string;
+  onBoard?: () => void;
+  onMissed?: () => void;
+  sharingLocation?: boolean;
+  onToggleLocation?: (enabled: boolean) => void;
 }
 
 export interface ResultsChromeProps {
@@ -166,7 +175,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
     title: props.savedTrip ? props.savedTrip.title : data && !message ? `${itineraries.length} ${itineraries.length === 1 ? 'route' : 'routes'}` : 'Routes',
     subtitle,
     updated: oldest && !message ? `updated ${formatAge(oldest, now)}` : undefined,
-    live: itineraries.some((it) => itineraryFreshness(it).label === 'Live'),
+    live: itineraries.some((it) => itineraryFreshness(it, now).label === 'Live'),
     warning: message ? undefined : data?.warnings[0],
     message,
     cards: message ? [] : itineraries.map((it) => ({

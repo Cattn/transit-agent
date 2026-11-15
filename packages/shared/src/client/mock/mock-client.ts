@@ -7,6 +7,7 @@ import { SavedItinerarySchema, type SavedItinerary } from '../../domain/itinerar
 import { TravelProfileSchema, type TravelProfile } from '../../domain/profile.js';
 import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
+import { applyWatchAction } from '../../domain/watch.js';
 import { mockItineraries } from './mock-routes.js';
 import { mockAgentReply } from './mock-agent.js';
 import { mockSearchPlaces } from './mock-places.js';
@@ -116,7 +117,8 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     },
     async updateItinerary(id, patch) {
       await beforeCall();
-      const itinerary = SavedItinerarySchema.parse({ ...getSaved(id), ...patch });
+      const current = getSaved(id);
+      const itinerary = SavedItinerarySchema.parse({ ...current, label: patch.label ?? current.label, watch: patch.watch ?? current.watch, watchStatus: applyWatchAction(current, patch, now()) });
       saved.set(id, itinerary);
       return SavedItinerarySchema.parse(itinerary);
     },
@@ -125,6 +127,10 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
       getSaved(id);
       saved.delete(id);
       return z.undefined().parse(undefined);
+    },
+    async reportWatchLocation(id) {
+      await beforeCall();
+      getSaved(id);
     },
     async sendAgentMessage(body) {
       const scenario = await beforeCall();

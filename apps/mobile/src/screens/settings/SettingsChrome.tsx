@@ -130,10 +130,10 @@ export function SettingsChrome(props: SettingsChromeProps) {
         />
       ) : null}
 
-      <Label colors={colors}>Leave reminders</Label>
-      <Row colors={colors} title="Watch saved trips" value={COMING_SOON} disabled />
+      <Label colors={colors}>Trip monitoring</Label>
+      <Row colors={colors} title="Watch saved trips" value="Manage watching for each saved trip on Home" onPress={props.onBack} />
       <Row colors={colors} title="Buffer before “leave now”" value={COMING_SOON} disabled />
-      <Row colors={colors} title="Agent can suggest the next option" value={COMING_SOON} disabled />
+      <Row colors={colors} title="Missed-trip recovery" value="Watched trips can switch to a valid next route after a confirmed miss" />
 
       <Label colors={colors}>Display & region</Label>
       <Row colors={colors} title="Time zone" value={props.timeZone.label} onPress={() => choose('Time zone', props.timeZone.options, props.onTimeZone)} />

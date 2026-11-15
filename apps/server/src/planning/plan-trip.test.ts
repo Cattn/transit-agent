@@ -271,6 +271,16 @@ describe('watch job', () => {
     expect(updated?.watchStatus).toMatchObject({ usedRealtime: true });
     expect(updated?.watchStatus?.message).toContain('4 min late (live)');
     expect(updated?.leaveBy).toBe(updated?.watchStatus?.leaveBy);
+    const offline = new FixtureProvider();
+    vi.spyOn(offline, 'refresh').mockRejectedValue(new Error('offline'));
+    const failedAt = new Date(departOf(saved) - 9 * 60_000);
+    await runWatchCycle({ store, providers: [offline], now: () => failedAt, log });
+    const failed = (await store.get('device-a', saved.id))!;
+    expect(failed.watchStatus).toMatchObject({ refreshState: 'unavailable', lastSuccessfulAt: later.toISOString(), checkedAt: failedAt.toISOString(), usedRealtime: false });
+    expect(failed.legs.some((leg) => leg.timeSource === 'realtime')).toBe(false);
+    expect(failed.watchStatus?.message).not.toContain('(live)');
+    await runWatchCycle({ store, providers: [new FixtureProvider()], now: () => new Date(departOf(saved) - 6 * 60_000), log });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.refreshState).toBe('fresh');
   });
 
   it('keeps checking other trips when one provider refresh throws', async () => {
@@ -290,40 +300,79 @@ describe('watch job', () => {
     const saved = await watched(store);
     const fixture = new FixtureProvider();
     const search = vi.spyOn(fixture, 'search');
-    const now = new Date(departOf(saved) + 3 * 60_000);
+    const now = new Date(departOf(saved) + 3 * 60_000 + 123);
     await runWatchCycle({ store, providers: [fixture], now: () => now, log });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.phase).toBe('uncertain');
+    expect(replans(search, now)).toBe(0);
+    const index = saved.legs.indexOf(anchorLeg(saved));
+    await store.update('device-a', saved.id, { boarding: { legIndex: index, tripId: anchorLeg(saved).id, state: 'missed' } });
+    await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 2 * 60_000), log });
     const switched = await store.get('device-a', saved.id);
-    expect(replans(search, now)).toBe(1);
-    expect(switched).toMatchObject({ id: saved.id, label: 'Commute', savedAt: saved.savedAt, request: { time: { type: 'departAt', at: now.toISOString() } } });
-    expect(switched?.watchStatus?.message).toMatch(/^Missed .+, switched to /);
+    expect(replans(search, new Date(now.getTime() + 2 * 60_000))).toBe(1);
+    expect(switched).toMatchObject({ id: saved.id, label: 'Commute', savedAt: saved.savedAt });
+    expect(switched?.watchStatus?.change?.message).toMatch(/^Missed .+ Switched to /);
+    expect(switched?.watchStatus?.state).not.toBe('missed');
+    expect(switched?.watchStatus?.message).not.toContain('Switched');
     expect(switched?.departAt).not.toBe(saved.departAt);
+    const change = switched!.watchStatus!.change!;
+    await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 10 * 60_000), log });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.change).toEqual(change);
+    const beforeDismiss = (await store.get('device-a', saved.id))!;
+    await store.update('device-a', saved.id, { dismissChangeId: change.id });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.change).toBeUndefined();
+    expect(await store.applyWatch('device-a', saved.id, { itinerary: beforeDismiss, request: beforeDismiss.request, watchStatus: beforeDismiss.watchStatus!, previousStatus: beforeDismiss.watchStatus })).toBeUndefined();
   });
 
-  it('keeps a missed trip and says so when no valid replacement exists, then stops', async () => {
+  it('keeps a missed trip and retries when no valid replacement exists', async () => {
     const store = new MemoryItineraryStore();
     const saved = await watched(store, 'device-a', { constraints: { ...req.constraints, arriveBy: '2026-11-16T08:05:00-05:00' } });
     const now = new Date(departOf(saved) + 3 * 60_000);
     const fixture = new FixtureProvider();
+    await store.update('device-a', saved.id, { boarding: { legIndex: saved.legs.indexOf(anchorLeg(saved)), tripId: anchorLeg(saved).id, state: 'missed' } });
     await runWatchCycle({ store, providers: [fixture], now: () => now, log });
     const missed = await store.get('device-a', saved.id);
     expect(missed?.watchStatus).toMatchObject({ state: 'missed' });
     expect(missed?.watchStatus?.message.endsWith(NO_REPLACEMENT)).toBe(true);
     expect(missed?.departAt).toBe(saved.departAt);
-    expect(await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 5 * 60_000), log })).toEqual({ checked: 0, updated: 0 });
+    expect(await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 5 * 60_000), log })).toEqual({ checked: 1, updated: 1 });
+    vi.spyOn(fixture, 'search').mockRejectedValue(new Error('offline'));
+    await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 8 * 60_000), log });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.message).toContain('Could not retrieve alternatives');
   });
 
-  it('treats a location along the route as boarded and does not replan', async () => {
+  it('requires movement evidence or rider confirmation before treating a trip as boarded', async () => {
     const store = new MemoryItineraryStore();
-    const saved = await watched(store);
+    const trip = (await planTrip(req, [new FixtureProvider()], undefined, silent)).itineraries.find((it) => anchorLeg(it).mode === 'bus' && it.transfers > 0)!;
+    const saved = await store.save('device-a', { itinerary: trip, request: req, watch: true });
     const now = new Date(departOf(saved) + 4 * 60_000);
-    const locations = new TripLocations(() => now);
+    let locationTime = new Date(now.getTime() - 60_000);
+    const locations = new TripLocations(() => locationTime);
     const coordinates = anchorLeg(saved).geometry.coordinates;
-    locations.report('device-a', saved.id, { coordinates: coordinates[Math.floor(coordinates.length / 2)]!, accuracyMeters: 10 });
+    locations.report('device-a', saved.id, { coordinates: coordinates[1]!, accuracyMeters: 10 });
     const fixture = new FixtureProvider();
     const search = vi.spyOn(fixture, 'search');
     await runWatchCycle({ store, providers: [fixture], now: () => now, log, locations });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.phase).toBe('uncertain');
+    locationTime = new Date(now.getTime() + 2 * 60_000);
+    locations.report('device-a', saved.id, { coordinates: coordinates[Math.floor(coordinates.length / 2)]!, accuracyMeters: 10 });
+    await runWatchCycle({ store, providers: [fixture], now: () => locationTime, log, locations });
     expect(replans(search, now)).toBe(0);
     expect((await store.get('device-a', saved.id))?.watchStatus).toMatchObject({ state: 'onTrack', message: expect.stringMatching(/^On .+, you'll arrive around /) });
+    const boardIndex = saved.legs.indexOf(anchorLeg(saved));
+    const connection = saved.legs.find((leg, index) => index > boardIndex && leg.mode === 'rail')!;
+    const lateArrival = new Date(Date.parse(connection.departAt) + 60_000).toISOString();
+    const delayed = { ...saved, legs: saved.legs.map((leg, index) => index === boardIndex ? { ...leg, arriveAt: lateArrival } : leg) };
+    vi.spyOn(fixture, 'refresh').mockResolvedValue(delayed);
+    locationTime = new Date(locationTime.getTime() + 2 * 60_000);
+    await runWatchCycle({ store, providers: [fixture], now: () => locationTime, log, locations });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.message).toContain('Connection no longer works');
+    locationTime = new Date(Date.parse(lateArrival) + 60_000);
+    const currentCoordinates = anchorLeg(saved).to.coordinates;
+    locations.report('device-a', saved.id, { coordinates: currentCoordinates, accuracyMeters: 10 });
+    await runWatchCycle({ store, providers: [fixture], now: () => locationTime, log, locations });
+    const switched = (await store.get('device-a', saved.id))!;
+    expect(switched.watchStatus?.change?.message).toContain('Missed connection');
+    expect(switched.request.origin).toEqual({ name: 'Current location', coordinates: currentCoordinates });
   });
 
   it('asks the advisor only when an issue changes and uses its replacement pick', async () => {
@@ -338,7 +387,9 @@ describe('watch job', () => {
     expect((await store.get('device-a', saved.id))?.watchStatus?.message).toBe('Bus is 4 min late; leave a bit later.');
     vi.unstubAllEnvs();
     const before = (await store.get('device-a', saved.id))!;
-    await store.applyWatch('device-a', saved.id, { itinerary: before, request: before.request, watchStatus: { ...before.watchStatus!, checkedAt: new Date(departOf(before) - 40 * 60_000).toISOString() } });
+    await store.update('device-a', saved.id, { boarding: { legIndex: before.legs.indexOf(anchorLeg(before)), tripId: anchorLeg(before).id, state: 'missed' } });
+    const marked = (await store.get('device-a', saved.id))!;
+    await store.applyWatch('device-a', saved.id, { itinerary: marked, request: marked.request, watchStatus: { ...marked.watchStatus!, checkedAt: new Date(departOf(before) - 40 * 60_000).toISOString() } });
     await runWatchCycle({ ...deps, now: () => new Date(departOf(before) + 4 * 60_000) });
     const pick = advise.mock.calls[1]?.[0].replacements[1];
     expect(pick).toBeDefined();
@@ -385,11 +436,17 @@ describe('watch job', () => {
     let release: () => void = () => {};
     const listWatched = vi.fn(() => new Promise<[]>((resolve) => { release = () => resolve([]); }));
     const job = startWatchJob({ store: { listWatched, applyWatch: async () => undefined }, providers: [], now: () => new Date(), log }, 1);
+    job.checkSoon();
     await vi.advanceTimersByTimeAsync(3_000);
     expect(listWatched).toHaveBeenCalledTimes(1);
+    job.checkSoon();
     release();
-    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(0);
     expect(listWatched).toHaveBeenCalledTimes(2);
     job.stop();
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    job.checkSoon();
+    expect(listWatched).toHaveBeenCalledTimes(2);
   });
 });

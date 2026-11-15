@@ -83,6 +83,14 @@ export const WatchStatusSchema = z.object({
   /** Deterministic sentence, e.g. "Leave by 8:12 AM. Bus 1 is 4 min late (live)." */
   message: z.string(),
   checkedAt: IsoDateTime,
+  lastSuccessfulAt: IsoDateTime.optional(),
+  refreshState: z.enum(['fresh', 'unavailable', 'notFound', 'unsupported']).optional(),
+  phase: z.enum(['boarding', 'riding', 'transfer', 'walking', 'enRoute', 'uncertain', 'done']).optional(),
+  activeLegIndex: z.number().int().nonnegative().optional(),
+  boardedLegIndex: z.number().int().nonnegative().optional(),
+  missedLegIndex: z.number().int().nonnegative().optional(),
+  pendingReplan: z.boolean().optional(),
+  change: z.object({ id: z.string(), message: z.string(), changedAt: IsoDateTime }).optional(),
   /** True if any leg used live data. The UI must not present schedule-only times as live. */
   usedRealtime: z.boolean()
 });

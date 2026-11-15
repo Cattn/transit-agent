@@ -139,6 +139,18 @@ describe.each(['memory', 'sqlite'])('%s persistence API', (implementation) => {
     expect((await app.inject({ method: 'POST', url, headers, payload: { coordinates: [-71.06, 42.35], accuracyMeters: 20 } })).statusCode).toBe(204);
     expect((await app.inject({ method: 'POST', url, headers: { 'x-device-id': DEVICE_B }, payload: { coordinates: [-71.06, 42.35] } })).statusCode).toBe(404);
     expect((await app.inject({ method: 'POST', url, headers, payload: { coordinates: [200, 42.35] } })).statusCode).toBe(400);
+    const index = sampleItinerary.legs.findIndex((leg) => leg.mode === 'bus');
+    const leg = sampleItinerary.legs[index]!;
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse(leg.departAt));
+    const boarding = { legIndex: index, tripId: leg.trip?.tripId ?? leg.id, state: 'boarded' };
+    const patchUrl = `/api/itineraries/${sampleItinerary.id}`;
+    expect((await app.inject({ method: 'PATCH', url: patchUrl, headers: { 'x-device-id': DEVICE_B }, payload: { boarding } })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'PATCH', url: patchUrl, headers, payload: { boarding: { ...boarding, tripId: 'old-trip' } } })).statusCode).toBe(409);
+    const boarded = await app.inject({ method: 'PATCH', url: patchUrl, headers, payload: { boarding } });
+    expect(boarded.statusCode).toBe(200);
+    expect(boarded.json().watchStatus).toMatchObject({ boardedLegIndex: index, phase: 'riding' });
+    vi.mocked(Date.now).mockReturnValue(Date.parse(leg.arriveAt) + 16 * 60_000);
+    expect((await app.inject({ method: 'PATCH', url: patchUrl, headers, payload: { boarding } })).statusCode).toBe(409);
   });
 
   it('validates save and patch bodies', async () => {
@@ -257,7 +269,7 @@ describe('SQLite storage', () => {
     const path = join(dir, 'db.sqlite');
     try {
       const request = TripRequestSchema.parse(fixtureRequest);
-      const watchStatus = { state: 'onTrack' as const, leaveBy: '2026-11-13T08:04:00-05:00', message: 'Leave by 8:04 AM.', checkedAt: '2026-11-13T12:30:00.000Z', usedRealtime: false };
+      const watchStatus = { state: 'onTrack' as const, leaveBy: '2026-11-13T08:04:00-05:00', message: 'Leave by 8:04 AM.', checkedAt: '2026-11-13T12:30:00.000Z', usedRealtime: false, boardedLegIndex: 1, change: { id: 'switch-1', message: 'Switched to a later bus.', changedAt: '2026-11-13T12:30:00.000Z' } };
       let first: DatabaseSync | undefined = new DatabaseSync(path);
       migrate(first);
       await new SqliteItineraryStore(first).save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true });
@@ -315,6 +327,9 @@ describe.each(['memory', 'sqlite'])('%s watch store', (implementation) => {
     expect(await items.get(DEVICE_A, saved.id)).toEqual(applied);
     expect((await items.get(DEVICE_B, saved.id))?.summary).toBe(sampleItinerary.summary);
     expect(await items.applyWatch(DEVICE_B, 'missing', { itinerary: replacement, request, watchStatus })).toBeUndefined();
+    await items.update(DEVICE_A, saved.id, { boarding: { legIndex: 1, tripId: replacement.legs[1]!.trip?.tripId ?? replacement.legs[1]!.id, state: 'boarded' } });
+    expect(await items.applyWatch(DEVICE_A, saved.id, { itinerary: replacement, request, watchStatus, previousStatus: watchStatus })).toBeUndefined();
+    expect((await items.get(DEVICE_A, saved.id))?.watchStatus?.boardedLegIndex).toBe(1);
   });
 });
 
