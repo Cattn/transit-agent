@@ -42,6 +42,26 @@ export function ResultsChrome(props: ResultsChromeProps) {
             </Pressable>
           </View>
         ) : null}
+        {props.savedTrip?.status ? <Text style={{ color: colors.onSurface }}>{props.savedTrip.status}</Text> : null}
+        {props.savedTrip?.change ? (
+          <View>
+            <Text style={{ color: colors.onSurface }}>{props.savedTrip.change}</Text>
+            <Pressable accessibilityRole="button" onPress={props.savedTrip.onDismissChange}><Text style={[styles.link, { color: colors.primary }]}>Dismiss change</Text></Pressable>
+          </View>
+        ) : null}
+        {props.savedTrip?.boardingLabel ? (
+          <View>
+            <Text style={{ color: colors.onSurface }}>{props.savedTrip.boardingLabel}</Text>
+            <Pressable accessibilityRole="button" onPress={props.savedTrip.onBoard}><Text style={[styles.link, { color: colors.primary }]}>I'm on board</Text></Pressable>
+            <Pressable accessibilityRole="button" onPress={props.savedTrip.onMissed}><Text style={[styles.link, { color: colors.primary }]}>Find next route</Text></Pressable>
+          </View>
+        ) : null}
+        {props.savedTrip?.watch && props.savedTrip.onToggleLocation ? (
+          <View>
+            <Text style={{ color: colors.onSurface }}>Share location for this trip while Home is open</Text>
+            <Switch accessibilityLabel="Share location for this trip" value={props.savedTrip.sharingLocation ?? false} onValueChange={props.savedTrip.onToggleLocation} />
+          </View>
+        ) : null}
         {props.savedTrip?.error ? (
           <Pressable accessibilityRole="button" onPress={props.savedTrip.onRetry}>
             <Text style={{ color: colors.onSurface }}>{`${props.savedTrip.error} Tap to retry.`}</Text>

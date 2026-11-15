@@ -1,4 +1,5 @@
-import { WatchStatusSchema, type Itinerary, type WatchStatus } from './itinerary.js';
+import { WatchStatusSchema, type Itinerary, type SavedItinerary, type WatchStatus } from './itinerary.js';
+import type { UpdateItineraryRequest } from './api.js';
 import { scheduledModes } from './modes.js';
 import type { TripRequest } from './trip-draft.js';
 
@@ -101,4 +102,33 @@ export function leaveByLabel(leaveBy: string, now: Date): string {
   const minutes = Math.floor((Date.parse(leaveBy) - now.getTime()) / MINUTE_MS);
   if (minutes === 0) return 'Leave now';
   return minutes > 0 ? `Leave in ${formatDuration(minutes)}` : `Left ${formatDuration(-minutes)} ago`;
+}
+
+export function applyWatchAction(saved: SavedItinerary, patch: UpdateItineraryRequest, now = new Date()): WatchStatus | undefined {
+  if (!patch.boarding && !patch.dismissChangeId) return saved.watchStatus;
+  const status = { ...(saved.watchStatus ?? computeWatchStatus(saved, saved.request, now)) };
+  if (patch.dismissChangeId === status.change?.id) delete status.change;
+  if (patch.boarding) {
+    const index = patch.boarding.legIndex;
+    const leg = saved.legs[index];
+    if (leg && scheduledModes.includes(leg.mode) && (leg.trip?.tripId ?? leg.id) === patch.boarding.tripId) {
+      status.activeLegIndex = index;
+      if (patch.boarding.state === 'boarded') {
+        status.boardedLegIndex = index;
+        delete status.missedLegIndex;
+        delete status.pendingReplan;
+        status.phase = 'riding';
+        status.state = 'onTrack';
+        delete status.leaveBy;
+        status.message = `On ${legName(leg)}, you'll arrive around ${formatTime(Date.parse(saved.arriveAt), saved.request.timeZone)}.`;
+      } else {
+        status.missedLegIndex = index;
+        status.pendingReplan = true;
+        status.phase = 'uncertain';
+        status.state = 'missed';
+        status.message = `Looking for the next route after ${legName(leg)}.`;
+      }
+    }
+  }
+  return status;
 }

@@ -39,6 +39,7 @@ Full findings, issue inventory and limitations: [reconciliation report](reconcil
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | IN PROGRESS (#72 candidate; remeasure before another fix) |
 | 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | PR #88 open (fresh-prediction acceptance moved to 008) |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | PR #100 open |
+| 039 | [Reliable watch and journey controls](039-watch-reliability.md) ([#107](https://github.com/Cattn/transit-agent/issues/107)) | Cattn | P1 | M | 008 | [PR #113](https://github.com/Cattn/transit-agent/pull/113) open (stacked on #100) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
 | 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (after Android transit; 011 response first) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (deferred; fixture scope/response refresh required) |

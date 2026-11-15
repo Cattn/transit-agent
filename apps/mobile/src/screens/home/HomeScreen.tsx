@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Modal, StyleSheet, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PRESET_ICONS, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey } from '@transit/shared';
+import { PRESET_ICONS, scheduledModes, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey, type UpdateItineraryRequest } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
 import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
 import { currentLocationPlace, getCurrentPlace, getLastKnownLocation, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { MapLoading, useMapLoad } from '../../map/MapLoading';
+import { useWatchLocation } from '../../platform/use-watch-location';
+import { tripCardText } from './TrackedTripCard';
 import { RouteMap } from '../../map/RouteMap';
 import { useLiveLocation } from '../../map/useLiveLocation';
 import type { RootStackParamList } from '../../navigation/types';
@@ -57,7 +59,7 @@ export interface HomeChromeProps {
   onTopLayout?: (bottomEdge: number) => void;
 }
 
-type TripAction = { id: string; kind: 'watch'; watch: boolean } | { id: string; kind: 'delete' };
+type TripAction = { id: string; kind: 'watch'; watch: boolean } | { id: string; kind: 'delete' } | { id: string; kind: 'update'; patch: UpdateItineraryRequest };
 
 const MAP_PADDING = 16;
 const PRESET_LABELS: Record<PresetKey, string> = { home: 'Home', office: 'Office', gym: 'Gym' };
@@ -122,15 +124,24 @@ function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onS
 export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Home'>) {
   const colors = useAppColors();
   const api = useApi();
-  const foreground = useAppForeground();
+  const focused = useIsFocused();
+  const appForeground = useAppForeground();
+  const foreground = appForeground && focused;
   const now = useNow(15_000);
   const { state, apply, reset, restore, request } = useTripDraft();
-  const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save, update, remove } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const [rerouting, setRerouting] = useState<{ client: typeof api; id: string; checkedAt?: string }>();
+  const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save, update, remove } = useSavedItineraries({ pollMs: rerouting?.client === api ? 2000 : 30_000, enabled: foreground });
+  const reroutingTrip = items.find((item) => item.id === rerouting?.id);
+  if (rerouting?.client === api && reroutingTrip && !reroutingTrip.watchStatus?.pendingReplan && reroutingTrip.watchStatus?.checkedAt !== rerouting.checkedAt) setRerouting(undefined);
   const [tripsListed, setTripsListed] = useState(false);
   if (!tripsListed && (items.length > 0 || tripsError || tripsLoading)) setTripsListed(true);
   const [saveFailed, setSaveFailed] = useState<{ itinerary: Itinerary; request: TripRequest }>();
   const [openSavedId, setOpenSavedId] = useState<string>();
   const [tripAction, setTripAction] = useState<TripAction>();
+  const [sharingTrips, setSharingTrips] = useState<{ client: typeof api; ids: ReadonlySet<string> }>({ client: api, ids: new Set() });
+  const sharedIds = sharingTrips.client === api ? sharingTrips.ids : new Set<string>();
+  const sharingIds = JSON.stringify(items.filter((trip) => sharedIds.has(trip.id) && trip.watch && trip.watchStatus?.state !== 'done' && Date.parse(trip.arriveAt) > now.getTime() && Date.parse(trip.departAt) - now.getTime() < 60 * 60_000).map((trip) => trip.id));
+  const locationError = useWatchLocation(api, sharingIds, foreground);
   const [profile, setProfile] = useState<TravelProfile>();
   const [presetEditing, setPresetEditing] = useState<PresetKey>();
   const [presetSaving, setPresetSaving] = useState(false);
@@ -223,9 +234,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const runTripAction = useCallback((action: TripAction) => {
     setTripAction(undefined);
-    const task = action.kind === 'watch' ? update(action.id, { watch: action.watch }) : remove(action.id);
-    task.catch(() => setTripAction(action));
-  }, [update, remove]);
+    const replan = action.kind === 'update' && action.patch.boarding?.state === 'missed';
+    if (replan) setRerouting({ client: api, id: action.id, checkedAt: items.find((item) => item.id === action.id)?.watchStatus?.checkedAt });
+    const task = action.kind === 'watch' ? update(action.id, { watch: action.watch }) : action.kind === 'update' ? update(action.id, action.patch) : remove(action.id);
+    return task.then(() => true).catch(() => { setTripAction(action); if (replan) setRerouting(undefined); return false; });
+  }, [update, remove, api, items]);
 
   const showRoutes = useCallback(() => {
     closeSaved();
@@ -371,6 +384,32 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, []);
 
   const openSaved = resultsOpen ? undefined : items.find((item) => item.id === openSavedId);
+  const boardingIndex = openSaved?.legs.findIndex((leg, index) => scheduledModes.includes(leg.mode)
+    && index > (openSaved.watchStatus?.boardedLegIndex ?? -1)
+    && (openSaved.watchStatus?.boardedLegIndex === undefined || now.getTime() >= Date.parse(openSaved.legs[openSaved.watchStatus.boardedLegIndex]!.arriveAt))
+    && now.getTime() >= Date.parse(leg.departAt) - 10 * 60_000
+    && now.getTime() <= Date.parse(leg.arriveAt) + 15 * 60_000) ?? -1;
+  const boardingLeg = openSaved?.legs[boardingIndex];
+  const setBoarding = (state: 'boarded' | 'missed') => {
+    if (openSaved && boardingLeg) runTripAction({ id: openSaved.id, kind: 'update', patch: { boarding: { legIndex: boardingIndex, tripId: boardingLeg.trip?.tripId ?? boardingLeg.id, state } } });
+  };
+  const toggleTripLocation = async (enabled: boolean) => {
+    if (!openSaved) return;
+    const id = openSaved.id;
+    if (enabled) {
+      const result = await getCurrentPlace();
+      if (!result.ok) {
+        setNotice('Could not enable trip location. Use the boarding buttons or enable location in Settings.');
+        return;
+      }
+    }
+    setSharingTrips((previous) => {
+      const next = new Set(previous.client === api ? previous.ids : []);
+      if (enabled) next.add(id);
+      else next.delete(id);
+      return { client: api, ids: next };
+    });
+  };
 
   useEffect(() => {
     if (!resultsOpen && !openSaved) return;
@@ -439,7 +478,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         unfocusedColors={choosing ? 'mode' : 'trip'}
         variant={choosing ? 'choosing' : 'saved'}
         buildPreview={buildPreview}
-        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}`}
+        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}|${openSaved?.request.time.at ?? ''}`}
       />
       {resultsOpen ? (
         <ResultsScreen
@@ -474,7 +513,16 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           savedTrip={{
             title: openSaved.label ?? 'Saved trip',
             watch: openSaved.watch,
-            error: tripAction?.id === openSaved.id ? (tripAction.kind === 'watch' ? 'Could not update this trip. Check your connection and try again.' : 'Could not delete this trip. Check your connection and try again.') : undefined,
+            status: tripCardText(openSaved, now).message,
+            rerouting: (rerouting?.client === api && rerouting.id === openSaved.id) || openSaved.watchStatus?.pendingReplan === true,
+            change: openSaved.watchStatus?.change?.message,
+            onDismissChange: openSaved.watchStatus?.change ? () => runTripAction({ id: openSaved.id, kind: 'update', patch: { dismissChangeId: openSaved.watchStatus!.change!.id } }) : undefined,
+            boardingLabel: openSaved.watch && boardingLeg ? `Are you on ${boardingLeg.routeName ?? boardingLeg.mode}?` : undefined,
+            onBoard: () => setBoarding('boarded'),
+            onMissed: () => setBoarding('missed'),
+            sharingLocation: sharedIds.has(openSaved.id),
+            onToggleLocation: (enabled) => void toggleTripLocation(enabled),
+            error: tripAction?.id === openSaved.id ? (tripAction.kind !== 'delete' ? 'Could not update this trip. Check your connection and try again.' : 'Could not delete this trip. Check your connection and try again.') : locationError ?? notice,
             onToggleWatch: (watch) => runTripAction({ id: openSaved.id, kind: 'watch', watch }),
             onDelete: () => runTripAction({ id: openSaved.id, kind: 'delete' }),
             onRetry: () => { if (tripAction) runTripAction(tripAction); }

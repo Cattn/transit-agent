@@ -172,6 +172,10 @@ describe('itineraryFreshness', () => {
     ['only estimates', withBus({ timeSource: 'estimated', delayMinutes: undefined }), { label: 'Estimated', tone: 'neutral' }]
   ] as [string, Itinerary, unknown][])('%s', (_name, it_, expected) => {
     expect(itineraryFreshness(it_)).toEqual(expected);
+    if (expected && it_.legs.some((leg) => leg.timeSource === 'realtime')) {
+      expect(itineraryFreshness(it_, new Date(Date.parse(it_.source.fetchedAt) + 4 * 60_000)).label).toBe('Outdated');
+      expect(itineraryFreshness({ ...it_, watchStatus: { state: 'onTrack', message: '', checkedAt: it_.source.fetchedAt, usedRealtime: false, refreshState: 'unavailable' } }).label).toBe('Updates unavailable');
+    }
   });
 });
 

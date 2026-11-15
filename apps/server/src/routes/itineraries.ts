@@ -1,17 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { z } from 'zod';
-import { SaveItineraryRequestSchema, WatchLocationReportSchema, type SavedItinerary } from '@transit/shared';
+import { scheduledModes, SaveItineraryRequestSchema, UpdateItineraryRequestSchema, WatchLocationReportSchema, type SavedItinerary } from '@transit/shared';
 import type { ServerDeps } from '../app.js';
 import { getDeviceId } from '../http/device.js';
 import { ApiError } from '../http/errors.js';
 import { parse } from '../http/validate.js';
-
-const PatchItinerarySchema = z
-  .object({
-    label: z.string().max(80).optional(),
-    watch: z.boolean().optional()
-  })
-  .strict();
 
 const notFound = (id: string) => new ApiError(404, 'not_found', `Saved itinerary ${id} not found`);
 
@@ -42,9 +34,21 @@ export const itineraryRoutes: FastifyPluginAsync<ServerDeps> = async (app, deps)
 
   app.patch<IdParams>('/api/itineraries/:id', async (request): Promise<SavedItinerary> => {
     const deviceId = getDeviceId(request);
-    const patch = parse(PatchItinerarySchema, request.body);
+    const patch = parse(UpdateItineraryRequestSchema, request.body);
+    if (patch.boarding) {
+      const item = await store.get(deviceId, request.params.id);
+      if (!item?.watch) throw notFound(request.params.id);
+      const leg = item.legs[patch.boarding.legIndex];
+      const now = Date.now();
+      if (!leg || !scheduledModes.includes(leg.mode) || (leg.trip?.tripId ?? leg.id) !== patch.boarding.tripId
+        || now < Date.parse(leg.departAt) - 10 * 60_000 || now > Date.parse(leg.arriveAt) + 15 * 60_000) {
+        throw new ApiError(409, 'trip_changed', 'This leg has changed or is not active. Refresh the trip and try again.');
+      }
+    }
     const updated = await store.update(deviceId, request.params.id, patch);
     if (!updated) throw notFound(request.params.id);
+    if (patch.watch === false) deps.locations.forget(deviceId, request.params.id);
+    if (patch.boarding?.state === 'missed') deps.onWatchAction?.();
     return updated;
   });
 

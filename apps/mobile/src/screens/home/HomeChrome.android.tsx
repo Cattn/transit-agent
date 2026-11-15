@@ -105,6 +105,7 @@ function TripCard({ trip, now, m, scheme, onOpen }: { trip: SavedItinerary; now:
           <Column verticalArrangement={{ spacedBy: 3 }} modifiers={[weight(1)]}>
             <Text color={m.onSurface} maxLines={1} overflow="ellipsis" style={m3Text('titleMedium')}>{text.title}</Text>
             <Text color={m.onSurfaceVariant} maxLines={2} overflow="ellipsis" style={m3Text('bodySmall')}>{text.message}</Text>
+            {text.change ? <Text color={m.primary} style={m3Text('labelSmall')}>Route updated · View details</Text> : null}
             <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
               <Row
                 horizontalArrangement={{ spacedBy: 4 }}

@@ -489,11 +489,11 @@ export function SettingsChrome(props: SettingsChromeProps) {
             </Column>
 
             <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
-              <GroupLabel m={m}>Leave reminders</GroupLabel>
+              <GroupLabel m={m}>Trip monitoring</GroupLabel>
               <Rows>
-                <SettingRow m={m} icon={Notifications} title="Watch saved trips" subtitle={COMING_SOON} trailing={<Switch value={false} enabled={false} />} disabled />
+                <SettingRow m={m} icon={Notifications} title="Watch saved trips" subtitle="Manage watching for each saved trip on Home" chevron onClick={props.onBack} />
                 <SettingRow m={m} icon={Schedule} title="Buffer before “leave now”" subtitle={COMING_SOON} chevron disabled />
-                <SettingRow m={m} icon={AutoAwesome} title="Agent can suggest the next option" subtitle={COMING_SOON} trailing={<Switch value={false} enabled={false} />} disabled />
+                <SettingRow m={m} icon={AutoAwesome} title="Missed-trip recovery" subtitle="Watched trips can switch to a valid next route after a confirmed miss" />
               </Rows>
             </Column>
 

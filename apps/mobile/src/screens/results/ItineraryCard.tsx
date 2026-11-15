@@ -50,6 +50,8 @@ export interface NearMissText {
 }
 
 function freshnessDetail(it: Itinerary, now: Date): string {
+  const freshness = itineraryFreshness(it, now);
+  if (freshness.label === 'Outdated' || freshness.label === 'Updates unavailable') return 'last known times';
   const live = it.legs.find((leg) => leg.timeSource === 'realtime' && scheduledModes.includes(leg.mode));
   if (live) {
     const minutes = Math.round((Date.parse(live.departAt) - now.getTime()) / 60_000);
@@ -59,15 +61,16 @@ function freshnessDetail(it: Itinerary, now: Date): string {
   return itineraryFreshness(it).label === 'Live' ? '' : it.legs.some((leg) => leg.timeSource === 'scheduled') ? 'timetable only' : '';
 }
 
-function cardFreshness(it: Itinerary): Badge {
-  const overall = itineraryFreshness(it);
+function cardFreshness(it: Itinerary, now: Date): Badge {
+  const overall = itineraryFreshness(it, now);
   if (overall.label !== 'Live') return overall;
   const live = it.legs.find((leg) => leg.timeSource === 'realtime');
   return live ? legFreshness(live) : overall;
 }
 
 export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): ItineraryCardText {
-  const freshness = cardFreshness(it);
+  const freshness = cardFreshness(it, now);
+  const outdated = freshness.label === 'Outdated' || freshness.label === 'Updates unavailable';
   return {
     times: formatTimeRange(it.departAt, it.arriveAt, timeZone),
     duration: formatDuration(it.durationMinutes),
@@ -76,11 +79,11 @@ export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): 
       return { id: leg.id, mode: leg.mode, transit, label: transit ? legLabel(leg) : String(Math.round(leg.durationMinutes)) };
     }),
     freshness,
-    live: itineraryFreshness(it).label === 'Live',
+    live: itineraryFreshness(it, now).label === 'Live',
     detail: freshnessDetail(it, now),
     cost: formatCost(it.cost),
     risk: riskBadge(it.risk),
-    details: it.legs.map((leg) => ({ id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: legFreshness(leg) }))
+    details: it.legs.map((leg) => ({ id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: outdated && leg.timeSource === 'realtime' ? { label: 'Outdated', tone: 'warn' } : legFreshness(leg) }))
   };
 }
 

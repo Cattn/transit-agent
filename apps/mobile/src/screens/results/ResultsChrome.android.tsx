@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -33,6 +33,7 @@ import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
 import { CARD_RADIUS, corners, MODE_ICONS, RouteCard } from './RouteCard.android';
 import type { ResultsChromeProps } from './ResultsScreen';
+import { WatchPanel } from './WatchPanel.android';
 
 // The sheet's header is its drag handle: content panning is off so the route list never moves the sheet (#81).
 const SheetHeaderContext = createContext<{ header: ReactNode; indicator: string; onHeight: (height: number) => void }>({ header: null, indicator: 'transparent', onHeight: () => undefined });
@@ -65,6 +66,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
   const [headerHeight, setHeaderHeight] = useState(HEADER_ESTIMATE);
+  const sheet = useRef<BottomSheet>(null);
 
   const expanded = Math.max(3, Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP)));
   const travel = Math.max(1, Math.min(MIN_TRAVEL, Math.floor(expanded / 3)));
@@ -77,6 +79,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
     setSheetIndex(index);
     props.onSheetLayout(snapPoints[index] ?? collapsed);
   };
+
 
   const header = (
     <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
@@ -126,7 +129,10 @@ export function ResultsChrome(props: ResultsChromeProps) {
             </IconButton>
           </Row>
         ) : null}
-        {props.savedTrip?.error ? (
+        {props.savedTrip && sheetIndex === 2 ? (
+          <TextButton onClick={() => sheet.current?.snapToIndex(COLLAPSED)}><Text style={m3Text('labelLarge')}>Trip updates</Text></TextButton>
+        ) : null}
+        {props.savedTrip?.error && sheetIndex === 2 ? (
           <Row
             horizontalArrangement={{ spacedBy: 10 }}
             verticalAlignment="center"
@@ -237,6 +243,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
 
       <SheetHeaderContext.Provider value={{ header, indicator: m.onSurfaceVariant, onHeight: setHeaderHeight }}>
         <BottomSheet
+          ref={sheet}
           index={COLLAPSED}
           snapPoints={snapPoints}
           enableDynamicSizing={false}
@@ -315,6 +322,11 @@ export function ResultsChrome(props: ResultsChromeProps) {
           </View>
         </BottomSheet>
       </SheetHeaderContext.Provider>
+      {props.savedTrip && sheetIndex !== 2 ? (
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 24, right: 24, bottom: (snapPoints[sheetIndex] ?? collapsed) + 16, alignItems: 'center' }}>
+          <WatchPanel key={props.title} trip={props.savedTrip} m={m} scheme={scheme} />
+        </View>
+      ) : null}
       <View pointerEvents="none" style={[styles.navStrip, { height: insets.bottom, backgroundColor: m.surfaceContainerLow }]} />
     </View>
   );

@@ -50,6 +50,14 @@ export type WatchLocationReport = z.infer<typeof WatchLocationReportSchema>;
 
 export const SavedItineraryListSchema = z.object({ itineraries: z.array(SavedItinerarySchema) });
 
+export const UpdateItineraryRequestSchema = z.object({
+  label: z.string().max(80).optional(),
+  watch: z.boolean().optional(),
+  boarding: z.object({ legIndex: z.number().int().nonnegative(), tripId: z.string(), state: z.enum(['boarded', 'missed']) }).optional(),
+  dismissChangeId: z.string().optional()
+}).strict();
+export type UpdateItineraryRequest = z.infer<typeof UpdateItineraryRequestSchema>;
+
 export const ApiErrorSchema = z.object({
   error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() })
 });

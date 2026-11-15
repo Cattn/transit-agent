@@ -21,7 +21,7 @@ const providers = createRouteProviders();
 const places = createPlaceSearcher({ photonUrl: process.env.PHOTON_URL || undefined });
 const agent = plannerConfigured() ? new (await import('./agent/adk-planner.js')).AdkPlanner({ itineraries, providers, places }) : undefined;
 const locations = new TripLocations();
-const app = createServer({ itineraries, providers, profiles: new SqliteProfileStore(db), agent, places, locations });
+const app = createServer({ itineraries, providers, profiles: new SqliteProfileStore(db), agent, places, locations, onWatchAction: () => watchJob?.checkSoon() });
 app.log.info({ routeProviders: providers.map((provider) => provider.name) }, 'Route providers');
 app.log.info({ agentEnabled: Boolean(agent), backend: agent ? (usesVertex() ? 'vertex' : 'gemini-api') : undefined }, 'Planner agent availability');
 const watchIntervalSeconds = Number(process.env.WATCH_INTERVAL_SECONDS ?? 60);

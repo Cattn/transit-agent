@@ -11,7 +11,8 @@
       "bundleIdentifier": "com.transitagent.app"
     },
     "android": {
-      "package": "com.transitagent.app"
+      "package": "com.transitagent.app",
+      "icon": "./assets/icon.png"
     },
     "plugins": [
       [

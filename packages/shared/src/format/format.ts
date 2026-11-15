@@ -1,7 +1,7 @@
 // Shared display text: one place for the wording every screen, map popup and agent reply uses.
 // Pure functions, no `node:` imports (runs on Hermes). New wording for the same concept changes here.
 
-import type { Itinerary } from '../domain/itinerary.js';
+import type { Itinerary, WatchStatus } from '../domain/itinerary.js';
 import { scheduledModes, type TravelMode } from '../domain/modes.js';
 
 type Leg = Itinerary['legs'][number];
@@ -132,7 +132,10 @@ export function legFreshness(leg: Leg): Badge {
 }
 
 /** One badge for a whole option: Live if any leg is live; otherwise say when transit times are schedule-only. */
-export function itineraryFreshness(it: Itinerary): Badge {
+export function itineraryFreshness(it: Itinerary & { watchStatus?: WatchStatus }, now?: Date): Badge {
+  const status = it.watchStatus;
+  if (status?.refreshState && status.refreshState !== 'fresh' && it.legs.some((leg) => scheduledModes.includes(leg.mode))) return { label: 'Updates unavailable', tone: 'warn' };
+  if (now && it.legs.some((leg) => leg.timeSource === 'realtime') && now.getTime() - Date.parse(status?.lastSuccessfulAt ?? it.source.fetchedAt) > 3 * 60_000) return { label: 'Outdated', tone: 'warn' };
   if (it.legs.some((l) => l.timeSource === 'realtime')) return { label: 'Live', tone: 'ok' };
   if (it.legs.some((l) => l.timeSource === 'scheduled' && scheduledModes.includes(l.mode))) {
     return { label: 'Scheduled', tone: 'neutral' };

@@ -21,6 +21,7 @@ export type Boarding = 'boarded' | 'missed' | 'unknown';
 
 export class TripLocations {
   private readonly points = new Map<string, LocationPoint[]>();
+  private readonly expiry = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(private readonly now: () => Date = () => new Date()) {}
 
@@ -30,6 +31,10 @@ export class TripLocations {
     const kept = (this.points.get(key) ?? []).filter((point) => atMs - point.atMs <= KEEP_MS);
     kept.push({ ...report, atMs });
     this.points.set(key, kept.slice(-MAX_POINTS));
+    clearTimeout(this.expiry.get(key));
+    const timer = setTimeout(() => this.forget(deviceId, id), KEEP_MS);
+    timer.unref();
+    this.expiry.set(key, timer);
   }
 
   recent(deviceId: string, id: string): LocationPoint[] {
@@ -38,7 +43,10 @@ export class TripLocations {
   }
 
   forget(deviceId: string, id: string): void {
-    this.points.delete(JSON.stringify([deviceId, id]));
+    const key = JSON.stringify([deviceId, id]);
+    clearTimeout(this.expiry.get(key));
+    this.expiry.delete(key);
+    this.points.delete(key);
   }
 }
 
@@ -64,13 +72,18 @@ export function metersToLine(point: LngLat, line: LngLat[]): number {
 
 export function boardingFrom(leg: Leg, points: LocationPoint[], now: Date): Boarding {
   const settled = Date.parse(leg.departAt) + SETTLE_MS;
-  const after = points.filter((point) => point.atMs >= settled);
+  const after = points.filter((point) => point.atMs >= settled && now.getTime() - point.atMs <= STALE_MS && (point.accuracyMeters ?? Infinity) <= 100);
   const latest = after[after.length - 1];
   if (!latest || now.getTime() - latest.atMs > STALE_MS) return 'unknown';
   const tolerance = (point: LocationPoint) => Math.min(MAX_TOLERANCE_METERS, Math.max(ON_ROUTE_METERS, point.accuracyMeters ?? 0));
   const fromStop = (point: LocationPoint) => haversineMeters(point.coordinates, leg.from.coordinates);
   const fromRoute = (point: LocationPoint) => metersToLine(point.coordinates, leg.geometry.coordinates);
-  if (after.some((point) => fromRoute(point) <= tolerance(point) && fromStop(point) > LEFT_STOP_METERS)) return 'boarded';
-  if (fromStop(latest) <= tolerance(latest) || fromRoute(latest) > OFF_ROUTE_METERS) return 'missed';
+  const first = after[0];
+  if (!first || latest.atMs - first.atMs < 30_000) return 'unknown';
+  const travel = haversineMeters(first.coordinates, latest.coordinates);
+  const speed = travel / ((latest.atMs - first.atMs) / 1000);
+  if (after.length >= 2 && fromRoute(first) <= tolerance(first) && fromRoute(latest) <= tolerance(latest)
+    && fromStop(latest) > LEFT_STOP_METERS && fromStop(latest) > fromStop(first) + 100 && speed >= 3 && speed <= 60) return 'boarded';
+  if (after.every((point) => fromStop(point) <= tolerance(point)) || after.every((point) => fromRoute(point) > OFF_ROUTE_METERS)) return 'missed';
   return 'unknown';
 }

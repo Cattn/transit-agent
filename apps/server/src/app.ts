@@ -24,6 +24,7 @@ export interface ServerDeps {
   profiles: ProfileStore;
   places: PlaceSearcher;
   locations: TripLocations;
+  onWatchAction?: () => void;
 }
 
 export function createServer(deps: Partial<ServerDeps> = {}) {
@@ -33,7 +34,8 @@ export function createServer(deps: Partial<ServerDeps> = {}) {
     itineraries: deps.itineraries ?? new MemoryItineraryStore(),
     profiles: deps.profiles ?? new MemoryProfileStore(),
     places: deps.places ?? createPlaceSearcher({}),
-    locations: deps.locations ?? new TripLocations()
+    locations: deps.locations ?? new TripLocations(),
+    onWatchAction: deps.onWatchAction
   };
 
   const app = Fastify({ logger: true });

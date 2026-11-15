@@ -26,15 +26,17 @@ export function watchClassFor(it: Itinerary): WatchClass | undefined {
 }
 
 export function hasIssue(it: Itinerary, status: SavedItinerary['watchStatus']): boolean {
-  return status?.state === 'atRisk' || (anchorLeg(it).delayMinutes ?? 0) > 0;
+  return status?.state === 'atRisk' || status?.refreshState === 'unavailable' || status?.refreshState === 'notFound' || (anchorLeg(it).delayMinutes ?? 0) > 0;
 }
 
 export function isDue(it: SavedItinerary, now: Date): boolean {
   const watchClass = watchClassFor(it);
-  if (!watchClass) return false;
+  if (!watchClass) return it.watchStatus?.phase === 'enRoute' && now.getTime() - Date.parse(it.watchStatus.checkedAt) >= RAMP_INTERVAL_MINUTES * MINUTE_MS;
   const nowMs = now.getTime();
   const departMs = Date.parse(anchorLeg(it).departAt);
   const last = it.watchStatus ? Date.parse(it.watchStatus.checkedAt) : undefined;
+  if (it.watchStatus?.pendingReplan) return true;
+  if (it.watchStatus?.missedLegIndex !== undefined) return last === undefined || nowMs - last >= RAMP_INTERVAL_MINUTES * MINUTE_MS;
   if (it.watchStatus?.state === 'done') return false;
   const policy = watchPolicies[watchClass];
   if (last === undefined) return departMs - nowMs <= Math.max(...policy.checkpointsMinutes) * MINUTE_MS;
