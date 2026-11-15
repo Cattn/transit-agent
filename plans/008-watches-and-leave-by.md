@@ -15,7 +15,7 @@
 - **Risk**: MED
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
-- **State**: PR open (`server/watches`); decisions recorded by Cattn 2026-11-14 under "Decisions".
+- **State**: PR #100 open (`server/watches`); decisions recorded by Cattn 2026-11-14 under "Decisions".
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
