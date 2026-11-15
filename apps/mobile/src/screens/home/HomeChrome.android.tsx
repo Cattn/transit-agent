@@ -8,7 +8,6 @@ import {
   Column,
   DropdownMenu,
   DropdownMenuItem,
-  ExtendedFloatingActionButton,
   FilledTonalIconButton,
   FloatingActionButton,
   Icon,
@@ -24,6 +23,7 @@ import {
 } from '@expo/ui/jetpack-compose';
 import { background, clip, fillMaxWidth, height, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
+import AutoAwesome from '../../../assets/icons/auto_awesome_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import Edit from '../../../assets/icons/edit_fill.xml';
 import Favorite from '../../../assets/icons/favorite_fill.xml';
@@ -41,7 +41,6 @@ import Warning from '../../../assets/icons/warning_fill.xml';
 import Sensors from '../../../assets/icons/sensors_fill.xml';
 import Settings from '../../../assets/icons/settings_fill.xml';
 import ShoppingBag from '../../../assets/icons/shopping_bag_fill.xml';
-import WandShine from '../../../assets/icons/wand_shine_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
 import type { SavedItinerary } from '@transit/shared';
 import { materialSeedColor } from '../../theme/colors';
@@ -220,14 +219,11 @@ export function HomeChrome(props: HomeChromeProps) {
                 <Icon source={MyLocation} size={24} contentDescription={locating ? 'Finding your location' : 'Use my location'} />
               </FloatingActionButton.Icon>
             </FloatingActionButton>
-            <ExtendedFloatingActionButton onClick={props.onAskAgent}>
-              <ExtendedFloatingActionButton.Icon>
-                <Icon source={WandShine} size={24} />
-              </ExtendedFloatingActionButton.Icon>
-              <ExtendedFloatingActionButton.Text>
-                <Text style={m3Text('labelLarge')}>Ask agent</Text>
-              </ExtendedFloatingActionButton.Text>
-            </ExtendedFloatingActionButton>
+            <FloatingActionButton onClick={props.onAskAgent}>
+              <FloatingActionButton.Icon>
+                <Icon source={AutoAwesome} size={24} contentDescription="Ask agent" />
+              </FloatingActionButton.Icon>
+            </FloatingActionButton>
           </Column>
         </Host>
       ) : null}
