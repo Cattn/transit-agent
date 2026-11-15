@@ -367,12 +367,12 @@ export function SettingsChrome(props: SettingsChromeProps) {
                 <Button onClick={props.onRetryLoad}>
                   <Text style={m3Text('labelLarge')}>Retry</Text>
                 </Button>
-                <Rows>{serverRow}</Rows>
-                {serverDialog}
               </>
             ) : (
               <LoadingIndicator modifiers={[size(40, 40)]} />
             )}
+            <Rows>{serverRow}</Rows>
+            {serverDialog}
           </Column>
         </Block>
       </View>

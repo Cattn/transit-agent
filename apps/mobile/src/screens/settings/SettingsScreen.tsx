@@ -174,6 +174,16 @@ export function SettingsScreen() {
   const locationRequest = useRef(0);
   const generation = useRef(0);
   const live = useRef(true);
+  const [profileApi, setProfileApi] = useState(api);
+  if (profileApi !== api) {
+    setProfileApi(api);
+    setProfile(undefined);
+    setLoadError(undefined);
+    setSaveError(undefined);
+    setEditingPlace(undefined);
+    setLocating(false);
+    setNotice(undefined);
+  }
 
   useEffect(() => {
     live.current = true;
@@ -182,6 +192,9 @@ export function SettingsScreen() {
 
   useEffect(() => {
     let active = true;
+    generation.current += 1;
+    saved.current = EMPTY;
+    desired.current = EMPTY;
     profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active) return;
       const next: Profile = loaded ? { displayName: loaded.displayName, home: loaded.home, work: loaded.work, defaults: loaded.defaults } : EMPTY;
@@ -222,6 +235,7 @@ export function SettingsScreen() {
         await api.putProfile(body);
         saved.current = next;
       } catch {
+        if (gen !== generation.current) return;
         generation.current += 1;
         desired.current = saved.current;
         if (!live.current) return;
