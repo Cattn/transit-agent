@@ -194,7 +194,7 @@ All of this is in `HomeScreen.tsx` (app code, not this package):
 | --- | --- |
 | Which trips | Results open: the results' itineraries plus near misses. Otherwise: the saved, watched trips |
 | Look | Results open: `variant="choosing"`, `unfocusedColors="mode"`. Otherwise: `variant="saved"`, `unfocusedColors="trip"` |
-| Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given. **Location presets (plan 038):** a saved trip whose destination is within 150 m of Home, Office or Gym draws in that preset's colour (`presetTripColors` is merged over the stored colours), so changing a preset's colour recolours its trips at once, and saving a result to a preset stores the preset's colour |
+| Colours | `assignRouteColors(shownIds, savedColors)` once over the trips on screen; saved trips keep their stored colour. Saving a result stores the colour it was given. **Location presets (plan 038):** a saved trip whose destination is within 150 m of Home, Office or Gym draws in that preset's colour (`withPresetColors(stored, presetTripColors(...))`: preset colours win, and an unrelated trip stored in a preset's colour is given a free one), so changing a preset's colour recolours its trips at once, and saving a result to a preset stores the preset's colour |
 | Accent | `accentColor={light.primary}` (`#6750A4`), always the light theme's purple, because the basemap is always light |
 | Basemap | OpenFreeMap Positron |
 | Padding | Top: the bottom edge of the search bar + mode tabs (`HomeChrome` reports it with `onTopLayout`) + 16. Right: 16 + 64 for the locate / layers button column. Bottom: the sheet's height. Left: 16 |
@@ -394,6 +394,7 @@ optional, and leaving them out keeps the original look, so existing callers (web
 | `metersBetween(a, b)` | Distance in metres between two `[lng, lat]` points |
 | `presetColor`, `presetIcon`, `presetPlace(key, profile)` | A location preset's colour / icon / place, with defaults (plan 038) |
 | `presetForPlace(place, profile)`, `presetTripColors(trips, profile)` | Which preset a place belongs to (closest within `PRESET_MATCH_METERS`, 150 m); saved-trip id → preset colour |
+| `withPresetColors(stored, presetColors)` | The fixed colours for `assignRouteColors`: preset colours win, and a stored colour that clashes with a preset is dropped so that trip gets a free colour |
 | `DEFAULT_PRESET_COLORS`, `DEFAULT_PRESET_ICONS` | Home purple, Office blue, Gym green (all from `PALETTE`); `home`, `work`, `fitness` |
 | `DEFAULT_ACCENT_COLOR`, `END_ICON_ID`, size constants | Shared constants |
 
@@ -525,7 +526,7 @@ Go and is otherwise parked.
 | ✅ Web map (`@transit/maps/web`) | `RouteMap`, two looks, markers + end icon, bubbles, location dot + cone, pan to location, deselect |
 | ✅ Mobile map | DOM component in Home's `MapSlot`; worker built into the bundle (no CDN, works in exported builds); live location + compass; top padding from `HomeChrome` |
 | ✅ Example routes + demo | `@transit/maps/samples` (incl. `testScenarios`), `npm run demo:maps` |
-| ✅ Tests | 127 unit tests in `@transit/maps` |
+| ✅ Tests | 129 unit tests in `@transit/maps` |
 | ✅ Android proof | Pixel 10, Android 17 (beta), Expo Go 58.0.5, light and dark; see [Android proof](#android-proof-pr-76) |
 
 ### Android proof (PR #76)
@@ -607,7 +608,7 @@ Q3–Q5; 030-Q1–Q3) are answered by @KrakenTheJaken.
 
 ```sh
 npm run demo:maps                    # the demo, http://localhost:5180
-npm run test:unit -w @transit/maps   # 127 tests
+npm run test:unit -w @transit/maps   # 129 tests
 npm run build -w @transit/maps       # build to dist/ (the root build:shared does this too)
 npm run typecheck -w @transit/maps   # package + demo
 node packages/maps/scripts/gen-samples.mjs packages/maps/src/samples.ts   # refetch example routes (needs internet)

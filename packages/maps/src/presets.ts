@@ -45,3 +45,13 @@ export function presetTripColors(
   }
   return colors;
 }
+
+export function withPresetColors(stored: ReadonlyMap<string, string>, presets: ReadonlyMap<string, string>): Map<string, string> {
+  const taken = new Set([...presets.values()].map((color) => color.toLowerCase()));
+  const fixed = new Map<string, string>();
+  for (const [id, color] of stored) {
+    if (!presets.has(id) && !taken.has(color.toLowerCase())) fixed.set(id, color);
+  }
+  for (const [id, color] of presets) fixed.set(id, color);
+  return fixed;
+}

@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PRESET_ICONS, toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest, type PresetIcon, type PresetKey } from '@transit/shared';
 import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '@transit/client-react';
-import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, type BuildPreview } from '@transit/maps';
+import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
 import { RouteMap } from '../../map/RouteMap';
@@ -304,9 +304,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setPresetSaving(true);
     setPresetError(undefined);
     try {
-      const { updatedAt, ...base } = profile ?? ({} as Partial<TravelProfile>);
+      await profileSaved();
+      const current = await api.getProfile();
+      const { updatedAt, ...base } = current ?? ({} as Partial<TravelProfile>);
       void updatedAt;
-      const preset = key === 'gym' ? choice : { color: choice.color, icon: choice.icon };
+      const preset = key === 'gym' ? { ...choice, place: choice.place ?? base.presets?.gym?.place } : { color: choice.color, icon: choice.icon };
       const saved = await api.putProfile({ ...base, presets: { ...base.presets, [key]: preset } });
       setProfile(saved);
       setPresetEditing(undefined);
@@ -315,7 +317,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     } finally {
       setPresetSaving(false);
     }
-  }, [api, profile]);
+  }, [api]);
 
   const chips = useMemo<SavedPlaceChip[]>(() => {
     const chip = (key: PresetKey, label: string): SavedPlaceChip => {
@@ -363,7 +365,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const savedIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
   const savedColors = useMemo(
-    () => new Map([...items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : [])), ...presetTripColors(items, profile)]),
+    () => withPresetColors(new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), presetTripColors(items, profile)),
     [items, profile]
   );
 

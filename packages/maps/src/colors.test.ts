@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PALETTE, assignRouteColors, hashString, routeColor } from './colors.js';
-import { DEFAULT_PRESET_COLORS, DEFAULT_PRESET_ICONS, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors } from './presets.js';
+import { DEFAULT_PRESET_COLORS, DEFAULT_PRESET_ICONS, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors } from './presets.js';
 
 describe('PALETTE', () => {
   it('has 8 distinct hex colours', () => {
@@ -235,5 +235,19 @@ describe('place presets (plan 038)', () => {
     const colors = assignRouteColors(ids, fixed);
     expect(colors.get('to-gym')).toBe('#db2777');
     expect(ids.slice(1).map((id) => colors.get(id))).not.toContain('#db2777');
+  });
+
+  it('moves an unrelated saved trip off a preset colour it was stored with (PR #98 review)', () => {
+    const orange = '#ea580c';
+    const fixed = withPresetColors(new Map([['to-home', PALETTE[0]!], ['unrelated', orange], ['kept', PALETTE[1]!]]), new Map([['to-home', orange]]));
+    expect(fixed).toEqual(new Map([['kept', PALETTE[1]!], ['to-home', orange]]));
+    const colors = assignRouteColors(['to-home', 'unrelated', 'kept'], fixed);
+    expect(colors.get('to-home')).toBe(orange);
+    expect(colors.get('kept')).toBe(PALETTE[1]);
+    expect(new Set(colors.values()).size).toBe(3);
+  });
+
+  it('matches preset colours regardless of hex case', () => {
+    expect(withPresetColors(new Map([['unrelated', '#EA580C']]), new Map([['to-home', '#ea580c']]))).toEqual(new Map([['to-home', '#ea580c']]));
   });
 });
