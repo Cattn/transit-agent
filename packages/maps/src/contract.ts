@@ -46,4 +46,6 @@ export interface RouteMapProps {
   variant?: 'saved' | 'choosing';
   accentColor?: string;
   buildPreview?: BuildPreview;
+  onLoad?: () => void;
+  onLoadError?: () => void;
 }

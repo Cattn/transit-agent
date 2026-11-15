@@ -4,7 +4,7 @@ import RouteMapDom from './RouteMapDom';
 
 const DOM_VIEW = { style: { flex: 1 }, scrollEnabled: false, bounces: false, overScrollMode: 'never' } as const;
 
-export function RouteMap({ routeColors, onRouteSelect, onDeselect, visibleModes, userLocation, ...props }: RouteMapProps) {
+export function RouteMap({ routeColors, onRouteSelect, onDeselect, onLoad, onLoadError, visibleModes, userLocation, ...props }: RouteMapProps) {
   const colors = useMemo(() => (routeColors ? Object.fromEntries(routeColors) : undefined), [routeColors]);
   const modes = useMemo(() => (visibleModes ? [...visibleModes] : undefined), [visibleModes]);
   const location = useMemo<[number, number] | undefined>(
@@ -16,6 +16,8 @@ export function RouteMap({ routeColors, onRouteSelect, onDeselect, visibleModes,
     [onRouteSelect]
   );
   const deselect = useMemo(() => (onDeselect ? async () => onDeselect() : undefined), [onDeselect]);
+  const load = useMemo(() => (onLoad ? async () => onLoad() : undefined), [onLoad]);
+  const loadError = useMemo(() => (onLoadError ? async () => onLoadError() : undefined), [onLoadError]);
 
   return (
     <RouteMapDom
@@ -25,6 +27,8 @@ export function RouteMap({ routeColors, onRouteSelect, onDeselect, visibleModes,
       routeColors={colors}
       onRouteSelect={select}
       onDeselect={deselect}
+      onLoad={load}
+      onLoadError={loadError}
       dom={DOM_VIEW}
     />
   );

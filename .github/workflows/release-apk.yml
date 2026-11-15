@@ -7,7 +7,11 @@ on:
     inputs:
       tag:
         description: Tag to build and release (created on the selected branch if it does not exist)
-        required: true
+        required: false
+      warm_cache:
+        description: Warm build caches on main without publishing a release
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -21,13 +25,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      TAG: ${{ inputs.tag || github.ref_name }}
+      TAG: ${{ inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
       EXPO_PUBLIC_API_MODE: server
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
       KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_MAXSIZE: 2G
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +43,15 @@ jobs:
       - name: Check out the tag
         shell: bash
         run: |
+          if [ "${{ inputs.warm_cache }}" = true ]; then
+            if [ "$GITHUB_REF" != refs/heads/main ]; then
+              echo "::error::Select main to warm caches for future tag builds"; exit 1
+            fi
+            exit 0
+          fi
+          if [ -z "$TAG" ]; then
+            echo "::error::A tag is required when not warming caches"; exit 1
+          fi
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             git checkout --detach "refs/tags/$TAG"
             echo "TAG_EXISTS=true" >> "$GITHUB_ENV"
@@ -53,11 +70,21 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
+      - name: Install ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: android-ccache-${{ runner.os }}-arm64-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            android-ccache-${{ runner.os }}-arm64-${{ hashFiles('package-lock.json') }}-
+            android-ccache-${{ runner.os }}-arm64-
       - run: npm install -g npm@^11.8
       - run: npm ci
       - run: npm run build:packages
 
       - name: Set the app version from the tag
+        if: ${{ !inputs.warm_cache }}
         shell: bash
         run: |
           node -e '
@@ -91,16 +118,22 @@ jobs:
           else
             echo "::warning::No ANDROID_KEYSTORE_BASE64 secret; signing with the shared Expo debug key."
           fi
-          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64 "${signing[@]}"
+          ./gradlew assembleRelease --no-daemon --build-cache '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g' -PreactNativeArchitectures=arm64-v8a "${signing[@]}"
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/transit-agent.apk"
 
+      - name: Show compiler cache statistics
+        if: always()
+        run: ccache --show-stats
+
       - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.warm_cache }}
         with:
           name: transit-agent-${{ env.TAG }}
           path: ${{ runner.temp }}/transit-agent.apk
           retention-days: 14
 
       - name: Publish the GitHub release
+        if: ${{ !inputs.warm_cache }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
