@@ -13,6 +13,34 @@ npm run dev
 
 This builds and watches shared code and starts the API, web app, and Expo together. Open http://localhost:5173 for web. The API listens on http://localhost:3001/api/health. Scan the Expo terminal QR code with Expo Go on your phone.
 
+## Run it on a laptop and test on phones
+
+Put the server settings in `apps/server/.env` first (copy `apps/server/.env.example`). Each script builds what it needs and stops everything on Ctrl+C.
+
+| Command | What it does |
+|---|---|
+| `npm run host` | Builds and starts the API on this laptop. Prints the Wi-Fi address and a QR code for `<server>/connect`. |
+| `npm run host:public` | Same, plus a public HTTPS URL through Tailscale Funnel (or a cloudflared quick tunnel if Tailscale isn't installed). Anyone can reach it. |
+| `npm run share` | `host:public` plus Metro over an Expo tunnel, so testers can also open the live dev build in Expo Go. |
+| `npm run phone` | USB Android phone: starts the API (or reuses a running one), runs `adb reverse`, starts Metro and opens the app in Expo Go against the real server. |
+| `npm run phone:mock` | Same, with mock data and no server. |
+| `npm run phone:apk` | Downloads the latest release APK, installs it over USB and connects it to this laptop's server. |
+| `npm run phone:app` | Connects an already installed APK to this laptop's server over USB. |
+
+Options: `--port=<api port>`, `--metro-port=<port>`, `--serial=<adb device>`, `--no-build` (host), `--no-server` (phone), `--tunnel=tailscale|cloudflared`.
+
+**Testers** open `<server>/connect` on their phone (the host script prints it as a link and a QR code). The page has two buttons: install the latest APK, then connect the app to that server. The app saves the server, so this is a one-time step. A connect link is `transit-agent://connect?url=<server URL>` (in Expo Go: `exp://…/--/connect?url=…`). An empty `url` forgets the saved server. A saved server takes priority over `EXPO_PUBLIC_API_URL`.
+
+On Windows, allow Node.js through the firewall on private networks the first time, or Wi-Fi phones can't reach the API.
+
+## Android APK releases
+
+Push a tag starting with `v` (for example `git tag v0.2.0 && git push origin v0.2.0`) to build a release APK in GitHub Actions and attach it to a GitHub release as `transit-agent.apk`. Tags with a hyphen (`v0.2.0-rc.1`) become prereleases. You can also run **Release Android APK** from the Actions tab with a tag name. The latest APK is always at `https://github.com/Cattn/transit-agent/releases/latest/download/transit-agent.apk`.
+
+- The APK runs in server mode. Set the `EXPO_PUBLIC_API_URL` repository variable to bake in a default server; without it, testers connect through the `/connect` page.
+- Signing: add the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` secrets to sign with your own key. Without them, the build uses Expo's shared debug key. That works for testing, but anyone can sign an APK with that key.
+- The version name comes from the tag and the version code from the workflow run number, so each release installs over the previous one.
+
 ## Workspace
 
 - `apps/web`: React + Vite with a development proxy for `/api`.

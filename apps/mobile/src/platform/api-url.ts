@@ -4,6 +4,7 @@ export const DEFAULT_API_PORT = 3001;
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 
 export interface ResolveApiUrlInput {
+  storedUrl?: string | null;
   /** EXPO_PUBLIC_API_URL. Always wins when set. */
   envUrl?: string;
   /** Expo's dev-server address, e.g. "192.168.1.20:8081" (Constants.expoConfig.hostUri). */
@@ -21,12 +22,14 @@ function hostOf(hostUri: string): string | undefined {
 
 /**
  * Where the app should reach the API:
- * 1. EXPO_PUBLIC_API_URL, if set;
- * 2. the laptop's LAN address Expo is serving from (works on a real phone on the same Wi-Fi);
- * 3. Android emulator → 10.0.2.2 (the host machine);
- * 4. otherwise localhost (iOS simulator, web).
+ * 1. the server saved on this phone, if any;
+ * 2. EXPO_PUBLIC_API_URL, if set;
+ * 3. the laptop's LAN address Expo is serving from (works on a real phone on the same Wi-Fi);
+ * 4. Android emulator → 10.0.2.2 (the host machine);
+ * 5. otherwise localhost (iOS simulator, web).
  */
-export function resolveApiUrl({ envUrl, hostUri, os, port = DEFAULT_API_PORT }: ResolveApiUrlInput): string {
+export function resolveApiUrl({ storedUrl, envUrl, hostUri, os, port = DEFAULT_API_PORT }: ResolveApiUrlInput): string {
+  if (storedUrl?.trim()) return storedUrl.trim();
   const fromEnv = envUrl?.trim();
   if (fromEnv) return fromEnv;
 
@@ -34,4 +37,22 @@ export function resolveApiUrl({ envUrl, hostUri, os, port = DEFAULT_API_PORT }: 
   if (host && !LOOPBACK_HOSTS.has(host)) return `http://${host.includes(':') ? `[${host}]` : host}:${port}`;
 
   return os === 'android' ? `http://10.0.2.2:${port}` : `http://localhost:${port}`;
+}
+
+export function parseConnectLink(link: string): string | undefined {
+  const query = /(?:^[a-z][a-z0-9+.-]*:\/\/|\/)connect\/?\?([^#]*)/i.exec(link.trim())?.[1];
+  if (query === undefined) return undefined;
+  for (const pair of query.split('&')) {
+    const [key, value = ''] = pair.split('=');
+    if (key !== 'url') continue;
+    let url: string;
+    try {
+      url = decodeURIComponent(value.replace(/\+/g, ' ')).trim();
+    } catch {
+      return undefined;
+    }
+    if (!url) return '';
+    return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
+  }
+  return undefined;
 }

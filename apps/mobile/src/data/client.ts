@@ -1,20 +1,36 @@
 import { useMemo } from 'react';
 import { createApiClient, createMockApiClient, type ApiClient } from '@transit/shared';
 import { useDeviceId } from '@transit/client-react';
-import { getApiUrl, secureStoreDeviceIdStorage } from '../platform';
+import { getApiUrl, onServerUrl, secureStoreDeviceIdStorage, useServerUrl } from '../platform';
 
 export type ApiMode = 'server' | 'mock';
 
-export const apiMode: ApiMode = process.env.EXPO_PUBLIC_API_MODE === 'server' ? 'server' : 'mock';
+const buildMode: ApiMode = process.env.EXPO_PUBLIC_API_MODE === 'server' ? 'server' : 'mock';
 
-const mockClient: ApiClient | undefined = apiMode === 'mock' ? createMockApiClient({ latencyMs: 0 }) : undefined;
+export let apiMode: ApiMode = buildMode;
 
-void mockClient?.putProfile({
-  home: { name: 'Home · 25 Joy St', coordinates: [-71.0652, 42.3592], kind: 'address' },
-  work: { name: 'Office · 200 Clarendon St', coordinates: [-71.0752, 42.3496], kind: 'address' }
+onServerUrl((url) => {
+  apiMode = url ? 'server' : buildMode;
 });
+
+let mockClient: ApiClient | undefined;
+
+function getMockClient(): ApiClient {
+  if (mockClient) return mockClient;
+  mockClient = createMockApiClient({ latencyMs: 0 });
+  void mockClient.putProfile({
+    home: { name: 'Home · 25 Joy St', coordinates: [-71.0652, 42.3592], kind: 'address' },
+    work: { name: 'Office · 200 Clarendon St', coordinates: [-71.0752, 42.3496], kind: 'address' }
+  });
+  return mockClient;
+}
 
 export function useAppClient(): ApiClient | undefined {
   const deviceId = useDeviceId(secureStoreDeviceIdStorage);
-  return useMemo(() => mockClient ?? (deviceId ? createApiClient(getApiUrl(), { deviceId }) : undefined), [deviceId]);
+  const serverUrl = useServerUrl();
+  return useMemo(() => {
+    if (serverUrl === undefined) return undefined;
+    if (!serverUrl && buildMode === 'mock') return getMockClient();
+    return deviceId ? createApiClient(getApiUrl(serverUrl), { deviceId }) : undefined;
+  }, [deviceId, serverUrl]);
 }

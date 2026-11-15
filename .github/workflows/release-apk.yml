@@ -1,0 +1,100 @@
+name: Release Android APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build and release (created on the selected branch if it does not exist)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-apk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      EXPO_PUBLIC_API_MODE: server
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@^11.8
+      - run: npm ci
+      - run: npm run build:packages
+
+      - name: Set the app version from the tag
+        shell: bash
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "apps/mobile/app.json";
+            const config = JSON.parse(fs.readFileSync(file, "utf8"));
+            const version = process.env.TAG.replace(/^v/, "");
+            config.expo.version = version.split("-")[0];
+            config.expo.android.versionCode = Number(process.env.GITHUB_RUN_NUMBER) + 100;
+            fs.writeFileSync(file, JSON.stringify(config, null, 2));
+            console.log(`version ${config.expo.version} (${config.expo.android.versionCode}), API ${process.env.EXPO_PUBLIC_API_URL || "set in the app"}`);
+          '
+
+      - name: Generate the native Android project
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build the release APK
+        working-directory: apps/mobile/android
+        shell: bash
+        run: |
+          signing=()
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            signing=(
+              "-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release.keystore"
+              "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD"
+              "-Pandroid.injected.signing.key.alias=$KEY_ALIAS"
+              "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
+            )
+          else
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret; signing with the shared Expo debug key."
+          fi
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64 "${signing[@]}"
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/transit-agent.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transit-agent-${{ env.TAG }}
+          path: ${{ runner.temp }}/transit-agent.apk
+          retention-days: 14
+
+      - name: Publish the GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          [[ "$TAG" == *-* ]] && prerelease=(--prerelease)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$RUNNER_TEMP/transit-agent.apk" --clobber
+          else
+            gh release create "$TAG" "$RUNNER_TEMP/transit-agent.apk" --target "$GITHUB_SHA" --title "Transit Agent $TAG" --generate-notes "${prerelease[@]}"
+          fi
