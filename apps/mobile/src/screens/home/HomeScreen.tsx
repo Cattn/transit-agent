@@ -241,7 +241,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     return () => { active = false; };
   }, []);
 
+  const known = live.location ?? here;
   const onLocate = useCallback(async () => {
+    if (known) setLocateKey((key) => (key ?? 0) + 1);
     setLocating(true);
     const result = await getCurrentPlace();
     setLocating(false);
@@ -254,7 +256,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     } else {
       setNotice(result.reason === 'denied' ? 'Location is off for Transit Agent. You can turn it on in Settings.' : 'Could not find your location. Try again.');
     }
-  }, [editDraft]);
+  }, [editDraft, known]);
 
   const searchTo = useCallback(async (destination: Place) => {
     const patch: TripDraftPatch = { destination };

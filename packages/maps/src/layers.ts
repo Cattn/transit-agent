@@ -18,7 +18,6 @@ import {
   FOCUS_INK,
   LINE_WIDTH,
   LINE_WIDTH_ZOOMED_IN,
-  LANE_SPACING,
   LINE_WIDTH_ZOOMED_OUT,
   SELECTED_LINE_WIDTH,
   SELECTED_LINE_WIDTH_ZOOMED_IN,
@@ -98,7 +97,6 @@ const CASING_WIDTH_EXPR = [
 const OPACITY_EXPR = ['case', ['get', 'selected'], 1, DIMMED_OPACITY];
 const SELECTED_ON_TOP = ['case', ['get', 'selected'], 1, 0];
 const DIMMED_WHILE_SELECTING = ['case', ['get', 'dimmed'], DIMMED_OPACITY, 1];
-const LANE_OFFSET_EXPR = ['*', ['get', 'lane'], ['get', 'direction'], LANE_SPACING];
 
 /** One line layer for one dash style. */
 /**
@@ -173,7 +171,6 @@ function dashLayer(dash: Dash, which: 'unselected' | 'selected', style: Look): R
     paint: {
       'line-color': ['case', ['get', 'selected'], style.selectedLine, style.otherLine],
       'line-width': LINE_WIDTH_EXPR,
-      'line-offset': LANE_OFFSET_EXPR,
       'line-opacity': style.opacity,
       // Only add a dasharray when there is one. Solid lines simply leave it out.
       ...(pattern ? { 'line-dasharray': pattern } : {})
@@ -268,7 +265,6 @@ export function routeLayers({
       paint: {
         'line-color': '#ffffff',
         'line-width': CASING_WIDTH_EXPR, // wider than the line, so a white border shows
-        'line-offset': LANE_OFFSET_EXPR
       }
     },
     dashLayer('solid', 'selected', style),
@@ -286,7 +282,6 @@ export function routeLayers({
       paint: {
         'line-color': '#000000', // any colour; it's never seen
         'line-width': hitLineWidth,
-        'line-offset': LANE_OFFSET_EXPR,
         // Fully transparent. MapLibre still includes it in click queries, because hit-testing uses
         // the line's geometry and width, not what's visible. (visibility: 'none' WOULD remove it.)
         'line-opacity': 0

@@ -290,7 +290,7 @@ Lines get thicker as you zoom in so they're easier to tap; they do not scale wit
 | Location dot | Blue dot, white border; with `userHeading`, a cone pointing where the phone faces (turns with the map) |
 | Bubbles | Don't block taps (`pointer-events: none`); you tap the route under them |
 | Tabs (`visibleModes`) | A trip shows only if every leg's mode is allowed; otherwise the whole trip hides |
-| Overlapping trips | **Side by side (lanes):** every line layer (visible lines, white casing, invisible tap line) is shifted `lane × direction × LANE_SPACING` (10 px) sideways, so trips on the same street, even in opposite directions, show as parallel lines. The selected one is always on top |
+| Overlapping trips | **Drawn on top of each other** along shared streets (no sideways lanes). The selected one is always on top, and tapping the same spot again cycles to the next trip underneath |
 
 ### Animating while the agent works (plan 030)
 
@@ -316,7 +316,7 @@ buildPreview?: {
 - **Camera:** when origin and destination are both known (or one changes) during `locating` / `searching`, the camera
   fits to them (800 ms). When the routes arrive, the app's `fitKey` changes as usual and the camera fits to the routes
   **once, as they start drawing**, so they draw into view. Selecting never moves the camera.
-- **Selection, colours, lanes and looks** work during the draw: tapping a half-drawn route selects it, and the drawing
+- **Selection, colours and looks** work during the draw: tapping a half-drawn route selects it, and the drawing
   uses the same features as the finished routes.
 - **Reduced motion:** with the system's "reduce motion" setting (`prefers-reduced-motion: reduce`), nothing animates.
   Routes appear complete, the searching line holds still and the camera jumps to the trip.
@@ -347,7 +347,7 @@ in the road. `drawnLegLines()` closes every gap of **100 m or less**:
 - Anything else: the next leg starts from where the previous one ended.
 
 Start, end and transfer markers sit on these joined ends. Gaps over 100 m stay as they are (they mean real data
-trouble, which shouldn't be hidden). Joining legs is also what fixed most of the "broken corners" lanes had before.
+trouble, which shouldn't be hidden).
 
 ---
 
@@ -414,7 +414,7 @@ Everything before `<RouteMap>` is plain, tested TypeScript with no React or MapL
 | [`src/contract.ts`](src/contract.ts) | `RouteMapProps` |
 | [`src/colors.ts`](src/colors.ts) | Palette, mode colours, widths, `assignRouteColors` |
 | [`src/to-geojson.ts`](src/to-geojson.ts) | Features (each leg: colour, mode colour, main mode colour, dash, selected, sort key), markers, leg joining, main mode, bubble labels |
-| [`src/layers.ts`](src/layers.ts) | Line, casing, hit, marker and end-icon layers; the lane shift; the three looks (`look()`) |
+| [`src/layers.ts`](src/layers.ts) | Line, casing, hit, marker and end-icon layers; the three looks (`look()`) |
 | [`src/bounds.ts`](src/bounds.ts) | Camera bounds, ids under a tap, tap cycling |
 | [`src/build-preview.ts`](src/build-preview.ts) | The build animation: line slicing, route reveal, pins and searching line |
 | [`src/web/RouteMap.tsx`](src/web/RouteMap.tsx) | The React component: sources, layers, taps, camera, location dot, bubbles |
@@ -429,9 +429,8 @@ Notes:
   The end icon is a symbol layer on top of the end dot. If the style loses the icon (style reload), a
   `styleimagemissing` listener adds it back.
 - **Bubbles and the location dot are HTML** (`<Marker>`), because they need text, an SVG icon and rotation.
-- **Lanes** come from `lane` and `direction` on each feature (`laneOrder` puts trips left to right across their
-  direction of travel). Markers are not shifted, so with 3 or more trips the outer lines sit up to 10 px beside their
-  markers.
+- **Lane data is still computed** (`lane`, `direction` on each feature, `laneOrder`), but no layer uses it: routes
+  overlap 100% (see Decisions). Bringing lanes back would be one `line-offset` paint property.
 - Touch screens are detected with the `(pointer: coarse)` media query (`useSyncExternalStore`), which picks the wider
   tap area.
 
@@ -446,7 +445,7 @@ Decided with @KrakenTheJaken, mostly on 2026-11-14 while testing on an iPhone in
 | **Expo DOM, not native MapLibre** (plan 009 rewrite) | One renderer for web and mobile; works in **Expo Go**, so iPhones can test without a Mac, a paid Apple account or a dev build. Native MapLibre needs a custom dev build |
 | **Tap again to cycle** (P1), no picker | The ring picker was fiddly on a phone (tiny targets, an extra tap). Cycling needs no extra UI |
 | **Tap empty map to deselect** | The expected way to "go back" on a map |
-| **Lanes stay** (PR #76 review) | Plan 009 requires opposite-direction trips to stay apart, and Home's saved trips often share streets. We first removed lanes (broken corners, markers off the line); with legs joined, those problems shrank to small hooks at a few sharp transfers, and lanes are back on every line layer |
+| **Routes overlap 100%, no lanes** (team decision, 2026-11-15; replaces the PR #76 lanes rule) | Comparing the same route at different times drew identical paths as parallel lines, which looked like different routes. Overlapping is honest, and tapping the same spot again already cycles through every route underneath |
 | **Home: each saved trip in its own colour, the selected one in mode colours** | Faded trips are told apart by colour; the trip you tap shows how you travel (walk grey, bus orange, train purple) |
 | **Results follow Figma frame 02** | Grey options, one purple chosen route, hollow start, bubbles. Choosing is a different task from browsing saved trips |
 | **Main mode = by distance** | A 2-minute walk shouldn't make a bus trip grey. Distance matches what you see on the map |
@@ -470,7 +469,7 @@ Decided with @KrakenTheJaken, mostly on 2026-11-14 while testing on an iPhone in
 | **030-Q2: a moving searching line** | Shows the agent is working on *this* trip; it disappears when routes start drawing. A travelling segment, because MapLibre can't animate a dash pattern from data |
 | **030-Q3: faded candidate pins** | Shows the agent comparing places; they disappear once both ends are set |
 | **Fit when routes arrive, not after they draw** | Home already re-fits on new trips; fitting again after the draw would move the camera twice |
-| **Route lines simplified per zoom** (`tolerance: 4` on the route source) | Real legs end in tiny kinks (a bus's last 9 m turning into the stop, an 11 m walk between stops). Shifted 10 px for lanes, a kink only ~2 px long stuck out as a visible "hook". MapLibre now drops kinks too small to see at the current zoom, so lanes stay smooth; zoomed in, the bends are big enough to shift properly. Whole routes look the same |
+| **Route lines simplified per zoom** (`tolerance: 4` on the route source) | Real legs end in tiny kinks (a bus's last 9 m turning into the stop, an 11 m walk between stops). With lanes, a kink only ~2 px long stuck out as a visible "hook". MapLibre now drops kinks too small to see at the current zoom; kept after lanes were removed because it also keeps lines tidy into stops. Whole routes look the same |
 
 ---
 
@@ -482,8 +481,9 @@ So nobody repeats them:
   a custom build for every native change and can't run on an iPhone without a Mac / paid account. Replaced by the DOM
   approach.
 - **The ring picker** for overlapping routes. Replaced by tap-to-cycle.
-- **Removing lanes** (trips drawn on top of each other). Simpler, but trips on the same street hid each other and it
-  broke plan 009's rule; lanes are back (PR #76 review).
+- **Side-by-side lanes** (`line-offset`, 10 px apart). Tried twice: broken corners and floating markers the first time;
+  the second time (after the PR #76 review) they made the same route at different times look like different routes.
+  Routes now overlap; tap again to cycle.
 - **Saving the main mode colour.** Two saved bus trips were both orange; saving now stores the `assignRouteColors` colour.
 - **The worker as a file in `apps/mobile/public/`.** Fine in Expo Go, blank map in exported builds.
 - **Grey / mode colours as the default look.** Changed how the web map and demo looked; the default is back to the
@@ -559,8 +559,6 @@ Found on the way (not map code): with "Remove animations" on, Home's Android she
 - [ ] **Colours**: final review of mode colours against the mockup.
 - [ ] **Sizes**: line widths, marker sizes, end icon and bubble / bubble icon size from the final mockup.
 - [ ] **Bubbles over markers**: a bubble can cover a marker of another route; consider hiding overlapping bubbles.
-- [ ] **Fancier lanes** (plan 009 follow-up): markers shifted with their lane (with 3+ trips, the outer lines sit up to
-  10 px beside their markers). The hooks at stops are fixed by per-zoom simplification.
 - [ ] **Results fit**: a little gap between the routes and the top of the results sheet (`bottom: sheetHeight + 16`).
 - [ ] **Faded line ends**: where two faded legs meet, their see-through round ends overlap into a darker dot; fade
   with lighter solid colours instead of transparency.
@@ -641,5 +639,5 @@ selection, take screenshots, then put it back. Don't commit that.
 - **EAS builds** run `eas-build-post-install` (builds shared → maps → client-react), because the app imports the
   built packages.
 - **Changed the package but the phone shows the old map?** Rebuild `@transit/maps`, then reload Expo Go.
-- **Hooks or spikes where a route turns into a stop:** lanes shift lines sideways, and a kink shorter than the shift
-  sticks out. Keep `tolerance` on the route source (see Decisions); don't add new route sources without it.
+- **Routes on the same street look like one line:** that's intended (no lanes). Tap the same spot again to cycle
+  through the trips underneath.

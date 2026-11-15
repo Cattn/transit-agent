@@ -77,7 +77,7 @@ interface RouteMapProps {
 
 - Coordinates are `[longitude, latitude]`; every route leg already carries a LineString. Flight arcs come from the server. Do not invent routes or fetch geometry in the map.
 - Reuse `itinerariesToFeatures`, `itineraryPoints`, `routeLayers`, `boundsOf`, `uniqueItineraryIds`, and `isItineraryVisible`; do not duplicate those algorithms.
-- Preserve `RouteFeatureProps.direction` and `lane`. **Every** line offset uses `lane × direction × LANE_SPACING`, including visible lines, selected casing, and invisible hit targets. Opposite-direction trips must remain physically separated.
+- Preserve `RouteFeatureProps.direction` and `lane` on features. **Routes overlap 100%; no layer uses `line-offset`** (@KrakenTheJaken with the team, 2026-11-15, replacing the earlier lanes rule): the same route at different times looked like different routes when shifted into lanes, and tapping the same spot again already cycles through overlapping trips.
 - Preserve layer order: unselected solid/dashed/dotted → selected casing → selected solid/dashed/dotted → hit targets → points. A sort key within one layer cannot replace ordering across layers.
 - Walk is dotted; bike/bikeshare/flight dashed; bus/rail/ferry/car solid. Selection highlights the whole itinerary and dims others.
 - Compute `assignRouteColors(fullTripIds, savedColors)` once over the full relevant trip set and reuse the same assignment for cards, map, picker, and filtered subsets through `routeColors`. Do not recompute each subset.
