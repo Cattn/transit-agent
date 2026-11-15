@@ -103,7 +103,7 @@ function Entry({ entry, m, pending, onSend, onChip, onCard }: {
   );
 }
 
-export function ChatChrome({ colors, entries, pending, error, onSend, onChip, onCard, onClose }: ChatChromeProps) {
+export function ChatChrome({ colors, entries, pending, status, error, onSend, onChip, onCard, onClose }: ChatChromeProps) {
   const scheme = colors.scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const { height: windowHeight } = useWindowDimensions();
@@ -163,7 +163,7 @@ export function ChatChrome({ colors, entries, pending, error, onSend, onChip, on
                 <Block scheme={scheme}>
                   <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
                     <LoadingIndicator modifiers={[size(32, 32)]} />
-                    <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Thinking…</Text>
+                    <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{status ?? 'Thinking…'}</Text>
                   </Row>
                 </Block>
               ) : null}

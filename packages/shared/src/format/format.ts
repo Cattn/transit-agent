@@ -40,6 +40,12 @@ export function formatClock(iso: string, timeZone?: string): string {
   return plainSpaces(clockFormatter(timeZone).format(Date.parse(iso)));
 }
 
+export function formatDay(iso: string, timeZone?: string): string {
+  const opts: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+  if (timeZone !== undefined) opts.timeZone = timeZone;
+  return plainSpaces(new Intl.DateTimeFormat('en-US', opts).format(Date.parse(iso)));
+}
+
 /** "8:00 – 8:42 AM"; "11:40 AM – 12:15 PM"; "11:40 PM – 12:15 AM (+1 day)" when the date changes. */
 export function formatTimeRange(fromIso: string, toIso: string, timeZone?: string): string {
   const from = formatClock(fromIso, timeZone);

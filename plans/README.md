@@ -33,10 +33,10 @@ Full findings, issue inventory and limitations: [reconciliation report](reconcil
 | 035 | [Agent chat matches frame 04 (best-option card, chip icons)](035-mobile-chat-best-option.md) ([#73](https://github.com/Cattn/transit-agent/issues/73)) | Cattn | P1 | S | 023, 021, 034, #72 | IN PROGRESS (PR #80 open; #69/#72 merged) |
 | 036 | [Android MVP check against the real server](036-android-mvp-check.md) ([#78](https://github.com/Cattn/transit-agent/issues/78)) | Cattn | P1 | S | 009, 022, 034 | BLOCKED (#13/#46 pending merge). **MVP milestone** |
 | 037 | [Android trip continuity](037-android-trip-continuity.md) ([#77](https://github.com/Cattn/transit-agent/issues/77)) | DMFriends | P1 | M | 009, 022, 034 | PR #79 open |
-| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | Cattn | P1 | M | #72, 035; 030 for animation | BLOCKED (#73 / PR #80; #72 merged; owns Android consumer) |
+| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | KrakenTheJaken | P1 | M | #72, 035; 030 for animation | PR [#86](https://github.com/Cattn/transit-agent/pull/86) open (live Vertex check after deploy) |
 | 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | PR [#83](https://github.com/Cattn/transit-agent/pull/83) open (renderer + scripted demo; live wiring via #55) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | IN PROGRESS (#72 candidate; remeasure before another fix) |
-| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | BLOCKED (Transitous/return contract refinement) |
+| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | PR #88 open (fresh-prediction acceptance moved to 008) |
 | 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | BLOCKED (031, durable storage and cadence) |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
 | 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (after Android transit; 011 response first) |
@@ -72,7 +72,7 @@ Execution order above is authoritative; the table retains existing plan grouping
 
 ## Remaining decisions
 
-- Cattn: 025 unsupported reminder/Add-place rows (omit, mark unavailable, or separately scope persistence); 008 exact cadence/freshness/overdue-retention policy; 031 return-response representation.
+- Cattn: 025 unsupported reminder/Add-place rows (omit, mark unavailable, or separately scope persistence); 008 exact cadence/freshness/overdue-retention policy.
 - Cattn + Kraken: 009 overlap-picker/mode-filter behavior; 030 animation look. Preserve existing compatible behavior until agreed.
 - Flight/web questions stay in their deferred plans; they do not block Android transit.
 
@@ -90,7 +90,7 @@ Execution order above is authoritative; the table retains existing plan grouping
 
 ## Plan format
 
-Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. 008, 010 and 011 require scope/contract refinement before build work. 031 remains blocked on the explicit contract gates in its refreshed outline. Historical DONE excerpts are records, not execution instructions.
+Every executable plan has: Status, Why this matters, Current state (with excerpts), Commands, Scope (in/out), Git workflow, Steps (each with **Verify**), Done criteria, STOP conditions, Maintenance notes. Issue-facing plans also carry a `<!-- help:start -->` box; **open questions live only in that box** (the bottom section points to it). Plan 009 is a continuation brief for an active owner and keeps a goal-first layout. 008, 010 and 011 require scope/contract refinement before build work. Historical DONE excerpts are records, not execution instructions.
 
 **Keep plans closable.** One plan is one deliverable that can be finished and its issue closed. Research or decision work is its own plan. When a plan finishes but leaves later work, close it and open a new plan for the rest instead of keeping the old one open.
 

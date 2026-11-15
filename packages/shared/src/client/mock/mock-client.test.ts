@@ -159,3 +159,11 @@ it('applies profile latency and reads the current scenario before changing state
     vi.useRealTimers();
   }
 });
+
+it('streams an agent turn like a real one: thinking, places, draft, searching, routes, done (plan 029)', async () => {
+  const api = createMockApiClient({ latencyMs: 0, now });
+  const events: string[] = [];
+  const result = await api.streamAgentMessage({ message: 'cheap to Harvard', draft: request }, (event) => events.push(event.type));
+  expect(events).toEqual(['thinking', 'places', 'draft', 'searching', 'routes', 'done']);
+  expect(result).toEqual(await api.sendAgentMessage({ message: 'cheap to Harvard', draft: request }));
+});

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ZodError } from 'zod';
-import { AgentMessageResponseSchema } from '../domain/agent.js';
+import { AgentMessageResponseSchema, type AgentProgressEvent, type AgentProgressUpdate } from '../domain/agent.js';
+import { PlanResponseSchema } from '../domain/api.js';
+import { initialAgentProgress, reduceAgentProgress } from './agent-progress.js';
 import { createDeviceId } from './device-id.js';
 import {
   applyDraftPatch,
@@ -127,5 +129,53 @@ describe('createDeviceId', () => {
     const b = createDeviceId();
     expect(a).not.toBe(b);
     expect(a).toMatch(/^[A-Za-z0-9_-]{8,64}$/);
+  });
+});
+
+describe('reduceAgentProgress (plan 029)', () => {
+  const at = '2026-11-14T09:00:00.000Z';
+  const plan = PlanResponseSchema.parse({ itineraries: [], nearMisses: [], warnings: [] });
+  const laterPlan = PlanResponseSchema.parse({ itineraries: [], nearMisses: [], warnings: ['later'] });
+  const draft = applyDraftPatch(initialDraftState(), { origin: home, destination: work }, 'agent').draft;
+  const response = AgentMessageResponseSchema.parse({ sessionId: 's', reply: 'Done.', draftPatch: {}, questions: [] });
+  const play = (updates: AgentProgressUpdate[]) =>
+    updates.map((update, seq) => ({ ...update, seq, at }) as AgentProgressEvent).reduce(reduceAgentProgress, initialAgentProgress);
+
+  it('follows a full turn: thinking, places, draft, searching, routes, done', () => {
+    const steps: AgentProgressUpdate[] = [
+      { type: 'thinking' },
+      { type: 'places', query: 'work', places: [work, home] },
+      { type: 'draft', patch: { origin: home, destination: work }, draft },
+      { type: 'searching', origin: home, destination: work },
+      { type: 'routes', plan },
+      { type: 'done', response }
+    ];
+    const phases = steps.map((_, i) => play(steps.slice(0, i + 1)).phase);
+    expect(phases).toEqual(['thinking', 'locating', 'locating', 'searching', 'routes', 'done']);
+    expect(play(steps.slice(0, 2)).candidates).toEqual([work, home]);
+    const end = play(steps);
+    expect(end.candidates).toEqual([]);
+    expect(end).toMatchObject({ origin: home, destination: work, plan });
+  });
+
+  it('ignores events that arrive out of order', () => {
+    const state = reduceAgentProgress(reduceAgentProgress(initialAgentProgress, { type: 'routes', plan, seq: 4, at }), { type: 'thinking', seq: 2, at });
+    expect(state.phase).toBe('routes');
+    expect(state.lastSeq).toBe(4);
+  });
+
+  it('keeps the old plan after a later draft change until new routes arrive', () => {
+    const changed = play([{ type: 'routes', plan }, { type: 'draft', patch: { destination: home }, draft: { ...draft, destination: home } }]);
+    expect(changed.plan).toBe(plan);
+    expect(changed.destination).toEqual(home);
+    expect(play([{ type: 'routes', plan }, { type: 'draft', patch: {}, draft }, { type: 'routes', plan: laterPlan }]).plan).toBe(laterPlan);
+  });
+
+  it('keeps the streamed plan when the final response has none', () => {
+    expect(play([{ type: 'routes', plan }, { type: 'done', response }]).plan).toBe(plan);
+  });
+
+  it('sets phase error on an error event', () => {
+    expect(play([{ type: 'thinking' }, { type: 'error', code: 'internal', message: 'Internal error' }]).phase).toBe('error');
   });
 });

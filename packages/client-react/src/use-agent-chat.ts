@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiClientError, applyDraftPatch, createDeviceId, type AgentMessageResponse, type DraftState, type DraftChangeSource, type TripDraftPatch, type PlanResponse } from '@transit/shared';
+import { ApiClientError, applyDraftPatch, createDeviceId, initialAgentProgress, reduceAgentProgress, type AgentMessageResponse, type AgentProgress, type DraftState, type DraftChangeSource, type TripDraftPatch, type PlanResponse } from '@transit/shared';
 import { useApi } from './api-context.js';
 
 export interface ChatMessage { id: string; role: 'user' | 'agent'; text: string; questions?: AgentMessageResponse['questions']; plan?: PlanResponse; draft?: DraftState; at: string }
@@ -21,6 +21,7 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiClientError>();
   const [lastPlan, setLastPlan] = useState<PlanResponse>();
+  const [progress, setProgress] = useState<AgentProgress>(initialAgentProgress);
   const [previousApi, setPreviousApi] = useState(api);
   if (previousApi !== api) {
     setPreviousApi(api);
@@ -28,6 +29,7 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
     setPending(false);
     setError(undefined);
     setLastPlan(undefined);
+    setProgress(initialAgentProgress);
   }
   useEffect(() => () => { generation.current++; session.current = undefined; busy.current = false; }, [api]);
   const send = useCallback(async (text: string) => {
@@ -36,9 +38,15 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
     const current = generation.current;
     setPending(true);
     setError(undefined);
+    setProgress(initialAgentProgress);
     setMessages((items) => [...items, { id: createDeviceId(), role: 'user', text, at: new Date().toISOString() }]);
     try {
-      const response = await api.sendAgentMessage({ sessionId: session.current, message: text, draft: draft.draft });
+      const body = { sessionId: session.current, message: text, draft: draft.draft };
+      const response = api.streamAgentMessage
+        ? await api.streamAgentMessage(body, (event) => {
+          if (current === generation.current) setProgress((state) => reduceAgentProgress(state, event));
+        })
+        : await api.sendAgentMessage(body);
       if (current !== generation.current) return;
       session.current = response.sessionId;
       apply(response.draftPatch, 'agent');
@@ -46,10 +54,13 @@ export function useAgentChat(draft: DraftState, apply: (patch: TripDraftPatch, s
       const snapshot = response.plan ? { plan: response.plan, draft: resultingDraft(draft, response.draftPatch) } : {};
       setMessages((items) => [...items, { id: createDeviceId(), role: 'agent', text: response.reply, questions: response.questions, ...snapshot, at: new Date().toISOString() }]);
     } catch (error) {
-      if (current === generation.current) setError(error instanceof ApiClientError ? error : new ApiClientError(0, 'unknown', String(error)));
+      if (current === generation.current) {
+        setError(error instanceof ApiClientError ? error : new ApiClientError(0, 'unknown', String(error)));
+        setProgress((state) => ({ ...state, phase: 'error' }));
+      }
     } finally {
       if (current === generation.current) { busy.current = false; setPending(false); }
     }
   }, [api, draft, apply]);
-  return { messages, pending, error, send, lastPlan };
+  return { messages, pending, error, send, lastPlan, progress };
 }

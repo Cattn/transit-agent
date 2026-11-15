@@ -1,13 +1,17 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { Gemini, type LlmRequest } from '@google/adk';
 import { ThinkingLevel } from '@google/genai';
-import { PlaceSearchResponseSchema, TripDraftSchema } from '@transit/shared';
+import { AgentProgressEventSchema, PlaceSearchResponseSchema, TripDraftSchema, type AgentProgressEvent } from '@transit/shared';
 import { createServer } from './app.js';
 import { plannerConfigured, thinkingFor } from './agent/models.js';
 import { AdkPlanner } from './agent/adk-planner.js';
 import { createPlannerTools } from './agent/tools.js';
 import { instructions } from './agent/instructions.js';
 import { createPlaceSearcher } from './places/geocoder.js';
+import { FakePlanner } from './agent/fake-planner.js';
+import type { PlannerAgent } from './agent/types.js';
+import { FixtureProvider } from './providers/fixture.js';
+import fixtureRequest from './providers/fixture-request.json';
 
 let app: ReturnType<typeof createServer> | undefined;
 
@@ -246,6 +250,28 @@ describe('planner thinking configuration', () => {
   });
 });
 
+describe('planner progress (plan 029)', () => {
+  it('runs each tool during the turn, so its event comes before the model\'s final answer', async () => {
+    vi.stubEnv('GOOGLE_GENAI_USE_ENTERPRISE', 'false');
+    vi.stubEnv('GOOGLE_GENAI_USE_VERTEXAI', 'false');
+    vi.stubEnv('GEMINI_API_KEY', 'test-key');
+    const timeline: string[] = [];
+    let calls = 0;
+    vi.spyOn(Gemini.prototype, 'generateContentAsync').mockImplementation(async function* () {
+      calls++;
+      timeline.push(`model ${calls}`);
+      yield calls === 1
+        ? { content: { role: 'model', parts: [{ functionCall: { id: 'call-1', name: 'find_place', args: { query: 'South Station' } } }] } }
+        : { content: { role: 'model', parts: [{ text: 'Found it.' }] } };
+    });
+    const place = { name: 'South Station', coordinates: [-71.055, 42.352] as [number, number] };
+    const planner = new AdkPlanner({ providers: [], itineraries: {} as never, places: { search: async () => [place] } });
+    const result = await planner.stream({ deviceId: 'progress-order', message: 'to South Station', draft: TripDraftSchema.parse({}) }, (update) => timeline.push(update.type));
+    expect(result.reply).toBe('Found it.');
+    expect(timeline).toEqual(['thinking', 'model 1', 'places', 'model 2', 'done']);
+  });
+});
+
 describe('planner tool declarations', () => {
   it('omit schema keywords Gemini function declarations reject', () => {
     const declarations = JSON.stringify(createPlannerTools({} as never).map((tool) => tool._getDeclaration()));
@@ -258,5 +284,99 @@ describe('planner instructions', () => {
   it('include the current local date and time so "now" resolves', () => {
     const text = instructions('America/New_York', new Date('2026-11-14T09:05:00Z'));
     expect(text).toContain('Today is Saturday 2026-11-14 and the current time is 04:05, timezone America/New_York.');
+  });
+});
+
+describe('POST /api/agent/messages/stream (plan 029)', () => {
+  const body = { sessionId: 'stream-test', message: 'search with a 15 min walk', draft: fixtureRequest };
+  const headers = { 'x-device-id': 'stream-device' };
+  const lines = (payload: string) => payload.trim().split('\n').map((line) => AgentProgressEventSchema.parse(JSON.parse(line)));
+
+  it('streams a searching turn as thinking … routes … done, one schema-valid event per line', async () => {
+    app = createServer({ agent: new FakePlanner([new FixtureProvider()]) });
+    const res = await app.inject({ method: 'POST', url: '/api/agent/messages/stream', headers, payload: body });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('application/x-ndjson');
+    expect(res.headers['cache-control']).toBe('no-cache');
+    const events = lines(res.payload);
+    expect(events.map((event) => event.type)).toEqual(['thinking', 'draft', 'searching', 'routes', 'done']);
+    expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3, 4]);
+  });
+
+  it('ends with the same response the JSON route returns', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-14T09:00:00Z'));
+    try {
+      app = createServer({ agent: new FakePlanner([new FixtureProvider()]) });
+      const streamed = lines((await app.inject({ method: 'POST', url: '/api/agent/messages/stream', headers, payload: body })).payload).at(-1)!;
+      const json = (await app.inject({ method: 'POST', url: '/api/agent/messages', headers, payload: body })).json();
+      expect(streamed.type).toBe('done');
+      expect(streamed.type === 'done' && streamed.response).toEqual(json);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shares the rate limit with the JSON route', async () => {
+    app = createServer({ agent: new FakePlanner() });
+    const chat = { ...body, message: 'hello' };
+    for (let i = 0; i < 20; i++) await app.inject({ method: 'POST', url: i % 2 ? '/api/agent/messages' : '/api/agent/messages/stream', headers, payload: chat });
+    const res = await app.inject({ method: 'POST', url: '/api/agent/messages/stream', headers, payload: chat });
+    expect(res.statusCode).toBe(429);
+    expect(res.json().error.code).toBe('rate_limited');
+  });
+
+  it('answers 503 JSON when no agent is configured', async () => {
+    app = createServer();
+    const res = await app.inject({ method: 'POST', url: '/api/agent/messages/stream', headers, payload: body });
+    expect(res.statusCode).toBe(503);
+    expect(res.json().error.code).toBe('agent_unavailable');
+  });
+
+  it('sends an error event and ends when the agent fails after the stream started', async () => {
+    const failing: PlannerAgent = {
+      respond: () => Promise.reject(new Error('unused')),
+      stream: async (_input, emit) => {
+        emit({ type: 'thinking' });
+        throw new Error('model exploded');
+      }
+    };
+    app = createServer({ agent: failing });
+    const res = await app.inject({ method: 'POST', url: '/api/agent/messages/stream', headers, payload: body });
+    expect(res.statusCode).toBe(200);
+    expect(lines(res.payload).map((event) => [event.type, 'code' in event ? event.code : undefined])).toEqual([['thinking', undefined], ['error', 'internal']]);
+  });
+
+  it('sends each line as it happens, not all at the end', async () => {
+    const slow: PlannerAgent = {
+      respond: () => Promise.reject(new Error('unused')),
+      stream: async (input, emit) => {
+        emit({ type: 'thinking' });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const response = { sessionId: 's', reply: 'ok', draftPatch: {}, questions: [] };
+        emit({ type: 'done', response });
+        return response;
+      }
+    };
+    app = createServer({ agent: slow });
+    const address = await app.listen({ port: 0, host: '127.0.0.1' });
+    const started = Date.now();
+    const res = await fetch(`${address}/api/agent/messages/stream`, { method: 'POST', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    const arrivals: { type: AgentProgressEvent['type']; ms: number }[] = [];
+    let buffer = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let newline;
+      while ((newline = buffer.indexOf('\n')) >= 0) {
+        arrivals.push({ type: AgentProgressEventSchema.parse(JSON.parse(buffer.slice(0, newline))).type, ms: Date.now() - started });
+        buffer = buffer.slice(newline + 1);
+      }
+    }
+    expect(arrivals.map((arrival) => arrival.type)).toEqual(['thinking', 'done']);
+    expect(arrivals[1]!.ms - arrivals[0]!.ms).toBeGreaterThanOrEqual(200);
   });
 });

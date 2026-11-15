@@ -20,7 +20,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Owner:** @Cattn (server + shared + hooks)
+- **Owner:** @KrakenTheJaken (server + shared + hooks + Android wiring; reassigned on #55). PR #86 open.
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Waiting on:** nothing (#52 merged).
 - **Pairs with:** plan 030 (@KrakenTheJaken), which turns these events into the map animation.

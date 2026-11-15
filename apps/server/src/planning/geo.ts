@@ -48,3 +48,29 @@ export function wobbleLine(a: LngLat, b: LngLat, points = 12, amplitude = 0.002,
   }
   return line;
 }
+
+export function decodePolyline(encoded: string, precision: number): LngLat[] {
+  const factor = 10 ** precision;
+  const points: LngLat[] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  const next = () => {
+    let result = 0;
+    let shift = 0;
+    let byte: number;
+    do {
+      if (index >= encoded.length) throw new Error('Truncated polyline');
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    return result & 1 ? ~(result >> 1) : result >> 1;
+  };
+  while (index < encoded.length) {
+    lat += next();
+    lng += next();
+    points.push([lng / factor, lat / factor]);
+  }
+  return points;
+}

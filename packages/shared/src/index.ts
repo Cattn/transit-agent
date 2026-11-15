@@ -33,5 +33,6 @@ export * from './theme/contrast.js';
 export * from './client/api-client.js';
 export * from './client/device-id.js';
 export * from './client/trip-draft-state.js';
+export * from './client/agent-progress.js';
 export { createMockApiClient, type MockScenario, type MockApiClientOptions } from './client/mock/mock-client.js';
 export * from './domain/profile.js';

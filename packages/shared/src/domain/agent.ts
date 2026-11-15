@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TripDraftPatchSchema } from '../client/trip-draft-state.js';
 import { PlanResponseSchema } from './api.js';
+import { PlaceSchema } from './places.js';
 import { TripDraftSchema } from './trip-draft.js';
 
 /** POST /api/agent/messages body. */
@@ -32,3 +33,19 @@ export const AgentMessageResponseSchema = z.object({
 export type AgentMessageRequest = z.infer<typeof AgentMessageRequestSchema>;
 export type AgentQuestion = z.infer<typeof AgentQuestionSchema>;
 export type AgentMessageResponse = z.infer<typeof AgentMessageResponseSchema>;
+
+const progressStamp = { seq: z.number().int().nonnegative(), at: z.string() };
+
+export const AgentProgressEventSchema = z.discriminatedUnion('type', [
+  z.object({ ...progressStamp, type: z.literal('thinking') }),
+  z.object({ ...progressStamp, type: z.literal('places'), query: z.string(), places: z.array(PlaceSchema) }),
+  z.object({ ...progressStamp, type: z.literal('draft'), patch: TripDraftPatchSchema, draft: TripDraftSchema }),
+  z.object({ ...progressStamp, type: z.literal('searching'), origin: PlaceSchema, destination: PlaceSchema }),
+  z.object({ ...progressStamp, type: z.literal('routes'), plan: PlanResponseSchema }),
+  z.object({ ...progressStamp, type: z.literal('question'), question: AgentQuestionSchema }),
+  z.object({ ...progressStamp, type: z.literal('done'), response: AgentMessageResponseSchema }),
+  z.object({ ...progressStamp, type: z.literal('error'), code: z.string(), message: z.string() })
+]);
+
+export type AgentProgressEvent = z.infer<typeof AgentProgressEventSchema>;
+export type AgentProgressUpdate = AgentProgressEvent extends infer E ? (E extends AgentProgressEvent ? Omit<E, 'seq' | 'at'> : never) : never;

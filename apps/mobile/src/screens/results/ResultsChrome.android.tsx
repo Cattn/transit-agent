@@ -260,6 +260,26 @@ export function ResultsChrome(props: ResultsChromeProps) {
                   />
                 </Host>
               ))}
+              {props.returns ? (
+                <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                  <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
+                    <Text color={m.onSurfaceVariant} style={m3Text('titleSmall')}>Return</Text>
+                    {props.returns.message ? <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.returns.message}</Text> : null}
+                    {props.returns.warning ? <Text color={m.tertiary} style={m3Text('bodyMedium')}>{props.returns.warning}</Text> : null}
+                  </Column>
+                </Host>
+              ) : null}
+              {props.returns?.cards.map((card) => (
+                <Host key={card.id} matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                  <RouteCard
+                    card={card}
+                    canSave={props.canSave}
+                    m={m}
+                    onSelect={() => props.onSelect(card.id)}
+                    onSave={() => props.onSave(card.id)}
+                  />
+                </Host>
+              ))}
               {props.nearMisses.length ? (
                 <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
                   <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>

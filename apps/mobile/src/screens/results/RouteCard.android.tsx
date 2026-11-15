@@ -90,6 +90,7 @@ export function RouteCard({ card, canSave, m, onSelect, onSave }: {
           <Text color={m.onSurface} style={m3Text('titleMedium')} modifiers={[weight(1)]}>{text.times}</Text>
           <Text color={m.onSurface} style={m3Text('titleMedium', 700)}>{text.duration}</Text>
         </Row>
+        {card.wait ? <Text color={card.wait.long ? m.tertiary : m.onSurfaceVariant} style={m3Text('labelLarge')}>{card.wait.label}</Text> : null}
         <LegChips chips={text.chips} m={m} />
         <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[weight(1)]}>
