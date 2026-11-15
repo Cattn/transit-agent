@@ -113,7 +113,7 @@ export function legFreshness(leg: Leg): Badge {
     if (delay < 0) return { label: `Live · ${-delay} min early`, tone: 'info' };
     return { label: 'Live · on time', tone: 'ok' };
   }
-  if (leg.timeSource === 'scheduled') return { label: 'Scheduled (not live)', tone: 'neutral' };
+  if (leg.timeSource === 'scheduled') return { label: 'Scheduled', tone: 'neutral' };
   return { label: 'Estimated', tone: 'neutral' };
 }
 
@@ -121,7 +121,7 @@ export function legFreshness(leg: Leg): Badge {
 export function itineraryFreshness(it: Itinerary): Badge {
   if (it.legs.some((l) => l.timeSource === 'realtime')) return { label: 'Live', tone: 'ok' };
   if (it.legs.some((l) => l.timeSource === 'scheduled' && scheduledModes.includes(l.mode))) {
-    return { label: 'Scheduled (not live)', tone: 'neutral' };
+    return { label: 'Scheduled', tone: 'neutral' };
   }
   return { label: 'Estimated', tone: 'neutral' };
 }

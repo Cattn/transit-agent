@@ -38,7 +38,7 @@ None. Route palette ownership stays in maps; 017-Q1 is retired.
 
 ## Why this matters
 
-Every screen shows the same badges: "Live", "Scheduled (not live)", "Safe / Some risk / Tight", "Leave now". Plan 016 already returns each badge as `{ label, tone }`. Without shared colors for those tones, web and mobile will each pick their own greens and reds, and "Scheduled" may end up looking like a success. This plan adds one tested color table per tone and per travel mode, in light and dark, so both apps render badges identically.
+Every screen shows the same badges: "Live", "Scheduled", "Safe / Some risk / Tight", "Leave now". Plan 016 already returns each badge as `{ label, tone }`. Without shared colors for those tones, web and mobile will each pick their own greens and reds, and "Scheduled" may end up looking like a success. This plan adds one tested color table per tone and per travel mode, in light and dark, so both apps render badges identically.
 
 Route-line colors are **not** part of this plan anymore: `@transit/maps` already exports `PALETTE`, `routeColor`, and `assignRouteColors`, and card swatches should use `assignRouteColors` from there so they match the map.
 
@@ -91,7 +91,7 @@ export const toneColors: Record<ColorScheme, Record<Tone, ToneColors>>;
 export const modeColors: Record<ColorScheme, Record<TravelMode, string>>; // chips and icons in lists, not map lines
 ```
 
-`neutral` must be gray, not green: "Scheduled (not live)" is neutral and must never look like a success. Pick colors distinguishable under common color-vision deficiencies.
+`neutral` must be gray, not green: "Scheduled" is neutral and must never look like a success. Pick colors distinguishable under common color-vision deficiencies.
 
 **Verify**: `npm run typecheck -w @transit/shared` → exit 0
 

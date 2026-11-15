@@ -18,9 +18,11 @@ import {
   MARKER_BORDER_WIDTH,
   ORIGIN_DOT_RADIUS,
   POINT_SOURCE_ID,
+  PREVIEW_SOURCE_ID,
   ROUTE_SOURCE_ID,
   TOUCH_HIT_LINE_WIDTH,
   interactiveLayerIds,
+  previewLayers,
   routeLayers
 } from './layers.js';
 import { evaluate, matchesFilter, type FeatureProps } from './test-helpers/style-expressions.js';
@@ -372,5 +374,50 @@ describe('hidden transfer dots leave nothing behind', () => {
       expect(evaluate(dots.paint['circle-radius'], hidden), variant).toBe(0);
       expect(evaluate(dots.paint['circle-stroke-width'], hidden), variant).toBe(0);
     }
+  });
+});
+
+describe('build preview layers (plan 030)', () => {
+  const accent = '#6750A4';
+  const layers = previewLayers(accent);
+  const byId = (id: string) => layers.find((l) => l.id === id)!;
+  const shows = (id: string, kind: string) => matchesFilter(byId(id).filter, { kind });
+  const KINDS = ['candidate', 'origin', 'destination', 'searching-track', 'searching-pulse'];
+
+  it('all draw from the preview source and read only the feature kind', () => {
+    for (const layer of layers) {
+      expect(layer.source).toBe(PREVIEW_SOURCE_ID);
+      for (const key of getKeys([layer.filter, layer.paint, layer.layout])) expect(key).toBe('kind');
+    }
+  });
+
+  it('gives each kind of preview feature its own layer', () => {
+    const drawnBy = (kind: string) => layers.filter((l) => matchesFilter(l.filter, { kind })).map((l) => l.id);
+    expect(drawnBy('searching-track')).toEqual(['preview-searching-track']);
+    expect(drawnBy('searching-pulse')).toEqual(['preview-searching-pulse']);
+    expect(drawnBy('candidate')).toEqual(['preview-candidates']);
+    expect(drawnBy('origin')).toEqual(['preview-ends']);
+    expect(drawnBy('destination')).toEqual(['preview-ends', 'preview-end-icon']);
+    for (const kind of KINDS) expect(shows('preview-ends', kind)).toBe(kind === 'origin' || kind === 'destination');
+  });
+
+  it('draws the searching line and the ends in the accent colour, ends sized like route markers', () => {
+    expect(byId('preview-searching-track').paint['line-color']).toBe(accent);
+    expect(byId('preview-searching-pulse').paint['line-color']).toBe(accent);
+    const ends = byId('preview-ends').paint;
+    expect(ends['circle-color']).toBe(accent);
+    expect(evaluate(ends['circle-radius'], { kind: 'origin' })).toBe(ORIGIN_DOT_RADIUS);
+    expect(evaluate(ends['circle-radius'], { kind: 'destination' })).toBe(DESTINATION_DOT_RADIUS);
+    expect(byId('preview-end-icon').layout!['icon-image']).toBe(END_ICON_ID);
+  });
+
+  it('draws candidate pins small and faded', () => {
+    const pins = byId('preview-candidates').paint;
+    expect(pins['circle-radius']).toBeLessThan(ORIGIN_DOT_RADIUS);
+    expect(pins['circle-opacity']).toBeLessThan(1);
+  });
+
+  it('is separate from the route layers, which do not change', () => {
+    expect(routeLayers().some((l) => l.source === PREVIEW_SOURCE_ID)).toBe(false);
   });
 });

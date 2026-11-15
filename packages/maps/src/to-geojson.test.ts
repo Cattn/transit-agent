@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { travelModes, type Itinerary } from '@transit/shared';
+import { travelModes, type Itinerary, type LngLat } from '@transit/shared';
 import * as samples from './samples.js';
 import { commuteBikeTransit, commuteWalk, sampleDrive, sampleItineraries, sampleItinerary } from './samples.js';
 import { MODE_COLORS, routeColor } from './colors.js';
+import { REVEAL_PER_ROUTE_MS, REVEAL_STAGGER_MS, SEARCH_PULSE_PERIOD_MS, previewFeatures, revealFeatures, sliceLine } from './build-preview.js';
 import { dashForMode, drawnLegLines, itinerariesToFeatures, itineraryPoints, laneOrder, mainMode, transitLegLabels } from './to-geojson.js';
 
 describe('dashForMode', () => {
@@ -290,5 +291,119 @@ describe('transitLegLabels: line bubbles for search results (Figma frame 02)', (
       expect(label.coordinates[1]).toBeLessThanOrEqual(Math.max(...lats));
       expect(label.coordinates).not.toEqual(line[0]);
     }
+  });
+});
+
+describe('sliceLine (plan 030)', () => {
+  const line: LngLat[] = [[-71.1, 42.36], [-71.0, 42.36]];
+  const ell: LngLat[] = [[-71.1, 42.36], [-71.09, 42.36], [-71.09, 42.36 + 0.01 * Math.cos((42.36 * Math.PI) / 180)]];
+  const near = (a: LngLat, b: LngLat) => {
+    expect(a[0]).toBeCloseTo(b[0], 5);
+    expect(a[1]).toBeCloseTo(b[1], 5);
+  };
+
+  it('returns a zero-length line at the start for 0 and the whole line for 1', () => {
+    const none = sliceLine(line, 0);
+    near(none[0]!, line[0]!);
+    near(none.at(-1)!, line[0]!);
+    expect(sliceLine(line, 1)).toEqual(line);
+  });
+
+  it('cuts a straight line halfway by length', () => {
+    const half = sliceLine(line, 0.5);
+    expect(half).toHaveLength(2);
+    near(half[1]!, [-71.05, 42.36]);
+  });
+
+  it('keeps the corners it passes on a 3-point line and interpolates the last point', () => {
+    const half = sliceLine(ell, 0.5);
+    near(half.at(-1)!, ell[1]!);
+    const most = sliceLine(ell, 0.75);
+    expect(most).toHaveLength(3);
+    near(most[1]!, ell[1]!);
+    near(most[2]!, [-71.09, (ell[1]![1] + ell[2]![1]) / 2]);
+  });
+});
+
+describe('revealFeatures (plan 030)', () => {
+  const trips = samples.commuteOptions;
+  const lines = itinerariesToFeatures(trips);
+  const idsAt = (now: number, options = {}) =>
+    new Set(revealFeatures(lines, 0, now, options).data.features.map((f) => f.properties.itineraryId));
+  const end = REVEAL_STAGGER_MS * (trips.length - 1) + REVEAL_PER_ROUTE_MS;
+
+  it('finishes after the last route has had its full time, and not before', () => {
+    expect(revealFeatures(lines, 0, end - 1).finished).toBe(false);
+    const done = revealFeatures(lines, 0, end);
+    expect(done.finished).toBe(true);
+    expect(done.data).toEqual(lines);
+  });
+
+  it('starts with nothing drawn and staggers the routes in their input order', () => {
+    expect(idsAt(0).size).toBe(0);
+    expect([...idsAt(REVEAL_STAGGER_MS / 2)]).toEqual([trips[0]!.id]);
+    expect(idsAt(REVEAL_STAGGER_MS + 1)).toEqual(new Set([trips[0]!.id, trips[1]!.id]));
+  });
+
+  it('draws each route in leg order: the first leg grows before later legs appear', () => {
+    const first = trips[0]!;
+    const legsOf = (now: number) =>
+      revealFeatures(lines, 0, now).data.features.filter((f) => f.properties.itineraryId === first.id).map((f) => f.properties.legId);
+    const early = legsOf(REVEAL_PER_ROUTE_MS * 0.05);
+    expect(early).toEqual([first.legs[0]!.id]);
+    expect(legsOf(REVEAL_PER_ROUTE_MS)).toEqual(first.legs.map((leg) => leg.id));
+  });
+
+  it('draws routes outside `animate` in full from the start, and they do not delay the end', () => {
+    const fresh = new Set([trips[2]!.id]);
+    const ids = idsAt(0, { animate: fresh });
+    expect(ids).toEqual(new Set([trips[0]!.id, trips[1]!.id]));
+    expect(revealFeatures(lines, 0, REVEAL_PER_ROUTE_MS, { animate: fresh }).finished).toBe(true);
+  });
+
+  it('follows `order` when given', () => {
+    const order = [trips[2]!.id, trips[0]!.id, trips[1]!.id];
+    expect([...idsAt(REVEAL_STAGGER_MS / 2, { order })]).toEqual([trips[2]!.id]);
+  });
+
+  it('finishes at once when there is nothing to animate', () => {
+    expect(revealFeatures(lines, 0, 0, { animate: new Set() }).finished).toBe(true);
+    expect(revealFeatures(itinerariesToFeatures([]), 0, 0).finished).toBe(true);
+  });
+});
+
+describe('previewFeatures (plan 030)', () => {
+  const origin: LngLat = [-71.0942, 42.3601];
+  const destination: LngLat = [-71.0552, 42.3523];
+  const candidates: LngLat[] = [[-71.1, 42.37], [-71.08, 42.35]];
+  const kinds = (fc: ReturnType<typeof previewFeatures>) => fc.features.map((f) => f.properties.kind);
+
+  it('is empty when there is no preview, when idle and while drawing', () => {
+    expect(previewFeatures(undefined, 0).features).toEqual([]);
+    expect(previewFeatures({ phase: 'idle', origin, destination }, 0).features).toEqual([]);
+    expect(previewFeatures({ phase: 'drawing', origin, destination }, 0).features).toEqual([]);
+  });
+
+  it('shows candidate pins plus any known ends while locating, with no searching line', () => {
+    expect(kinds(previewFeatures({ phase: 'locating', candidates }, 0))).toEqual(['candidate', 'candidate']);
+    expect(kinds(previewFeatures({ phase: 'locating', candidates, origin }, 0))).toEqual(['candidate', 'candidate', 'origin']);
+  });
+
+  it('shows the two ends and a searching line only while searching', () => {
+    expect(kinds(previewFeatures({ phase: 'searching', origin, destination, candidates }, 0))).toEqual([
+      'searching-track',
+      'searching-pulse',
+      'origin',
+      'destination'
+    ]);
+    expect(kinds(previewFeatures({ phase: 'searching', origin }, 0))).toEqual(['origin']);
+  });
+
+  it('moves the pulse along the searching line over time, looping', () => {
+    const pulseAt = (now: number) =>
+      previewFeatures({ phase: 'searching', origin, destination }, now).features.find((f) => f.properties.kind === 'searching-pulse')!
+        .geometry.coordinates.at(-1) as LngLat;
+    expect(pulseAt(SEARCH_PULSE_PERIOD_MS / 2)[0]).toBeGreaterThan(pulseAt(SEARCH_PULSE_PERIOD_MS / 4)[0]);
+    expect(pulseAt(SEARCH_PULSE_PERIOD_MS / 4)).toEqual(pulseAt(SEARCH_PULSE_PERIOD_MS * 1.25));
   });
 });
