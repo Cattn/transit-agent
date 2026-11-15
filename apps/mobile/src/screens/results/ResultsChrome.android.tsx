@@ -53,6 +53,7 @@ const COLLAPSED_SHARE = 0.58;
 const MIN_TRAVEL = 120;
 const TOP_GAP = 12;
 const COLLAPSED = 1;
+const HEADER_ESTIMATE = 96;
 
 export function ResultsChrome(props: ResultsChromeProps) {
   const scheme = props.colors.scheme;
@@ -63,11 +64,12 @@ export function ResultsChrome(props: ResultsChromeProps) {
   const [topHeight, setTopHeight] = useState(180);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(HEADER_ESTIMATE);
 
-  const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP));
-  const collapsed = Math.min(Math.round(containerHeight * COLLAPSED_SHARE), expanded - MIN_TRAVEL);
-  const peek = Math.min(Math.round(headerHeight + insets.bottom), collapsed - MIN_TRAVEL);
+  const expanded = Math.max(3, Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP)));
+  const travel = Math.max(1, Math.min(MIN_TRAVEL, Math.floor(expanded / 3)));
+  const collapsed = Math.max(2, Math.min(Math.round(containerHeight * COLLAPSED_SHARE), expanded - travel));
+  const peek = Math.max(1, Math.min(Math.round(headerHeight + insets.bottom), collapsed - travel));
   const snapPoints = [peek, collapsed, expanded];
 
   const settle = (index: number) => {
