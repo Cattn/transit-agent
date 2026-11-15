@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -56,6 +56,21 @@ const MODE_ICONS: Record<LegChip['mode'], number> = {
   car: DirectionsCar,
   flight: Flight
 };
+// The sheet's header is its drag handle: content panning is off so the route list never moves the sheet (#81).
+const SheetHeaderContext = createContext<{ header: ReactNode; indicator: string }>({ header: null, indicator: 'transparent' });
+
+function SheetHeader() {
+  const { header, indicator } = useContext(SheetHeaderContext);
+  return (
+    <View>
+      <View style={styles.handleRow}>
+        <View style={[styles.handle, { backgroundColor: indicator }]} />
+      </View>
+      {header}
+    </View>
+  );
+}
+
 const COLLAPSED_SHARE = 0.58;
 const MIN_TRAVEL = 120;
 const TOP_GAP = 12;
@@ -174,6 +189,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
   const [containerHeight, setContainerHeight] = useState(windowHeight);
   const [topHeight, setTopHeight] = useState(180);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [sheetIndex, setSheetIndex] = useState(0);
 
   const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP));
   const collapsed = Math.min(Math.round(containerHeight * COLLAPSED_SHARE), expanded - MIN_TRAVEL);
@@ -181,8 +197,94 @@ export function ResultsChrome(props: ResultsChromeProps) {
 
   const settle = (index: number) => {
     if (index < 0) return;
+    setSheetIndex(index);
     props.onSheetLayout(snapPoints[index] ?? collapsed);
   };
+
+  const header = (
+    <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+      <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(16, 4, 16, 10)]}>
+        <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+          <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
+            <Text color={m.onSurface} style={m3Text('titleLarge')}>{props.title}</Text>
+            {props.subtitle ? <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.subtitle}</Text> : null}
+          </Column>
+          {props.updated ? (
+            <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
+              <Icon source={props.live ? Sensors : Schedule} size={16} tint={props.live ? m.primary : m.onSurfaceVariant} />
+              <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>{props.updated}</Text>
+            </Row>
+          ) : null}
+        </Row>
+        {props.warning ? (
+          <Row
+            horizontalArrangement={{ spacedBy: 10 }}
+            verticalAlignment="center"
+            modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.surfaceContainerHighest), padding(12, 10, 12, 10)]}
+          >
+            <Icon source={Warning} size={18} tint={m.onSurfaceVariant} />
+            <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.warning}</Text>
+          </Row>
+        ) : null}
+        {props.saveError ? (
+          <Row
+            horizontalArrangement={{ spacedBy: 10 }}
+            verticalAlignment="center"
+            modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
+          >
+            <Icon source={Warning} size={18} tint={m.onErrorContainer} />
+            <Text color={m.onErrorContainer} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.saveError}</Text>
+            <TextButton onClick={props.onRetrySave}>
+              <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
+            </TextButton>
+          </Row>
+        ) : null}
+        {props.savedTrip ? (
+          <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+            <Icon source={Notifications} size={20} tint={m.onSurfaceVariant} />
+            <Text color={m.onSurface} style={m3Text('bodyLarge')} modifiers={[weight(1)]}>Watch this trip</Text>
+            <Switch value={props.savedTrip.watch} onCheckedChange={props.savedTrip.onToggleWatch} />
+            <IconButton onClick={() => setConfirmDelete(true)}>
+              <Icon source={Delete} size={24} tint={m.error} contentDescription="Delete saved trip" />
+            </IconButton>
+          </Row>
+        ) : null}
+        {props.savedTrip?.error ? (
+          <Row
+            horizontalArrangement={{ spacedBy: 10 }}
+            verticalAlignment="center"
+            modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
+          >
+            <Icon source={Warning} size={18} tint={m.onErrorContainer} />
+            <Text color={m.onErrorContainer} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.savedTrip.error}</Text>
+            <TextButton onClick={props.savedTrip.onRetry}>
+              <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
+            </TextButton>
+          </Row>
+        ) : null}
+        {confirmDelete && props.savedTrip ? (
+          <AlertDialog onDismissRequest={() => setConfirmDelete(false)}>
+            <AlertDialog.Title>
+              <Text style={m3Text('headlineSmall')}>Delete this trip?</Text>
+            </AlertDialog.Title>
+            <AlertDialog.Text>
+              <Text style={m3Text('bodyMedium')}>It will be removed from your saved trips and will no longer be watched.</Text>
+            </AlertDialog.Text>
+            <AlertDialog.ConfirmButton>
+              <TextButton onClick={() => { setConfirmDelete(false); props.savedTrip?.onDelete(); }}>
+                <Text color={m.error} style={m3Text('labelLarge')}>Delete</Text>
+              </TextButton>
+            </AlertDialog.ConfirmButton>
+            <AlertDialog.DismissButton>
+              <TextButton onClick={() => setConfirmDelete(false)}>
+                <Text style={m3Text('labelLarge')}>Cancel</Text>
+              </TextButton>
+            </AlertDialog.DismissButton>
+          </AlertDialog>
+        ) : null}
+      </Column>
+    </Host>
+  );
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill} onLayout={(event) => setContainerHeight(event.nativeEvent.layout.height)}>
@@ -256,145 +358,66 @@ export function ResultsChrome(props: ResultsChromeProps) {
         </Column>
       </Host>
 
-      <BottomSheet
-        index={0}
-        snapPoints={snapPoints}
-        enableDynamicSizing={false}
-        enablePanDownToClose={false}
-        onChange={settle}
-        onAnimate={(_from, to) => settle(to)}
-        backgroundStyle={[styles.sheetBackground, { backgroundColor: m.surfaceContainerLow }]}
-        handleIndicatorStyle={[styles.handle, { backgroundColor: m.onSurfaceVariant }]}
-      >
-        <View style={styles.sheetContent}>
-          <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
-            <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(16, 4, 16, 10)]}>
-              <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
-                <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
-                  <Text color={m.onSurface} style={m3Text('titleLarge')}>{props.title}</Text>
-                  {props.subtitle ? <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>{props.subtitle}</Text> : null}
-                </Column>
-                {props.updated ? (
-                  <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
-                    <Icon source={props.live ? Sensors : Schedule} size={16} tint={props.live ? m.primary : m.onSurfaceVariant} />
-                    <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>{props.updated}</Text>
-                  </Row>
-                ) : null}
-              </Row>
-              {props.warning ? (
-                <Row
-                  horizontalArrangement={{ spacedBy: 10 }}
-                  verticalAlignment="center"
-                  modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.surfaceContainerHighest), padding(12, 10, 12, 10)]}
-                >
-                  <Icon source={Warning} size={18} tint={m.onSurfaceVariant} />
-                  <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.warning}</Text>
-                </Row>
+      <SheetHeaderContext.Provider value={{ header, indicator: m.onSurfaceVariant }}>
+        <BottomSheet
+          index={0}
+          snapPoints={snapPoints}
+          enableDynamicSizing={false}
+          enablePanDownToClose={false}
+          enableContentPanningGesture={false}
+          onChange={settle}
+          onAnimate={(_from, to) => settle(to)}
+          backgroundStyle={[styles.sheetBackground, { backgroundColor: m.surfaceContainerLow }]}
+          handleComponent={SheetHeader}
+        >
+          <View style={styles.sheetContent}>
+            <BottomSheetScrollView style={styles.list} contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + (sheetIndex === 0 ? expanded - collapsed : 0) }]}>
+              {props.message ? (
+                <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                  <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>{props.message}</Text>
+                </Host>
               ) : null}
-              {props.saveError ? (
-                <Row
-                  horizontalArrangement={{ spacedBy: 10 }}
-                  verticalAlignment="center"
-                  modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
-                >
-                  <Icon source={Warning} size={18} tint={m.onErrorContainer} />
-                  <Text color={m.onErrorContainer} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.saveError}</Text>
-                  <TextButton onClick={props.onRetrySave}>
-                    <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
-                  </TextButton>
-                </Row>
+              {props.cards.map((card) => (
+                <RouteCard
+                  key={card.id}
+                  card={card}
+                  canSave={props.canSave}
+                  m={m}
+                  scheme={scheme}
+                  onSelect={() => props.onSelect(card.id)}
+                  onSave={() => props.onSave(card.id)}
+                />
+              ))}
+              {props.nearMisses.length ? (
+                <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
+                  <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
+                    <Text color={m.onSurfaceVariant} style={m3Text('titleSmall')}>Almost works</Text>
+                    {props.nearMisses.map((miss) => (
+                      <Surface
+                        key={miss.id}
+                        color={m.surfaceContainerLowest}
+                        contentColor={m.onSurface}
+                        shape={corners(CARD_RADIUS)}
+                        border={{ width: 1, color: m.outlineVariant }}
+                        modifiers={[fillMaxWidth()]}
+                      >
+                        <Row horizontalArrangement={{ spacedBy: 12 }} verticalAlignment="center" modifiers={[padding(16, 12, 16, 12)]}>
+                          <Icon source={MODE_ICONS[miss.mode]} size={24} tint={m.onSurfaceVariant} />
+                          <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
+                            <Text color={m.onSurface} style={m3Text('titleSmall')}>{miss.title}</Text>
+                            {miss.reason ? <Text color={m.error} style={m3Text('bodySmall')}>{miss.reason}</Text> : null}
+                          </Column>
+                          <Text color={m.onSurface} style={m3Text('labelLarge')}>{miss.cost}</Text>
+                        </Row>
+                      </Surface>
+                    ))}
+                  </Column>
+                </Host>
               ) : null}
-              {props.savedTrip ? (
-                <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
-                  <Icon source={Notifications} size={20} tint={m.onSurfaceVariant} />
-                  <Text color={m.onSurface} style={m3Text('bodyLarge')} modifiers={[weight(1)]}>Watch this trip</Text>
-                  <Switch value={props.savedTrip.watch} onCheckedChange={props.savedTrip.onToggleWatch} />
-                  <IconButton onClick={() => setConfirmDelete(true)}>
-                    <Icon source={Delete} size={24} tint={m.error} contentDescription="Delete saved trip" />
-                  </IconButton>
-                </Row>
-              ) : null}
-              {props.savedTrip?.error ? (
-                <Row
-                  horizontalArrangement={{ spacedBy: 10 }}
-                  verticalAlignment="center"
-                  modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(12)), background(m.errorContainer), padding(12, 4, 4, 4)]}
-                >
-                  <Icon source={Warning} size={18} tint={m.onErrorContainer} />
-                  <Text color={m.onErrorContainer} style={m3Text('bodySmall')} modifiers={[weight(1)]}>{props.savedTrip.error}</Text>
-                  <TextButton onClick={props.savedTrip.onRetry}>
-                    <Text color={m.onErrorContainer} style={m3Text('labelLarge', 700)}>Retry</Text>
-                  </TextButton>
-                </Row>
-              ) : null}
-              {confirmDelete && props.savedTrip ? (
-                <AlertDialog onDismissRequest={() => setConfirmDelete(false)}>
-                  <AlertDialog.Title>
-                    <Text style={m3Text('headlineSmall')}>Delete this trip?</Text>
-                  </AlertDialog.Title>
-                  <AlertDialog.Text>
-                    <Text style={m3Text('bodyMedium')}>It will be removed from your saved trips and will no longer be watched.</Text>
-                  </AlertDialog.Text>
-                  <AlertDialog.ConfirmButton>
-                    <TextButton onClick={() => { setConfirmDelete(false); props.savedTrip?.onDelete(); }}>
-                      <Text color={m.error} style={m3Text('labelLarge')}>Delete</Text>
-                    </TextButton>
-                  </AlertDialog.ConfirmButton>
-                  <AlertDialog.DismissButton>
-                    <TextButton onClick={() => setConfirmDelete(false)}>
-                      <Text style={m3Text('labelLarge')}>Cancel</Text>
-                    </TextButton>
-                  </AlertDialog.DismissButton>
-                </AlertDialog>
-              ) : null}
-            </Column>
-          </Host>
-          <BottomSheetScrollView style={styles.list} contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 }]}>
-            {props.message ? (
-              <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
-                <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>{props.message}</Text>
-              </Host>
-            ) : null}
-            {props.cards.map((card) => (
-              <RouteCard
-                key={card.id}
-                card={card}
-                canSave={props.canSave}
-                m={m}
-                scheme={scheme}
-                onSelect={() => props.onSelect(card.id)}
-                onSave={() => props.onSave(card.id)}
-              />
-            ))}
-            {props.nearMisses.length ? (
-              <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
-                <Column verticalArrangement={{ spacedBy: 10 }} modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
-                  <Text color={m.onSurfaceVariant} style={m3Text('titleSmall')}>Almost works</Text>
-                  {props.nearMisses.map((miss) => (
-                    <Surface
-                      key={miss.id}
-                      color={m.surfaceContainerLowest}
-                      contentColor={m.onSurface}
-                      shape={corners(CARD_RADIUS)}
-                      border={{ width: 1, color: m.outlineVariant }}
-                      modifiers={[fillMaxWidth()]}
-                    >
-                      <Row horizontalArrangement={{ spacedBy: 12 }} verticalAlignment="center" modifiers={[padding(16, 12, 16, 12)]}>
-                        <Icon source={MODE_ICONS[miss.mode]} size={24} tint={m.onSurfaceVariant} />
-                        <Column verticalArrangement={{ spacedBy: 2 }} modifiers={[weight(1)]}>
-                          <Text color={m.onSurface} style={m3Text('titleSmall')}>{miss.title}</Text>
-                          {miss.reason ? <Text color={m.error} style={m3Text('bodySmall')}>{miss.reason}</Text> : null}
-                        </Column>
-                        <Text color={m.onSurface} style={m3Text('labelLarge')}>{miss.cost}</Text>
-                      </Row>
-                    </Surface>
-                  ))}
-                </Column>
-              </Host>
-            ) : null}
-          </BottomSheetScrollView>
-        </View>
-      </BottomSheet>
+            </BottomSheetScrollView>
+          </View>
+        </BottomSheet>
+      </SheetHeaderContext.Provider>
       <View pointerEvents="none" style={[styles.navStrip, { height: insets.bottom, backgroundColor: m.surfaceContainerLow }]} />
     </View>
   );
@@ -404,7 +427,8 @@ const styles = StyleSheet.create({
   top: { position: 'absolute', left: 12, right: 12 },
   fullWidth: { width: '100%' },
   sheetBackground: { borderTopLeftRadius: 28, borderTopRightRadius: 28 },
-  handle: { width: 32, height: 4, opacity: 0.4 },
+  handleRow: { alignItems: 'center', paddingVertical: 10 },
+  handle: { width: 32, height: 4, borderRadius: 2, opacity: 0.4 },
   sheetContent: { flex: 1 },
   list: { flex: 1 },
   listContent: { gap: 12, paddingHorizontal: 16, paddingTop: 2 },
