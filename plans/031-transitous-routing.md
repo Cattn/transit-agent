@@ -3,7 +3,7 @@
 ## Status
 
 - Owner: Cattn; issue: https://github.com/Cattn/transit-agent/issues/57.
-- State: PR open (server/transitous-routing). Step 1 contract approved by Cattn 2026-11-14 (see "Approved contract"). Step 5 live acceptance of fresh MBTA predictions remains open by design.
+- State: PR #88 open (server/transitous-routing). Step 1 contract approved by Cattn 2026-11-14 (see "Approved contract"). Step 5 live acceptance of fresh MBTA predictions remains open by design.
 - Priority P1 (Android transit milestone); effort M–L; risk HIGH (external data and provider semantics).
 - Depends on: 003 and 007 (DONE). Geocoding 028/033 is DONE; do not rebuild it.
 - Planned at: `0b37886`, reconciled 2026-11-14.
