@@ -15,7 +15,7 @@
 - **Risk**: MED
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
-- **State**: BLOCKED on 031 and the scheduling/storage refresh below; D7 polling is settled.
+- **State**: IN PROGRESS (031 merged in #88; cadence/storage/model decisions recorded by Cattn 2026-11-14 under "Decisions").
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
@@ -127,6 +127,17 @@ Saved-itinerary GET responses now include `watchStatus`. Document in the PR: cli
 - ~~008-Q2~~ **Decided ([roadmap answer](https://github.com/Cattn/transit-agent/issues/17#issuecomment-6873720245)):** automatically switch missed trips; no confirmation tap.
 - 008-Q3 (partly answered by Cattn, 2026-11-14): transit defaults are recorded in Step 4 and plan 007. Exact early/final check times, adaptation rules, intercity treatment and preference storage remain implementation details to resolve; flight policy is separate.
 
-## Required refresh before execution (`0b37886`)
+## Decisions (Cattn, 2026-11-14) — supersede the open items above
 
-The outline is not an executable handoff. SQLite listWatched excludes departed trips and loses device identity; ItineraryStore.update only patches label/watch. Specify internal `{ deviceId, itinerary }` watched records, overdue active eligibility until terminal/expired with a bounded retention policy agreed by Cattn, and matching memory/SQLite behavior. Add an internal atomic update for refreshed itinerary/status/replacement retaining saved ID, label and color. Never expose another device through HTTP. Extend existing store tests for two owners, overdue/terminal trips, persistence and missed-trip replacement. Resolve exact cadence/freshness policy, explicit Scope and area branch before TODO. Commands: `npm run test:unit -w @transit/server`, `npm run check`. No new test files/comments; preserve logging.
+These replace the "Required refresh" outline and settle 008-Q3 for this PR.
+
+- **Cadence** (`watch/horizons.ts`, keyed by the anchor leg): bus T-4h, T-2h, then T-60/30/20/10 min, then every 2 min to departure. Subway/light rail (`rail` with an MBTA subway/tram route) T-60/30/20/10, then every 2 min. Commuter rail (unused today: Transitous rail is SUBWAY,TRAM only) = bus plus T-3h. Issue rule: if a check finds `atRisk` or a delay, check every 2 min from T-30. Job ticks every 60 s and only refreshes due trips.
+- **Flights**: left out of this PR; the job skips flight-anchored trips. No user cadence preference yet (defaults only, no contract change).
+- **Retention**: stop checking a little after arrival (arrival + 15 min → `done`, then skipped). Nothing is deleted.
+- **Live data**: Transitous is primary. `refresh` re-queries Transitous for the same trip IDs. Where Transitous marks a leg `realTime: true` but that is uncertain, MBTA V3 predictions qualify it: departure uncertainty < 300 → `realtime` with `delayMinutes`; otherwise stays `estimated`. No match → `undefined`, status recomputed on the stored itinerary. Optional `MBTA_API_KEY`.
+- **Model**: rule-based checks; the planner model runs only when a check finds an issue (delay, `atRisk`, `missed`) to write the status message and pick the replacement among valid options. Thinking HIGH more than 2 h out, MEDIUM 2 h–30 min, LOW under 30 min. Falls back to the rule message/top valid result when no model is configured or it fails.
+- **Quiet messages**: when all is fine the message is just "Leave by 8:12 AM." (no schedule/live suffix; `usedRealtime` still tells the UI). Push notifications stay a follow-up (D7-C).
+- **Storage**: internal `listWatched` returns `{ deviceId, item }` including departed-but-unfinished trips; internal `applyWatch` atomically writes refreshed/replacement itinerary, request, `watchStatus` and `leaveBy`, keeping saved id, label, color and savedAt. Memory and SQLite match; HTTP stays per device.
+- **Tests**: no new files. Store cases in `routes/itineraries.test.ts`, watch job cases in `planning/plan-trip.test.ts`.
+- **Live acceptance**: a run on Cattn's server that shows `scheduled`/`estimated` when no fresh prediction exists is acceptable, recorded as untested-live.
+- **Scope additions**: `packages/shared/src/domain/watch.ts` (quiet message), `apps/server/src/agent/models.ts` (`watch` task), `apps/server/src/watch/*`, `apps/server/.env.example`. Branch `server/watches`.
