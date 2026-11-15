@@ -1,5 +1,5 @@
-import { Button, Column, HorizontalDivider, Icon, Row, Shape, Surface, Text, type MaterialColors } from '@expo/ui/jetpack-compose';
-import { clickable, clip, fillMaxWidth, padding, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { Button, Column, FlowRow, HorizontalDivider, Icon, Row, Shape, Surface, Text, type MaterialColors } from '@expo/ui/jetpack-compose';
+import { clickable, clip, fillMaxWidth, horizontalScroll, padding, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
 import type { Tone } from '@transit/shared';
 import BookmarkAdd from '../../../assets/icons/bookmark_add_fill.xml';
 import Check from '../../../assets/icons/check_fill.xml';
@@ -39,29 +39,28 @@ function toneColors(tone: Tone, m: MaterialColors): { bg: string; fg: string } {
   return { bg: m.secondaryContainer, fg: m.onSecondaryContainer };
 }
 
-function LegChips({ chips, m }: { chips: LegChip[]; m: MaterialColors }) {
-  return (
-    <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
-      {chips.map((chip, index) => (
-        <Row key={chip.id} horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
-          {index > 0 ? <Text color={m.outline} style={m3Text('labelLarge')}>›</Text> : null}
-          {chip.transit ? (
-            <Surface color={m.primaryContainer} contentColor={m.onPrimaryContainer} shape={corners(8)}>
-              <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center" modifiers={[padding(6, 3, 8, 3)]}>
-                <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onPrimaryContainer} />
-                <Text color={m.onPrimaryContainer} style={m3Text('labelLarge', 700)}>{chip.label}</Text>
-              </Row>
-            </Surface>
-          ) : (
-            <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center">
-              <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onSurfaceVariant} />
-              <Text color={m.onSurfaceVariant} style={m3Text('labelMedium')}>{chip.label}</Text>
-            </Row>
-          )}
+function LegChips({ chips, m, wrap }: { chips: LegChip[]; m: MaterialColors; wrap: boolean }) {
+  const items = chips.map((chip, index) => (
+    <Row key={chip.id} horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center">
+      {index > 0 ? <Text color={m.outline} style={m3Text('labelLarge')}>›</Text> : null}
+      {chip.transit ? (
+        <Surface color={m.primaryContainer} contentColor={m.onPrimaryContainer} shape={corners(8)}>
+          <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center" modifiers={[padding(6, 3, 8, 3)]}>
+            <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onPrimaryContainer} />
+            <Text color={m.onPrimaryContainer} maxLines={1} softWrap={false} style={m3Text('labelLarge', 700)}>{chip.label}</Text>
+          </Row>
+        </Surface>
+      ) : (
+        <Row horizontalArrangement={{ spacedBy: 2 }} verticalAlignment="center">
+          <Icon source={MODE_ICONS[chip.mode]} size={18} tint={m.onSurfaceVariant} />
+          <Text color={m.onSurfaceVariant} maxLines={1} softWrap={false} style={m3Text('labelMedium')}>{chip.label}</Text>
         </Row>
-      ))}
+      )}
     </Row>
-  );
+  ));
+  return wrap
+    ? <FlowRow horizontalArrangement={{ spacedBy: 6 }} verticalArrangement={{ spacedBy: 6 }} modifiers={[fillMaxWidth()]}>{items}</FlowRow>
+    : <Row horizontalArrangement={{ spacedBy: 6 }} verticalAlignment="center" modifiers={[fillMaxWidth(), horizontalScroll()]}>{items}</Row>;
 }
 
 export function RouteCard({ card, canSave, m, onSelect, onSave }: {
@@ -91,7 +90,7 @@ export function RouteCard({ card, canSave, m, onSelect, onSave }: {
           <Text color={m.onSurface} style={m3Text('titleMedium', 700)}>{text.duration}</Text>
         </Row>
         {card.wait ? <Text color={card.wait.long ? m.tertiary : m.onSurfaceVariant} style={m3Text('labelLarge')}>{card.wait.label}</Text> : null}
-        <LegChips chips={text.chips} m={m} />
+        <LegChips chips={text.chips} m={m} wrap={selected} />
         <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
           <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[weight(1)]}>
             <Surface color={pill.bg} contentColor={pill.fg} shape={corners(12)}>
