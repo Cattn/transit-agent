@@ -32,6 +32,15 @@ export interface ResultCard {
   saved: boolean;
 }
 
+export interface SavedTripActions {
+  title: string;
+  watch: boolean;
+  error?: string;
+  onToggleWatch: (watch: boolean) => void;
+  onDelete: () => void;
+  onRetry: () => void;
+}
+
 export interface ResultsChromeProps {
   colors: AppColors;
   origin: string;
@@ -46,11 +55,14 @@ export interface ResultsChromeProps {
   cards: ResultCard[];
   nearMisses: (NearMissText & { id: string })[];
   canSave: boolean;
+  saveError?: string;
+  onRetrySave: () => void;
+  savedTrip?: SavedTripActions;
   onSelect: (id: string) => void;
   onSave: (id: string) => void;
   onBack: () => void;
-  onSwap: () => void;
-  onOpenFilters: () => void;
+  onSwap?: () => void;
+  onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;
 }
 
@@ -64,9 +76,12 @@ export interface ResultsScreenProps {
   selectedId?: string;
   onSelect: (id: string | undefined) => void;
   onSave: (itinerary: Itinerary, request: TripRequest) => void;
+  saveError?: string;
+  onRetrySave: () => void;
+  savedTrip?: SavedTripActions;
   onBack: () => void;
-  onSwap: () => void;
-  onOpenFilters: () => void;
+  onSwap?: () => void;
+  onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;
 }
 
@@ -120,7 +135,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
     origin: placeLabel(draftState.draft.origin, 'Choose start'),
     destination: placeLabel(draftState.draft.destination, 'Choose destination'),
     chips: resultChips(draftState, now),
-    title: data && !message ? `${itineraries.length} ${itineraries.length === 1 ? 'route' : 'routes'}` : 'Routes',
+    title: props.savedTrip ? props.savedTrip.title : data && !message ? `${itineraries.length} ${itineraries.length === 1 ? 'route' : 'routes'}` : 'Routes',
     subtitle,
     updated: oldest && !message ? `updated ${formatAge(oldest, now)}` : undefined,
     live: itineraries.some((it) => itineraryFreshness(it).label === 'Live'),
@@ -134,6 +149,9 @@ export function ResultsScreen(props: ResultsScreenProps) {
     })),
     nearMisses: message ? [] : nearMisses.map((it) => ({ id: it.id, ...nearMissText(it, timeZone) })),
     canSave: request.ok,
+    saveError: props.saveError,
+    onRetrySave: props.onRetrySave,
+    savedTrip: props.savedTrip,
     onSelect: (id) => onSelect(id === selectedId ? undefined : id),
     onSave: (id) => {
       const itinerary = itineraries.find((it) => it.id === id);

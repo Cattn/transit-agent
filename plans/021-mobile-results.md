@@ -30,7 +30,7 @@
 
 **Open questions** — **@Cattn answers these (design); @DMFriends may propose answers.** Reply as `021-Q1: ...`. Use the proposed defaults until answered.
 
-- ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled (not live)".
+- ~~021-Q1~~ **Decided ([#24](https://github.com/Cattn/transit-agent/issues/24#issuecomment-6872458297)):** keep plan 016 wording, including "Safe / Some risk / Tight" and "Scheduled".
 - 021-Q2: expand the selected card in the sheet? *(proposed: yes)*
 - 021-Q3: one text block for empty, offline, and error? *(proposed: yes)*
 - 021-Q4: what in this layout should change before it is built?
@@ -117,7 +117,7 @@ The home search field does not run this search. The Filters "Show routes" button
 
 Render `itineraries` and `nearMisses` with the card fields above. Freshness text:
 
-Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled (not live)", and "Estimated" exactly as returned.
+Use `legFreshness`, `itineraryFreshness`, `formatCost`, and `riskBadge` from `@transit/shared` (plan 016, merged in #36). Do not duplicate these helpers. Keep "Safe / Some risk / Tight", "Scheduled", and "Estimated" exactly as returned.
 
 **Android (from @Cattn's review of PR #66, 2026-11-14):** follow plan 020's "Android Material 3 rules" and the `expo-ui` skill on every element of this sheet: Expo UI Jetpack Compose components (`Card`, `AssistChip` / `FilterChip`, `Surface`, `Badge`, `Icon`), laid out to match Figma frame **02 Results** on the `Android — Material 3` page. No hand-styled stand-ins for components Material 3 has. Badge and freshness colors come from the Material theme (`useMaterialColors()` / the `Host` color scheme), not `toneColors` from `@transit/shared`: Tight uses the `error` / `errorContainer` roles, Some risk uses `tertiaryContainer`, Safe and Live use `primaryContainer` / `secondaryContainer`.
 

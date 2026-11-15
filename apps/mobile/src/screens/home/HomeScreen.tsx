@@ -40,10 +40,17 @@ export interface HomeChromeProps {
   onAskAgent: () => void;
   onOpenSettings: () => void;
   onOpenFilters: () => void;
+  onSearch: () => void;
+  onOpenTrip: (id: string) => void;
+  tripsLoading: boolean;
+  tripsError?: string;
+  onRetryTrips: () => void;
   sheetHeight: number;
   onSheetLayout: (height: number) => void;
   onTopLayout?: (bottomEdge: number) => void;
 }
+
+type TripAction = { id: string; kind: 'watch'; watch: boolean } | { id: string; kind: 'delete' };
 
 const MAP_PADDING = 16;
 const MAP_BUTTON_COLUMN = 64;
@@ -94,7 +101,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const foreground = useAppForeground();
   const now = useNow(15_000);
   const { state, apply, reset, request } = useTripDraft();
-  const { items, save } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save, update, remove } = useSavedItineraries({ pollMs: 30_000, enabled: foreground });
+  const [tripsListed, setTripsListed] = useState(false);
+  if (!tripsListed && (items.length > 0 || tripsError || tripsLoading)) setTripsListed(true);
+  const [saveFailed, setSaveFailed] = useState<{ itinerary: Itinerary; request: TripRequest }>();
+  const [openSavedId, setOpenSavedId] = useState<string>();
+  const [tripAction, setTripAction] = useState<TripAction>();
   const [profile, setProfile] = useState<TravelProfile>();
   const [status, setStatus] = useState(apiMode === 'mock' ? '' : 'Connecting…');
   const [sheetHeight, setSheetHeight] = useState(0);
@@ -108,6 +120,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [sheet, setSheet] = useState<'chat' | 'filters' | 'fly'>();
   const [chatBehind, setChatBehind] = useState(false);
   const [filterField, setFilterField] = useState<string>();
+  const [filterSearch, setFilterSearch] = useState<'destination'>();
   const [resultsOpen, setResultsOpen] = useState(false);
   const [agentPlan, setAgentPlan] = useState<{ plan: PlanResponse; draft: TripDraft }>();
   const currentPlan = agentPlan?.draft === state.draft ? agentPlan.plan : undefined;
@@ -153,21 +166,42 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
 
   const openFilters = useCallback((field?: string) => {
     setFilterField(field);
+    setFilterSearch(undefined);
+    setSheet('filters');
+  }, []);
+
+  const openSearch = useCallback(() => {
+    setFilterField('destination');
+    setFilterSearch('destination');
     setSheet('filters');
   }, []);
 
   const closeSheet = useCallback(() => {
     setFilterField(undefined);
+    setFilterSearch(undefined);
     setSheet(chatBehind ? 'chat' : undefined);
     setChatBehind(false);
   }, [chatBehind]);
 
+  const closeSaved = useCallback(() => {
+    setOpenSavedId(undefined);
+    setTripAction(undefined);
+  }, []);
+
+  const runTripAction = useCallback((action: TripAction) => {
+    setTripAction(undefined);
+    const task = action.kind === 'watch' ? update(action.id, { watch: action.watch }) : remove(action.id);
+    task.catch(() => setTripAction(action));
+  }, [update, remove]);
+
   const showRoutes = useCallback(() => {
+    closeSaved();
     setFilterField(undefined);
+    setFilterSearch(undefined);
     setChatBehind(false);
     setSheet(undefined);
     setResultsOpen(true);
-  }, []);
+  }, [closeSaved]);
 
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
@@ -175,9 +209,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, [apply]);
 
   const onAgentPlan = useCallback((agent: PlanResponse, draft: TripDraft) => {
+    closeSaved();
     setAgentPlan({ plan: agent, draft });
     setResultsOpen(true);
-  }, []);
+  }, [closeSaved]);
 
   const chat = useChatSession(state, applyAgent, onAgentPlan);
 
@@ -235,13 +270,22 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     return [chip('home', 'Home', profile?.home), chip('office', 'Office', profile?.work), chip('gym', 'Gym', undefined)];
   }, [profile, searchTo, openFilters]);
 
-  const closeResults = useCallback(() => setResultsOpen(false), []);
+  const closeResults = useCallback(() => {
+    setResultsOpen(false);
+    setSaveFailed(undefined);
+  }, []);
+
+  const openSaved = resultsOpen ? undefined : items.find((item) => item.id === openSavedId);
 
   useEffect(() => {
-    if (!resultsOpen) return;
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { closeResults(); return true; });
+    if (!resultsOpen && !openSaved) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (resultsOpen) closeResults();
+      else closeSaved();
+      return true;
+    });
     return () => subscription.remove();
-  }, [resultsOpen, closeResults]);
+  }, [resultsOpen, openSaved, closeResults, closeSaved]);
 
   const swapPlaces = useCallback(() => {
     editDraft({ origin: state.draft.destination ?? null, destination: state.draft.origin ?? null });
@@ -256,17 +300,17 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const savedColors = useMemo(() => new Map(items.flatMap((item) => (item.color ? [[item.id, item.color] as const] : []))), [items]);
 
   const watched = useMemo(() => items.filter((trip) => trip.watch), [items]);
-  const mapTrips = useMemo<Itinerary[]>(
-    () => (resultsOpen ? [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])] : watched),
-    [resultsOpen, plan.data, watched]
-  );
-  const shownIds = resultsOpen
-    ? [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])].map((it) => it.id).join(' ')
-    : watched.map((trip) => trip.id).join(' ');
+  const mapTrips = useMemo<Itinerary[]>(() => {
+    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])];
+    return openSaved && !openSaved.watch ? [...watched, openSaved] : watched;
+  }, [resultsOpen, plan.data, watched, openSaved]);
+  const shownIds = mapTrips.map((it) => it.id).join(' ');
+  const savedPlan = useMemo(() => (openSaved ? { data: { itineraries: [openSaved], nearMisses: [], warnings: [] }, loading: false } : undefined), [openSaved]);
   const routeColors = useMemo(() => assignRouteColors(shownIds ? shownIds.split(' ') : [], savedColors), [shownIds, savedColors]);
 
   const saveResult = useCallback((itinerary: Itinerary, tripRequest: TripRequest) => {
-    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => undefined);
+    setSaveFailed(undefined);
+    save({ itinerary, request: tripRequest, watch: true, color: routeColors.get(itinerary.id) }).catch(() => setSaveFailed({ itinerary, request: tripRequest }));
   }, [save, routeColors]);
 
   const padding = useMemo(
@@ -282,9 +326,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         colors={colors}
         trips={mapTrips}
         routeColors={routeColors}
-        selectedItineraryId={selectedId}
-        onSelect={setSelectedId}
-        onDeselect={clearSelection}
+        selectedItineraryId={resultsOpen ? selectedId : openSaved?.id}
+        onSelect={resultsOpen ? setSelectedId : setOpenSavedId}
+        onDeselect={resultsOpen ? clearSelection : closeSaved}
         userLocation={live.location ?? here}
         userHeading={live.heading}
         locateKey={locateKey}
@@ -302,9 +346,34 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           selectedId={selectedId}
           onSelect={setSelectedId}
           onSave={saveResult}
+          saveError={saveFailed && !savedIds.has(saveFailed.itinerary.id) ? 'Could not save this trip. Check your connection and try again.' : undefined}
+          onRetrySave={() => { if (saveFailed) saveResult(saveFailed.itinerary, saveFailed.request); }}
           onBack={closeResults}
           onSwap={swapPlaces}
           onOpenFilters={() => openFilters()}
+          onSheetLayout={setSheetHeight}
+        />
+      ) : openSaved && savedPlan ? (
+        <ResultsScreen
+          colors={colors}
+          draftState={{ draft: openSaved.request, provenance: {} }}
+          request={{ ok: true, request: openSaved.request }}
+          plan={savedPlan}
+          now={now}
+          savedIds={savedIds}
+          selectedId={openSaved.id}
+          onSelect={() => undefined}
+          onSave={() => undefined}
+          onRetrySave={() => undefined}
+          savedTrip={{
+            title: openSaved.label ?? 'Saved trip',
+            watch: openSaved.watch,
+            error: tripAction?.id === openSaved.id ? (tripAction.kind === 'watch' ? 'Could not update this trip. Check your connection and try again.' : 'Could not delete this trip. Check your connection and try again.') : undefined,
+            onToggleWatch: (watch) => runTripAction({ id: openSaved.id, kind: 'watch', watch }),
+            onDelete: () => runTripAction({ id: openSaved.id, kind: 'delete' }),
+            onRetry: () => { if (tripAction) runTripAction(tripAction); }
+          }}
+          onBack={closeSaved}
           onSheetLayout={setSheetHeight}
         />
       ) : (
@@ -312,7 +381,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           colors={colors}
           group={group}
           onGroupChange={onGroupChange}
-          trips={watched}
+          trips={items}
           watchingCount={watched.length}
           now={now}
           chips={chips}
@@ -323,6 +392,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onAskAgent={() => setSheet('chat')}
           onOpenSettings={() => navigation.navigate('Settings')}
           onOpenFilters={() => openFilters()}
+          onSearch={openSearch}
+          onOpenTrip={setOpenSavedId}
+          tripsLoading={!tripsListed || (tripsLoading && items.length === 0 && !tripsError)}
+          tripsError={tripsError ? (items.length ? 'Could not sync saved trips.' : 'Could not load saved trips.') : undefined}
+          onRetryTrips={() => void refreshTrips()}
           sheetHeight={sheetHeight}
           onSheetLayout={setSheetHeight}
           onTopLayout={setTopBarEdge}
@@ -338,6 +412,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           apply={applyUser}
           field={filterField}
           plan={plan}
+          startSearch={filterSearch}
           onClose={closeSheet}
           onShowRoutes={showRoutes}
         />

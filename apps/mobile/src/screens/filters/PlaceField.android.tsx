@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Host } from '@expo/ui';
-import { Column, Icon, ListItem, LoadingIndicator, OutlinedTextField, Row, Text, useMaterialColors, type TextFieldRef } from '@expo/ui/jetpack-compose';
+import { Column, Icon, IconButton, ListItem, LoadingIndicator, OutlinedTextField, Row, Text, useMaterialColors, type TextFieldRef } from '@expo/ui/jetpack-compose';
 import { clickable, fillMaxWidth, padding, size } from '@expo/ui/jetpack-compose/modifiers';
 import { usePlaceSearch } from '@transit/client-react';
 import type { Place } from '@transit/shared';
+import Close from '../../../assets/icons/close_fill.xml';
 import LocationOn from '../../../assets/icons/location_on_fill.xml';
 import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
@@ -29,6 +30,10 @@ export function PlaceField({ near, showLocation, locating, notice, onPick, onUse
     : !loading && trimmed.length >= 3 && results.length === 0 ? 'No places found' : undefined;
   const [after, setAfter] = useState<{ run: () => void }>();
   const blurThen = (run: () => void) => setAfter({ run });
+  const clear = () => {
+    setQuery('');
+    void field.current?.setText('').catch(() => undefined);
+  };
 
   useEffect(() => {
     if (!after) return;
@@ -52,10 +57,12 @@ export function PlaceField({ near, showLocation, locating, notice, onPick, onUse
           <OutlinedTextField.Placeholder>
             <Text style={m3Text('bodyLarge')}>Search places</Text>
           </OutlinedTextField.Placeholder>
-          {hint ? (
-            <OutlinedTextField.SupportingText>
-              <Text style={m3Text('bodySmall')}>{hint}</Text>
-            </OutlinedTextField.SupportingText>
+          {query ? (
+            <OutlinedTextField.TrailingIcon>
+              <IconButton onClick={clear}>
+                <Icon source={Close} size={24} contentDescription="Clear search" />
+              </IconButton>
+            </OutlinedTextField.TrailingIcon>
           ) : null}
         </OutlinedTextField>
         {showLocation ? (
@@ -70,6 +77,9 @@ export function PlaceField({ near, showLocation, locating, notice, onPick, onUse
         ) : null}
         {notice ? (
           <Text color={m.error} style={m3Text('bodyMedium')} modifiers={[padding(16, 4, 16, 4)]}>{notice}</Text>
+        ) : null}
+        {hint ? (
+          <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')} modifiers={[padding(16, 4, 16, 4)]}>{hint}</Text>
         ) : null}
         {loading ? (
           <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[padding(16, 8, 16, 8)]}>
