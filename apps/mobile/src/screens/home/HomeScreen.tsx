@@ -8,6 +8,7 @@ import { useApi, useNow, usePlanTrip, useSavedItineraries, useTripDraft } from '
 import { PALETTE, assignRouteColors, presetColor, presetForPlace, presetIcon, presetPlace, presetTripColors, withPresetColors, type BuildPreview } from '@transit/maps';
 import { getCurrentPlace, useAppForeground } from '../../platform';
 import { apiMode } from '../../data/client';
+import { MapLoading, useMapLoad } from '../../map/MapLoading';
 import { RouteMap } from '../../map/RouteMap';
 import { useLiveLocation } from '../../map/useLiveLocation';
 import type { RootStackParamList } from '../../navigation/types';
@@ -90,9 +91,11 @@ function agentBuildPreview({ phase, candidates, origin, destination, plan }: Age
 }
 
 function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onSelect, onDeselect, userLocation, userHeading, locateKey, unfocusedColors, variant, buildPreview, fitKey }: MapSlotProps) {
+  const mapLoad = useMapLoad();
   return (
     <View accessibilityLabel={`Map, ${trips.length} routes`} accessibilityValue={{ text: selectedItineraryId }} style={[StyleSheet.absoluteFill, { backgroundColor: colors.map }]}>
       <RouteMap
+        key={mapLoad.attempt}
         itineraries={trips}
         selectedItineraryId={selectedItineraryId}
         onRouteSelect={onSelect}
@@ -108,7 +111,10 @@ function MapSlot({ padding, colors, trips, routeColors, selectedItineraryId, onS
         variant={variant}
         accentColor={lightTheme.primary}
         buildPreview={buildPreview}
+        onLoad={mapLoad.onLoad}
+        onLoadError={mapLoad.onLoadError}
       />
+      <MapLoading status={mapLoad.status} colors={colors} padding={padding} onRetry={mapLoad.retry} />
     </View>
   );
 }
