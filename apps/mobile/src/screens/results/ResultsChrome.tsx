@@ -65,6 +65,23 @@ export function ResultsChrome(props: ResultsChromeProps) {
             onSave={() => props.onSave(card.id)}
           />
         ))}
+        {props.returns ? <Text style={[styles.section, { color: colors.onSurfaceVariant }]}>Return</Text> : null}
+        {props.returns?.message ? <Text style={{ color: colors.onSurfaceVariant }}>{props.returns.message}</Text> : null}
+        {props.returns?.warning ? <Text style={{ color: colors.onSurface }}>{props.returns.warning}</Text> : null}
+        {props.returns?.cards.map((card) => (
+          <View key={card.id}>
+            {card.wait ? <Text style={{ color: colors.onSurfaceVariant }}>{card.wait.label}</Text> : null}
+            <ItineraryCard
+              text={card.text}
+              selected={card.selected}
+              saved={card.saved}
+              canSave={props.canSave}
+              colors={colors}
+              onPress={() => props.onSelect(card.id)}
+              onSave={() => props.onSave(card.id)}
+            />
+          </View>
+        ))}
         {props.nearMisses.length ? <Text style={[styles.section, { color: colors.onSurfaceVariant }]}>Almost works</Text> : null}
         {props.nearMisses.map((miss) => (
           <View key={miss.id} style={styles.nearMiss}>

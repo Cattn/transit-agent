@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createServer } from './app.js';
 import { plannerConfigured, usesVertex } from './agent/models.js';
-import { FixtureProvider } from './providers/fixture.js';
+import { createRouteProviders } from './providers/registry.js';
 import { createPlaceSearcher } from './places/geocoder.js';
 import { migrate } from './store/migrations.js';
 import { SqliteItineraryStore } from './store/sqlite.js';
@@ -14,10 +14,11 @@ if (databasePath !== ':memory:') mkdirSync(dirname(databasePath), { recursive: t
 const db = new DatabaseSync(databasePath);
 migrate(db);
 const itineraries = new SqliteItineraryStore(db);
-const providers = [new FixtureProvider()];
+const providers = createRouteProviders();
 const places = createPlaceSearcher({ photonUrl: process.env.PHOTON_URL || undefined });
 const agent = plannerConfigured() ? new (await import('./agent/adk-planner.js')).AdkPlanner({ itineraries, providers, places }) : undefined;
 const app = createServer({ itineraries, providers, profiles: new SqliteProfileStore(db), agent, places });
+app.log.info({ routeProviders: providers.map((provider) => provider.name) }, 'Route providers');
 app.log.info({ agentEnabled: Boolean(agent), backend: agent ? (usesVertex() ? 'vertex' : 'gemini-api') : undefined }, 'Planner agent availability');
 
 async function shutdown() {

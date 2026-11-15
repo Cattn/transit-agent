@@ -3,7 +3,7 @@
 ## Status
 
 - Owner: Cattn; issue: https://github.com/Cattn/transit-agent/issues/57.
-- State: BLOCKED on return-response representation and provider identity/freshness contract refinement before implementation.
+- State: PR open (server/transitous-routing). Step 1 contract approved by Cattn 2026-11-14 (see "Approved contract"). Step 5 live acceptance of fresh MBTA predictions remains open by design.
 - Priority P1 (Android transit milestone); effort M–L; risk HIGH (external data and provider semantics).
 - Depends on: 003 and 007 (DONE). Geocoding 028/033 is DONE; do not rebuild it.
 - Planned at: `0b37886`, reconciled 2026-11-14.
@@ -21,6 +21,16 @@ Run `git diff --stat 0b37886..HEAD -- apps/server/src/providers apps/server/src/
 Research recorded GET `/api/v6/plan` at `https://api.transitous.org`, using `fromPlace=lat,lon`, `toPlace=lat,lon`, ISO time and numItineraries. The return sample uses arriveBy=true; the street sample uses empty transitModes and directModes=CAR,BIKE. This is evidence of the captured API, not a guarantee its current schema is unchanged. Domain coordinates are [lng,lat]; convert only at the boundary.
 
 Recorded envelopes in `plans/research/samples/007-transitous*.json` contain verification metadata and a response object; map response, not the envelope. Leg polylines in the sample use precision 6; decode supplied precision. The mapping example and MBTA samples document schedules, prediction qualification and identity crosswalk limitations. Read `plans/research/007-provider-spike.md` before refining the contract. No credentials are needed for recorded-data verification.
+
+## Approved contract (Cattn, 2026-11-14)
+
+- Response: additive `PlanResponse.returnPlan?` = `{ requestedDepartAt, request, status: ok|no_routes|unavailable|unsupported, options: [{ itinerary, waitMinutes }], firstMorningOptionId?, nearMisses, warnings }`. Omitted when no `returnTime`. `request` is the reversed trip (destination → origin, departAt `returnTime`, no outbound `arriveBy`, no `returnTime`) so saving a return saves the right direction. Outbound fields unchanged.
+- Return search: departs no earlier than `returnTime`. When the next 05:00 local (trip zone, default America/New_York) is within 12 h, keep overnight options and add the earliest feasible option at/after 05:00 as `firstMorningOptionId` (one extra search starting at 05:00 if the first page doesn't reach it). No 03:00 cutoff. Waits rank as part of duration. Long-wait warning at ≥ 60 min. Upstream failure → `unavailable` (outbound kept); no service → `no_routes`.
+- Identity: optional `Leg.trip` `{ provider, tripId, feed?, agencyTripId?, serviceDate?, routeId?, directionId?, boardStopId?, alightStopId?, boardStopSequence? }`, parsed from MOTIS `tripId` (`YYYYMMDD_HH:MM_feed_agencyTripId`; GTFS times past 24:00 keep the prior service date). Raw provider stop IDs kept; `Place.code` gets the feed-stripped agency stop ID.
+- Freshness: 031 never labels a leg `realtime`. Transitous `realTime: true` → `estimated` (adjusted, unqualified); otherwise transit is `scheduled`; street legs `estimated`. No `delayMinutes`. MBTA V3 qualification moves to 008.
+- Modes: transit `BUS`, `SUBWAY`, `TRAM`; direct `WALK`, plus `BIKE`/`CAR` when owned and allowed. Commuter rail and ferry are not requested (fares unknown); other leg modes, cancelled trips and missing geometry skip the itinerary with a logged reason.
+- Fares/costs: estimated MBTA lines (bus $1.70, subway/tram $2.40) per boarding; car = estimated gas via `driveCost`; never an implicit free transit fare.
+- Consumers: Android results get a "Return" section (date, wait, first-morning label, warnings) and save the reversed request; agent `search_routes` passes a compact `returnPlan`. Web unchanged.
 
 ## Scope
 

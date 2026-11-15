@@ -3,11 +3,32 @@ import { ItinerarySchema, SavedItinerarySchema } from './itinerary.js';
 import { TripRequestSchema } from './trip-draft.js';
 
 export const PlanRequestSchema = TripRequestSchema;
+
+export const LONG_RETURN_WAIT_MINUTES = 60;
+
+export const ReturnOptionSchema = z.object({
+  itinerary: ItinerarySchema,
+  waitMinutes: z.number().nonnegative()
+});
+export type ReturnOption = z.infer<typeof ReturnOptionSchema>;
+
+export const ReturnPlanSchema = z.object({
+  requestedDepartAt: z.iso.datetime({ offset: true }),
+  request: TripRequestSchema,
+  status: z.enum(['ok', 'no_routes', 'unavailable', 'unsupported']),
+  options: z.array(ReturnOptionSchema),
+  firstMorningOptionId: z.string().optional(),
+  nearMisses: z.array(ItinerarySchema),
+  warnings: z.array(z.string())
+});
+export type ReturnPlan = z.infer<typeof ReturnPlanSchema>;
+
 export const PlanResponseSchema = z.object({
   itineraries: z.array(ItinerarySchema),
   /** Near-misses that break a hard constraint, with reasons — shown as "almost works". */
   nearMisses: z.array(ItinerarySchema),
-  warnings: z.array(z.string())
+  warnings: z.array(z.string()),
+  returnPlan: ReturnPlanSchema.optional()
 });
 export type PlanResponse = z.infer<typeof PlanResponseSchema>;
 
