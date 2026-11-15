@@ -3,7 +3,10 @@ import {
   describePatch,
   formatAge,
   formatClock,
+  formatDay,
+  formatDuration,
   itineraryFreshness,
+  LONG_RETURN_WAIT_MINUTES,
   type ApiClientError,
   type DraftState,
   type Itinerary,
@@ -30,6 +33,13 @@ export interface ResultCard {
   text: ItineraryCardText;
   selected: boolean;
   saved: boolean;
+  wait?: { label: string; long: boolean };
+}
+
+export interface ReturnSection {
+  message?: string;
+  warning?: string;
+  cards: ResultCard[];
 }
 
 export interface SavedTripActions {
@@ -54,6 +64,7 @@ export interface ResultsChromeProps {
   message?: string;
   cards: ResultCard[];
   nearMisses: (NearMissText & { id: string })[];
+  returns?: ReturnSection;
   canSave: boolean;
   saveError?: string;
   onRetrySave: () => void;
@@ -126,6 +137,24 @@ export function ResultsScreen(props: ResultsScreenProps) {
   else if (loading || !data) message = 'Finding routes…';
   else if (!itineraries.length && !nearMisses.length) message = data.warnings[0] ?? 'No routes found';
 
+  const back = data?.returnPlan;
+  const returnMessages = { unavailable: 'Couldn’t check the return trip', no_routes: 'No return routes found', unsupported: 'Return trip isn’t available for these modes' } as const;
+  const returns: ReturnSection | undefined = message || !back ? undefined : {
+    message: back.status === 'ok' ? undefined : returnMessages[back.status],
+    warning: back.status === 'ok' ? back.warnings[0] : undefined,
+    cards: back.options.map(({ itinerary, waitMinutes }) => {
+      const text = itineraryCardText(itinerary, now, timeZone);
+      const morning = itinerary.id === back.firstMorningOptionId ? 'First morning · ' : '';
+      return {
+        id: itinerary.id,
+        text: { ...text, times: `${formatDay(itinerary.departAt, timeZone)} · ${text.times}` },
+        selected: itinerary.id === selectedId,
+        saved: props.savedIds.has(itinerary.id),
+        wait: { label: `${morning}${formatDuration(waitMinutes)} wait`, long: waitMinutes >= LONG_RETURN_WAIT_MINUTES }
+      };
+    })
+  };
+
   const oldest = itineraries.reduce<string | undefined>((min, it) => (!min || it.source.fetchedAt < min ? it.source.fetchedAt : min), undefined);
   const arriveBy = draftState.draft.constraints.arriveBy;
   const subtitle = [timeLabel(draftState, now), arriveBy ? `arrive by ${formatClock(arriveBy, timeZone)}` : undefined].filter(Boolean).join(' · ');
@@ -148,6 +177,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
       saved: props.savedIds.has(it.id)
     })),
     nearMisses: message ? [] : nearMisses.map((it) => ({ id: it.id, ...nearMissText(it, timeZone) })),
+    returns,
     canSave: request.ok,
     saveError: props.saveError,
     onRetrySave: props.onRetrySave,
@@ -156,6 +186,8 @@ export function ResultsScreen(props: ResultsScreenProps) {
     onSave: (id) => {
       const itinerary = itineraries.find((it) => it.id === id);
       if (itinerary && request.ok) props.onSave(itinerary, request.request);
+      const option = back?.options.find((it) => it.itinerary.id === id);
+      if (option && back && request.ok) props.onSave(option.itinerary, back.request);
     },
     onBack: props.onBack,
     onSwap: props.onSwap,

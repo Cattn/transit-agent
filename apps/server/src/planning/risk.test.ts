@@ -41,6 +41,12 @@ describe('assessRisk', () => {
     expect(assessRisk(transfer(8, bus), request()).level).toBe('low');
   });
 
+  it('looks past a transfer walk to the previous scheduled bus', () => {
+    const scheduledBus: Leg = { ...bus, timeSource: 'scheduled' };
+    const it: Itinerary = { ...sampleItinerary, legs: [scheduledBus, walk, { ...bus, mode: 'rail', routeName: 'Red Line', timeSource: 'scheduled', transferBufferMinutes: 8 }] };
+    expect(assessRisk(it, request()).reasons).toEqual(['8 min transfer to Red Line after a scheduled (not live) bus']);
+  });
+
   it('shifts thresholds with lateTolerance', () => {
     expect(assessRisk(transfer(4), request('strict')).level).toBe('high');
     expect(assessRisk(transfer(4), request('some')).level).toBe('medium');

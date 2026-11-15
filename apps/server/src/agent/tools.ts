@@ -75,7 +75,9 @@ export function createPlannerTools(turn: TurnContext) {
       turn.plan = plan;
       report({ type: 'routes', plan });
       const compact = ({ id, summary, departAt, arriveAt, durationMinutes, cost, risk, violations }: PlanResponse['itineraries'][number]) => ({ id, summary, departAt, arriveAt, durationMinutes, cost: { totalUsd: cost.totalUsd }, risk, violations });
-      return { itineraries: turn.plan.itineraries.map(compact), nearMisses: turn.plan.nearMisses.map(compact), warnings: turn.plan.warnings };
+      const back = turn.plan.returnPlan;
+      const returnPlan = back && { status: back.status, requestedDepartAt: back.requestedDepartAt, options: back.options.map(({ itinerary, waitMinutes }) => ({ ...compact(itinerary), waitMinutes, firstMorning: itinerary.id === back.firstMorningOptionId })), nearMisses: back.nearMisses.map(compact), warnings: back.warnings };
+      return { itineraries: turn.plan.itineraries.map(compact), nearMisses: turn.plan.nearMisses.map(compact), warnings: turn.plan.warnings, ...(returnPlan ? { returnPlan } : {}) };
     } }),
     new PlannerTool({ name: 'ask_user', description: 'Queue a focused question about a missing or ambiguous field. The app shows it to the user, so do not repeat it in your reply.', parameters: AgentQuestionSchema, execute: (question: AgentQuestion) => {
       if (turn.questions.length >= 2) return { status: 'limit_reached', message: 'At most two questions per turn. Wait for the user to answer.' };

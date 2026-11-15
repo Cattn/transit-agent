@@ -1,4 +1,4 @@
-import type { Itinerary, TripPreferences, TripRequest } from '@transit/shared';
+import { scheduledModes, type Itinerary, type TripPreferences, type TripRequest } from '@transit/shared';
 
 type RiskLevel = Itinerary['risk']['level'];
 
@@ -20,7 +20,7 @@ export function assessRisk(it: Itinerary, req: TripRequest): Itinerary['risk'] {
     const buffer = leg.transferBufferMinutes;
     if (buffer === undefined) return;
     const target = leg.routeName ?? leg.mode;
-    const previous = index > 0 ? it.legs[index - 1] : undefined;
+    const previous = it.legs.slice(0, index).reverse().find((earlier) => scheduledModes.includes(earlier.mode));
     const afterScheduledBus = previous?.mode === 'bus' && previous.timeSource === 'scheduled';
 
     let legLevel: RiskLevel = 'low';

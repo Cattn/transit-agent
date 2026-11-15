@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LngLat } from '@transit/shared';
-import { haversineMeters, interpolate, wobbleLine } from './geo.js';
+import { decodePolyline, haversineMeters, interpolate, wobbleLine } from './geo.js';
 
 const boston: LngLat = [-71.0589, 42.3601];
 const cambridge: LngLat = [-71.1097, 42.3736];
@@ -36,5 +36,20 @@ describe('wobbleLine', () => {
   it('is deterministic and differs by seed', () => {
     expect(wobbleLine(boston, cambridge, 12, 0.002, 1)).toEqual(wobbleLine(boston, cambridge, 12, 0.002, 1));
     expect(wobbleLine(boston, cambridge, 12, 0.002, 0)).not.toEqual(wobbleLine(boston, cambridge, 12, 0.002, 1));
+  });
+});
+
+describe('decodePolyline', () => {
+  it('decodes the reference precision-5 polyline into [lng, lat] order', () => {
+    expect(decodePolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@', 5)).toEqual([[-120.2, 38.5], [-120.95, 40.7], [-126.453, 43.252]]);
+  });
+
+  it('honours precision 6', () => {
+    const [first] = decodePolyline('_h~woAvwzofCw@wA', 6);
+    expect(first).toEqual([-71.055244, 42.352272]);
+  });
+
+  it('rejects a truncated polyline', () => {
+    expect(() => decodePolyline('_p~iF~ps|', 5)).toThrow('Truncated polyline');
   });
 });

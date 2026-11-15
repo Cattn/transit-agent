@@ -7,6 +7,7 @@ import { contrastRatio, relativeLuminance } from '../theme/contrast.js';
 import {
   formatAge,
   formatClock,
+  formatDay,
   formatCost,
   formatDuration,
   formatTimeRange,
@@ -34,6 +35,13 @@ describe('formatClock', () => {
 
   it('uses a plain space before AM/PM', () => {
     expect(formatClock('2026-11-13T08:12:00-05:00', NY)).toMatch(/^8:12 AM$/);
+  });
+});
+
+describe('formatDay', () => {
+  it('uses the display zone, so an overnight UTC time keeps its local date', () => {
+    expect(formatDay('2026-11-15T06:33:00Z', NY)).toBe('Sun, Nov 15');
+    expect(formatDay('2026-11-15T03:00:00Z', NY)).toBe('Sat, Nov 14');
   });
 });
 

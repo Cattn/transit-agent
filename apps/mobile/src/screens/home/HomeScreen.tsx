@@ -254,7 +254,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     return () => { active = false; };
   }, []);
 
+  const known = live.location ?? here;
   const onLocate = useCallback(async () => {
+    if (known) setLocateKey((key) => (key ?? 0) + 1);
     setLocating(true);
     const result = await getCurrentPlace();
     setLocating(false);
@@ -267,7 +269,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     } else {
       setNotice(result.reason === 'denied' ? 'Location is off for Transit Agent. You can turn it on in Settings.' : 'Could not find your location. Try again.');
     }
-  }, [editDraft]);
+  }, [editDraft, known]);
 
   const searchTo = useCallback(async (destination: Place) => {
     const patch: TripDraftPatch = { destination };
@@ -327,8 +329,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const buildPreview = useMemo(() => (chat.pending ? agentBuildPreview(chat.progress) : undefined), [chat.pending, chat.progress]);
   const choosing = resultsOpen || turnPlan !== undefined;
   const mapTrips = useMemo<Itinerary[]>(() => {
-    if (turnPlan) return [...turnPlan.itineraries, ...turnPlan.nearMisses];
-    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? [])];
+    if (turnPlan) return [...turnPlan.itineraries, ...turnPlan.nearMisses, ...(turnPlan.returnPlan?.options.map((option) => option.itinerary) ?? [])];
+    if (resultsOpen) return [...(plan.data?.itineraries ?? []), ...(plan.data?.nearMisses ?? []), ...(plan.data?.returnPlan?.options.map((option) => option.itinerary) ?? [])];
     return openSaved && !openSaved.watch ? [...watched, openSaved] : watched;
   }, [resultsOpen, plan.data, turnPlan, watched, openSaved]);
   const shownIds = mapTrips.map((it) => it.id).join(' ');

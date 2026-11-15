@@ -127,25 +127,14 @@ describe('selected trip draws on top (PR #35 review, issue 1)', () => {
   });
 });
 
-describe('lanes (side-by-side routes)', () => {
-  it('every route line layer (casing, visible lines, hit line) uses the same sideways shift, in every look', () => {
+describe('routes overlap on shared streets (no lanes)', () => {
+  it('no line layer shifts routes sideways, in any look or with the touch hit width', () => {
     for (const layers of [routeLayers(), routeLayers({ variant: 'saved' }), routeLayers({ variant: 'choosing' }), routeLayers({ hitLineWidth: TOUCH_HIT_LINE_WIDTH })]) {
-      const lines = layers.filter((l) => l.type === 'line');
-      for (const layer of lines) expect(layer.paint['line-offset'], `layer "${layer.id}"`).toEqual(lines[0]!.paint['line-offset']);
+      for (const layer of layers) expect(layer.paint['line-offset'], `layer "${layer.id}"`).toBeUndefined();
     }
   });
 
-  it('a lane-1 line is shifted LANE_SPACING px, the other way when its line runs backwards', () => {
-    const offset = routeLayers()[0]!.paint['line-offset'];
-    expect(evaluate(offset, { lane: 1, direction: 1 })).toBe(LANE_SPACING);
-    expect(evaluate(offset, { lane: 1, direction: -1 })).toBe(-LANE_SPACING);
-  });
-
-  it('leaves a visible gap between neighbouring lanes at city zoom', () => {
-    expect(LANE_SPACING - SELECTED_LINE_WIDTH).toBeGreaterThanOrEqual(3);
-  });
-
-  it('the mouse click target is not so wide that every click hits the neighbouring lane too', () => {
+  it('the mouse click target stays narrow, so a click on one route rarely also catches a nearby one', () => {
     const hit = routeLayers().find((l) => l.id === interactiveLayerIds()[0])!;
     expect(hit.paint['line-width']).toBeLessThanOrEqual(1.5 * LANE_SPACING);
   });
@@ -190,7 +179,7 @@ describe('touch-sized hit area (plan 009 step 4)', () => {
 
   it('is invisible and sits exactly on the drawn route', () => {
     const hit = hitOf(touch);
-    expect(hit.paint['line-offset']).toEqual(touch[0]!.paint['line-offset']);
+    expect(hit.paint['line-offset']).toBeUndefined();
     expect(hit.paint['line-opacity']).toBe(0);
   });
 });
