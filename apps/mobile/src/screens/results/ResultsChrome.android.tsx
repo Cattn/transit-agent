@@ -35,12 +35,12 @@ import { CARD_RADIUS, corners, MODE_ICONS, RouteCard } from './RouteCard.android
 import type { ResultsChromeProps } from './ResultsScreen';
 
 // The sheet's header is its drag handle: content panning is off so the route list never moves the sheet (#81).
-const SheetHeaderContext = createContext<{ header: ReactNode; indicator: string }>({ header: null, indicator: 'transparent' });
+const SheetHeaderContext = createContext<{ header: ReactNode; indicator: string; onHeight: (height: number) => void }>({ header: null, indicator: 'transparent', onHeight: () => undefined });
 
 function SheetHeader() {
-  const { header, indicator } = useContext(SheetHeaderContext);
+  const { header, indicator, onHeight } = useContext(SheetHeaderContext);
   return (
-    <View>
+    <View onLayout={(event) => onHeight(event.nativeEvent.layout.height)}>
       <View style={styles.handleRow}>
         <View style={[styles.handle, { backgroundColor: indicator }]} />
       </View>
@@ -52,6 +52,8 @@ function SheetHeader() {
 const COLLAPSED_SHARE = 0.58;
 const MIN_TRAVEL = 120;
 const TOP_GAP = 12;
+const COLLAPSED = 1;
+const HEADER_ESTIMATE = 96;
 
 export function ResultsChrome(props: ResultsChromeProps) {
   const scheme = props.colors.scheme;
@@ -61,11 +63,14 @@ export function ResultsChrome(props: ResultsChromeProps) {
   const [containerHeight, setContainerHeight] = useState(windowHeight);
   const [topHeight, setTopHeight] = useState(180);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [sheetIndex, setSheetIndex] = useState(0);
+  const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
+  const [headerHeight, setHeaderHeight] = useState(HEADER_ESTIMATE);
 
-  const expanded = Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP));
-  const collapsed = Math.min(Math.round(containerHeight * COLLAPSED_SHARE), expanded - MIN_TRAVEL);
-  const snapPoints = [collapsed, expanded];
+  const expanded = Math.max(3, Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP)));
+  const travel = Math.max(1, Math.min(MIN_TRAVEL, Math.floor(expanded / 3)));
+  const collapsed = Math.max(2, Math.min(Math.round(containerHeight * COLLAPSED_SHARE), expanded - travel));
+  const peek = Math.max(1, Math.min(Math.round(headerHeight + insets.bottom), collapsed - travel));
+  const snapPoints = [peek, collapsed, expanded];
 
   const settle = (index: number) => {
     if (index < 0) return;
@@ -230,9 +235,9 @@ export function ResultsChrome(props: ResultsChromeProps) {
         </Column>
       </Host>
 
-      <SheetHeaderContext.Provider value={{ header, indicator: m.onSurfaceVariant }}>
+      <SheetHeaderContext.Provider value={{ header, indicator: m.onSurfaceVariant, onHeight: setHeaderHeight }}>
         <BottomSheet
-          index={0}
+          index={COLLAPSED}
           snapPoints={snapPoints}
           enableDynamicSizing={false}
           enablePanDownToClose={false}
@@ -243,7 +248,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
           handleComponent={SheetHeader}
         >
           <View style={styles.sheetContent}>
-            <BottomSheetScrollView style={styles.list} contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + (sheetIndex === 0 ? expanded - collapsed : 0) }]}>
+            <BottomSheetScrollView style={styles.list} contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + (sheetIndex === COLLAPSED ? expanded - collapsed : 0) }]}>
               {props.message ? (
                 <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
                   <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>{props.message}</Text>

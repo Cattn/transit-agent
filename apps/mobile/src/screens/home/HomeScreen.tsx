@@ -417,7 +417,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         unfocusedColors={choosing ? 'mode' : 'trip'}
         variant={choosing ? 'choosing' : 'saved'}
         buildPreview={buildPreview}
-        fitKey={`${shownIds}|${resultsOpen ? sheetHeight : 'home'}`}
+        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}`}
       />
       {resultsOpen ? (
         <ResultsScreen
