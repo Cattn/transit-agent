@@ -27,7 +27,7 @@ export interface WatchDeps {
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const legName = (it: Itinerary) => anchorLeg(it).routeName ?? anchorLeg(it).mode;
-const issueKey = (it: Itinerary, status: WatchStatus | undefined) => `${status?.state === 'atRisk'}|${anchorLeg(it).delayMinutes ?? 0}`;
+const issueKey = (it: Itinerary, status: WatchStatus | undefined) => [status?.state === 'atRisk', anchorLeg(it).delayMinutes ?? 0, status?.leaveBy, it.arriveAt].join('|');
 
 function riding(it: Itinerary, req: TripRequest, now: Date, prefix: string, state: WatchStatus['state']): WatchStatus {
   return WatchStatusSchema.parse({
@@ -67,12 +67,10 @@ async function replace(deps: WatchDeps, saved: SavedItinerary, current: Itinerar
 async function check(deps: WatchDeps, deviceId: string, saved: SavedItinerary, now: Date) {
   const provider = deps.providers.find((candidate) => candidate.name === saved.source.provider);
   let current: Itinerary = saved;
-  if (now.getTime() <= Date.parse(anchorLeg(saved).departAt)) {
-    try {
-      current = (await provider?.refresh?.(saved, saved.request)) ?? saved;
-    } catch (err) {
-      deps.log.warn({ err, id: saved.id, provider: saved.source.provider }, 'Watch refresh failed');
-    }
+  try {
+    current = (await provider?.refresh?.(saved, saved.request)) ?? saved;
+  } catch (err) {
+    deps.log.warn({ err, id: saved.id, provider: saved.source.provider }, 'Watch refresh failed');
   }
   let status = computeWatchStatus(current, saved.request, now);
   const previous = saved.watchStatus;
@@ -93,7 +91,7 @@ async function check(deps: WatchDeps, deviceId: string, saved: SavedItinerary, n
     return { itinerary: current, request: saved.request, status: riding(current, saved.request, now, `${legName(current)} has left. If you're on it,`, 'missed') };
   }
 
-  if (hasIssue(current, status)) {
+  if (deps.advisor && hasIssue(current, status)) {
     if (issueKey(current, status) === issueKey(saved, previous) && previous) status = { ...status, message: previous.message };
     else {
       const advice = await advise(deps, saved, current, status, [], now);

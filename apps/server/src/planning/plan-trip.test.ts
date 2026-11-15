@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ItinerarySchema, PlanResponseSchema, TripRequestSchema, type Itinerary, type TripRequest } from '@transit/shared';
+import { computeWatchStatus, ItinerarySchema, PlanResponseSchema, TripRequestSchema, type Itinerary, type TripRequest } from '@transit/shared';
 import { FixtureProvider } from '../providers/fixture.js';
 import fixtureRequest from '../providers/fixture-request.json';
 import type { RouteProvider } from '../providers/types.js';
@@ -230,6 +230,7 @@ describe('watch job', () => {
   const log = { info: () => {}, warn: () => {} };
   const req = request();
   const departOf = (it: Itinerary) => Date.parse(anchorLeg(it).departAt);
+  const replans = (search: { mock: { calls: [TripRequest, AbortSignal?][] } }, now: Date) => search.mock.calls.filter(([searched]) => searched.time.at === now.toISOString()).length;
 
   async function watched(store: MemoryItineraryStore, device = 'device-a', overrides: Partial<TripRequest> = {}) {
     const saveRequest = { ...req, ...overrides };
@@ -292,7 +293,7 @@ describe('watch job', () => {
     const now = new Date(departOf(saved) + 3 * 60_000);
     await runWatchCycle({ store, providers: [fixture], now: () => now, log });
     const switched = await store.get('device-a', saved.id);
-    expect(search).toHaveBeenCalledTimes(1);
+    expect(replans(search, now)).toBe(1);
     expect(switched).toMatchObject({ id: saved.id, label: 'Commute', savedAt: saved.savedAt, request: { time: { type: 'departAt', at: now.toISOString() } } });
     expect(switched?.watchStatus?.message).toMatch(/^Missed .+, switched to /);
     expect(switched?.departAt).not.toBe(saved.departAt);
@@ -321,7 +322,7 @@ describe('watch job', () => {
     const fixture = new FixtureProvider();
     const search = vi.spyOn(fixture, 'search');
     await runWatchCycle({ store, providers: [fixture], now: () => now, log, locations });
-    expect(search).not.toHaveBeenCalled();
+    expect(replans(search, now)).toBe(0);
     expect((await store.get('device-a', saved.id))?.watchStatus).toMatchObject({ state: 'onTrack', message: expect.stringMatching(/^On .+, you'll arrive around /) });
   });
 
@@ -342,6 +343,41 @@ describe('watch job', () => {
     const pick = advise.mock.calls[1]?.[0].replacements[1];
     expect(pick).toBeDefined();
     expect((await store.get('device-a', saved.id))?.summary).toBe(pick?.summary);
+  });
+
+  it('refreshes after the stored departure and keeps a trip whose vehicle is now later', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    const refresh = vi.spyOn(fixture, 'refresh');
+    vi.stubEnv('FIXTURE_DELAY_MINUTES', '10');
+    const now = new Date(departOf(saved) + 3 * 60_000);
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log });
+    const kept = await store.get('device-a', saved.id);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(replans(search, now)).toBe(0);
+    expect(kept?.watchStatus?.state).not.toBe('missed');
+    expect(kept?.watchStatus?.message).toContain('10 min late (live)');
+  });
+
+  it('rebuilds the leave-by message when refreshed times change under the same delay', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    vi.stubEnv('FIXTURE_DELAY_MINUTES', '4');
+    const fixture = new FixtureProvider();
+    await runWatchCycle({ store, providers: [fixture], now: () => new Date(departOf(saved) - 30 * 60_000), log });
+    const first = (await store.get('device-a', saved.id))!;
+    const longerWalk = async (it: Itinerary, request: TripRequest) => {
+      const fresh = (await FixtureProvider.prototype.refresh.call(fixture, it, request))!;
+      return { ...fresh, legs: fresh.legs.map((leg, index) => (index === 0 ? { ...leg, durationMinutes: leg.durationMinutes + 5 } : leg)) };
+    };
+    vi.spyOn(fixture, 'refresh').mockImplementation(longerWalk);
+    await runWatchCycle({ store, providers: [fixture], now: () => new Date(departOf(saved) - 20 * 60_000), log });
+    const second = (await store.get('device-a', saved.id))!;
+    expect(Date.parse(second.leaveBy!)).toBe(Date.parse(first.leaveBy!) - 5 * 60_000);
+    expect(second.watchStatus?.message).not.toBe(first.watchStatus?.message);
+    expect(second.watchStatus?.message).toBe(computeWatchStatus(second, second.request, new Date(departOf(saved) - 20 * 60_000)).message);
   });
 
   it('skips a tick while the previous cycle is still running', async () => {
