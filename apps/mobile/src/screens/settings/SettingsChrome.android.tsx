@@ -222,7 +222,7 @@ function ComfortSlider({ value, onChange }: { value: number; onChange: (value: n
 
 type Dialog = { kind: 'limit'; key: LimitKey } | { kind: 'late' } | { kind: 'zone' } | { kind: 'theme' } | { kind: 'mpg' };
 
-const MODE_ICONS = { walk: DirectionsWalk, bus: DirectionsBus, rail: Train, bike: DirectionsBike } as const;
+const MODE_ICONS = { walk: DirectionsWalk, bus: DirectionsBus, rail: Train, bike: DirectionsBike, car: DirectionsCar } as const;
 const LIMIT_ICONS: Record<LimitKey, number> = { maxWalkMinutes: DirectionsWalk, maxTransfers: DirectionsBus };
 
 export function SettingsChrome(props: SettingsChromeProps) {

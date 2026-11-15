@@ -56,7 +56,7 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. A
 - Profile card: "This device's profile" and "One profile per device — no account needed. Your defaults fill every new trip."
 - Places: Home and Work. Sample subtitles "Beacon Hill, Boston" and "200 Clarendon St" are the draft. Show `profile.home.name` and `profile.work.name`, or "Not set". "Add a place" is drawn, disabled, "Coming soon" (025-Q2).
 - Trip defaults, saved on `profile.defaults` through `putProfile`:
-  - "Modes a new trip includes". Chips Walk, Bus, Train, Bike (the updated frame has no Car chip). The sample has Walk, Bus, Train on; Bike off. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
+  - "Modes a new trip includes". Chips Walk, Bus, Train, Bike, Car (Car chip added to the frame as `2159:2146`; same set as the Trip filters chips, where Car is labelled Drive). The sample has Walk, Bus, Train on; Bike and Car off. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
   - Comfort. Slider "Cheaper" / "Comfier" writes `preferences.comfortVsCost` (0..1).
   - Max walk, lock, sample "15 min", subtitle "Hard limit". Writes `constraints.maxWalkMinutes`. Clearing sends `null`.
   - Max transfers, lock, sample "1". Writes `constraints.maxTransfers`. Clearing sends `null`.

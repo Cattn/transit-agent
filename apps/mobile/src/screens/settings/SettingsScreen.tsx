@@ -8,8 +8,8 @@ import { useAppearance, type AppearancePreference } from '../../theme/appearance
 import packageJson from '../../../package.json';
 import { SettingsChrome } from './SettingsChrome';
 
-const CHIP_MODES = ['walk', 'bus', 'rail', 'bike'] as const;
-const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike' };
+const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
+const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 'Train', bike: 'Bike', car: 'Car' };
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
 const TRANSFER_STEPS = [0, 1, 2, 3, 4, 5, 6];
 const LATE_OPTIONS = [
