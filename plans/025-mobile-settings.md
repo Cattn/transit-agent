@@ -21,17 +21,16 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** 📝 **First draft, after plan 020.** Feedback welcome. Several rows are drawn but have no field to save. Those stay visible and unsaved until the questions below are answered.
-- **Owner:** @KrakenTheJaken, after map integration and 037 (Reassigned 2026-11-14 from @Rad1ee, who is inactive). Full app, not MVP.
+- **Status:** 🔍 **PR #87 open** (built from the updated frame `2016:1068`, 2026-11-14). Rows without a field to save ship disabled with "Coming soon".
+- **Owner:** @DMFriends (per #41; earlier @KrakenTheJaken, before that @Rad1ee). Full app, not MVP.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
-- **Up for grabs?** Yes, until @KrakenTheJaken starts it. Comment on the issue first.
+- **Up for grabs?** No, PR #87 open.
 - **Waiting on:** nothing for the home shell (plan 020 merged in #60, `51b33a0`). Plan 018 is merged in #37; reuse its persistent device-id storage.
 
 **Open questions** — **@Cattn answers these (design).** Reply as `025-Q1: ...`. Use the proposed defaults until answered.
 
-- 025-Q1: show the reminder rows without saving them? *(proposed: yes)*
-- 025-Q2: Home and Work save, "Add a place" does not? *(proposed: yes)*
-- 025-Q3: Theme writes System / Light / Dark? *(proposed: yes)*
+- ~~025-Q1~~ / ~~025-Q2~~ Shipped as disabled rows: the three reminder rows and "Add a place" keep their drawn titles, show "Coming soon", and accept no input (@DMFriends, 2026-11-14, under the readiness gate's "label them unavailable" option). @Cattn can still choose to omit them.
+- ~~025-Q3~~ Yes: Theme writes System / Light / Dark and is kept on the phone across restarts (@DMFriends, 2026-11-14).
 - ~~025-Q4~~ Moot: iOS is parked (@Cattn, 2026-11-14). Android comfort is an inline slider.
 - 025-Q5: which groups should be cut first?
 
@@ -55,17 +54,17 @@ One profile per device fills the next trip. The screen is pushed, not a sheet. A
 
 - Frames: `Android · 06 Settings (scrolled length)` (`2016:1068`), dark twin `2018:2572`.
 - Profile card: "This device's profile" and "One profile per device — no account needed. Your defaults fill every new trip."
-- Places: Home and Work. Sample subtitles "Beacon Hill, Boston" and "200 Clarendon St" are the draft. Show `profile.home.name` and `profile.work.name`, or "Not set". "Add a place" is drawn and, until 025-Q2 is answered, does not write.
+- Places: Home and Work. Sample subtitles "Beacon Hill, Boston" and "200 Clarendon St" are the draft. Show `profile.home.name` and `profile.work.name`, or "Not set". "Add a place" is drawn, disabled, "Coming soon" (025-Q2).
 - Trip defaults, saved on `profile.defaults` through `putProfile`:
-  - Modes a new trip starts with. The sample has Walk, Bus, Train on; Bike and Car off. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
+  - "Modes a new trip includes". Chips Walk, Bus, Train, Bike, Car (Car chip added to the frame as `2159:2146`; same set as the Trip filters chips, where Car is labelled Drive). The sample has Walk, Bus, Train on; Bike and Car off. That matches the schema default `['walk', 'bus', 'rail']`. At least one mode stays on.
   - Comfort. Slider "Cheaper" / "Comfier" writes `preferences.comfortVsCost` (0..1).
   - Max walk, lock, sample "15 min", subtitle "Hard limit". Writes `constraints.maxWalkMinutes`. Clearing sends `null`.
   - Max transfers, lock, sample "1". Writes `constraints.maxTransfers`. Clearing sends `null`.
   - Arrival strictness. Subtitle "A little late is OK" for `some`, "Must be on time" for `strict`, "Flexible" for `flexible`. Writes `preferences.lateTolerance`.
   - Step-free. "Step-free routes only". Compose `Switch`. Writes `constraints.wheelchairAccessible`.
-- Vehicles, on `profile.defaults.vehicles`: "I have my own bike" (`ownsBike`, subtitle "Adds bike + transit options"), "I have a car" (`ownsCar`, subtitle "Lets trips include driving part of the way"; D12: Drive is a filter chip, not a tab), fuel economy (`carMpg`). Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
-- Leave reminders. Show the three rows from the frames. Do not persist them (025-Q1).
-- Display. Time zone writes `defaults.timeZone`. Unset subtitle: "Trip's starting point". Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Row title "Theme", sample value "System (light / dark)".
+- Vehicles, on `profile.defaults.vehicles`: the updated frame keeps only "Car fuel economy" (`carMpg`, subtitle "Used for drive costs if using car"); the bike and car ownership rows were removed. Sample "28 mpg" is the draft. If `carMpg` is unset, show "Not set", not 28.
+- Leave reminders. Show the three rows from the frames, disabled, "Coming soon". Do not persist them (025-Q1).
+- Display. Time zone writes `defaults.timeZone`. Unset subtitle: "Trip's starting point" (the updated frame appends the sample zone in parentheses; the app shows the saved zone when one is set). Do not store `America/New_York` just because the sample shows it. Theme / Appearance writes the context from plan 020. Row title "Theme", sample value "System (light / dark)".
 - About. Device id: read the app's existing ID through `secureStoreDeviceIdStorage` from plan 018; show the first 8 characters, an ellipsis, and the last 3. Use the same ID as the API client; do not generate another ID for Settings. Add "stored on this phone". Do not display the sample `dev_7f3a…c21`. Data sources is the static sentence "Sample data until live MBTA feeds land (#11)". Version is `apps/mobile/package.json` `"version"` (`0.1.0` at this writing). The frame shows `0.1.0 (design)`; the app shows the package version.
 - `getProfile()` on the mock returns `undefined` until `putProfile` is called. Start from an empty profile. `putProfile` body is `PutProfileRequest` (no `updatedAt`).
 

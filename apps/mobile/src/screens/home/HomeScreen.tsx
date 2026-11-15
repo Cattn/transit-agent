@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Modal, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { toTripRequest, type AgentProgress, type DraftChangeSource, type DraftState, type Itinerary, type LngLat, type Place, type PlanResponse, type SavedItinerary, type TravelProfile, type TripDraft, type TripDraftPatch, type TripRequest } from '@transit/shared';
@@ -16,6 +17,7 @@ import { ChatScreen, useChatSession } from '../chat/ChatScreen';
 import { FiltersScreen } from '../filters/FiltersScreen';
 import { FlyScreen } from '../fly/FlyScreen';
 import { ResultsScreen } from '../results/ResultsScreen';
+import { profileSaved } from '../settings/SettingsScreen';
 import { HomeChrome } from './HomeChrome';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
@@ -151,13 +153,18 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     }).catch(() => {
       if (active) setStatus('Server unavailable. Check your API URL and restart.');
     });
-    api.getProfile().then((loaded) => {
+    return () => { active = false; };
+  }, [api]);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    profileSaved().then(() => api.getProfile()).then((loaded) => {
       if (!active || !loaded) return;
       setProfile(loaded);
-      if (!edited.current && Object.keys(loaded.defaults).length > 0) reset(loaded.defaults);
+      if (!edited.current) reset(loaded.defaults);
     }).catch(() => undefined);
     return () => { active = false; };
-  }, [api, reset]);
+  }, [api, reset]));
 
   useEffect(() => {
     if (!notice) return;
