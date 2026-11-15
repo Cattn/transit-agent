@@ -29,12 +29,13 @@ import type { Dash } from './to-geojson.js';
 
 export const ROUTE_SOURCE_ID = 'routes';
 export const POINT_SOURCE_ID = 'route-points';
+export const PREVIEW_SOURCE_ID = 'build-preview';
 
 /** A minimal style-spec layer type. It is compatible with react-map-gl's <Layer {...layer} />. */
 export interface RouteLayer {
   id: string;
   type: 'line' | 'circle' | 'symbol';
-  source: typeof ROUTE_SOURCE_ID | typeof POINT_SOURCE_ID;
+  source: typeof ROUTE_SOURCE_ID | typeof POINT_SOURCE_ID | typeof PREVIEW_SOURCE_ID;
   filter?: unknown[];
   layout?: Record<string, unknown>;
   paint: Record<string, unknown>;
@@ -301,4 +302,62 @@ export function routeLayers({
  */
 export function interactiveLayerIds(): string[] {
   return [HIT_LAYER_ID];
+}
+
+export const CANDIDATE_DOT_RADIUS = 5;
+
+export function previewLayers(accentColor: string = DEFAULT_ACCENT_COLOR): RouteLayer[] {
+  const kind = (value: string) => ['==', ['get', 'kind'], value];
+  return [
+    {
+      id: 'preview-searching-track',
+      type: 'line',
+      source: PREVIEW_SOURCE_ID,
+      filter: kind('searching-track'),
+      layout: { 'line-cap': 'round' },
+      paint: { 'line-color': accentColor, 'line-width': 3, 'line-opacity': 0.35, 'line-dasharray': [2, 2] }
+    },
+    {
+      id: 'preview-searching-pulse',
+      type: 'line',
+      source: PREVIEW_SOURCE_ID,
+      filter: kind('searching-pulse'),
+      layout: { 'line-cap': 'round' },
+      paint: { 'line-color': accentColor, 'line-width': 5 }
+    },
+    {
+      id: 'preview-candidates',
+      type: 'circle',
+      source: PREVIEW_SOURCE_ID,
+      filter: kind('candidate'),
+      paint: {
+        'circle-radius': CANDIDATE_DOT_RADIUS,
+        'circle-color': UNFOCUSED_ROUTE_COLOR,
+        'circle-opacity': 0.55,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.5,
+        'circle-stroke-opacity': 0.8
+      }
+    },
+    {
+      id: 'preview-ends',
+      type: 'circle',
+      source: PREVIEW_SOURCE_ID,
+      filter: ['any', kind('origin'), kind('destination')],
+      paint: {
+        'circle-radius': ['match', ['get', 'kind'], 'origin', ORIGIN_DOT_RADIUS, DESTINATION_DOT_RADIUS],
+        'circle-color': accentColor,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': MARKER_BORDER_WIDTH
+      }
+    },
+    {
+      id: 'preview-end-icon',
+      type: 'symbol',
+      source: PREVIEW_SOURCE_ID,
+      filter: kind('destination'),
+      layout: { 'icon-image': END_ICON_ID, 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+      paint: {}
+    }
+  ];
 }

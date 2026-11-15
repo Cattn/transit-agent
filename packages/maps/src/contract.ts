@@ -6,6 +6,13 @@
  */
 import type { Itinerary, LngLat, TravelMode } from '@transit/shared';
 
+export interface BuildPreview {
+  phase: 'idle' | 'locating' | 'searching' | 'drawing';
+  origin?: LngLat;
+  destination?: LngLat;
+  candidates?: LngLat[];
+}
+
 export interface RouteMapProps {
   /** Saved library and/or current search results. */
   itineraries: Itinerary[];
@@ -38,4 +45,5 @@ export interface RouteMapProps {
   unfocusedColors?: 'grey' | 'trip' | 'mode';
   variant?: 'saved' | 'choosing';
   accentColor?: string;
+  buildPreview?: BuildPreview;
 }
