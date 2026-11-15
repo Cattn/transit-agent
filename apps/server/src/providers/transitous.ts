@@ -12,6 +12,15 @@ const FARES: Partial<Record<TravelMode, number>> = { bus: 1.7, rail: 2.4 };
 const TRANSIT_MODES: Partial<Record<TravelMode, string[]>> = { bus: ['BUS'], rail: ['SUBWAY', 'TRAM'] };
 const LEG_MODES: Record<string, TravelMode> = { WALK: 'walk', BIKE: 'bike', CAR: 'car', BUS: 'bus', SUBWAY: 'rail', TRAM: 'rail' };
 const STREET_MODES: readonly TravelMode[] = ['walk', 'bike', 'bikeshare', 'car'];
+const REFRESH_LOOKBACK_MS = 10 * 60_000;
+const MBTA_LIVE_UNCERTAINTY = 300;
+export const DEFAULT_MBTA_URL = 'https://api-v3.mbta.com';
+
+interface MbtaPredictionResponse {
+  data?: { attributes?: { departure_uncertainty?: number | null } }[];
+}
+
+const transitTripIds = (legs: Leg[]) => legs.flatMap((leg) => (leg.trip ? [leg.trip.tripId] : []));
 
 export interface TransitousPlace {
   name?: string;
@@ -213,6 +222,8 @@ export interface TransitousOptions {
   timeoutMs?: number;
   gasUsdPerGallon?: number;
   logger?: { warn(details: unknown, message?: string): void };
+  mbtaUrl?: string;
+  mbtaApiKey?: string;
 }
 
 export class TransitousProvider implements RouteProvider {
@@ -224,8 +235,8 @@ export class TransitousProvider implements RouteProvider {
     return request.modes.some((mode) => mode === 'walk' || TRANSIT_MODES[mode] !== undefined || mode === 'bike' || mode === 'car');
   }
 
-  async search(request: TripRequest, signal?: AbortSignal): Promise<Itinerary[]> {
-    const { baseUrl, userAgent, fetch: fetchImpl = globalThis.fetch, timeoutMs = TRANSITOUS_TIMEOUT_MS, logger = console } = this.options;
+  private async fetchPlan(request: TripRequest, signal?: AbortSignal): Promise<TransitousPlanResponse> {
+    const { baseUrl, userAgent, fetch: fetchImpl = globalThis.fetch, timeoutMs = TRANSITOUS_TIMEOUT_MS } = this.options;
     const timeout = AbortSignal.timeout(timeoutMs);
     const res = await fetchImpl(transitousPlanUrl(baseUrl, request), {
       headers: { 'User-Agent': userAgent, Accept: 'application/json' },
@@ -234,10 +245,57 @@ export class TransitousProvider implements RouteProvider {
     if (!res.ok) throw new Error(`Transitous returned ${res.status}`);
     const body = (await res.json()) as TransitousPlanResponse;
     if (!Array.isArray(body.itineraries) && !Array.isArray(body.direct)) throw new Error('Transitous response has no itineraries');
+    return body;
+  }
+
+  async search(request: TripRequest, signal?: AbortSignal): Promise<Itinerary[]> {
+    const { logger = console } = this.options;
+    const body = await this.fetchPlan(request, signal);
     return mapTransitousPlan(body, request, {
       fetchedAt: new Date().toISOString(),
       gasUsdPerGallon: this.options.gasUsdPerGallon,
       onSkip: (reason) => logger.warn({ provider: this.name, reason }, 'Skipped Transitous itinerary')
     });
+  }
+
+  async refresh(it: Itinerary, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined> {
+    const tripIds = transitTripIds(it.legs).join();
+    if (!tripIds) return undefined;
+    const at = new Date(Date.parse(it.departAt) - REFRESH_LOOKBACK_MS).toISOString();
+    const body = await this.fetchPlan({ ...request, time: { type: 'departAt', at } }, signal);
+    const options = { fetchedAt: new Date().toISOString(), gasUsdPerGallon: this.options.gasUsdPerGallon };
+    for (const raw of body.itineraries ?? []) {
+      const mapped = mapTransitousItinerary(raw, request, options);
+      if (typeof mapped === 'string' || transitTripIds(mapped.legs).join() !== tripIds) continue;
+      for (const [index, leg] of mapped.legs.entries()) {
+        const rawLeg = raw.legs[index];
+        if (!leg.trip || !rawLeg?.realTime || !rawLeg.scheduledStartTime || STREET_MODES.includes(leg.mode)) continue;
+        if (!(await this.mbtaConfirmsLive(leg.trip, signal))) continue;
+        leg.timeSource = 'realtime';
+        leg.delayMinutes = Math.round((Date.parse(rawLeg.startTime) - Date.parse(rawLeg.scheduledStartTime)) / 60_000);
+      }
+      return mapped;
+    }
+    return undefined;
+  }
+
+  private async mbtaConfirmsLive(trip: TripRef, signal?: AbortSignal): Promise<boolean> {
+    const { fetch: fetchImpl = globalThis.fetch, timeoutMs = TRANSITOUS_TIMEOUT_MS, logger = console, mbtaUrl = DEFAULT_MBTA_URL, mbtaApiKey } = this.options;
+    if (!trip.feed?.includes('MBTA') || !trip.agencyTripId || !trip.boardStopId) return false;
+    const url = new URL(`${mbtaUrl.replace(/\/+$/, '')}/predictions`);
+    url.searchParams.set('filter[trip]', trip.agencyTripId);
+    url.searchParams.set('filter[stop]', trip.boardStopId.startsWith(`${trip.feed}_`) ? trip.boardStopId.slice(trip.feed.length + 1) : trip.boardStopId);
+    const headers: Record<string, string> = { Accept: 'application/vnd.api+json' };
+    if (mbtaApiKey) headers['x-api-key'] = mbtaApiKey;
+    const timeout = AbortSignal.timeout(timeoutMs);
+    try {
+      const res = await fetchImpl(url, { headers, signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
+      if (!res.ok) throw new Error(`MBTA returned ${res.status}`);
+      const body = (await res.json()) as MbtaPredictionResponse;
+      return (body.data ?? []).some(({ attributes }) => typeof attributes?.departure_uncertainty === 'number' && attributes.departure_uncertainty < MBTA_LIVE_UNCERTAINTY);
+    } catch (error) {
+      logger.warn({ provider: this.name, err: error, tripId: trip.tripId }, 'MBTA prediction check failed');
+      return false;
+    }
   }
 }

@@ -15,7 +15,7 @@
 - **Risk**: MED
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
-- **State**: IN PROGRESS (031 merged in #88; cadence/storage/model decisions recorded by Cattn 2026-11-14 under "Decisions").
+- **State**: PR open (`server/watches`); decisions recorded by Cattn 2026-11-14 under "Decisions".
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
@@ -140,4 +140,5 @@ These replace the "Required refresh" outline and settle 008-Q3 for this PR.
 - **Storage**: internal `listWatched` returns `{ deviceId, item }` including departed-but-unfinished trips; internal `applyWatch` atomically writes refreshed/replacement itinerary, request, `watchStatus` and `leaveBy`, keeping saved id, label, color and savedAt. Memory and SQLite match; HTTP stays per device.
 - **Tests**: no new files. Store cases in `routes/itineraries.test.ts`, watch job cases in `planning/plan-trip.test.ts`.
 - **Live acceptance**: a run on Cattn's server that shows `scheduled`/`estimated` when no fresh prediction exists is acceptable, recorded as untested-live.
+- **Missed vs boarded** (Cattn, 2026-11-14): the server can't tell from times alone whether a departed trip was missed. Server side now: optional `POST /api/itineraries/:id/location` (`WatchLocationReport`, in-memory, last 30 min, owner only). After departure, a point along the anchor leg away from the stop = boarded (no switch, "On Bus 1, you'll arrive around …"); still at the stop or off the route = missed (auto-switch). Without location, fall back: switch only if no check saw the leave-by time pass before departure; otherwise "has left. If you're on it, …" and stop after 10 min. Mobile reporting is a follow-up for the UI team.
 - **Scope additions**: `packages/shared/src/domain/watch.ts` (quiet message), `apps/server/src/agent/models.ts` (`watch` task), `apps/server/src/watch/*`, `apps/server/.env.example`. Branch `server/watches`.

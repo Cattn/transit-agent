@@ -131,6 +131,16 @@ describe.each(['memory', 'sqlite'])('%s persistence API', (implementation) => {
     expect(removed.statusCode).toBe(404);
   });
 
+  it('accepts location reports only for the owner of a watched trip', async () => {
+    app = server();
+    const headers = { 'x-device-id': DEVICE_A };
+    await app.inject({ method: 'POST', url: '/api/itineraries', headers, payload: saveBody() });
+    const url = `/api/itineraries/${sampleItinerary.id}/location`;
+    expect((await app.inject({ method: 'POST', url, headers, payload: { coordinates: [-71.06, 42.35], accuracyMeters: 20 } })).statusCode).toBe(204);
+    expect((await app.inject({ method: 'POST', url, headers: { 'x-device-id': DEVICE_B }, payload: { coordinates: [-71.06, 42.35] } })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url, headers, payload: { coordinates: [200, 42.35] } })).statusCode).toBe(400);
+  });
+
   it('validates save and patch bodies', async () => {
     app = server();
     const headers = { 'x-device-id': DEVICE_A };
@@ -204,7 +214,7 @@ describe('SQLite storage', () => {
     db = new DatabaseSync(':memory:');
     migrate(db);
     migrate(db);
-    expect(db.prepare('PRAGMA user_version').get()?.user_version).toBe(2);
+    expect(db.prepare('PRAGMA user_version').get()?.user_version).toBe(3);
   });
 
   it('keeps saved trip colors across a restart', async () => {
@@ -242,17 +252,69 @@ describe('SQLite storage', () => {
     expect(log).toHaveBeenCalled();
   });
 
-  it('lists watched departures in the inclusive window across devices and offsets', async () => {
-    db = new DatabaseSync(':memory:');
-    migrate(db);
-    const store = new SqliteItineraryStore(db);
+  it('keeps watch status across a restart and clears it on re-save', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'transit-watch-'));
+    const path = join(dir, 'db.sqlite');
+    try {
+      const request = TripRequestSchema.parse(fixtureRequest);
+      const watchStatus = { state: 'onTrack' as const, leaveBy: '2026-11-13T08:04:00-05:00', message: 'Leave by 8:04 AM.', checkedAt: '2026-11-13T12:30:00.000Z', usedRealtime: false };
+      let first: DatabaseSync | undefined = new DatabaseSync(path);
+      migrate(first);
+      await new SqliteItineraryStore(first).save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true });
+      await new SqliteItineraryStore(first).applyWatch(DEVICE_A, sampleItinerary.id, { itinerary: sampleItinerary, request, watchStatus });
+      first.close();
+      first = undefined;
+      db = new DatabaseSync(path);
+      migrate(db);
+      const store = new SqliteItineraryStore(db);
+      expect(await store.get(DEVICE_A, sampleItinerary.id)).toMatchObject({ watchStatus, leaveBy: watchStatus.leaveBy });
+      await store.save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true });
+      expect(await store.get(DEVICE_A, sampleItinerary.id)).not.toHaveProperty('watchStatus');
+    } finally {
+      db?.close();
+      db = undefined;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe.each(['memory', 'sqlite'])('%s watch store', (implementation) => {
+  function store() {
+    if (implementation === 'sqlite') {
+      db = new DatabaseSync(':memory:');
+      migrate(db);
+      return new SqliteItineraryStore(db);
+    }
+    return new MemoryItineraryStore();
+  }
+
+  it('lists watched trips across owners until they arrive, including departed ones', async () => {
+    const items = store();
     const request = TripRequestSchema.parse(fixtureRequest);
-    await store.save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true });
-    await store.save(DEVICE_B, { itinerary: { ...sampleItinerary, id: 'other' }, request, watch: true });
-    await store.save(DEVICE_A, { itinerary: { ...sampleItinerary, id: 'off' }, request, watch: false });
-    await store.save(DEVICE_A, { itinerary: { ...sampleItinerary, id: 'later', departAt: '2026-11-14T13:00:00Z' }, request, watch: true });
-    expect((await store.listWatched('2026-11-13T13:00:00Z', '2026-11-13T13:00:00Z')).map((item) => item.id)).toEqual([sampleItinerary.id, 'other']);
-    expect(await store.listWatched('2026-11-13T13:00:01Z', '2026-11-13T14:00:00Z')).toEqual([]);
+    await items.save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true });
+    await items.save(DEVICE_B, { itinerary: { ...sampleItinerary, id: 'other' }, request, watch: true });
+    await items.save(DEVICE_A, { itinerary: { ...sampleItinerary, id: 'off' }, request, watch: false });
+    await items.save(DEVICE_A, { itinerary: { ...sampleItinerary, id: 'later', departAt: '2026-11-14T13:00:00Z', arriveAt: '2026-11-14T13:27:00Z' }, request, watch: true });
+    const ids = async (after: string, before: string) => (await items.listWatched(after, before)).map(({ deviceId, item }) => `${deviceId}:${item.id}`);
+    expect(await ids('2026-11-13T13:00:00Z', '2026-11-13T13:00:00Z')).toEqual([`${DEVICE_A}:${sampleItinerary.id}`, `${DEVICE_B}:other`]);
+    expect(await ids('2026-11-13T13:10:00Z', '2026-11-13T14:00:00Z')).toEqual([`${DEVICE_A}:${sampleItinerary.id}`, `${DEVICE_B}:other`]);
+    expect(await ids('2026-11-13T13:27:01Z', '2026-11-13T14:00:00Z')).toEqual([]);
+  });
+
+  it('applies a replacement itinerary and status while keeping saved identity, owner and label', async () => {
+    const items = store();
+    const request = TripRequestSchema.parse(fixtureRequest);
+    const saved = await items.save(DEVICE_A, { itinerary: sampleItinerary, request, watch: true, label: 'Commute', color: '#123456' });
+    await items.save(DEVICE_B, { itinerary: sampleItinerary, request, watch: true });
+    const replacement = { ...sampleItinerary, id: 'replacement', summary: 'Later bus' };
+    const replanned = { ...request, time: { type: 'departAt' as const, at: '2026-11-13T08:15:00-05:00' } };
+    const watchStatus = { state: 'onTrack' as const, message: 'Missed Bus 1, switched.', checkedAt: '2026-11-13T13:15:00.000Z', usedRealtime: false };
+    const applied = await items.applyWatch(DEVICE_A, saved.id, { itinerary: replacement, request: replanned, watchStatus });
+    expect(applied).toMatchObject({ id: saved.id, label: 'Commute', color: '#123456', savedAt: saved.savedAt, watch: true, summary: 'Later bus', request: replanned, watchStatus });
+    expect(applied).not.toHaveProperty('leaveBy');
+    expect(await items.get(DEVICE_A, saved.id)).toEqual(applied);
+    expect((await items.get(DEVICE_B, saved.id))?.summary).toBe(sampleItinerary.summary);
+    expect(await items.applyWatch(DEVICE_B, 'missing', { itinerary: replacement, request, watchStatus })).toBeUndefined();
   });
 });
 

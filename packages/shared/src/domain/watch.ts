@@ -76,7 +76,6 @@ export function computeWatchStatus(it: Itinerary, req: TripRequest, now: Date): 
   else {
     message = `Leave by ${formatTime(leaveByMs, req.timeZone)}.`;
     if ((anchor.delayMinutes ?? 0) > 0) message += ` ${legName(anchor)} is ${anchor.delayMinutes} min late (live).`;
-    if (anchor.timeSource === 'scheduled') message += ` ${legName(anchor)} times are from the schedule, not live.`;
   }
 
   // 5 + 7.

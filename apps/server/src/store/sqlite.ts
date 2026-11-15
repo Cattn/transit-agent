@@ -1,14 +1,15 @@
 import type { DatabaseSync, StatementSync } from 'node:sqlite';
-import { SavedItinerarySchema, type SavedItinerary, type SaveItineraryRequest } from '@transit/shared';
-import type { ItineraryStore } from './types.js';
+import { ItinerarySchema, SavedItinerarySchema, type SavedItinerary, type SaveItineraryRequest } from '@transit/shared';
+import type { ItineraryStore, WatchedItinerary, WatchStore, WatchUpdate } from './types.js';
 
-export class SqliteItineraryStore implements ItineraryStore {
+export class SqliteItineraryStore implements ItineraryStore, WatchStore {
   private readonly select: StatementSync;
   private readonly selectOne: StatementSync;
   private readonly upsert: StatementSync;
   private readonly patch: StatementSync;
   private readonly deleteOne: StatementSync;
   private readonly watched: StatementSync;
+  private readonly watchUpdate: StatementSync;
 
   constructor(db: DatabaseSync) {
     this.select = db.prepare('SELECT * FROM saved_itineraries WHERE device_id = ? ORDER BY rowid');
@@ -18,11 +19,13 @@ export class SqliteItineraryStore implements ItineraryStore {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(device_id, id) DO UPDATE SET saved_at = excluded.saved_at,
       label = excluded.label, watch = excluded.watch, leave_by = excluded.leave_by,
-      itinerary_json = excluded.itinerary_json, request_json = excluded.request_json,
+      itinerary_json = excluded.itinerary_json, request_json = excluded.request_json, watch_status_json = NULL,
       color = COALESCE(saved_itineraries.color, excluded.color)`);
     this.patch = db.prepare('UPDATE saved_itineraries SET label = COALESCE(?, label), watch = COALESCE(?, watch) WHERE device_id = ? AND id = ?');
     this.deleteOne = db.prepare('DELETE FROM saved_itineraries WHERE device_id = ? AND id = ?');
-    this.watched = db.prepare('SELECT * FROM saved_itineraries WHERE watch = 1');
+    this.watched = db.prepare('SELECT * FROM saved_itineraries WHERE watch = 1 ORDER BY rowid');
+    this.watchUpdate = db.prepare(`UPDATE saved_itineraries SET itinerary_json = ?, request_json = ?, leave_by = ?, watch_status_json = ?
+      WHERE device_id = ? AND id = ?`);
   }
 
   private read(row: Record<string, unknown>): SavedItinerary | undefined {
@@ -34,6 +37,7 @@ export class SqliteItineraryStore implements ItineraryStore {
         ...(row.label === null ? {} : { label: row.label }),
         watch: row.watch === 1,
         ...(row.leave_by === null ? {} : { leaveBy: row.leave_by }),
+        ...(row.watch_status_json === null || row.watch_status_json === undefined ? {} : { watchStatus: JSON.parse(String(row.watch_status_json)) }),
         ...(row.color === null || row.color === undefined ? {} : { color: row.color }),
         request: JSON.parse(String(row.request_json))
       });
@@ -76,14 +80,22 @@ export class SqliteItineraryStore implements ItineraryStore {
     return this.deleteOne.run(deviceId, id).changes > 0;
   }
 
-  async listWatched(nowIso: string, horizonIso: string): Promise<SavedItinerary[]> {
-    const now = Date.parse(nowIso);
-    const horizon = Date.parse(horizonIso);
+  async listWatched(activeAfterIso: string, departBeforeIso: string): Promise<WatchedItinerary[]> {
+    const activeAfter = Date.parse(activeAfterIso);
+    const departBefore = Date.parse(departBeforeIso);
     return this.watched.all().flatMap((row) => {
       const item = this.read(row);
       if (!item) return [];
-      const departure = Date.parse(item.departAt);
-      return departure >= now && departure <= horizon ? [item] : [];
+      return Date.parse(item.arriveAt) >= activeAfter && Date.parse(item.departAt) <= departBefore ? [{ deviceId: String(row.device_id), item }] : [];
     });
+  }
+
+  async applyWatch(deviceId: string, id: string, update: WatchUpdate): Promise<SavedItinerary | undefined> {
+    const itinerary = ItinerarySchema.parse(update.itinerary);
+    const changes = this.watchUpdate.run(JSON.stringify(itinerary), JSON.stringify(update.request),
+      update.watchStatus.leaveBy ?? null, JSON.stringify(update.watchStatus), deviceId, id).changes;
+    if (changes === 0) return undefined;
+    const row = this.selectOne.get(deviceId, id);
+    return row && this.read(row);
   }
 }

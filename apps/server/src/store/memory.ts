@@ -1,8 +1,8 @@
-import type { SavedItinerary, SaveItineraryRequest } from '@transit/shared';
-import type { ItineraryStore } from './types.js';
+import { ItinerarySchema, type SavedItinerary, type SaveItineraryRequest } from '@transit/shared';
+import type { ItineraryStore, WatchedItinerary, WatchStore, WatchUpdate } from './types.js';
 
 /** Process-local store (lost on restart). Plan 005 adds a SQLite implementation of the same interface. */
-export class MemoryItineraryStore implements ItineraryStore {
+export class MemoryItineraryStore implements ItineraryStore, WatchStore {
   private readonly byDevice = new Map<string, Map<string, SavedItinerary>>();
 
   private device(deviceId: string): Map<string, SavedItinerary> {
@@ -54,5 +54,32 @@ export class MemoryItineraryStore implements ItineraryStore {
 
   async remove(deviceId: string, id: string): Promise<boolean> {
     return this.byDevice.get(deviceId)?.delete(id) ?? false;
+  }
+
+  async listWatched(activeAfterIso: string, departBeforeIso: string): Promise<WatchedItinerary[]> {
+    const activeAfter = Date.parse(activeAfterIso);
+    const departBefore = Date.parse(departBeforeIso);
+    return [...this.byDevice].flatMap(([deviceId, items]) => [...items.values()]
+      .filter((item) => item.watch && Date.parse(item.arriveAt) >= activeAfter && Date.parse(item.departAt) <= departBefore)
+      .map((item) => ({ deviceId, item: structuredClone(item) })));
+  }
+
+  async applyWatch(deviceId: string, id: string, update: WatchUpdate): Promise<SavedItinerary | undefined> {
+    const items = this.byDevice.get(deviceId);
+    const current = items?.get(id);
+    if (!items || !current) return undefined;
+    const next: SavedItinerary = {
+      ...structuredClone(ItinerarySchema.parse(update.itinerary)),
+      id,
+      savedAt: current.savedAt,
+      watch: current.watch,
+      request: structuredClone(update.request),
+      watchStatus: structuredClone(update.watchStatus)
+    };
+    if (update.watchStatus.leaveBy !== undefined) next.leaveBy = update.watchStatus.leaveBy;
+    if (current.label !== undefined) next.label = current.label;
+    if (current.color !== undefined) next.color = current.color;
+    items.set(id, next);
+    return structuredClone(next);
   }
 }

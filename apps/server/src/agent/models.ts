@@ -1,8 +1,8 @@
 import { ThinkingLevel } from '@google/genai';
 
-export type AgentTask = 'planner';
+export type AgentTask = 'planner' | 'watch';
 
-const defaultThinking: Record<AgentTask, ThinkingLevel> = { planner: ThinkingLevel.LOW };
+const defaultThinking: Record<AgentTask, ThinkingLevel> = { planner: ThinkingLevel.LOW, watch: ThinkingLevel.LOW };
 
 export function modelFor(task: AgentTask, env = process.env): string {
   return env[`AGENT_MODEL_${task.toUpperCase()}`]?.trim() || env.GEMINI_MODEL?.trim() || 'gemini-3.8-flash';

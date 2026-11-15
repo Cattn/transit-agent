@@ -1,4 +1,4 @@
-import type { SavedItinerary, SaveItineraryRequest } from '@transit/shared';
+import type { Itinerary, SavedItinerary, SaveItineraryRequest, TripRequest, WatchStatus } from '@transit/shared';
 
 export interface ItineraryStore {
   list(deviceId: string): Promise<SavedItinerary[]>;
@@ -8,3 +8,20 @@ export interface ItineraryStore {
   update(deviceId: string, id: string, patch: { label?: string; watch?: boolean }): Promise<SavedItinerary | undefined>;
   remove(deviceId: string, id: string): Promise<boolean>;
 }
+
+export interface WatchedItinerary {
+  deviceId: string;
+  item: SavedItinerary;
+}
+
+export interface WatchUpdate {
+  itinerary: Itinerary;
+  request: TripRequest;
+  watchStatus: WatchStatus;
+}
+
+export interface WatchStore {
+  listWatched(activeAfterIso: string, departBeforeIso: string): Promise<WatchedItinerary[]>;
+  applyWatch(deviceId: string, id: string, update: WatchUpdate): Promise<SavedItinerary | undefined>;
+}
+

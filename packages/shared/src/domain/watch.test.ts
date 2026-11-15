@@ -69,10 +69,10 @@ describe('computeWatchStatus', () => {
     expect(status.message).toContain('4 min late (live)');
   });
 
-  it('says when times are from the schedule, not live', () => {
+  it('stays quiet about schedule-only times and leaves the live flag to the UI', () => {
     const status = computeWatchStatus(fixture(), request('some'), now('07:40'));
-    expect(status.message).toBe('Leave by 7:58 AM. Bus 1 times are from the schedule, not live.');
-    expect(status.message).toContain('not live');
+    expect(status.message).toBe('Leave by 7:58 AM.');
+    expect(status.usedRealtime).toBe(false);
   });
 
   it('names the anchor in missed and done messages', () => {

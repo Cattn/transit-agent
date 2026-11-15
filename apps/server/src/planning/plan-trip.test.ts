@@ -1,8 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ItinerarySchema, PlanResponseSchema, TripRequestSchema, type Itinerary, type TripRequest } from '@transit/shared';
 import { FixtureProvider } from '../providers/fixture.js';
 import fixtureRequest from '../providers/fixture-request.json';
 import type { RouteProvider } from '../providers/types.js';
+import { MemoryItineraryStore } from '../store/memory.js';
+import type { WatchIssue } from '../watch/advisor.js';
+import { TripLocations } from '../watch/boarding.js';
+import { anchorLeg, isDue } from '../watch/horizons.js';
+import { NO_REPLACEMENT, runWatchCycle, startWatchJob } from '../watch/watch-job.js';
 import { nextMorning, planTrip, type PlanLogger } from './plan-trip.js';
 
 const request = (overrides: Record<string, unknown> = {}): TripRequest =>
@@ -218,5 +223,137 @@ describe('nextMorning', () => {
     expect(new Date(nextMorning(Date.parse('2026-10-31T23:30:00-04:00'), NY)).toISOString()).toBe('2026-11-01T10:00:00.000Z');
     expect(new Date(nextMorning(Date.parse('2026-03-07T23:30:00-05:00'), NY)).toISOString()).toBe('2026-03-08T09:00:00.000Z');
     expect(new Date(nextMorning(Date.parse('2026-11-16T05:00:00-05:00'), NY)).toISOString()).toBe('2026-11-17T10:00:00.000Z');
+  });
+});
+
+describe('watch job', () => {
+  const log = { info: () => {}, warn: () => {} };
+  const req = request();
+  const departOf = (it: Itinerary) => Date.parse(anchorLeg(it).departAt);
+
+  async function watched(store: MemoryItineraryStore, device = 'device-a', overrides: Partial<TripRequest> = {}) {
+    const saveRequest = { ...req, ...overrides };
+    const plan = await planTrip(saveRequest, [new FixtureProvider()], undefined, silent);
+    const itinerary = [...plan.itineraries, ...plan.nearMisses].find((it) => anchorLeg(it).mode === 'bus')!;
+    return store.save(device, { itinerary, request: saveRequest, watch: true, label: 'Commute' });
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.useRealTimers();
+  });
+
+  it('checks bus trips at the T-4h and T-2h checkpoints, then every 2 min near departure', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    const at = (minutes: number) => new Date(departOf(saved) - minutes * 60_000);
+    const withCheck = (minutes: number) => ({ ...saved, watchStatus: { state: 'scheduled' as const, message: '', checkedAt: at(minutes).toISOString(), usedRealtime: false } });
+    expect(isDue(saved, at(300))).toBe(false);
+    expect(isDue(saved, at(239))).toBe(true);
+    expect(isDue(withCheck(239), at(180))).toBe(false);
+    expect(isDue(withCheck(239), at(119))).toBe(true);
+    expect(isDue(withCheck(9), at(8))).toBe(false);
+    expect(isDue(withCheck(9), at(7))).toBe(true);
+    expect(isDue({ ...saved, legs: saved.legs.map((leg) => (leg.mode === 'bus' || leg.mode === 'rail' ? { ...leg, mode: 'flight' as const } : leg)) }, at(30))).toBe(false);
+  });
+
+  it('persists a quiet leave-by status and the fixture delay as live', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    const now = new Date(departOf(saved) - 30 * 60_000);
+    expect(await runWatchCycle({ store, providers: [new FixtureProvider()], now: () => now, log })).toEqual({ checked: 1, updated: 1 });
+    expect((await store.get('device-a', saved.id))?.watchStatus?.message).toMatch(/^Leave by \d+:\d\d [AP]M\.$/);
+    vi.stubEnv('FIXTURE_DELAY_MINUTES', '4');
+    const later = new Date(departOf(saved) - 20 * 60_000);
+    await runWatchCycle({ store, providers: [new FixtureProvider()], now: () => later, log });
+    const updated = await store.get('device-a', saved.id);
+    expect(updated?.watchStatus).toMatchObject({ usedRealtime: true });
+    expect(updated?.watchStatus?.message).toContain('4 min late (live)');
+    expect(updated?.leaveBy).toBe(updated?.watchStatus?.leaveBy);
+  });
+
+  it('keeps checking other trips when one provider refresh throws', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    await store.save('device-b', { itinerary: { ...saved, id: 'broken-trip', source: { ...saved.source, provider: 'broken' } }, request: req, watch: true });
+    const broken: RouteProvider = { ...failing, refresh: async () => { throw new Error('refresh down'); } };
+    const warn = vi.fn();
+    const now = new Date(departOf(saved) - 30 * 60_000);
+    expect(await runWatchCycle({ store, providers: [new FixtureProvider(), broken], now: () => now, log: { ...log, warn } })).toEqual({ checked: 2, updated: 2 });
+    expect(warn).toHaveBeenCalledWith(expect.objectContaining({ id: 'broken-trip' }), 'Watch refresh failed');
+    expect((await store.get('device-b', 'broken-trip'))?.watchStatus?.state).toBeDefined();
+  });
+
+  it('switches a missed trip once to the top valid replacement, keeping its identity', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    const now = new Date(departOf(saved) + 3 * 60_000);
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log });
+    const switched = await store.get('device-a', saved.id);
+    expect(search).toHaveBeenCalledTimes(1);
+    expect(switched).toMatchObject({ id: saved.id, label: 'Commute', savedAt: saved.savedAt, request: { time: { type: 'departAt', at: now.toISOString() } } });
+    expect(switched?.watchStatus?.message).toMatch(/^Missed .+, switched to /);
+    expect(switched?.departAt).not.toBe(saved.departAt);
+  });
+
+  it('keeps a missed trip and says so when no valid replacement exists, then stops', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store, 'device-a', { constraints: { ...req.constraints, arriveBy: '2026-11-16T08:05:00-05:00' } });
+    const now = new Date(departOf(saved) + 3 * 60_000);
+    const fixture = new FixtureProvider();
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log });
+    const missed = await store.get('device-a', saved.id);
+    expect(missed?.watchStatus).toMatchObject({ state: 'missed' });
+    expect(missed?.watchStatus?.message.endsWith(NO_REPLACEMENT)).toBe(true);
+    expect(missed?.departAt).toBe(saved.departAt);
+    expect(await runWatchCycle({ store, providers: [fixture], now: () => new Date(now.getTime() + 5 * 60_000), log })).toEqual({ checked: 0, updated: 0 });
+  });
+
+  it('treats a location along the route as boarded and does not replan', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    const now = new Date(departOf(saved) + 4 * 60_000);
+    const locations = new TripLocations(() => now);
+    const coordinates = anchorLeg(saved).geometry.coordinates;
+    locations.report('device-a', saved.id, { coordinates: coordinates[Math.floor(coordinates.length / 2)]!, accuracyMeters: 10 });
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log, locations });
+    expect(search).not.toHaveBeenCalled();
+    expect((await store.get('device-a', saved.id))?.watchStatus).toMatchObject({ state: 'onTrack', message: expect.stringMatching(/^On .+, you'll arrive around /) });
+  });
+
+  it('asks the advisor only when an issue changes and uses its replacement pick', async () => {
+    const store = new MemoryItineraryStore();
+    const saved = await watched(store);
+    vi.stubEnv('FIXTURE_DELAY_MINUTES', '4');
+    const advise = vi.fn(async ({ replacements }: WatchIssue) => ({ message: 'Bus is 4 min late; leave a bit later.', replacementId: replacements[1]?.id }));
+    const deps = { store, providers: [new FixtureProvider()], log, advisor: { advise } };
+    await runWatchCycle({ ...deps, now: () => new Date(departOf(saved) - 9 * 60_000) });
+    await runWatchCycle({ ...deps, now: () => new Date(departOf(saved) - 6 * 60_000) });
+    expect(advise).toHaveBeenCalledTimes(1);
+    expect((await store.get('device-a', saved.id))?.watchStatus?.message).toBe('Bus is 4 min late; leave a bit later.');
+    vi.unstubAllEnvs();
+    const before = (await store.get('device-a', saved.id))!;
+    await store.applyWatch('device-a', saved.id, { itinerary: before, request: before.request, watchStatus: { ...before.watchStatus!, checkedAt: new Date(departOf(before) - 40 * 60_000).toISOString() } });
+    await runWatchCycle({ ...deps, now: () => new Date(departOf(before) + 4 * 60_000) });
+    const pick = advise.mock.calls[1]?.[0].replacements[1];
+    expect(pick).toBeDefined();
+    expect((await store.get('device-a', saved.id))?.summary).toBe(pick?.summary);
+  });
+
+  it('skips a tick while the previous cycle is still running', async () => {
+    vi.useFakeTimers();
+    let release: () => void = () => {};
+    const listWatched = vi.fn(() => new Promise<[]>((resolve) => { release = () => resolve([]); }));
+    const job = startWatchJob({ store: { listWatched, applyWatch: async () => undefined }, providers: [], now: () => new Date(), log }, 1);
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(listWatched).toHaveBeenCalledTimes(1);
+    release();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(listWatched).toHaveBeenCalledTimes(2);
+    job.stop();
   });
 });
