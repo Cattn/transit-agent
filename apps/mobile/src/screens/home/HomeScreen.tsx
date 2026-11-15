@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Modal, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { DraftChangeSource, Itinerary, LngLat, Place, PlanResponse, SavedItinerary, TravelProfile, TripDraft, TripDraftPatch, TripRequest } from '@transit/shared';
@@ -140,13 +141,18 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     }).catch(() => {
       if (active) setStatus('Server unavailable. Check your API URL and restart.');
     });
+    return () => { active = false; };
+  }, [api]);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
     api.getProfile().then((loaded) => {
       if (!active || !loaded) return;
       setProfile(loaded);
-      if (!edited.current && Object.keys(loaded.defaults).length > 0) reset(loaded.defaults);
+      if (!edited.current) reset(loaded.defaults);
     }).catch(() => undefined);
     return () => { active = false; };
-  }, [api, reset]);
+  }, [api, reset]));
 
   useEffect(() => {
     if (!notice) return;
