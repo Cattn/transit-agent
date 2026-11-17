@@ -9,7 +9,7 @@
 - Planned at: `e7441e1`, 2026-11-15.
 - Issues: https://github.com/Cattn/transit-agent/issues/85 (reopened after #98) and its sub-issue https://github.com/Cattn/transit-agent/issues/104. One PR closes both.
 
-**Decided (asked in person, 2026-11-15):** a custom place is a named place with an icon, a colour and a location, added with **+** (as the #85 mockup) or from Settings. Keep the current labelled chips (icon tinted, as #98) instead of the mockup's round icon-only buttons; the look can change later.
+**Decided (asked in person, 2026-11-15):** a custom place is a named place with an icon, a colour and a location, added with **+** (as the #85 mockup) or from Settings. Keep the current labelled chips (icon tinted, as #98) instead of the mockup's round icon-only buttons; the look can change later. **Changed (DMFriends, 2026-11-17):** the row now uses the mockup's round icon-only buttons (place colour tint, icon in the place colour), press and hold a place to edit it (`combinedClickable` now works in Expo Go 58, unlike plan 038), and a **+** at the end. The bar shows only places with a location, in the same order as Settings' "Favorite Places" (Home, Work, then custom places); Gym is no longer shown and Office is named Work. The Settings chip is gone (Settings stays on the account button at the top).
 
 **Our choice, easy to change: at most 5 custom places.** Not asked for in #85 or #104. 3 defaults + 5 custom = 8, the size of the route `PALETTE`, so every place can have its own colour. It is one constant, `MAX_CUSTOM_PLACES` in `packages/shared/src/domain/profile.ts`; the schema, the **+** chip and Settings all read it. Raising it only means some places share a colour (see STOP conditions).
 

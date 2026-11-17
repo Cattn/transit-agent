@@ -247,11 +247,11 @@ describe('place presets (plan 038)', () => {
     expect(new Set(colors.values()).size).toBe(3);
   });
 
-  it('lists Home, Office, Gym, then the custom places (plan 040)', () => {
+  it('lists Home, Work, Gym, then the custom places (plan 040)', () => {
     const dinner = { id: 'dinner', name: 'Dinner', icon: 'restaurant' as const, color: '#7c3aed', place: near(gym, 3000) };
     expect(profilePlaces({ ...profile, places: [dinner] })).toEqual([
       { key: 'home', name: 'Home', icon: 'home', color: DEFAULT_PRESET_COLORS.home, place: home },
-      { key: 'office', name: 'Office', icon: 'work', color: DEFAULT_PRESET_COLORS.office, place: office },
+      { key: 'office', name: 'Work', icon: 'work', color: DEFAULT_PRESET_COLORS.office, place: office },
       { key: 'gym', name: 'Gym', icon: 'fitness', color: '#db2777', place: gym },
       { key: 'place:dinner', name: 'Dinner', icon: 'restaurant', color: '#7c3aed', place: dinner.place }
     ]);

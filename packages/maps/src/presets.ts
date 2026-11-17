@@ -7,7 +7,7 @@ export const PRESET_MATCH_METERS = 150;
 export const DEFAULT_PRESET_COLORS: Readonly<Record<PresetKey, string>> = { home: PALETTE[3]!, office: PALETTE[0]!, gym: PALETTE[2]! };
 export const DEFAULT_PRESET_ICONS: Readonly<Record<PresetKey, PresetIcon>> = { home: 'home', office: 'work', gym: 'fitness' };
 
-export const PRESET_NAMES: Readonly<Record<PresetKey, string>> = { home: 'Home', office: 'Office', gym: 'Gym' };
+export const PRESET_NAMES: Readonly<Record<PresetKey, string>> = { home: 'Home', office: 'Work', gym: 'Gym' };
 
 type PresetProfile = Pick<TravelProfile, 'home' | 'work' | 'presets' | 'places'> | undefined;
 

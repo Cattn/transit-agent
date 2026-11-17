@@ -367,24 +367,17 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const deletePlace = useCallback((key: PlaceKey) => writeProfile((base) => ({ ...base, places: removeCustomPlace(base.places, key) })), [writeProfile]);
 
   const places = useMemo(() => profilePlaces(profile), [profile]);
-  const chips = useMemo<SavedPlaceChip[]>(() => places.map((entry) => ({
+  const chips = useMemo<SavedPlaceChip[]>(() => places.flatMap(({ place, ...entry }) => (place && entry.key !== 'gym' ? [{
     key: entry.key,
     label: entry.name,
     icon: entry.icon,
     color: entry.color,
-    onPress: () => {
-      if (entry.place) {
-        void searchTo(entry.place);
-        return;
-      }
-      setPresetError(undefined);
-      setPresetEditing(entry.key);
-    },
+    onPress: () => void searchTo(place),
     onEdit: () => {
       setPresetError(undefined);
       setPresetEditing(entry.key);
     }
-  })), [places, searchTo]);
+  }] : [])), [places, searchTo]);
   const addPlace = useMemo(() => ((profile?.places?.length ?? 0) < MAX_CUSTOM_PLACES ? () => {
     setPresetError(undefined);
     setPresetEditing('new');

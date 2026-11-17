@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MAX_CUSTOM_PLACES, PRESET_ICONS, initialDraftState, type Place, type PresetIcon, type PutProfileRequest, type TravelMode, type TravelProfile, type TripDraftPatch } from '@transit/shared';
-import { PALETTE, nextPlaceColor, profilePlaces, removeCustomPlace, upsertCustomPlace, type PlaceKey as ProfilePlaceKey } from '@transit/maps';
+import { PALETTE, nextPlaceColor, presetColor, presetIcon, profilePlaces, removeCustomPlace, upsertCustomPlace, type PlaceKey as ProfilePlaceKey } from '@transit/maps';
 import { useApi, useDeviceId } from '@transit/client-react';
 import { getApiUrl, getCurrentPlace, secureStoreDeviceIdStorage, setServerUrl, useServerUrl } from '../../platform';
 import { apiMode } from '../../data/client';
@@ -47,7 +47,7 @@ export interface SettingsChromeProps {
   onRetryLoad: () => void;
   saveError?: string;
   onBack: () => void;
-  places: { key: PlaceKey; title: string; value: string }[];
+  places: { key: PlaceKey; title: string; value: string; icon: PresetIcon; color: string }[];
   editingPlace?: PlaceKey;
   onEditPlace: (key: PlaceKey | undefined) => void;
   customPlaces: { key: ProfilePlaceKey; title: string; value: string; icon: PresetIcon; color: string }[];
@@ -293,8 +293,8 @@ export function SettingsScreen() {
     saveError,
     onBack: () => navigation.goBack(),
     places: [
-      { key: 'home', title: 'Home', value: profile?.home ? placeName(profile.home) : 'Not set' },
-      { key: 'work', title: 'Work', value: profile?.work ? placeName(profile.work) : 'Not set' }
+      { key: 'home', title: 'Home', value: profile?.home ? placeName(profile.home) : 'Not set', icon: presetIcon('home', profile), color: presetColor('home', profile) },
+      { key: 'work', title: 'Work', value: profile?.work ? placeName(profile.work) : 'Not set', icon: presetIcon('office', profile), color: presetColor('office', profile) }
     ],
     editingPlace,
     customPlaces: profilePlaces(profile).filter((entry) => entry.key.startsWith('place:')).map((entry) => ({

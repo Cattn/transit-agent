@@ -4,13 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Host } from '@expo/ui';
 import {
-  AssistChip,
+  Box,
   Column,
-  DropdownMenu,
-  DropdownMenuItem,
   FilledTonalIconButton,
   FloatingActionButton,
   Icon,
+  IconButton,
   Row,
   SegmentedButton,
   Shape,
@@ -21,12 +20,11 @@ import {
   useMaterialColors,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { background, clip, fillMaxWidth, height, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { background, clip, combinedClickable, fillMaxWidth, height, horizontalScroll, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
 import AccountCircle from '../../../assets/icons/account_circle_fill.xml';
 import Add from '../../../assets/icons/add_fill.xml';
 import AutoAwesome from '../../../assets/icons/auto_awesome_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
-import Edit from '../../../assets/icons/edit_fill.xml';
 import Favorite from '../../../assets/icons/favorite_fill.xml';
 import FitnessCenter from '../../../assets/icons/fitness_center_fill.xml';
 import Flight from '../../../assets/icons/flight_fill.xml';
@@ -41,7 +39,6 @@ import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Search from '../../../assets/icons/search_fill.xml';
 import Warning from '../../../assets/icons/warning_fill.xml';
 import Sensors from '../../../assets/icons/sensors_fill.xml';
-import Settings from '../../../assets/icons/settings_fill.xml';
 import ShoppingBag from '../../../assets/icons/shopping_bag_fill.xml';
 import Work from '../../../assets/icons/work_fill.xml';
 import type { SavedItinerary } from '@transit/shared';
@@ -53,6 +50,7 @@ import { tileRole, tripCardText } from './TrackedTripCard';
 
 const MODE_ICONS: Record<ModeGroupName, number> = { transit: DirectionsBus, fly: Flight };
 const CHIP_ICONS: Record<SavedPlaceChip['icon'], number> = { home: HomeIcon, work: Work, fitness: FitnessCenter, school: School, cafe: LocalCafe, shopping: ShoppingBag, favorite: Favorite, park: Park, restaurant: Restaurant };
+const PLACE_BUTTON = 44;
 const HANDLE_HEIGHT = 24;
 const LIST_CAP = 212;
 const COLLAPSED_MAX_SHARE = 0.55;
@@ -62,6 +60,11 @@ const CARD_RADIUS = 28;
 const PEEK = 0;
 const COLLAPSED = 1;
 const EXPANDED = 2;
+
+function mix(color: string, base: string, amount: number): string {
+  const channel = (hex: string, at: number) => parseInt(hex.slice(1, 7).slice(at, at + 2), 16);
+  return `#${[0, 2, 4].map((at) => Math.round(channel(color, at) * amount + channel(base, at) * (1 - amount)).toString(16).padStart(2, '0')).join('')}`;
+}
 
 function tileColors(role: ReturnType<typeof tileRole>, m: MaterialColors): { bg: string; fg: string } {
   if (role === 'secondary') return { bg: m.secondaryContainer, fg: m.onSecondaryContainer };
@@ -138,7 +141,6 @@ export function HomeChrome(props: HomeChromeProps) {
   const [titleHeight, setTitleHeight] = useState(36);
   const [headerHeight, setHeaderHeight] = useState(48);
   const [footerHeight, setFooterHeight] = useState(64 + insets.bottom);
-  const [editMenu, setEditMenu] = useState(false);
   const [listHeight, setListHeight] = useState(LIST_CAP);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
   const [topHeight, setTopHeight] = useState(126);
@@ -298,65 +300,28 @@ export function HomeChrome(props: HomeChromeProps) {
         >
           <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
             <Column verticalArrangement={{ spacedBy: 4 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
-              <Row horizontalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), horizontalScroll()]}>
-                {chips.map((chip) => (
-                  <AssistChip key={chip.key} onClick={chip.onPress} colors={{ leadingIconContentColor: chip.color }}>
-                    <AssistChip.LeadingIcon>
-                      <Icon source={CHIP_ICONS[chip.icon]} size={18} tint={chip.color} />
-                    </AssistChip.LeadingIcon>
-                    <AssistChip.Label>
-                      <Text style={m3Text('labelLarge')}>{chip.label}</Text>
-                    </AssistChip.Label>
-                  </AssistChip>
-                ))}
+              <Row horizontalArrangement={{ spacedBy: 12 }} verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+                <Row horizontalArrangement={{ spacedBy: 10 }} verticalAlignment="center" modifiers={[weight(1), horizontalScroll()]}>
+                  {chips.map((chip) => (
+                    <Box
+                      key={chip.key}
+                      contentAlignment="center"
+                      modifiers={[
+                        size(PLACE_BUTTON, PLACE_BUTTON),
+                        clip(Shapes.Circle),
+                        background(mix(chip.color, m.surfaceContainer, scheme === 'dark' ? 0.32 : 0.16)),
+                        combinedClickable({ onClick: chip.onPress, onLongClick: chip.onEdit })
+                      ]}
+                    >
+                      <Icon source={CHIP_ICONS[chip.icon]} size={20} tint={scheme === 'dark' ? mix(chip.color, '#ffffff', 0.7) : mix(chip.color, '#000000', 0.75)} contentDescription={chip.label} />
+                    </Box>
+                  ))}
+                </Row>
                 {props.onAddPlace ? (
-                  <AssistChip onClick={props.onAddPlace}>
-                    <AssistChip.LeadingIcon>
-                      <Icon source={Add} size={18} />
-                    </AssistChip.LeadingIcon>
-                    <AssistChip.Label>
-                      <Text style={m3Text('labelLarge')}>Add</Text>
-                    </AssistChip.Label>
-                  </AssistChip>
+                  <IconButton onClick={props.onAddPlace}>
+                    <Icon source={Add} size={28} tint={m.onSurface} contentDescription="Add a place" />
+                  </IconButton>
                 ) : null}
-                <DropdownMenu expanded={editMenu} onDismissRequest={() => setEditMenu(false)}>
-                  <DropdownMenu.Trigger>
-                    <AssistChip onClick={() => setEditMenu(true)}>
-                      <AssistChip.LeadingIcon>
-                        <Icon source={Edit} size={18} />
-                      </AssistChip.LeadingIcon>
-                      <AssistChip.Label>
-                        <Text style={m3Text('labelLarge')}>Edit</Text>
-                      </AssistChip.Label>
-                    </AssistChip>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Items>
-                    {chips.map((chip) => (
-                      <DropdownMenuItem
-                        key={chip.key}
-                        onClick={() => {
-                          setEditMenu(false);
-                          chip.onEdit();
-                        }}
-                      >
-                        <DropdownMenuItem.LeadingIcon>
-                          <Icon source={CHIP_ICONS[chip.icon]} size={24} tint={chip.color} />
-                        </DropdownMenuItem.LeadingIcon>
-                        <DropdownMenuItem.Text>
-                          <Text style={m3Text('bodyLarge')}>{chip.label}</Text>
-                        </DropdownMenuItem.Text>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenu.Items>
-                </DropdownMenu>
-                <AssistChip onClick={props.onOpenSettings}>
-                  <AssistChip.LeadingIcon>
-                    <Icon source={Settings} size={18} />
-                  </AssistChip.LeadingIcon>
-                  <AssistChip.Label>
-                    <Text style={m3Text('labelLarge')}>Settings</Text>
-                  </AssistChip.Label>
-                </AssistChip>
               </Row>
               {status ? <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')}>{status}</Text> : null}
             </Column>
