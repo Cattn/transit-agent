@@ -1,95 +1,156 @@
 #!/usr/bin/env node
-// Waits until something changes on GitHub (issues, PRs, comments, reviews), prints a JSON digest, and exits.
-// Meant to run as a background command: when it exits, the agent that started it wakes up and handles the digest.
-//
-// Usage: node plans/tools/watch-github.mjs --state <file> [--repo Cattn/transit-agent] [--interval 60] [--max-minutes 100]
-// Exit codes: 0 = new activity (digest on stdout), 2 = no activity before --max-minutes (just restart it), 1 = error.
-// Requires an authenticated `gh` CLI. No npm dependencies.
-//
-// Comments containing the marker <!-- agent --> are ignored, so agents that post replies don't wake themselves.
-
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 
-const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) => {
-  if (a.startsWith('--')) acc.push([a.slice(2), all[i + 1]]);
-  return acc;
-}, []));
-const repo = args.repo ?? 'Cattn/transit-agent';
-const intervalMs = Number(args.interval ?? 60) * 1000;
-const maxMs = Number(args['max-minutes'] ?? 100) * 60_000;
-const statePath = args.state;
-if (!statePath) { console.error('--state <file> is required'); process.exit(1); }
+const { values: args } = parseArgs({ options: {
+  state: { type: 'string' }, repo: { type: 'string', default: 'Cattn/transit-agent' },
+  reviewer: { type: 'string', default: 'Cattn' }, since: { type: 'string' },
+  interval: { type: 'string', default: '60' }, 'max-minutes': { type: 'string', default: '100' },
+  ack: { type: 'string' },
+} });
+const { repo, reviewer, state: statePath } = args;
+const intervalMs = Number(args.interval) * 1000;
+const maxMs = Number(args['max-minutes']) * 60_000;
+const overlapMs = 120_000;
+const signature = '— 🤖 babysitter bot';
 
-const MARKER = '<!-- agent -->';
-const state = existsSync(statePath)
-  ? JSON.parse(readFileSync(statePath, 'utf8'))
-  : { since: new Date().toISOString(), seen: {} };
-
-function gh(path) {
-  const out = execFileSync('gh', ['api', '--paginate', '--slurp', path], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  return JSON.parse(out).flat();
-}
-
-function snippet(body) {
-  return (body ?? '').replace(/\s+/g, ' ').trim().slice(0, 400);
-}
-
-function poll() {
-  const since = state.since;
-  const now = new Date().toISOString();
-  const events = [];
-
-  for (const c of gh(`repos/${repo}/issues/comments?since=${since}&per_page=100`)) {
-    const key = `ic-${c.id}-${c.updated_at}`;
-    if (state.seen[key] || (c.body ?? '').includes(MARKER)) continue;
-    state.seen[key] = true;
-    events.push({ kind: c.created_at === c.updated_at ? 'comment' : 'comment_edited', number: Number(c.issue_url.split('/').pop()), author: c.user.login, url: c.html_url, at: c.updated_at, text: snippet(c.body) });
-  }
-  for (const c of gh(`repos/${repo}/pulls/comments?since=${since}&per_page=100`)) {
-    const key = `rc-${c.id}-${c.updated_at}`;
-    if (state.seen[key] || (c.body ?? '').includes(MARKER)) continue;
-    state.seen[key] = true;
-    events.push({ kind: 'pr_review_comment', number: Number(c.pull_request_url.split('/').pop()), author: c.user.login, url: c.html_url, at: c.updated_at, file: c.path, text: snippet(c.body) });
-  }
-  for (const i of gh(`repos/${repo}/issues?state=all&since=${since}&per_page=100`)) {
-    const key = `iu-${i.number}-${i.updated_at}`;
-    if (state.seen[key]) continue;
-    state.seen[key] = true;
-    events.push({ kind: i.pull_request ? 'pr_updated' : 'issue_updated', number: i.number, title: i.title, state: i.state, assignees: i.assignees.map((a) => a.login), labels: i.labels.map((l) => l.name), url: i.html_url, at: i.updated_at, created: i.created_at >= since });
-  }
-  // Reviews (approve / request changes) on open PRs.
-  for (const pr of gh(`repos/${repo}/pulls?state=open&per_page=100`)) {
-    for (const r of gh(`repos/${repo}/pulls/${pr.number}/reviews?per_page=100`)) {
-      const key = `rv-${r.id}`;
-      if (state.seen[key] || !r.submitted_at || r.submitted_at < since || (r.body ?? '').includes(MARKER)) continue;
-      state.seen[key] = true;
-      events.push({ kind: 'pr_review', number: pr.number, author: r.user.login, review: r.state, url: r.html_url, at: r.submitted_at, text: snippet(r.body) });
-    }
-  }
-
-  // Overlap the next window by 2 minutes (GitHub timestamps are coarse); `seen` dedupes.
-  state.since = new Date(Date.parse(now) - 120_000).toISOString();
-  // Keep the seen map from growing forever.
-  const keys = Object.keys(state.seen);
-  if (keys.length > 5000) for (const k of keys.slice(0, keys.length - 2000)) delete state.seen[k];
-  writeFileSync(statePath, JSON.stringify(state));
-  // "issue_updated" fires for every comment too; drop it when a comment on the same issue already explains it.
-  const commented = new Set(events.filter((e) => e.kind.startsWith('comment') || e.kind.startsWith('pr_review')).map((e) => e.number));
-  return events.filter((e) => !((e.kind === 'issue_updated' || e.kind === 'pr_updated') && !e.created && commented.has(e.number)));
-}
-
-const started = Date.now();
-for (;;) {
+function github(path) {
   try {
-    const events = poll();
-    if (events.length) {
-      console.log(JSON.stringify({ repo, events }, null, 2));
-      process.exit(0);
-    }
-  } catch (err) {
-    console.error(`poll failed: ${err.message}`);
+    const output = execFileSync('gh', ['api', '--paginate', '--jq', '.[] | @json', path], {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
+    });
+    return output.trim() ? output.trim().split('\n').map((line) => JSON.parse(line)) : [];
+  } catch (error) {
+    throw new Error(`GitHub API ${path}: ${error.stderr?.trim() || error.message}`);
   }
-  if (Date.now() - started > maxMs) { console.log(JSON.stringify({ repo, events: [], timeout: true })); process.exit(2); }
-  await new Promise((r) => setTimeout(r, intervalMs));
+}
+
+function save(state) {
+  const temporary = `${statePath}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify(state), { mode: 0o600 });
+  renameSync(temporary, statePath);
+}
+
+function floorSecond(time) {
+  return Math.floor(time / 1000) * 1000;
+}
+
+function digest(events) {
+  console.log(JSON.stringify({ repo, reviewer, events }, null, 2));
+}
+
+function poll(state) {
+  const now = floorSecond(Date.now());
+  const cutoff = Math.max(state.start, state.cursor - overlapMs);
+  const since = encodeURIComponent(new Date(cutoff - 1000).toISOString());
+  const root = `repos/${repo}`;
+  const updated = github(`${root}/issues?state=all&since=${since}&per_page=100`);
+  const open = github(`${root}/pulls?state=open&per_page=100`);
+  const heads = Object.fromEntries(open.map((pr) => [pr.number, pr.head.sha]));
+  const events = [];
+  const seen = Object.fromEntries(Object.entries(state.seen).filter(([, at]) => at >= cutoff));
+
+  function emit(id, at, event) {
+    const time = Date.parse(at);
+    if (!Number.isFinite(time) || time < cutoff || Object.hasOwn(seen, id)) return;
+    seen[id] = time;
+    events.push({ id, at, ...event });
+  }
+
+  for (const comment of github(`${root}/issues/comments?since=${since}&per_page=100`)) {
+    const body = comment.body?.trim() ?? '';
+    if (body.endsWith(signature) || body.includes('<!-- agent -->')) continue;
+    emit(`comment:${comment.id}:${comment.updated_at}`, comment.updated_at, {
+      kind: 'comment', number: Number(comment.issue_url.split('/').at(-1)),
+      subject: new URL(comment.html_url).pathname.includes('/pull/') ? 'pr' : 'issue',
+      edited: comment.created_at !== comment.updated_at, author: comment.user?.login, url: comment.html_url,
+    });
+  }
+
+  for (const comment of github(`${root}/pulls/comments?since=${since}&per_page=100`)) {
+    emit(`inline:${comment.id}:${comment.updated_at}`, comment.updated_at, {
+      kind: 'pr_review_comment', number: Number(comment.pull_request_url.split('/').at(-1)),
+      author: comment.user?.login, url: comment.html_url,
+    });
+  }
+
+  for (const item of updated) {
+    emit(`item:${item.number}:${item.updated_at}`, item.updated_at, {
+      kind: item.pull_request ? 'pr_updated' : 'issue_updated', number: item.number,
+      url: item.html_url, state: item.state, created: Date.parse(item.created_at) >= cutoff,
+      ...(item.pull_request && { mergedAt: item.pull_request.merged_at ?? null }),
+    });
+  }
+
+  for (const pr of open) {
+    const previous = state.heads[pr.number];
+    if (previous && previous !== pr.head.sha) {
+      events.push({ id: `head:${pr.number}:${now}`, at: new Date(now).toISOString(),
+        kind: 'pr_head_changed', number: pr.number, url: pr.html_url, head: pr.head.sha });
+    }
+  }
+
+  const candidates = new Map([...updated, ...open].map((item) => [item.number, item]));
+  for (const [number, item] of candidates) {
+    for (const entry of github(`${root}/issues/${number}/timeline?per_page=100`)) {
+      if (!entry.id || ['commented', 'committed'].includes(entry.event)) continue;
+      const target = entry.requested_reviewer?.login;
+      const personal = target?.toLowerCase() === reviewer.toLowerCase();
+      const kind = entry.event === 'review_requested' && personal ? 'pr_review_requested'
+        : entry.event === 'review_request_removed' && personal ? 'pr_review_request_removed'
+        : 'timeline';
+      emit(`timeline:${number}:${entry.event}:${entry.id}`, entry.created_at ?? entry.submitted_at, {
+        kind, number, action: entry.event, subject: item.pull_request || item.head ? 'pr' : 'issue',
+        url: entry.html_url ?? item.html_url, author: entry.actor?.login ?? entry.user?.login,
+        ...(target && { reviewer: target }),
+      });
+    }
+  }
+
+  events.sort((first, second) => first.at.localeCompare(second.at));
+  return { ...state, cursor: Math.max(state.cursor, now), seen, heads, pending: events };
+}
+
+async function main() {
+  if (!statePath) throw new Error('--state <file> is required');
+  if (!Number.isFinite(intervalMs) || intervalMs <= 0 || !Number.isFinite(maxMs) || maxMs < 0) {
+    throw new Error('--interval must be positive and --max-minutes must be nonnegative');
+  }
+  const exists = existsSync(statePath);
+  const start = floorSecond(args.since ? Date.parse(args.since) : Date.now());
+  if (!Number.isFinite(start) || start > Date.now()) throw new Error('--since must be a past ISO timestamp');
+  if (exists && args.since) throw new Error('--since is only used when creating state');
+  let state = exists ? JSON.parse(readFileSync(statePath, 'utf8'))
+    : { version: 1, repo, reviewer, start, cursor: start, seen: {}, heads: {}, pending: [] };
+  if (state.version !== 1 || state.repo !== repo || state.reviewer.toLowerCase() !== reviewer.toLowerCase()) {
+    throw new Error('Use a new state file for this watcher version, repository, and reviewer');
+  }
+  if (args.ack) {
+    if (!exists || !state.pending.some(({ id }) => id === args.ack)) throw new Error('Unknown pending event ID');
+    save({ ...state, pending: state.pending.filter(({ id }) => id !== args.ack) });
+    return;
+  }
+
+  if (!exists) save(state);
+  const deadline = Date.now() + maxMs;
+  while (!state.pending.length) {
+    state = poll(state);
+    save(state);
+    if (state.pending.length) break;
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      process.exitCode = 2;
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, Math.min(intervalMs, remaining)));
+  }
+  digest(state.pending);
+}
+
+try {
+  await main();
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
 }

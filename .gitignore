@@ -16,3 +16,6 @@ apps/server/data/
 .claude/worktrees/
 .review-worktrees/
 .worktrees/
+/.github-babysitter/
+/.agents/skills/github-babysitter/*
+!/.agents/skills/github-babysitter/SKILL.md
