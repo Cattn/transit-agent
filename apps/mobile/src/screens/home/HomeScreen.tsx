@@ -24,6 +24,7 @@ import { profileSaved } from '../settings/SettingsScreen';
 import { HomeChrome } from './HomeChrome';
 import { PresetSheet, type PresetChoice } from './PresetSheet';
 import { newPlaceId } from './place-id';
+import { movePatch } from '../filters/places';
 import { groupForModes, modesForGroup, type ModeGroupName } from './ModeSlider';
 
 export interface SavedPlaceChip {
@@ -428,8 +429,13 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   }, [resultsOpen, openSaved, closeResults, closeSaved]);
 
   const swapPlaces = useCallback(() => {
-    editDraft({ origin: state.draft.destination ?? null, destination: state.draft.origin ?? null });
-  }, [state.draft.origin, state.draft.destination, editDraft]);
+    editDraft({ origin: state.draft.destination ?? null, destination: state.draft.origin ?? null, stops: state.draft.stops ? [...state.draft.stops].reverse() : null });
+  }, [state.draft.origin, state.draft.destination, state.draft.stops, editDraft]);
+
+  const movePlace = useCallback((from: number, to: number) => {
+    const patch = movePatch(state.draft, from, to);
+    if (patch) editDraft(patch);
+  }, [state.draft, editDraft]);
 
   useEffect(() => {
     if (!requestKey || currentPlan) { clearPlan(); return; }
@@ -501,6 +507,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           onRetrySave={() => { if (saveFailed) saveResult(saveFailed.itinerary, saveFailed.request); }}
           onBack={closeResults}
           onSwap={swapPlaces}
+          onMovePlace={movePlace}
           onOpenFilters={() => openFilters()}
           onSheetLayout={setSheetHeight}
         />

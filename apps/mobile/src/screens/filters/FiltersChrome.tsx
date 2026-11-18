@@ -64,20 +64,36 @@ export function FiltersChrome(props: FiltersChromeProps) {
       <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" style={styles.list} contentContainerStyle={styles.content}>
         <View onLayout={(event) => remember('where', event.nativeEvent.layout.y)} style={styles.section}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.onSurface }]}>Where & when</Text>
-          <Pressable accessibilityRole="button" onPress={() => props.onSearch('origin')} style={styles.field}>
-            <Text style={{ color: colors.onSurfaceVariant }}>From</Text>
-            <Text style={{ color: colors.onSurface }}>{props.origin.label}</Text>
-            {props.origin.agent ? <Text style={{ color: colors.primary }}>Agent</Text> : null}
-          </Pressable>
-          {props.search?.which === 'origin' ? (
-            <PlaceField near={props.search.near} showLocation locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+          {props.places.map((place, index) => (
+            <View key={`${index}:${place.label}`}>
+              <View style={styles.placeRow}>
+                <Pressable accessibilityRole="button" onPress={() => props.onSearch(place.target)} style={[styles.field, styles.grow]}>
+                  <Text style={{ color: colors.onSurfaceVariant }}>{place.title}</Text>
+                  <Text style={{ color: colors.onSurface }}>{place.label}</Text>
+                  {place.agent ? <Text style={{ color: colors.primary }}>Agent</Text> : null}
+                </Pressable>
+                {index > 0 ? (
+                  <Pressable accessibilityRole="button" accessibilityLabel={`Move ${place.label} up`} onPress={() => props.onMovePlace(index, index - 1)}>
+                    <Text style={[styles.action, { color: colors.primary }]}>Up</Text>
+                  </Pressable>
+                ) : null}
+                {typeof place.target === 'number' ? (
+                  <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${place.label}`} onPress={() => props.onRemoveStop(place.target as number)}>
+                    <Text style={[styles.action, { color: colors.primary }]}>Remove</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              {props.search?.which === place.target ? (
+                <PlaceField near={props.search.near} showLocation={place.role === 'origin'} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+              ) : null}
+            </View>
+          ))}
+          {props.canAddStop ? (
+            <Pressable accessibilityRole="button" onPress={() => props.onSearch('add')} style={styles.field}>
+              <Text style={[styles.action, { color: colors.primary }]}>Add stop</Text>
+            </Pressable>
           ) : null}
-          <Pressable accessibilityRole="button" onPress={() => props.onSearch('destination')} style={styles.field}>
-            <Text style={{ color: colors.onSurfaceVariant }}>To</Text>
-            <Text style={{ color: colors.onSurface }}>{props.destination.label}</Text>
-            {props.destination.agent ? <Text style={{ color: colors.primary }}>Agent</Text> : null}
-          </Pressable>
-          {props.search?.which === 'destination' ? (
+          {props.search?.which === 'add' ? (
             <PlaceField near={props.search.near} showLocation={false} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
           ) : null}
           <View style={styles.row}>
@@ -167,6 +183,8 @@ export function FiltersChrome(props: FiltersChromeProps) {
 }
 
 const styles = StyleSheet.create({
+  placeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  grow: { flex: 1 },
   fill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 24, elevation: 24 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8 },
   title: { fontSize: 20, fontWeight: '700' },

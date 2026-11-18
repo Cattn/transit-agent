@@ -1,5 +1,5 @@
-import { useRef, useState, type ReactElement } from 'react';
-import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
+import { useEffect, useRef, useState, type ReactElement, type ReactNode, type RefObject } from 'react';
+import { ScrollView, StyleSheet, View, type ScrollViewInstance, type ViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Host } from '@expo/ui';
 import {
@@ -26,6 +26,7 @@ import {
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
 import { background, clickable, clip, fillMaxWidth, padding, Shapes, weight } from '@expo/ui/jetpack-compose/modifiers';
+import Add from '../../../assets/icons/add_fill.xml';
 import ArrowDown from '../../../assets/icons/keyboard_arrow_down_fill.xml';
 import ArrowUp from '../../../assets/icons/keyboard_arrow_up_fill.xml';
 import Check from '../../../assets/icons/check_fill.xml';
@@ -34,16 +35,19 @@ import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
+import DragIndicator from '../../../assets/icons/drag_indicator_fill.xml';
 import LocationOn from '../../../assets/icons/location_on_fill.xml';
 import MyLocation from '../../../assets/icons/my_location_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
+import TripOrigin from '../../../assets/icons/trip_origin_fill.xml';
 import { useAppColors } from '../../theme/appearance';
 import { materialSeedColor } from '../../theme/colors';
 import { m3Text } from '../../theme/typography';
 import { corners } from '../results/RouteCard.android';
-import type { ChipMode, FilterFocus, FiltersChromeProps } from './FiltersScreen';
+import type { ChipMode, FilterFocus, FiltersChromeProps, PlaceRowItem } from './FiltersScreen';
 import { parseCustomLimit } from './limits';
 import { PlaceField, type PlaceFieldColors } from './PlaceField';
+import { PlaceList } from './PlaceList';
 
 const MODE_ICONS: Record<ChipMode, number> = {
   walk: DirectionsWalk,
@@ -79,7 +83,7 @@ function SectionLabel({ text, agent, m }: { text: string; agent: boolean; m: Mat
   );
 }
 
-function PlaceRow({ label, value, agent, icon, tint, m, onClick }: { label: string; value: string; agent: boolean; icon: number; tint: string; m: MaterialColors; onClick: () => void }) {
+function PlaceRow({ label, value, agent, icon, tint, m, onClick, onRemove, draggable }: { label: string; value: string; agent: boolean; icon: number; tint: string; m: MaterialColors; onClick: () => void; onRemove?: () => void; draggable: boolean }) {
   return (
     <Surface
       color={m.surfaceContainerLow}
@@ -97,9 +101,45 @@ function PlaceRow({ label, value, agent, icon, tint, m, onClick }: { label: stri
             <AgentMark show={agent} m={m} />
           </Row>
         </Column>
+        {onRemove ? (
+          <IconButton onClick={onRemove}>
+            <Icon source={Close} size={24} tint={m.onSurfaceVariant} contentDescription={`Remove ${value}`} />
+          </IconButton>
+        ) : null}
+        {draggable ? <Icon source={DragIndicator} size={24} tint={m.onSurfaceVariant} /> : null}
       </Row>
     </Surface>
   );
+}
+
+/** Room left above an opened place search, so the row it fills stays in sight. */
+const REVEAL_OFFSET = 96;
+
+/** Scrolls an opened place search into view: a search under the last rows would open behind the keyboard. */
+function Revealed({ scroll, scrollY, scrolled, children }: { scroll: RefObject<ScrollViewInstance | null>; scrollY: RefObject<number>; scrolled: RefObject<boolean>; children: ReactNode }) {
+  const self = useRef<ViewInstance>(null);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const list = scroll.current;
+      self.current?.measureInWindow((_x, y) => {
+        list?.measureInWindow((_lx, top) => {
+          const delta = y - top - REVEAL_OFFSET;
+          if (delta <= 0) return;
+          // A revealed search is a deliberate position: stop snapping back to the focused section.
+          scrolled.current = true;
+          list.scrollTo({ y: scrollY.current + delta, animated: true });
+        });
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [scroll, scrollY, scrolled]);
+  return <View ref={self} style={styles.searchGap}>{children}</View>;
+}
+
+function placeIcon(place: PlaceRowItem): number {
+  if (place.role === 'origin') return MyLocation;
+  if (place.role === 'destination') return LocationOn;
+  return TripOrigin;
 }
 
 function PreferenceSlider({ value, onChange }: { value: number; onChange: (value: number) => void }) {
@@ -224,6 +264,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const scheme = useAppColors().scheme;
   const m = useMaterialColors({ colorScheme: scheme, seedColor: materialSeedColor });
   const scroll = useRef<ScrollViewInstance>(null);
+  const scrollY = useRef(0);
   const scrolled = useRef(false);
   const [pickingTime, setPickingTime] = useState<string>();
   const [pickingLimit, setPickingLimit] = useState<LimitItem['key']>();
@@ -235,6 +276,12 @@ export function FiltersChrome(props: FiltersChromeProps) {
     primary: m.primary,
     outline: m.outline
   };
+
+  const searchField = (showLocation: boolean) => props.search ? (
+    <Revealed scroll={scroll} scrollY={scrollY} scrolled={scrolled}>
+      <PlaceField near={props.search.near} showLocation={showLocation} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
+    </Revealed>
+  ) : null;
 
   const remember = (key: FilterFocus, y: number) => {
     if (scrolled.current || props.focus !== key) return;
@@ -259,29 +306,52 @@ export function FiltersChrome(props: FiltersChromeProps) {
           </TextButton>
         </Row>
       </Block>
-      <ScrollView ref={scroll} onScrollBeginDrag={() => { scrolled.current = true; }} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} style={styles.list}>
+      <ScrollView ref={scroll} onScroll={(event) => { scrollY.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={16} onScrollBeginDrag={() => { scrolled.current = true; }} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} style={styles.list}>
         <View onLayout={(event) => remember('where', event.nativeEvent.layout.y)}>
           <Block scheme={scheme}>
-            <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 0)]}>
+            <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 8, 16, 6)]}>
               <SectionLabel text="Where & when" agent={false} m={m} />
-              <PlaceRow label="From" value={props.origin.label} agent={props.origin.agent} icon={MyLocation} tint={m.primary} m={m} onClick={() => props.onSearch('origin')} />
             </Column>
           </Block>
-          {props.search?.which === 'origin' ? (
-            <View style={styles.searchGap}>
-              <PlaceField near={props.search.near} showLocation locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
-            </View>
+          <PlaceList
+            keys={props.places.map((place, index) => `${index}:${place.label}`)}
+            draggable={props.places.length > 2 && props.search === undefined}
+            onMove={props.onMovePlace}
+            renderRow={(index) => {
+              const place = props.places[index]!;
+              return (
+                <Block scheme={scheme}>
+                  <Column modifiers={[fillMaxWidth(), padding(16, 6, 16, 6)]}>
+                    <PlaceRow
+                      label={place.title}
+                      value={place.label}
+                      agent={place.agent}
+                      icon={placeIcon(place)}
+                      tint={place.role === 'origin' ? m.primary : place.role === 'destination' ? m.error : m.onSurfaceVariant}
+                      m={m}
+                      onClick={() => props.onSearch(place.target)}
+                      onRemove={typeof place.target === 'number' ? () => props.onRemoveStop(place.target as number) : undefined}
+                      draggable={props.places.length > 2 && props.search === undefined}
+                    />
+                  </Column>
+                </Block>
+              );
+            }}
+            renderBelow={(index) => props.search?.which === props.places[index]!.target ? searchField(props.places[index]!.role === 'origin') : null}
+          />
+          {props.canAddStop ? (
+            <Block scheme={scheme}>
+              <Row modifiers={[fillMaxWidth(), padding(8, 0, 16, 0)]}>
+                <TextButton onClick={() => props.onSearch('add')}>
+                  <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+                    <Icon source={Add} size={18} />
+                    <Text style={m3Text('labelLarge')}>Add stop</Text>
+                  </Row>
+                </TextButton>
+              </Row>
+            </Block>
           ) : null}
-          <Block scheme={scheme}>
-            <Column modifiers={[fillMaxWidth(), padding(16, 12, 16, 0)]}>
-              <PlaceRow label="To" value={props.destination.label} agent={props.destination.agent} icon={LocationOn} tint={m.error} m={m} onClick={() => props.onSearch('destination')} />
-            </Column>
-          </Block>
-          {props.search?.which === 'destination' ? (
-            <View style={styles.searchGap}>
-              <PlaceField near={props.search.near} showLocation={false} locating={props.search.locating} notice={props.search.notice} colors={placeColors} onPick={props.search.onPick} onUseLocation={props.search.onUseLocation} />
-            </View>
-          ) : null}
+          {props.search?.which === 'add' ? searchField(false) : null}
           <Block scheme={scheme}>
             <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 4)]}>
               <SingleChoiceSegmentedButtonRow modifiers={[weight(1)]}>

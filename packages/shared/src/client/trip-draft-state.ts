@@ -28,7 +28,8 @@ const vehicleShape = VehiclesSchema.shape;
  *
  * - Omitted / `undefined` = leave the field alone.
  * - `null` = clear an optional field (top-level fields and individual constraints).
- * - `constraints`, `preferences`, `vehicles` merge per key; `modes` replaces the whole list.
+ * - `constraints`, `preferences`, `vehicles` merge per key; `modes` and `stops` replace the whole list.
+ * - `stops: []` is the same as `stops: null` (a direct trip).
  *
  * Validators are reused from the draft schema (unwrapped, without defaults) so they can't drift.
  * Plan 006 uses this as the agent's tool parameter schema.
@@ -36,6 +37,8 @@ const vehicleShape = VehiclesSchema.shape;
 export const TripDraftPatchSchema = z.object({
   origin: PlaceSchema.nullable().optional(),
   destination: PlaceSchema.nullable().optional(),
+  /** Places to pass through, in visiting order. Replaces the whole list. */
+  stops: draftShape.stops.unwrap().nullable().optional(),
   time: TripTimeSchema.nullable().optional(),
   returnTime: draftShape.returnTime.unwrap().nullable().optional(),
   timeZone: draftShape.timeZone.unwrap().nullable().optional(),
@@ -94,6 +97,12 @@ export function applyDraftPatch(state: DraftState, patch: TripDraftPatch, source
     if (value === null) delete next[key];
     else next[key] = value;
     provenance[key] = source;
+  }
+
+  if (parsed.stops !== undefined) {
+    if (parsed.stops === null || parsed.stops.length === 0) delete next.stops;
+    else next.stops = [...parsed.stops];
+    provenance.stops = source;
   }
 
   if (parsed.modes !== undefined) {
@@ -166,6 +175,7 @@ export function describePatch(patch: TripDraftPatch): string[] {
 
   if (patch.origin !== undefined) lines.push(patch.origin === null ? 'From: cleared' : `From: ${formatPlace(patch.origin)}`);
   if (patch.destination !== undefined) lines.push(patch.destination === null ? 'To: cleared' : `To: ${formatPlace(patch.destination)}`);
+  if (patch.stops !== undefined) lines.push(patch.stops === null || patch.stops.length === 0 ? 'Stops: none' : `Stops: ${patch.stops.map(formatPlace).join(', ')}`);
   if (patch.time !== undefined) {
     if (patch.time === null) lines.push('Time: cleared');
     else lines.push(`${patch.time.type === 'arriveBy' ? 'Arrive by' : 'Leave at'} ${formatClock(patch.time.at)}`);

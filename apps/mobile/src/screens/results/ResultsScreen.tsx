@@ -64,6 +64,8 @@ export interface SavedTripActions {
 export interface ResultsChromeProps {
   colors: AppColors;
   origin: string;
+  /** Stop names between origin and destination, in visiting order. */
+  stops: string[];
   destination: string;
   chips: ResultChip[];
   title: string;
@@ -83,6 +85,8 @@ export interface ResultsChromeProps {
   onSave: (id: string) => void;
   onBack: () => void;
   onSwap?: () => void;
+  /** Drag reorder of the header rows (origin, stops, destination). Shown instead of swap when there are stops. */
+  onMovePlace?: (from: number, to: number) => void;
   onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;
 }
@@ -102,6 +106,8 @@ export interface ResultsScreenProps {
   savedTrip?: SavedTripActions;
   onBack: () => void;
   onSwap?: () => void;
+  /** Drag reorder of the header rows (origin, stops, destination). Shown instead of swap when there are stops. */
+  onMovePlace?: (from: number, to: number) => void;
   onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;
 }
@@ -170,6 +176,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
   const chrome: ResultsChromeProps = {
     colors: props.colors,
     origin: placeLabel(draftState.draft.origin, 'Choose start'),
+    stops: (draftState.draft.stops ?? []).map((stop) => placeLabel(stop, 'Stop')),
     destination: placeLabel(draftState.draft.destination, 'Choose destination'),
     chips: resultChips(draftState),
     title: props.savedTrip ? props.savedTrip.title : data && !message ? `${itineraries.length} ${itineraries.length === 1 ? 'route' : 'routes'}` : 'Routes',
@@ -199,6 +206,7 @@ export function ResultsScreen(props: ResultsScreenProps) {
     },
     onBack: props.onBack,
     onSwap: props.onSwap,
+    onMovePlace: props.onMovePlace,
     onOpenFilters: props.onOpenFilters,
     onSheetLayout: props.onSheetLayout
   };

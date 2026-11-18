@@ -14,7 +14,7 @@ const CLEARED: Required<{ [K in keyof ConstraintsPatch]: null }> = {
 };
 
 /**
- * The patch Reset applies. Everything on the filters sheet starts over: From and To are cleared,
+ * The patch Reset applies. Everything on the filters sheet starts over: From, To and stops are cleared,
  * the time becomes "Depart at" now, and modes, preferences and limits go back to the saved
  * profile defaults (or the schema defaults where the profile sets none). Only the Transit / Fly
  * choice on Home is kept.
@@ -35,6 +35,7 @@ export function filtersResetPatch(draft: TripDraft, defaults: TripDraftPatch | u
   return {
     origin: null,
     destination: null,
+    stops: null,
     time: { type: 'departAt', at: now.toISOString() },
     returnTime: null,
     modes,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TravelModeSchema } from './modes.js';
 import { PlaceSchema } from './places.js';
+import { MAX_TRIP_STOPS } from './stops.js';
 
 const IsoDateTime = z.iso.datetime({ offset: true });
 const Unit = z.number().min(0).max(1);
@@ -49,6 +50,8 @@ export const VehiclesSchema = z.object({
 export const TripDraftSchema = z.object({
   origin: PlaceSchema.optional(),
   destination: PlaceSchema.optional(),
+  /** Places to pass through on the way, in visiting order (issue #120). Absent = a direct trip. */
+  stops: z.array(PlaceSchema).max(MAX_TRIP_STOPS).optional(),
   time: TripTimeSchema.optional(),
   /** "Can I make it back?" — plan also checks the latest viable return after this time. */
   returnTime: IsoDateTime.optional(),
