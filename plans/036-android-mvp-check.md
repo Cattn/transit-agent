@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** Waiting on 009 (#76) and 022 (#74); 034 is merged (#69).
+- **Status:** Issue #78 closed as completed; prerequisite PRs #76, #74, and #69 merged.
 - **Owner:** @Cattn (only Cattn's server holds the Gemini key).
 - **Up for grabs?** No.
 - **Waiting on:** #13 (009, @KrakenTheJaken), #46 (022, @DMFriends).

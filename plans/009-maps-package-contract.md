@@ -13,8 +13,7 @@ The app supplies trips, selection, colors, location, and layout padding. The map
 - **Priority:** P1
 - **Owner:** @KrakenTheJaken
 - **Issue:** #13
-- **Status:** PR #76 open. Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`. Step 5 (saved trips keep their color) merged in [PR #65](https://github.com/Cattn/transit-agent/pull/65) as `b32424f`. DOM renderer on mobile: [PR #76](https://github.com/Cattn/transit-agent/pull/76) open.
-- **Remaining:** the DOM renderer for mobile (steps 1–4), Android verification in Expo Go, and an integration handoff to the UI team.
+- **Status:** Shared logic, web renderer, samples, and demo merged in [PR #35](https://github.com/Cattn/transit-agent/pull/35) as `619fc44`. Step 5 (saved trips keep their color) merged in [PR #65](https://github.com/Cattn/transit-agent/pull/65) as `b32424f`. DOM renderer on mobile: [PR #76](https://github.com/Cattn/transit-agent/pull/76) merged.
 - **Ready to continue:** yes.
 - **Related owners:** @DMFriends owns the mobile Results screen (#40) that mounts this map; @Cattn reviews design. Web screens (#42, #45) are low priority.
 - **Platforms:** web and Android. iOS is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end.

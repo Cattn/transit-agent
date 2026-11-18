@@ -9,7 +9,7 @@
 ## Status
 
 - **Owner:** @Cattn (mobile)
-- **State:** IN PROGRESS (PR #80 open; #69 and #72 merged; Android device proof pending)
+- **State:** PR #80 merged; Android device proof not re-verified.
 - **Priority:** P1 (MVP polish: the chat should look like the mockup)
 - **Effort:** S
 - **Risk:** LOW (Android chat UI only; no contract or server change)

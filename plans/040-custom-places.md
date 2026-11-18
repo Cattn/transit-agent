@@ -3,7 +3,7 @@
 ## Status
 
 - Owner: KrakenTheJaken (maps + Home chips, plan 038). DMFriends filed #85 and #104 (its sub-issue) and owns Settings (#87); Cattn accepts design.
-- State: steps 1–6 done; checked on Android (Pixel, Expo Go 58, mock mode). PR open.
+- State: steps 1–6 done; checked on Android (Pixel, Expo Go 58, mock mode). PR #116 merged. Issue #104 is closed; #85 remains open.
 - Priority: P2 (QOL); effort M; risk MED (touches the shared profile contract, Home's chip row and Settings).
 - Category: product / maps.
 - Planned at: `e7441e1`, 2026-11-15.

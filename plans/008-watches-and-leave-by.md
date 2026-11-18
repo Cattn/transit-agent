@@ -15,14 +15,14 @@
 - **Risk**: MED
 - **Depends on**: plans/013 (`computeWatchStatus`), plans/005 (store + `listWatched`), plans/031 (real realtime data; can be developed against fixture synthetic delays)
 - **Category**: direction
-- **State**: PR #100 open (`server/watches`); decisions recorded by Cattn 2026-11-14 under "Decisions".
+- **State**: PR #100 merged; decisions recorded by Cattn 2026-11-14 under "Decisions".
 - **Planned at**: commit `9ccf722`, 2026-11-14 (refreshed; steps unchanged)
 - **Issue**: https://github.com/Cattn/transit-agent/issues/12
 
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **Later:** real watch integration waits on #57. Storage (#9) and pure leave-by logic (#21) are merged; reuse them.
+- **Status:** Watch integration merged in #100.
 - **Owner:** @Cattn (assigned 2026-11-14 from the build timeline)
 - **Up for grabs?** No. Talk to @Cattn before starting related work.
 - **Waiting on:** #57 for real realtime data; transit watch defaults are recorded below, with detailed scheduling/preferences still to resolve.

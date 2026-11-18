@@ -21,7 +21,7 @@
 <!-- help:start -->
 ## Who's on it & how to help
 
-- **Status:** **MVP, in review (PR #74).** Visual target: Figma frame 03 Filters, Android, exactly. **Scope added 2026-11-14 (D12):** the Drive chip in Modes and the two-segment Transit / Fly control on Home (Step 4).
+- **Status:** **MVP, merged (PR #74).** Visual target: Figma frame 03 Filters, Android, exactly. **Scope added 2026-11-14 (D12):** the Drive chip in Modes and the two-segment Transit / Fly control on Home (Step 4).
 - **Owner:** @DMFriends (2026-11-14; moved from @Cattn, originally @Rad1ee). DMFriends built Home (020) and Results (021), which this sheet sits on. Fly (024) waits until this is done.
 - **Visual proof:** the PR must show each primary feature of this plan working, as screenshots or a video, ideally about 4 pieces of media (more is fine when needed). Attach them with `gh pr create/edit --attach` (gh 2.104+).
 - **Up for grabs?** No. Talk to @DMFriends before starting related work.

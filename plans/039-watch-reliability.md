@@ -2,7 +2,7 @@
 
 ## Status
 
-- State: PR #113 open, stacked on PR #100
+- State: PR #113 merged after PR #100
 - Priority: P1
 - Risk: MED
 - Issue: https://github.com/Cattn/transit-agent/issues/107

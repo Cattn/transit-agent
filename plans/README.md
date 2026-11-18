@@ -9,7 +9,7 @@ Roadmap and open decisions: [#17](https://github.com/Cattn/transit-agent/issues/
 
 **Confirmed by Cattn, 2026-11-14: complete Android transit first; flights follow.** iOS remains functional; iOS-specific design is deferred. Web is low priority. Build one coherent loop: search or ask → inspect/edit the same draft → choose a route → save → reopen/manage it, with truthful loading, freshness and error states.
 
-1. Finish existing PRs: 009/#76 (Kraken), 022/#74 (DMFriends), agent #72 (Cattn). 034/#69 is merged. #75 link removal remains open.
+1. Baseline PRs 009/#76, 022/#74, agent #72, 034/#69, and link removal #75 have merged.
 2. Run **036** fixture MVP acceptance. **035** retains chat best-option polish and issue #73; only the duplicate verification plan was renumbered. Measure #72 against #54 before starting another speed fix.
 3. **DMFriends: 037** Home search, saved-trip actions and visible failures. **Cattn: 035 → 029**, including Android progress wiring. **Kraken: map interaction proof → 030**, with Android integration coordinated through 029. Animation must not block functional fixes.
 4. **Kraken: supported Settings (025)** after 037, coordinating Home changes with DMFriends. Cattn decides how unsupported rows should appear before they ship.
@@ -26,26 +26,26 @@ Full findings, issue inventory and limitations: [reconciliation report](reconcil
 
 | Plan | Title | Who | Pri | Effort | Depends on | Status |
 |------|-------|-----|-----|--------|------------|--------|
-| 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | IN PROGRESS (#76 open; device proof required). **MVP** |
+| 009 | [Route map: mobile via Expo DOM](009-maps-package-contract.md) ([#13](https://github.com/Cattn/transit-agent/issues/13)) | KrakenTheJaken | P1 | M | 002 | DONE (#76). **MVP** |
 | 021 | [Mobile results sheet](021-mobile-results.md) ([#40](https://github.com/Cattn/transit-agent/issues/40)) | DMFriends | P1 | M | 020 | DONE (#66) |
-| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | DMFriends | P1 | L | 020, 021, 023 | IN PROGRESS (#74 open; D12 included). **MVP** |
+| 022 | [Mobile filters](022-mobile-filters.md) ([#46](https://github.com/Cattn/transit-agent/issues/46)) | DMFriends | P1 | L | 020, 021, 023 | DONE (#74; D12 included). **MVP** |
 | 034 | [Keep the mobile agent chat for the app session](034-mobile-chat-session.md) ([#68](https://github.com/Cattn/transit-agent/issues/68)) | Cattn | P1 | S | 023 | DONE (#69) |
-| 035 | [Agent chat matches frame 04 (best-option card, chip icons)](035-mobile-chat-best-option.md) ([#73](https://github.com/Cattn/transit-agent/issues/73)) | Cattn | P1 | S | 023, 021, 034, #72 | IN PROGRESS (PR #80 open; #69/#72 merged) |
-| 036 | [Android MVP check against the real server](036-android-mvp-check.md) ([#78](https://github.com/Cattn/transit-agent/issues/78)) | Cattn | P1 | S | 009, 022, 034 | BLOCKED (#13/#46 pending merge). **MVP milestone** |
-| 037 | [Android trip continuity](037-android-trip-continuity.md) ([#77](https://github.com/Cattn/transit-agent/issues/77)) | DMFriends | P1 | M | 009, 022, 034 | PR #79 open |
+| 035 | [Agent chat matches frame 04 (best-option card, chip icons)](035-mobile-chat-best-option.md) ([#73](https://github.com/Cattn/transit-agent/issues/73)) | Cattn | P1 | S | 023, 021, 034, #72 | #80 merged |
+| 036 | [Android MVP check against the real server](036-android-mvp-check.md) ([#78](https://github.com/Cattn/transit-agent/issues/78)) | Cattn | P1 | S | 009, 022, 034 | #78 closed as completed. **MVP milestone** |
+| 037 | [Android trip continuity](037-android-trip-continuity.md) ([#77](https://github.com/Cattn/transit-agent/issues/77)) | DMFriends | P1 | M | 009, 022, 034 | DONE (#79) |
 | 038 | [Location-preset chips with matching route colours](038-location-presets.md) ([#85](https://github.com/Cattn/transit-agent/issues/85)) | KrakenTheJaken | P1 | M | 009, 020 | DONE (#98) |
-| 040 | [Custom places ("Add a place")](040-custom-places.md) ([#85](https://github.com/Cattn/transit-agent/issues/85), [#104](https://github.com/Cattn/transit-agent/issues/104)) | KrakenTheJaken | P2 | M | 038 | PR open (Android-checked) |
-| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | KrakenTheJaken | P1 | M | #72, 035; 030 for animation | PR [#86](https://github.com/Cattn/transit-agent/pull/86) open (live Vertex check after deploy) |
-| 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | PR [#83](https://github.com/Cattn/transit-agent/pull/83) open (renderer + scripted demo; live wiring via #55) |
+| 040 | [Custom places ("Add a place")](040-custom-places.md) ([#85](https://github.com/Cattn/transit-agent/issues/85), [#104](https://github.com/Cattn/transit-agent/issues/104)) | KrakenTheJaken | P2 | M | 038 | #116 merged (Android-checked); #85 remains open |
+| 029 | [Stream the agent's progress](029-agent-progress-stream.md) ([#55](https://github.com/Cattn/transit-agent/issues/55)) | KrakenTheJaken | P1 | M | #72, 035; 030 for animation | PR [#86](https://github.com/Cattn/transit-agent/pull/86) merged (live Vertex check after deploy) |
+| 030 | [Animate the map while the agent builds a trip](030-map-build-animation.md) ([#56](https://github.com/Cattn/transit-agent/issues/56)) | KrakenTheJaken | P1 | M | 029 (live), 009 (Android) | PR [#83](https://github.com/Cattn/transit-agent/pull/83) merged (renderer + scripted demo; live wiring via #55) |
 | — | Planner turn speed (median 16 s, timeout 40 s) ([#54](https://github.com/Cattn/transit-agent/issues/54)) | Cattn | P2 | S | — | IN PROGRESS (#72 candidate; remeasure before another fix) |
-| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | PR #88 open (fresh-prediction acceptance moved to 008) |
-| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | PR #100 open |
-| 039 | [Reliable watch and journey controls](039-watch-reliability.md) ([#107](https://github.com/Cattn/transit-agent/issues/107)) | Cattn | P1 | M | 008 | [PR #113](https://github.com/Cattn/transit-agent/pull/113) open (stacked on #100) |
+| 031 | [Real Boston routing on Transitous](031-transitous-routing.md) ([#57](https://github.com/Cattn/transit-agent/issues/57)) | Cattn | P1 | M–L | 007 | PR #88 merged (fresh-prediction acceptance moved to 008) |
+| 008 | [Auto-watch + "when do I leave"](008-watches-and-leave-by.md) ([#12](https://github.com/Cattn/transit-agent/issues/12)) | Cattn | P2 | M | 031, 013, 005 | PR #100 merged |
+| 039 | [Reliable watch and journey controls](039-watch-reliability.md) ([#107](https://github.com/Cattn/transit-agent/issues/107)) | Cattn | P1 | M | 008 | [PR #113](https://github.com/Cattn/transit-agent/pull/113) merged |
 | 010 | [Bike + transit](010-bike-transit-modemix.md) ([#14](https://github.com/Cattn/transit-agent/issues/14)) | Cattn | P2 | M | 031 | TODO (step 1 research can start) |
 | 024 | [Mobile Fly](024-mobile-fly.md) ([#44](https://github.com/Cattn/transit-agent/issues/44)) | DMFriends | P2 | M | 020, 021 | TODO (after Android transit; 011 response first) |
 | 011 | [Flight door-to-door comparator](011-flight-door-to-door.md) ([#15](https://github.com/Cattn/transit-agent/issues/15)) | DMFriends | P2 | L | 003, 014 | TODO (deferred; fixture scope/response refresh required) |
 | 019 | [Real flight prices (Clovis)](019-clovis-fare-provider.md) ([#28](https://github.com/Cattn/transit-agent/issues/28)) | Cattn | P2 | L | 014 | TODO |
-| 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | DMFriends | P2 | L | 020 | PR #87 open (unsupported rows shown disabled, "Coming soon") |
+| 025 | [Mobile settings](025-mobile-settings.md) ([#41](https://github.com/Cattn/transit-agent/issues/41)) | DMFriends | P2 | L | 020 | DONE (#87) (unsupported rows shown disabled, "Coming soon") |
 | 026 | [Web map home](026-web-map-home.md) ([#42](https://github.com/Cattn/transit-agent/issues/42)) | unassigned | P3 | L | — | TODO (web, low priority) |
 | 027 | [Web results + agent](027-web-planning.md) ([#45](https://github.com/Cattn/transit-agent/issues/45)) | up for grabs | P3 | M | 026 | TODO (web, low priority) |
 | 001 | [Unit-test baseline](001-test-baseline.md) ([#5](https://github.com/Cattn/transit-agent/issues/5)) | Cattn | P1 | S | — | DONE (#18) |
@@ -61,8 +61,8 @@ Full findings, issue inventory and limitations: [reconciliation report](reconcil
 | 015 | [React hooks (`@transit/client-react`)](015-client-react-hooks.md) ([#23](https://github.com/Cattn/transit-agent/issues/23)) | Cattn | P1 | M | 004, 012 | DONE (#47) |
 | 016 | [Display formatters](016-display-formatters.md) ([#24](https://github.com/Cattn/transit-agent/issues/24)) | DMFriends | P1 | S | 002 | DONE (#36) |
 | 017 | [Badge + mode colors, saved trip colors](017-shared-theme-tokens.md) ([#25](https://github.com/Cattn/transit-agent/issues/25)) | DMFriends | P1 | S–M | 016 | DONE (#61) |
-| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Launch-time foreground location permission allowed (018-Q1). Link removal is open #75 |
-| 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60); chip speed and resume-location fix in review (#111) |
+| 018 | [Mobile platform helpers](018-mobile-platform-setup.md) ([#26](https://github.com/Cattn/transit-agent/issues/26)) | DMFriends | P1 | M | — | DONE (#37). Launch-time foreground location permission allowed (018-Q1). Link removal merged (#75) |
+| 020 | [Mobile map home](020-mobile-map-home.md) ([#39](https://github.com/Cattn/transit-agent/issues/39)) | DMFriends | P1 | L | — | DONE (#60); chip speed and resume-location fix merged (#111) |
 | 023 | [Mobile agent chat](023-mobile-agent-chat.md) ([#43](https://github.com/Cattn/transit-agent/issues/43)) | Cattn | P1 | M | 020 | DONE (#67) |
 | 028 | [`GET /api/places` from the built-in list](028-places-search-route.md) ([#49](https://github.com/Cattn/transit-agent/issues/49)) | Cattn | P1 | S | — | DONE (#50) |
 | 032 | [Faster check and test](032-check-speed.md) ([#62](https://github.com/Cattn/transit-agent/issues/62)) | Cattn | P2 | S | — | DONE (#63) |

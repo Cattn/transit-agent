@@ -25,7 +25,7 @@
 
 **Open questions** (answer by number in a comment on #26):
 
-None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Foreground location permission may be requested at app launch; no tap is required (@Cattn, 2026-11-14). **Trip links removal requested (@Cattn, 2026-11-14):** unused links are being removed in open PR #75; do not claim deletion is merged until that PR lands.
+None open. iOS device verification is parked in the backlog (@Cattn, 2026-11-14); see "Backlog: iOS" at the end. Foreground location permission may be requested at app launch; no tap is required (@Cattn, 2026-11-14). **Trip links removal requested (@Cattn, 2026-11-14):** unused links were removed in PR #75.
 
 <!-- help:end -->
 
@@ -128,7 +128,7 @@ export async function getCurrentPlace(): Promise<LocationResult>
 
 ### Step 6: Trip links
 
-> **Trip links removal requested (@Cattn, 2026-11-14):** unused links are being removed in open PR #75; do not claim deletion is merged until that PR lands. The step below is history.
+> **Trip links removal requested (@Cattn, 2026-11-14):** unused links were removed in PR #75. The step below is history.
 
 `links.ts` (pure): `tripLink(id: string): string` → `transit-agent://trip/${encodeURIComponent(id)}`; `parseTripLink(url: string): { tripId: string } | null` accepts `transit-agent://trip/<id>` and `exp+transit-agent://…` dev-client forms, rejects anything else.
 `links.native.ts`: `useIncomingTripLink(onTrip: (id: string) => void)` using `Linking.getInitialURL()` once and `Linking.addEventListener('url', …)`.
