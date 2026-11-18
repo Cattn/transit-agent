@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeServerUrl, parseConnectLink, resolveApiUrl } from './api-url';
+import { normalizeServerUrl, parseConnectLink, parseSavedServers, resolveApiUrl, withServer } from './api-url';
 
 describe('resolveApiUrl', () => {
   it.each([
@@ -54,4 +54,24 @@ describe('normalizeServerUrl', () => {
   ])('%s', (_name, input, expected) => {
     expect(normalizeServerUrl(input)).toBe(expected);
   });
+});
+
+describe('parseSavedServers', () => {
+  it.each([
+    ['nothing stored', null, null, []],
+    ['keeps the stored order', '["https://a.example.com","http://192.168.1.20:3001"]', null, ['https://a.example.com', 'http://192.168.1.20:3001']],
+    ['adds the active server (first run after the update)', null, 'http://192.168.1.20:3001', ['http://192.168.1.20:3001']],
+    ['does not repeat the active server', '["http://192.168.1.20:3001"]', 'http://192.168.1.20:3001', ['http://192.168.1.20:3001']],
+    ['drops invalid and duplicate entries', '["https://a.example.com/",1,"not a url","https://a.example.com"]', null, ['https://a.example.com']],
+    ['broken JSON', '[oops', 'https://a.example.com', ['https://a.example.com']],
+    ['not an array', '{"url":"https://a.example.com"}', null, []]
+  ])('%s', (_name, raw, active, expected) => {
+    expect(parseSavedServers(raw, active)).toEqual(expected);
+  });
+});
+
+describe('withServer', () => {
+  it('appends a new server', () => expect(withServer(['https://a.example.com'], 'https://b.example.com')).toEqual(['https://a.example.com', 'https://b.example.com']));
+  it('keeps an existing server in place', () => expect(withServer(['https://a.example.com', 'https://b.example.com'], 'https://a.example.com')).toEqual(['https://a.example.com', 'https://b.example.com']));
+  it('ignores null', () => expect(withServer(['https://a.example.com'], null)).toEqual(['https://a.example.com']));
 });

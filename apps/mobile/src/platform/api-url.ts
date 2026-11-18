@@ -66,3 +66,19 @@ export function normalizeServerUrl(input: string): string | undefined {
   const port = match[1] === undefined ? undefined : Number(match[1]);
   return port === undefined || (port > 0 && port <= 65535) ? url : undefined;
 }
+
+export function parseSavedServers(raw: string | null | undefined, active?: string | null): string[] {
+  let stored: unknown = [];
+  try {
+    stored = raw ? JSON.parse(raw) : [];
+  } catch {
+    stored = [];
+  }
+  const urls = Array.isArray(stored) ? stored.filter((item): item is string => typeof item === 'string') : [];
+  return withServer(urls.map(normalizeServerUrl).filter((url): url is string => url !== undefined), active);
+}
+
+export function withServer(servers: readonly string[], url?: string | null): string[] {
+  const unique = [...new Set(servers)];
+  return url && !unique.includes(url) ? [...unique, url] : unique;
+}

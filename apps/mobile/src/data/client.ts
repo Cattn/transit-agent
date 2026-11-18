@@ -6,7 +6,7 @@ import { getApiUrl, onServerUrl, secureStoreDeviceIdStorage, useServerUrl } from
 
 export type ApiMode = 'server' | 'mock';
 
-const buildMode: ApiMode = process.env.EXPO_PUBLIC_API_MODE === 'server' ? 'server' : 'mock';
+export const buildMode: ApiMode = process.env.EXPO_PUBLIC_API_MODE === 'server' ? 'server' : 'mock';
 
 export let apiMode: ApiMode = buildMode;
 
