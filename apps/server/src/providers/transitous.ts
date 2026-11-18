@@ -50,7 +50,9 @@ export interface TransitousLeg {
   displayName?: string;
   routeShortName?: string;
   routeLongName?: string;
+  headsign?: string;
   cancelled?: boolean;
+  intermediateStops?: TransitousPlace[];
 }
 
 export interface TransitousItinerary {
@@ -159,10 +161,17 @@ export function mapTransitousItinerary(raw: TransitousItinerary, req: TripReques
       timeSource: STREET_MODES.includes(mode) || rawLeg.realTime ? 'estimated' : 'scheduled'
     };
     if (rawLeg.distance !== undefined) leg.distanceMeters = Math.round(rawLeg.distance);
-    const routeName = rawLeg.displayName || rawLeg.routeShortName || rawLeg.routeLongName;
+    // MBTA subway (Red/Orange/Blue) and light rail (Green/Mattapan). The Green Line's short name is only
+    // the branch letter ("E"), so use the long name ("Green Line E"); also keep the headsign and the stops ridden through.
+    const mbtaSubway = mode === 'rail' && Boolean(trip?.feed?.includes('MBTA'));
+    const routeName = (mbtaSubway && rawLeg.routeLongName) || rawLeg.displayName || rawLeg.routeShortName || rawLeg.routeLongName;
     if (routeName && !STREET_MODES.includes(mode)) leg.routeName = routeName;
     if (rawLeg.agencyName) leg.agency = rawLeg.agencyName;
     if (trip) leg.trip = trip;
+    if (mbtaSubway && rawLeg.headsign) leg.headsign = rawLeg.headsign;
+    if (mbtaSubway && rawLeg.intermediateStops) {
+      leg.intermediateStops = rawLeg.intermediateStops.map((stop) => place(stop, mode, trip?.feed));
+    }
     legs.push(leg);
   }
   if (legs.length === 0) return 'no legs';

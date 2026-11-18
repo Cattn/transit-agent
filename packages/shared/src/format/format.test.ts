@@ -14,7 +14,10 @@ import {
   formatTimeRange,
   itineraryFreshness,
   legFreshness,
+  legDirection,
   legLabel,
+  legStopCount,
+  legStopNames,
   modeLabel,
   riskBadge,
   watchStateBadge
@@ -142,6 +145,31 @@ describe('legLabel', () => {
     ['rail without route', { ...bus, mode: 'rail', routeName: undefined }, 'Train']
   ] as [string, Leg, string][])('%s → %s', (_name, leg, expected) => {
     expect(legLabel(leg)).toBe(expected);
+  });
+});
+
+describe('legStopCount / legStopNames', () => {
+  const station = (name: string) => ({ name, coordinates: [-71.06, 42.35] as [number, number], kind: 'station' as const });
+  const red: Leg = { ...bus, mode: 'rail', routeName: 'Red Line', to: station('Park Street'), intermediateStops: [station('Central'), station('Kendall/MIT'), station('Charles/MGH')] };
+
+  it('counts the alighting stop and names it', () => {
+    expect(legStopCount(red)).toBe('4 stops to Park Street');
+    expect(legStopNames(red)).toBe('Central · Kendall/MIT · Charles/MGH · Park Street');
+  });
+
+  it('says "1 stop" between adjacent stations', () => {
+    expect(legStopCount({ ...red, intermediateStops: [] })).toBe('1 stop to Park Street');
+    expect(legStopNames({ ...red, intermediateStops: [] })).toBe('Park Street');
+  });
+
+  it('gives the direction from the headsign', () => {
+    expect(legDirection({ ...red, headsign: 'Ashmont' })).toBe('toward Ashmont');
+    expect(legDirection(red)).toBeUndefined();
+  });
+
+  it('is undefined for legs without a stop list', () => {
+    expect(legStopCount(bus)).toBeUndefined();
+    expect(legStopNames(bus)).toBeUndefined();
   });
 });
 

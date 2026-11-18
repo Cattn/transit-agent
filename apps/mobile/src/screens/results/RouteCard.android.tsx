@@ -111,8 +111,10 @@ export function RouteCard({ card, canSave, m, onSelect, onSave }: {
             <HorizontalDivider color={m.outlineVariant} />
             {text.details.map((leg) => (
               <Column key={leg.id} verticalArrangement={{ spacedBy: 1 }}>
-                <Text color={m.onSurface} style={m3Text('bodyMedium', 500)}>{leg.label}</Text>
+                <Text color={m.onSurface} style={m3Text('bodyMedium', 500)}>{leg.direction ? `${leg.label} ${leg.direction}` : leg.label}</Text>
                 <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')}>{`${leg.times} · ${leg.freshness.label}`}</Text>
+                {leg.stopCount ? <Text color={m.onSurface} style={m3Text('bodySmall', 500)}>{leg.stopCount}</Text> : null}
+                {leg.stops ? <Text color={m.onSurfaceVariant} style={m3Text('bodySmall')}>{leg.stops}</Text> : null}
               </Column>
             ))}
             <Row horizontalArrangement="end" modifiers={[fillMaxWidth()]}>
