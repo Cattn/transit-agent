@@ -45,9 +45,7 @@ export const LegSchema = z.object({
   /** Minutes between previous leg's arrival and this leg's departure (transfers only). */
   transferBufferMinutes: z.number().optional(),
   trip: TripRefSchema.optional(),
-  /** Where the vehicle is heading, as signed on it, e.g. "Ashmont" (MBTA subway legs). */
   headsign: z.string().optional(),
-  /** Stops the vehicle calls at between `from` and `to`, in order (MBTA subway legs). */
   intermediateStops: z.array(PlaceSchema).optional()
 });
 export type Leg = z.infer<typeof LegSchema>;

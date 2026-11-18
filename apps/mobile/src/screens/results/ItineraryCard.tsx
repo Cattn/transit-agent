@@ -31,11 +31,8 @@ export interface LegDetail {
   label: string;
   times: string;
   freshness: Badge;
-  /** "toward Ashmont" (MBTA subway legs). */
   direction?: string;
-  /** "4 stops to Park Street" (MBTA subway legs). */
   stopCount?: string;
-  /** "Central · Kendall/MIT · Charles/MGH · Park Street" */
   stops?: string;
 }
 

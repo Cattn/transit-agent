@@ -136,6 +136,20 @@ describe('Transitous mapping (recorded /api/v6/plan responses)', () => {
     expect(first!.legs[0]!.intermediateStops).toBeUndefined();
   });
 
+  it('drops a malformed stop list but keeps every route', () => {
+    const response = sample('007-transitous.json');
+    const broken = (bad: unknown) => ({ ...response, itineraries: response.itineraries!.map((it, index) => (index === 0
+      ? { ...it, legs: it.legs.map((leg) => (leg.tripId ? { ...leg, intermediateStops: [bad, ...(leg.intermediateStops as unknown[]).slice(1)] } : leg)) }
+      : it)) });
+    const stop = (sample('007-transitous.json').itineraries![0]!.legs[1]!.intermediateStops as object[])[0]!;
+    for (const bad of [null, { ...stop, lon: null }, { ...stop, name: 7 }]) {
+      const results = mapTransitousPlan(broken(bad) as typeof response, liveRequest(), { fetchedAt });
+      expect(results).toHaveLength(mapTransitousPlan(response, liveRequest(), { fetchedAt }).length);
+      expect(results[0]!.legs[1]).toMatchObject({ mode: 'rail', to: { name: 'South Station' } });
+      expect(results[0]!.legs[1]!.intermediateStops).toBeUndefined();
+    }
+  });
+
   it('names Green Line branches in full and keeps the headsign', () => {
     const raw = sample('007-transitous.json').itineraries![0]!;
     const green = { ...raw, legs: raw.legs.map((leg) => (leg.tripId ? { ...leg, mode: 'TRAM', displayName: 'E', routeShortName: 'E', routeLongName: 'Green Line E', headsign: 'Heath Street' } : leg)) };

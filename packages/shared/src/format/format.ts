@@ -119,12 +119,10 @@ export function legLabel(leg: Leg): string {
   return `${modeLabel(leg.mode)} ${formatDuration(leg.durationMinutes)}`;
 }
 
-/** "toward Ashmont": the direction of travel, from the vehicle's headsign. */
 export function legDirection(leg: Leg): string | undefined {
   return leg.headsign ? `toward ${leg.headsign}` : undefined;
 }
 
-/** "4 stops to Park Street" (the alighting stop counts). Undefined when the leg has no stop list. */
 export function legStopCount(leg: Leg): string | undefined {
   if (!leg.intermediateStops) return undefined;
   const count = leg.intermediateStops.length + 1;
@@ -132,7 +130,6 @@ export function legStopCount(leg: Leg): string | undefined {
   return `${count} ${count === 1 ? 'stop' : 'stops'}${to}`;
 }
 
-/** "Central · Kendall/MIT · Charles/MGH · Park Street": every stop after boarding, ending at the alighting stop. */
 export function legStopNames(leg: Leg): string | undefined {
   if (!leg.intermediateStops) return undefined;
   const names = [...leg.intermediateStops, leg.to].flatMap((stop) => (stop.name ? [stop.name] : []));
