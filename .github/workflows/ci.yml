@@ -2,14 +2,30 @@ name: Validate and build
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  check:
+  validate:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Lint
+            script: lint
+          - name: Type check
+            script: typecheck
+          - name: Unit tests
+            script: test:unit
+          - name: Build
+            script: build
+          - name: API smoke test
+            script: smoke
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,8 +35,9 @@ jobs:
       - run: npm install -g npm@^11.8
       - run: npm --version
       - run: npm ci
-      - run: npm run check
+      - run: npm run ${{ matrix.script }}
       - uses: actions/upload-artifact@v4
+        if: matrix.script == 'build'
         with:
           name: web-server-mobile-bundles
           path: |
