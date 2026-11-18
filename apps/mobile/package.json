@@ -9,7 +9,7 @@
     "ios": "expo start --go --ios",
     "tunnel": "expo start --go --tunnel",
     "dev:client": "expo start --dev-client",
-    "build": "expo export --platform android --platform ios",
+    "build": "node scripts/export.mjs",
     "build:android": "npx --yes eas-cli@27.10.0 build --platform android --profile development",
     "build:preview": "npx --yes eas-cli@27.10.0 build --platform android --profile preview",
     "build:ios": "npx --yes eas-cli@27.10.0 build --platform ios --profile development",

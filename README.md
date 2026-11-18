@@ -48,11 +48,13 @@ Platform-independent logic belongs in `packages/shared`; each app owns its UI. S
 | `npm run dev` | Run all apps with shared packages in watch mode |
 | `npm run dev:server`, `dev:web`, `dev:mobile` | Run one app (after `npm run build:packages`) |
 | `npm run demo:maps` | Route map demo at http://localhost:5180 |
-| `npm run check` | Lint, type-check, test, build everything and run the API smoke test. Required before pushing |
+| `npm run check` | Lint, type-check, run unit tests, build server and web, export mobile bundles and run the API smoke test. Required before pushing |
 | `npm test` | Lint, type-check and unit tests |
 | `npm run build` | Build all apps and export the Android and iOS bundles |
 
 Each workspace also has `test`, `typecheck` and `build` scripts: `npm run <script> -w @transit/<name>`.
+
+On Linux ARM64, the mobile build exports Android and iOS JavaScript bundles without Hermes bytecode because the bundled Linux Hermes compiler is x86-64. Other hosts use Expo's default bytecode export. These checks do not build native apps or verify device behavior.
 
 ## Configuration
 
