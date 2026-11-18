@@ -182,7 +182,8 @@ export function ResultsChrome(props: ResultsChromeProps) {
       <Row modifiers={[size(6, 6), clip(Shapes.Circle), background(m.surfaceContainerLowest)]}>{null}</Row>
     </Row>
   ) : role === 'stop' ? <Icon source={TripOrigin} size={14} tint={m.onSurfaceVariant} /> : <Icon source={LocationOn} size={18} tint={m.error} />;
-  const stopsCard = props.stops.length > 0 && props.onMovePlace ? (
+  const reorder = props.onMovePlace;
+  const stopsCard = props.stops.length > 0 ? (
     <View style={[styles.stopsCard, { backgroundColor: m.surfaceContainerLowest }]}>
       <Host matchContents colorScheme={scheme} seedColor={materialSeedColor}>
         <IconButton onClick={props.onBack}>
@@ -192,8 +193,8 @@ export function ResultsChrome(props: ResultsChromeProps) {
       <View style={styles.stopsList}>
         <PlaceList
           keys={places.map((place, index) => `${index}:${place.label}`)}
-          draggable
-          onMove={props.onMovePlace}
+          draggable={reorder !== undefined}
+          onMove={(from, to) => reorder?.(from, to)}
           renderBelow={() => null}
           renderRow={(index) => {
             const place = places[index]!;
@@ -203,7 +204,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
                   <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center" modifiers={[fillMaxWidth(), height(40), padding(0, 0, 16, 0)]}>
                     <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[size(20, 20)]}>{marker(place.role)}</Row>
                     <Text color={place.role === 'stop' ? m.onSurfaceVariant : m.onSurface} maxLines={1} overflow="ellipsis" style={m3Text('bodyLarge')} modifiers={[weight(1)]}>{place.label}</Text>
-                    <Icon source={DragIndicator} size={24} tint={m.onSurfaceVariant} contentDescription={`Drag ${place.label} to reorder`} />
+                    {reorder ? <Icon source={DragIndicator} size={24} tint={m.onSurfaceVariant} contentDescription={`Drag ${place.label} to reorder`} /> : null}
                   </Row>
                   {index < places.length - 1 ? <HorizontalDivider color={m.outlineVariant} /> : null}
                 </Column>

@@ -8,11 +8,6 @@ const estimated = (it: Itinerary): Itinerary => ({
   legs: it.legs.map((leg) => (leg.timeSource === 'realtime' ? { ...leg, timeSource: 'estimated', delayMinutes: undefined } : leg))
 });
 
-/**
- * Refreshes a watched trip. A trip with stops is refreshed one hop at a time, because providers
- * only know direct trips. Hops already behind the rider stay as they are; a hop the provider can't
- * match keeps its times as estimates. Undefined when no hop could be refreshed.
- */
 export async function refreshItinerary(provider: RouteProvider, it: Watched, request: TripRequest, signal?: AbortSignal): Promise<Itinerary | undefined> {
   if (!provider.refresh) return undefined;
   const parts = splitHops(it);
@@ -41,5 +36,5 @@ export async function refreshItinerary(provider: RouteProvider, it: Watched, req
   if (!found) return undefined;
   const stitched = stitchHops(refreshed, (it.stops ?? []).map((mark) => mark.place));
   const fetchedAt = refreshed.map((part) => part.source.fetchedAt).sort((a, b) => Date.parse(b) - Date.parse(a))[0]!;
-  return { ...stitched, source: { provider: it.source.provider, fetchedAt } };
+  return { ...stitched, cost: it.cost, source: { provider: it.source.provider, fetchedAt } };
 }

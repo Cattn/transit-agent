@@ -39,12 +39,10 @@ export interface FiltersChromeProps {
   onClose: () => void;
   onReset: () => void;
   onShowRoutes: () => void;
-  /** From, every stop, then To, in visiting order. */
   places: PlaceRowItem[];
   onSearch: (target: PlaceTarget) => void;
   canAddStop: boolean;
   onRemoveStop: (index: number) => void;
-  /** Drag reorder: the row at `from` drops at `to`. The first row becomes From, the last To. */
   onMovePlace: (from: number, to: number) => void;
   search?: {
     which: PlaceTarget;
@@ -152,7 +150,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (searching) { setSearching(undefined); return true; }
+      if (searching !== undefined) { setSearching(undefined); return true; }
       onClose();
       return true;
     });
@@ -220,7 +218,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       setSearching(undefined);
       apply(patch, 'user');
     },
-    search: searching ? {
+    search: searching !== undefined ? {
       which: searching,
       near,
       locating,

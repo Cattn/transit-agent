@@ -55,7 +55,6 @@ export const CostLineSchema = z.object({
 });
 export type CostLine = z.infer<typeof CostLineSchema>;
 
-/** A place the trip passes through (issue #120). `legIndex` is the first leg that leaves it. */
 export const ItineraryStopSchema = z.object({
   place: PlaceSchema,
   legIndex: z.number().int().positive()
@@ -81,7 +80,6 @@ export const ItinerarySchema = z.object({
   /** Short one-liner for list rows, e.g. "Bike 6 min → Red Line → walk 4 min". */
   summary: z.string(),
   source: z.object({ provider: z.string(), fetchedAt: IsoDateTime }),
-  /** Stops between origin and destination, in visiting order. Absent for direct trips. */
   stops: z.array(ItineraryStopSchema).optional()
 });
 export type Itinerary = z.infer<typeof ItinerarySchema>;

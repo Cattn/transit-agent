@@ -1,17 +1,14 @@
-import { useLayoutEffect, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 
-/** Width of the drag handle at the trailing edge of each row (the Compose icon sits under it). */
 export const HANDLE_WIDTH = 56;
 
 interface Props {
-  /** One unique key per row, in order. A change of keys means the rows were reordered. */
   keys: readonly string[];
   draggable: boolean;
   renderRow: (index: number) => ReactNode;
-  /** Shown under a row (the place search), never while dragging. */
   renderBelow: (index: number) => ReactNode;
   onMove: (from: number, to: number) => void;
 }
@@ -73,28 +70,21 @@ function Row({ index, count, pitch, active, translation, draggable, onDrop, onMe
   );
 }
 
-/**
- * The From / stops / To rows of Trip filters. Drag a row by its handle to reorder, like Google
- * Maps: the other rows slide out of the way and the order is committed on release.
- */
 export function PlaceList({ keys, draggable, renderRow, renderBelow, onMove }: Props) {
   const pitch = useSharedValue(0);
   const active = useSharedValue(-1);
   const translation = useSharedValue(0);
   const order = keys.join('|');
+  const [drops, setDrops] = useState(0);
 
   useLayoutEffect(() => {
     active.set(-1);
     translation.set(0);
-  }, [order, active, translation]);
+  }, [order, drops, active, translation]);
 
   const onDrop = (from: number, to: number) => {
-    if (from !== to) {
-      onMove(from, to);
-      return;
-    }
-    active.set(-1);
-    translation.set(0);
+    if (from !== to) onMove(from, to);
+    setDrops((count) => count + 1);
   };
 
   return (

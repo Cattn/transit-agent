@@ -112,10 +112,8 @@ function PlaceRow({ label, value, agent, icon, tint, m, onClick, onRemove, dragg
   );
 }
 
-/** Room left above an opened place search, so the row it fills stays in sight. */
 const REVEAL_OFFSET = 96;
 
-/** Scrolls an opened place search into view: a search under the last rows would open behind the keyboard. */
 function Revealed({ scroll, scrollY, scrolled, children }: { scroll: RefObject<ScrollViewInstance | null>; scrollY: RefObject<number>; scrolled: RefObject<boolean>; children: ReactNode }) {
   const self = useRef<ViewInstance>(null);
   useEffect(() => {
@@ -125,7 +123,6 @@ function Revealed({ scroll, scrollY, scrolled, children }: { scroll: RefObject<S
         list?.measureInWindow((_lx, top) => {
           const delta = y - top - REVEAL_OFFSET;
           if (delta <= 0) return;
-          // A revealed search is a deliberate position: stop snapping back to the focused section.
           scrolled.current = true;
           list.scrollTo({ y: scrollY.current + delta, animated: true });
         });

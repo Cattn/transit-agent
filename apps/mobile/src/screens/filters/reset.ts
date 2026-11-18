@@ -14,7 +14,7 @@ const CLEARED: Required<{ [K in keyof ConstraintsPatch]: null }> = {
 };
 
 /**
- * The patch Reset applies. Everything on the filters sheet starts over: From, To and stops are cleared,
+ * The patch Reset applies. Everything on the filters sheet starts over: From and To are cleared,
  * the time becomes "Depart at" now, and modes, preferences and limits go back to the saved
  * profile defaults (or the schema defaults where the profile sets none). Only the Transit / Fly
  * choice on Home is kept.

@@ -69,7 +69,6 @@ export function nextMorning(afterMs: number, timeZone: string): number {
   return sameDay > afterMs ? sameDay : zonedInstant(p.year, p.month, p.day + 1, MORNING_HOUR, timeZone);
 }
 
-/** The trip back goes straight home: stops are visited on the way out only. */
 export function returnRequestFor(req: TripRequest, returnTime: string): TripRequest {
   const reversed: TripRequest = { ...req, origin: req.destination, destination: req.origin, time: { type: 'departAt', at: returnTime }, constraints: { ...req.constraints } };
   delete reversed.stops;

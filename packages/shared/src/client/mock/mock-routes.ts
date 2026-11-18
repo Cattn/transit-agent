@@ -76,7 +76,6 @@ export function mockItineraries(request: TripRequest, now: () => Date = () => ne
   });
 }
 
-/** Mock trips through stops: each mock option is chained hop by hop, leaving each stop when the last hop arrives. */
 export function mockTripsWithStops(request: TripRequest, now: () => Date = () => new Date()): Itinerary[] {
   const stops = request.stops ?? [];
   if (stops.length === 0) return mockItineraries(request, now);

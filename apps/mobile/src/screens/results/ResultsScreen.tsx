@@ -64,7 +64,6 @@ export interface SavedTripActions {
 export interface ResultsChromeProps {
   colors: AppColors;
   origin: string;
-  /** Stop names between origin and destination, in visiting order. */
   stops: string[];
   destination: string;
   chips: ResultChip[];
@@ -85,7 +84,6 @@ export interface ResultsChromeProps {
   onSave: (id: string) => void;
   onBack: () => void;
   onSwap?: () => void;
-  /** Drag reorder of the header rows (origin, stops, destination). Shown instead of swap when there are stops. */
   onMovePlace?: (from: number, to: number) => void;
   onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;
@@ -106,7 +104,6 @@ export interface ResultsScreenProps {
   savedTrip?: SavedTripActions;
   onBack: () => void;
   onSwap?: () => void;
-  /** Drag reorder of the header rows (origin, stops, destination). Shown instead of swap when there are stops. */
   onMovePlace?: (from: number, to: number) => void;
   onOpenFilters?: () => void;
   onSheetLayout: (height: number) => void;

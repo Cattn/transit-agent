@@ -55,11 +55,11 @@ async function advise(deps: WatchDeps, saved: SavedItinerary, current: Itinerary
   }
 }
 
-async function replace(deps: WatchDeps, saved: SavedItinerary, current: Itinerary, missed: WatchStatus, now: Date, origin: Place, reason: string) {
+async function replace(deps: WatchDeps, saved: SavedItinerary, current: Itinerary, missed: WatchStatus, now: Date, origin: Place, reason: string, boarded: number | undefined) {
   const deadline = saved.request.constraints.arriveBy ?? (saved.request.time.type === 'arriveBy' ? saved.request.time.at : undefined);
   const request: TripRequest = { ...saved.request, origin, constraints: { ...saved.request.constraints, ...(deadline ? { arriveBy: deadline } : {}) }, time: { type: 'departAt', at: now.toISOString() } };
   delete request.returnTime;
-  const stops = stopsAfter(current, missed.missedLegIndex ?? -1);
+  const stops = stopsAfter(current, boarded === undefined ? 0 : boarded + 1);
   if (stops.length > 0) request.stops = stops;
   else delete request.stops;
   const plan = await planTrip(request, deps.providers, undefined, deps.log);
@@ -170,7 +170,7 @@ async function check(deps: WatchDeps, deviceId: string, saved: SavedItinerary, n
     status.missedLegIndex = active;
     const origin = recentPosition(deps, deviceId, saved.id, now) ?? (boarded === undefined ? saved.request.origin : current.legs[boarded]!.to);
     const reason = impossibleTransfer ? `Missed connection to ${nameOf(current, active)}.` : `Missed ${nameOf(current, active)}.`;
-    return replace(deps, saved, current, status, now, origin, reason);
+    return replace(deps, saved, current, status, now, origin, reason, boarded);
   }
   if (now.getTime() > Date.parse(leg.departAt)) {
     status.state = 'missed';

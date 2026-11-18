@@ -28,8 +28,7 @@ const vehicleShape = VehiclesSchema.shape;
  *
  * - Omitted / `undefined` = leave the field alone.
  * - `null` = clear an optional field (top-level fields and individual constraints).
- * - `constraints`, `preferences`, `vehicles` merge per key; `modes` and `stops` replace the whole list.
- * - `stops: []` is the same as `stops: null` (a direct trip).
+ * - `constraints`, `preferences`, `vehicles` merge per key; `modes` replaces the whole list.
  *
  * Validators are reused from the draft schema (unwrapped, without defaults) so they can't drift.
  * Plan 006 uses this as the agent's tool parameter schema.
@@ -37,7 +36,6 @@ const vehicleShape = VehiclesSchema.shape;
 export const TripDraftPatchSchema = z.object({
   origin: PlaceSchema.nullable().optional(),
   destination: PlaceSchema.nullable().optional(),
-  /** Places to pass through, in visiting order. Replaces the whole list. */
   stops: draftShape.stops.unwrap().nullable().optional(),
   time: TripTimeSchema.nullable().optional(),
   returnTime: draftShape.returnTime.unwrap().nullable().optional(),

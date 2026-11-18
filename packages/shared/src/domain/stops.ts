@@ -3,21 +3,17 @@ import { scheduledModes } from './modes.js';
 import type { Place } from './places.js';
 import type { TripRequest } from './trip-draft.js';
 
-/** Most places a trip may pass through between origin and destination (issue #120). */
 export const MAX_TRIP_STOPS = 3;
-/** Most partial chains carried from one hop to the next. */
 export const MAX_STOP_CHAINS = 6;
 
 const MINUTE_MS = 60_000;
 
 const shiftIso = (iso: string, ms: number) => new Date(Date.parse(iso) + ms).toISOString();
 
-/** The places a request visits in order: origin, every stop, destination. */
 export function tripPlaces(request: Pick<TripRequest, 'origin' | 'destination' | 'stops'>): Place[] {
   return [request.origin, ...(request.stops ?? []), request.destination];
 }
 
-/** One request per hop. Hops carry no stops, return trip, or deadline; the stitched trip is checked against those. */
 export function hopRequests(request: TripRequest, time: TripRequest['time']): TripRequest[] {
   const places = tripPlaces(request);
   return places.slice(1).map((destination, index) => {
@@ -29,7 +25,6 @@ export function hopRequests(request: TripRequest, time: TripRequest['time']): Tr
   });
 }
 
-/** Street-only options (walk, bike, car) run whenever you start them, so they can slide to fit a chain. */
 function shiftable(it: Itinerary): boolean {
   return it.legs.every((leg) => !scheduledModes.includes(leg.mode));
 }
@@ -44,12 +39,10 @@ function shift(it: Itinerary, ms: number): Itinerary {
   };
 }
 
-/** Your own car or bike stays with you, so every hop of a chain must use the same ones (or none). */
 export function vehiclesOf(it: Itinerary): string {
   return [...new Set(it.legs.map((leg) => leg.mode).filter((mode) => mode === 'car' || mode === 'bike'))].sort().join(',');
 }
 
-/** The best next hop that leaves after `after` (departAt chains), or the best previous hop that arrives before `before` (arriveBy chains). */
 export function pickHop(candidates: readonly Itinerary[], bound: { after: string } | { before: string }, vehicles: string): Itinerary | undefined {
   let best: Itinerary | undefined;
   for (const raw of candidates) {
@@ -80,7 +73,6 @@ function mergeCost(parts: readonly Itinerary[]): Itinerary['cost'] {
   return { totalUsd: Math.round(parts.reduce((sum, part) => sum + part.cost.totalUsd, 0) * 100) / 100, lines };
 }
 
-/** Joins one itinerary per hop into a single trip. `stops` are the places between hops, in order. */
 export function stitchHops(parts: readonly Itinerary[], stops: readonly Place[]): Itinerary {
   const first = parts[0]!;
   const last = parts.at(-1)!;
@@ -95,6 +87,25 @@ export function stitchHops(parts: readonly Itinerary[], stops: readonly Place[])
       legs.push(id === leg.id ? leg : { ...leg, id });
     }
   });
+  const starts = new Set(marks.map((mark) => mark.legIndex));
+  let lastArrival: number | undefined;
+  let movement = 0;
+  let crossed = false;
+  let crossings = 0;
+  legs.forEach((leg, index) => {
+    if (starts.has(index)) crossed = true;
+    if (!scheduledModes.includes(leg.mode)) {
+      movement += leg.durationMinutes;
+      return;
+    }
+    if (crossed && lastArrival !== undefined) {
+      legs[index] = { ...leg, transferBufferMinutes: Math.max(0, Math.floor((Date.parse(leg.departAt) - lastArrival) / MINUTE_MS - movement)) };
+      crossings += 1;
+    }
+    lastArrival = Date.parse(leg.arriveAt);
+    movement = 0;
+    crossed = false;
+  });
   const fetchedAt = parts.map((part) => part.source.fetchedAt).sort((a, b) => Date.parse(a) - Date.parse(b))[0]!;
   return {
     id: parts.map((part) => part.id).join('~'),
@@ -102,7 +113,7 @@ export function stitchHops(parts: readonly Itinerary[], stops: readonly Place[])
     departAt: first.departAt,
     arriveAt: last.arriveAt,
     durationMinutes: Math.max(0, Math.round((Date.parse(last.arriveAt) - Date.parse(first.departAt)) / MINUTE_MS)),
-    transfers: parts.reduce((sum, part) => sum + part.transfers, 0),
+    transfers: parts.reduce((sum, part) => sum + part.transfers, crossings),
     walkMinutes: parts.reduce((sum, part) => sum + part.walkMinutes, 0),
     cost: mergeCost(parts),
     risk: { level: 'low', reasons: [] },
@@ -113,7 +124,6 @@ export function stitchHops(parts: readonly Itinerary[], stops: readonly Place[])
   };
 }
 
-/** Splits a stitched trip back into its hops (the inverse of `stitchHops`). One part when there are no stops. */
 export function splitHops(it: Itinerary): Itinerary[] {
   const marks = it.stops ?? [];
   if (marks.length === 0) return [it];
@@ -137,20 +147,12 @@ export function splitHops(it: Itinerary): Itinerary[] {
   });
 }
 
-/** Stops still ahead once leg `legIndex` is next: a stop is passed when its first outgoing leg is at or before `legIndex`. */
 export function stopsAfter(it: Itinerary, legIndex: number): Place[] {
   return (it.stops ?? []).filter((mark) => mark.legIndex > legIndex).map((mark) => mark.place);
 }
 
 type Search = (request: TripRequest) => Promise<Itinerary[]>;
 
-/**
- * Plans a trip with stops by chaining one search per hop. Departing trips run forward: each hop
- * leaves after the previous one arrives. Arrive-by trips run backward from the destination. Each
- * hop is searched once at the earliest (or latest) chain's time, and again only for chains that
- * search left without a connection. A chain keeps the same own car or bike on every hop.
- * Requests without stops go straight to `search`.
- */
 export async function searchWithStops(request: TripRequest, search: Search): Promise<Itinerary[]> {
   const stops = request.stops ?? [];
   if (stops.length === 0) return search(request);

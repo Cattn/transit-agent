@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { computeWatchStatus, ItinerarySchema, PlanResponseSchema, TripRequestSchema, type Itinerary, type TripRequest } from '@transit/shared';
+import { computeWatchStatus, hopRequests, ItinerarySchema, PlanResponseSchema, splitHops, stitchHops, TripRequestSchema, type Itinerary, type TripRequest } from '@transit/shared';
 import { FixtureProvider } from '../providers/fixture.js';
 import fixtureRequest from '../providers/fixture-request.json';
 import type { RouteProvider } from '../providers/types.js';
@@ -8,12 +8,19 @@ import type { WatchIssue } from '../watch/advisor.js';
 import { TripLocations } from '../watch/boarding.js';
 import { anchorLeg, isDue } from '../watch/horizons.js';
 import { NO_REPLACEMENT, runWatchCycle, startWatchJob } from '../watch/watch-job.js';
-import { nextMorning, planTrip, type PlanLogger } from './plan-trip.js';
+import { nextMorning, planTrip, returnRequestFor, type PlanLogger } from './plan-trip.js';
+import { refreshItinerary } from './refresh.js';
 
 const request = (overrides: Record<string, unknown> = {}): TripRequest =>
   TripRequestSchema.parse({ ...fixtureRequest, ...overrides });
 
 const silent: PlanLogger = { warn: () => {} };
+const watchLog = { info: () => {}, warn: () => {} };
+const central = { name: 'Central Square', coordinates: [-71.1036, 42.3655] as [number, number], kind: 'station' as const };
+const kendall = { name: 'Kendall', coordinates: [-71.0862, 42.3625] as [number, number], kind: 'station' as const };
+
+const viaRequest = (overrides: Record<string, unknown> = {}): TripRequest =>
+  TripRequestSchema.parse({ ...fixtureRequest, stops: [kendall, central], ...overrides });
 
 const failing: RouteProvider = {
   name: 'broken',
@@ -448,5 +455,131 @@ describe('watch job', () => {
     await vi.advanceTimersByTimeAsync(0);
     job.checkSoon();
     expect(listWatched).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('planTrip with stops', () => {
+  it('returns trips that pass through every stop in order', async () => {
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    const result = await planTrip(viaRequest(), [fixture], undefined, silent);
+    expect(result.itineraries.length).toBeGreaterThan(0);
+    for (const it of result.itineraries) {
+      expect(() => ItinerarySchema.parse(it)).not.toThrow();
+      expect(it.stops?.map((mark) => mark.place.name)).toEqual(['Kendall', 'Central Square']);
+      for (const mark of it.stops!) {
+        expect(it.legs[mark.legIndex]!.from.coordinates).toEqual(mark.place.coordinates);
+        expect(Date.parse(it.legs[mark.legIndex]!.departAt)).toBeGreaterThanOrEqual(Date.parse(it.legs[mark.legIndex - 1]!.arriveAt));
+      }
+      expect(it.legs.at(-1)!.to.name).toBe('Harvard Square');
+    }
+    expect(search.mock.calls.every(([hop]) => hop.stops === undefined)).toBe(true);
+    expect(search.mock.calls.map(([hop]) => hop.destination.name)).toEqual(expect.arrayContaining(['Kendall', 'Central Square', 'Harvard Square']));
+  });
+
+  it('checks constraints against the whole trip, not each hop', async () => {
+    const direct = await planTrip(viaRequest({ stops: undefined }), [new FixtureProvider()], undefined, silent);
+    const via = await planTrip(viaRequest({ constraints: { maxWalkMinutes: Math.max(...direct.itineraries.map((it) => it.walkMinutes)) } }), [new FixtureProvider()], undefined, silent);
+    for (const it of via.itineraries) expect(it.walkMinutes).toBeLessThanOrEqual(Math.max(...direct.itineraries.map((d) => d.walkMinutes)));
+    expect(via.nearMisses.some((it) => it.violations.some((violation) => violation.startsWith('Walks ')))).toBe(true);
+  });
+
+  it('plans the trip back without the stops', () => {
+    const back = returnRequestFor(viaRequest(), '2026-11-16T18:00:00-05:00');
+    expect(back.stops).toBeUndefined();
+    expect(back.origin.name).toBe('Harvard Square');
+  });
+});
+
+describe('refreshItinerary', () => {
+  async function stitched(): Promise<Itinerary> {
+    return (await planTrip(viaRequest({ stops: [central] }), [new FixtureProvider()], undefined, silent)).itineraries.find((it) => it.stops)!;
+  }
+
+  it('refreshes each hop with its own request and keeps the stops', async () => {
+    const it = await stitched();
+    const refresh = vi.fn(async (part: Itinerary) => ({ ...part, source: { ...part.source, fetchedAt: '2026-11-16T12:00:00.000Z' } }));
+    const provider: RouteProvider = { name: 'fixture', supports: () => true, search: async () => [], refresh };
+    const fresh = await refreshItinerary(provider, it, viaRequest({ stops: [central] }));
+    expect(refresh.mock.calls.map(([, hop]) => [hop.origin.name, hop.destination.name])).toEqual([['Boston Common', 'Central Square'], ['Central Square', 'Harvard Square']]);
+    expect(fresh?.legs).toEqual(it.legs);
+    expect(fresh?.stops).toEqual(it.stops);
+    expect(fresh?.source.fetchedAt).toBe('2026-11-16T12:00:00.000Z');
+  });
+
+  it('skips hops already behind the rider and estimates hops it cannot match', async () => {
+    const it = await stitched();
+    const [first, second] = splitHops(it);
+    const realtime = { ...it, legs: it.legs.map((leg) => ({ ...leg, timeSource: 'realtime' as const, delayMinutes: 1 })) };
+    const refresh = vi.fn(async (): Promise<Itinerary | undefined> => undefined);
+    const provider: RouteProvider = { name: 'fixture', supports: () => true, search: async () => [], refresh };
+    expect(await refreshItinerary(provider, realtime, viaRequest({ stops: [central] }))).toBeUndefined();
+
+    refresh.mockImplementationOnce(async () => undefined).mockImplementationOnce(async () => second!);
+    const partial = await refreshItinerary(provider, realtime, viaRequest({ stops: [central] }));
+    expect(partial?.legs.slice(0, first!.legs.length).every((leg) => leg.timeSource === 'estimated' && leg.delayMinutes === undefined)).toBe(true);
+
+    refresh.mockClear();
+    const boarded = { ...it, watchStatus: { state: 'onTrack' as const, message: '', checkedAt: it.departAt, usedRealtime: false, boardedLegIndex: it.stops![0]!.legIndex } };
+    refresh.mockImplementationOnce(async () => second!);
+    await refreshItinerary(provider, boarded, viaRequest({ stops: [central] }));
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(refresh.mock.calls[0]![0]).toMatchObject({ watchStatus: { boardedLegIndex: 0 } });
+  });
+
+  it('keeps the saved cost across refreshes', async () => {
+    const it = await stitched();
+    const fixture = new FixtureProvider();
+    const once = await refreshItinerary(fixture, it, viaRequest({ stops: [central] }));
+    const twice = await refreshItinerary(fixture, once!, viaRequest({ stops: [central] }));
+    expect(once?.cost).toEqual(it.cost);
+    expect(twice?.cost).toEqual(it.cost);
+  });
+});
+
+describe('watching a trip with stops', () => {
+  it('replans a missed departure through the stops still ahead', async () => {
+    const store = new MemoryItineraryStore();
+    const saveRequest = viaRequest({ stops: [kendall, central] });
+    const plan = await planTrip(saveRequest, [new FixtureProvider()], undefined, silent);
+    const itinerary = plan.itineraries.find((it) => it.legs.slice(0, it.stops![0]!.legIndex).some((leg) => leg.mode === 'bus' || leg.mode === 'rail'))!;
+    const saved = await store.save('device-a', { itinerary, request: saveRequest, watch: true });
+    const legIndex = saved.legs.indexOf(anchorLeg(saved));
+    await store.update('device-a', saved.id, { boarding: { legIndex, tripId: anchorLeg(saved).id, state: 'missed' } });
+
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    const now = new Date(Date.parse(anchorLeg(saved).departAt) + 60_000);
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log: watchLog });
+    const replans = search.mock.calls.filter(([hop]) => hop.time.at === now.toISOString()).map(([hop]) => hop.destination.name);
+    expect(replans).toEqual(['Kendall']);
+    const switched = await store.get('device-a', saved.id);
+    expect(switched?.watchStatus?.change?.message).toMatch(/Switched to /);
+    expect(switched?.request.stops?.map((stop) => stop.name)).toEqual(['Kendall', 'Central Square']);
+    expect(switched?.stops?.map((mark) => mark.place.name)).toEqual(['Kendall', 'Central Square']);
+  });
+
+  it('keeps a stop the rider has not confirmed reaching', async () => {
+    const store = new MemoryItineraryStore();
+    const saveRequest = viaRequest({ stops: [kendall] });
+    const [, onward] = hopRequests(saveRequest, saveRequest.time);
+    const bus = (await new FixtureProvider().search(onward!)).find((it) => it.legs.some((leg) => leg.mode === 'bus'))!;
+    const walkArrive = new Date(Date.parse(bus.departAt) - 60_000).toISOString();
+    const walkDepart = new Date(Date.parse(walkArrive) - 25 * 60_000).toISOString();
+    const walk: Itinerary = { ...bus, id: 'walk-to-kendall', departAt: walkDepart, arriveAt: walkArrive, durationMinutes: 25, transfers: 0, walkMinutes: 25, cost: { totalUsd: 0, lines: [] }, summary: 'Walk 25 min',
+      legs: [{ ...bus.legs[0]!, id: 'walk-to-kendall-0', mode: 'walk', from: saveRequest.origin, to: kendall, departAt: walkDepart, arriveAt: walkArrive, durationMinutes: 25, timeSource: 'estimated' }] };
+    const itinerary = stitchHops([walk, bus], [kendall]);
+    const saved = await store.save('device-a', { itinerary, request: saveRequest, watch: true });
+    const legIndex = saved.legs.indexOf(anchorLeg(saved));
+    expect(legIndex).toBeGreaterThanOrEqual(saved.stops![0]!.legIndex);
+    await store.update('device-a', saved.id, { boarding: { legIndex, tripId: anchorLeg(saved).id, state: 'missed' } });
+
+    const fixture = new FixtureProvider();
+    const search = vi.spyOn(fixture, 'search');
+    const now = new Date(Date.parse(anchorLeg(saved).departAt) + 60_000);
+    await runWatchCycle({ store, providers: [fixture], now: () => now, log: watchLog });
+    const replans = search.mock.calls.filter(([hop]) => hop.time.at === now.toISOString()).map(([hop]) => [hop.origin.name, hop.destination.name]);
+    expect(replans[0]).toEqual(['Boston Common', 'Kendall']);
+    expect((await store.get('device-a', saved.id))?.request.stops?.map((stop) => stop.name)).toEqual(['Kendall']);
   });
 });
