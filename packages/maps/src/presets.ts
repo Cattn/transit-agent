@@ -49,7 +49,8 @@ export function profilePlaces(profile: PresetProfile): ProfilePlace[] {
 
 export function placeFor(place: Place, profile: PresetProfile): ProfilePlace | undefined {
   let best: { match: ProfilePlace; meters: number } | undefined;
-  for (const candidate of profilePlaces(profile)) {
+  const candidates = profilePlaces(profile).sort((a, b) => Number(a.key === 'gym') - Number(b.key === 'gym'));
+  for (const candidate of candidates) {
     if (!candidate.place) continue;
     const meters = metersBetween(place.coordinates, candidate.place.coordinates);
     if (meters <= PRESET_MATCH_METERS && (!best || meters < best.meters)) best = { match: candidate, meters };

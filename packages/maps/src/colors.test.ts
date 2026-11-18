@@ -265,6 +265,9 @@ describe('place presets (plan 038)', () => {
     expect(placeFor(near(dinner.place, 50), withPlaces)?.key).toBe('place:dinner');
     expect(placeFor(near(office, 70), withPlaces)?.key).toBe('place:cafe');
     expect(placeFor(near(office, 10), withPlaces)?.key).toBe('office');
+    const gymTwin = { ...profile, places: [{ id: 'gym-twin', name: 'Gym', icon: 'fitness' as const, color: '#9333ea', place: gym }] };
+    expect(placeFor(near(gym, 0), gymTwin)?.key).toBe('place:gym-twin');
+    expect(presetTripColors([{ id: 'to-gym', request: { destination: near(gym, 0) } }], gymTwin).get('to-gym')).toBe('#9333ea');
     expect(presetTripColors([{ id: 'to-dinner', request: { destination: dinner.place } }, { id: 'to-office', request: { destination: office } }], withPlaces)).toEqual(new Map([
       ['to-dinner', '#7c3aed'],
       ['to-office', DEFAULT_PRESET_COLORS.office]
