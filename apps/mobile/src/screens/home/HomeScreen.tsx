@@ -157,6 +157,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const [here, setHere] = useState<LngLat>();
   const initialLocation = useRef(true);
   const [locateKey, setLocateKey] = useState<number>();
+  const fitKeyRef = useRef('');
   const [tracking, setTracking] = useState(false);
   const live = useLiveLocation(tracking && foreground);
   const [locating, setLocating] = useState(false);
@@ -313,13 +314,14 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const known = live.location ?? here;
   const onLocate = useCallback(async () => {
     if (known) setLocateKey((key) => (key ?? 0) + 1);
+    const view = fitKeyRef.current;
     setLocating(true);
     const result = await getCurrentPlace();
     setLocating(false);
     if (result.ok) {
       setHere(result.place.coordinates);
       setTracking(true);
-      setLocateKey((key) => (key ?? 0) + 1);
+      if (fitKeyRef.current === view) setLocateKey((key) => (key ?? 0) + 1);
       editDraft({ origin: result.place });
       setNotice('Starting from your current location.');
     } else {
@@ -478,6 +480,10 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     [topBarEdge, sheetHeight]
   );
   const clearSelection = useCallback(() => setSelectedId(undefined), [setSelectedId]);
+  const fitKey = `${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}|${openSaved?.id ?? ''}|${openSaved?.request.time.at ?? ''}`;
+  useEffect(() => {
+    fitKeyRef.current = fitKey;
+  }, [fitKey]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -495,7 +501,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
         unfocusedColors={choosing ? 'mode' : 'trip'}
         variant={choosing ? 'choosing' : 'saved'}
         buildPreview={buildPreview}
-        fitKey={`${shownIds}|${resultsOpen || openSaved ? sheetHeight : 'home'}|${openSaved?.id ?? ''}|${openSaved?.request.time.at ?? ''}`}
+        fitKey={fitKey}
         fitItineraryId={openSaved?.id}
       />
       {resultsOpen ? (
