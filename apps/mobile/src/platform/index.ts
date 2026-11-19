@@ -2,6 +2,6 @@
 export { DEFAULT_API_PORT, normalizeServerUrl, parseConnectLink, resolveApiUrl, type ResolveApiUrlInput } from './api-url';
 export { getApiUrl } from './api-url-native';
 export { DEVICE_ID_KEY, secureStoreDeviceIdStorage, type DeviceIdStorage } from './device-id-storage';
-export { SERVER_URL_KEY, onServerUrl, setServerUrl, useServerUrl } from './server-url';
+export { SERVER_URL_KEY, onServerUrl, removeServer, setServerUrl, useSavedServers, useServerUrl } from './server-url';
 export { currentLocationPlace, getCurrentPlace, getLastKnownLocation, type LocationResult } from './location';
 export { useAppForeground } from './use-app-foreground';

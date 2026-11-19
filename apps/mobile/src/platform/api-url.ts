@@ -52,9 +52,13 @@ export function parseConnectLink(link: string): string | undefined {
       return undefined;
     }
     if (!url) return '';
-    return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
+    return linkedServerUrl(url);
   }
   return undefined;
+}
+
+function linkedServerUrl(url: string): string | undefined {
+  return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
 }
 
 export function normalizeServerUrl(input: string): string | undefined {
@@ -65,4 +69,42 @@ export function normalizeServerUrl(input: string): string | undefined {
   if (!match) return undefined;
   const port = match[1] === undefined ? undefined : Number(match[1]);
   return port === undefined || (port > 0 && port <= 65535) ? url : undefined;
+}
+
+export interface ServerState {
+  active: string | null;
+  saved: string[];
+}
+
+function savedServerUrl(value: unknown): string | undefined {
+  return typeof value === 'string' ? normalizeServerUrl(value) ?? linkedServerUrl(value.trim()) : undefined;
+}
+
+function parseJson(raw: string | null): unknown {
+  try {
+    return raw === null ? undefined : JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function serverState(active: unknown, saved: unknown): ServerState {
+  const url = savedServerUrl(active) ?? null;
+  const urls = Array.isArray(saved) ? saved.map(savedServerUrl).filter((item): item is string => item !== undefined) : [];
+  return { active: url, saved: withServer(urls, url) };
+}
+
+export function serverStateFromLegacy(active: string | null, savedList: string | null = null): ServerState {
+  return serverState(active, parseJson(savedList));
+}
+
+export function parseServerState(raw: string): ServerState {
+  const value = parseJson(raw);
+  const record = value && typeof value === 'object' ? (value as { active?: unknown; saved?: unknown }) : {};
+  return serverState(record.active, record.saved);
+}
+
+export function withServer(servers: readonly string[], url?: string | null): string[] {
+  const unique = [...new Set(servers)];
+  return url && !unique.includes(url) ? [...unique, url] : unique;
 }

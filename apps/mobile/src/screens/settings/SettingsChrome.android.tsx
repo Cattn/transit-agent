@@ -23,7 +23,7 @@ import {
   useNativeState,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, verticalScroll, weight } from '@expo/ui/jetpack-compose/modifiers';
 import Accessible from '../../../assets/icons/accessible_fill.xml';
 import Add from '../../../assets/icons/add_fill.xml';
 import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
@@ -31,6 +31,7 @@ import AutoAwesome from '../../../assets/icons/auto_awesome_fill.xml';
 import Check from '../../../assets/icons/check_fill.xml';
 import ChevronRight from '../../../assets/icons/chevron_right_fill.xml';
 import Contrast from '../../../assets/icons/contrast_fill.xml';
+import Delete from '../../../assets/icons/delete_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
 import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
@@ -193,10 +194,20 @@ function MpgDialog({ current, m, onSave, onDismiss }: { current?: number; m: Mat
   );
 }
 
-function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string | null; m: MaterialColors; onCheck: (url: string) => Promise<boolean>; onSave: (url: string | null) => void; onDismiss: () => void }) {
-  const value = useNativeState(saved ?? '');
-  const selection = useNativeState({ start: saved?.length ?? 0, end: saved?.length ?? 0 });
-  const [text, setText] = useState(saved ?? '');
+interface ServerDialogProps {
+  saved: string | null;
+  servers: { url: string; label: string }[];
+  defaultLabel: string;
+  m: MaterialColors;
+  onCheck: (url: string) => Promise<boolean>;
+  onSelect: (url: string | null) => void;
+  onRemove: (url: string) => void;
+  onDismiss: () => void;
+}
+
+function ServerDialog({ saved, servers, defaultLabel, m, onCheck, onSelect, onRemove, onDismiss }: ServerDialogProps) {
+  const value = useNativeState('');
+  const [text, setText] = useState('');
   const [error, setError] = useState<string>();
   const [unreachable, setUnreachable] = useState<string>();
   const [checking, setChecking] = useState(false);
@@ -218,8 +229,8 @@ function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string 
       setError('Enter an address like 192.168.1.20:3001 or https://name.example.com');
       return;
     }
-    if (force) {
-      onSave(url);
+    if (force || servers.some((server) => server.url === url)) {
+      onSelect(url);
       return;
     }
     const id = ++attempt.current;
@@ -230,7 +241,7 @@ function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string 
       if (id !== attempt.current) return;
       setChecking(false);
       if (ok) {
-        onSave(url);
+        onSelect(url);
         return;
       }
       setUnreachable(url);
@@ -238,24 +249,42 @@ function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string 
     });
   };
 
+  const option = (key: string, label: string, url: string | null, remove?: () => void) => (
+    <Row key={key} verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), clickable(() => onSelect(url)), padding(0, 4, 0, 4)]}>
+      <RadioButton selected={url === saved} onClick={() => onSelect(url)} />
+      <Text color={m.onSurface} style={m3Text('bodyLarge')} modifiers={[weight(1)]}>{label}</Text>
+      {remove ? (
+        <IconButton onClick={remove}>
+          <Icon source={Delete} size={24} tint={m.onSurfaceVariant} contentDescription={`Remove ${label}`} />
+        </IconButton>
+      ) : null}
+    </Row>
+  );
+
   return (
     <AlertDialog onDismissRequest={onDismiss}>
       <AlertDialog.Title>
         <Text style={m3Text('headlineSmall')}>Server</Text>
       </AlertDialog.Title>
       <AlertDialog.Text>
-        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
+        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), verticalScroll()]}>
+          <Column modifiers={[fillMaxWidth()]}>
+            {option('default', defaultLabel, null)}
+            {servers.map((server) => option(server.url, server.label, server.url, () => onRemove(server.url)))}
+          </Column>
           <OutlinedTextField
             value={value}
-            selection={selection}
-            autoFocus
+            autoFocus={servers.length === 0}
             singleLine
             isError={error !== undefined}
             onValueChange={edit}
             keyboardOptions={{ keyboardType: 'uri', capitalization: 'none', autoCorrectEnabled: false, imeAction: 'done' }}
-            keyboardActions={{ onDone: () => { if (!checking) submit(false); } }}
+            keyboardActions={{ onDone: () => { if (!checking && text.trim()) submit(false); } }}
             modifiers={[fillMaxWidth()]}
           >
+            <OutlinedTextField.Label>
+              <Text style={m3Text('bodyLarge')}>Add a server</Text>
+            </OutlinedTextField.Label>
             <OutlinedTextField.Placeholder>
               <Text style={m3Text('bodyLarge')}>192.168.1.20:3001</Text>
             </OutlinedTextField.Placeholder>
@@ -265,32 +294,25 @@ function ServerDialog({ saved, m, onCheck, onSave, onDismiss }: { saved: string 
               </OutlinedTextField.SupportingText>
             ) : null}
           </OutlinedTextField>
-          <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Open /connect on this phone to set this automatically.</Text>
+          <Text color={m.onSurfaceVariant} style={m3Text('bodyMedium')}>Open /connect on this phone to add one automatically.</Text>
         </Column>
       </AlertDialog.Text>
       <AlertDialog.ConfirmButton>
         <Row>
           {unreachable ? (
             <TextButton onClick={() => submit(true)}>
-              <Text style={m3Text('labelLarge')}>Save anyway</Text>
+              <Text style={m3Text('labelLarge')}>Add anyway</Text>
             </TextButton>
           ) : null}
-          <TextButton enabled={!checking} onClick={() => submit(false)}>
-            <Text style={m3Text('labelLarge')}>{checking ? 'Checking…' : 'Save'}</Text>
+          <TextButton enabled={!checking && text.trim() !== ''} onClick={() => submit(false)}>
+            <Text style={m3Text('labelLarge')}>{checking ? 'Checking…' : 'Add'}</Text>
           </TextButton>
         </Row>
       </AlertDialog.ConfirmButton>
       <AlertDialog.DismissButton>
-        <Row>
-          {saved ? (
-            <TextButton onClick={() => onSave(null)}>
-              <Text style={m3Text('labelLarge')}>Use default</Text>
-            </TextButton>
-          ) : null}
-          <TextButton onClick={onDismiss}>
-            <Text style={m3Text('labelLarge')}>Cancel</Text>
-          </TextButton>
-        </Row>
+        <TextButton onClick={onDismiss}>
+          <Text style={m3Text('labelLarge')}>Close</Text>
+        </TextButton>
       </AlertDialog.DismissButton>
     </AlertDialog>
   );
@@ -341,7 +363,16 @@ export function SettingsChrome(props: SettingsChromeProps) {
 
   const serverRow = <SettingRow m={m} icon={Dns} title="Server" subtitle={props.server.label} chevron disabled={props.server.loading} onClick={() => setDialog({ kind: 'server' })} />;
   const serverDialog = dialog?.kind === 'server' ? (
-    <ServerDialog saved={props.server.saved} m={m} onCheck={props.onCheckServer} onDismiss={close} onSave={(url) => { close(); props.onSaveServer(url); }} />
+    <ServerDialog
+      saved={props.server.saved}
+      servers={props.server.servers}
+      defaultLabel={props.server.defaultLabel}
+      m={m}
+      onCheck={props.onCheckServer}
+      onDismiss={close}
+      onSelect={(url) => { close(); props.onSaveServer(url); }}
+      onRemove={props.onRemoveServer}
+    />
   ) : null;
 
   const header = (
