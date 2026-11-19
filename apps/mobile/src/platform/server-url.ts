@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { defaultServerUrl } from './api-url-native';
 import { parseConnectLink, parseServerState, serverStateFromLegacy, withServer, type ServerState } from './api-url';
 
 export const SERVER_URL_KEY = 'transit.serverUrl';
@@ -66,8 +67,10 @@ function change(update: (state: ServerState) => ServerState): Promise<void> {
   return run;
 }
 
+/** Selects a server, saving it if new. The address Default already reaches selects Default instead of saving a copy. */
 export function setServerUrl(url: string | null): Promise<void> {
-  return change((state) => ({ active: url, saved: withServer(state.saved, url) }));
+  const server = url === defaultServerUrl() ? null : url;
+  return change((state) => ({ active: server, saved: withServer(state.saved, server) }));
 }
 
 export function removeServer(url: string): Promise<void> {

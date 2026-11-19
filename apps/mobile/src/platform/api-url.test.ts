@@ -28,6 +28,7 @@ describe('parseConnectLink', () => {
     ['empty url forgets the server', 'transit-agent://connect?url=', ''],
     ['not http(s)', 'transit-agent://connect?url=javascript%3Aalert(1)', undefined],
     ['no url param', 'transit-agent://connect?x=1', undefined],
+    ['shortens an IPv6 host', 'transit-agent://connect?url=http%3A%2F%2F%5B2001%3A0db8%3A0%3A0%3A0%3A0%3A0%3A1%5D%3A3001', 'http://[2001:db8::1]:3001'],
     ['lower-cases the host and drops the default port, keeping the path', 'transit-agent://connect?url=HTTPS%3A%2F%2FExample.com%3A443%2FTransit%2F', 'https://example.com/Transit'],
     ['other app link', 'transit-agent://trip/123', undefined],
     ['Expo Go launch URL', 'exp://127.0.0.1:8082', undefined],
@@ -46,6 +47,11 @@ describe('normalizeServerUrl', () => {
     ['IPv6 with port', 'http://[fe80::1]:3001', 'http://[fe80::1]:3001'],
     ['lower-cases the scheme and host', 'HTTPS://Laptop.Tail1234.TS.net', 'https://laptop.tail1234.ts.net'],
     ['lower-cases an IPv6 host', 'http://[FE80::1]:3001', 'http://[fe80::1]:3001'],
+    ['shortens a long IPv6 host', 'http://[2001:0db8:0:0:0:0:0:1]:3001', 'http://[2001:db8::1]:3001'],
+    ['shortens the longest zero run in an IPv6 host', 'http://[2001:db8:0:0:1:0:0:0]', 'http://[2001:db8:0:0:1::]'],
+    ['keeps a single zero group in an IPv6 host', 'http://[2001:db8:0:1:1:1:1:1]', 'http://[2001:db8:0:1:1:1:1:1]'],
+    ['writes an IPv4 tail of an IPv6 host in hex', 'http://[::FFFF:192.168.1.20]:3001', 'http://[::ffff:c0a8:114]:3001'],
+    ['IPv6 loopback', 'http://[0:0:0:0:0:0:0:1]:3001', 'http://[::1]:3001'],
     ['drops the default http port', 'http://192.168.1.20:80', 'http://192.168.1.20'],
     ['keeps port 443 on http', 'laptop.example.com:443', 'http://laptop.example.com:443'],
     ['drops the default https port', 'https://laptop.example.com:443/', 'https://laptop.example.com'],
@@ -68,6 +74,7 @@ describe('parseServerState', () => {
     ['active and saved', '{"active":"https://b.example.com","saved":["https://a.example.com","https://b.example.com"]}', { active: 'https://b.example.com', saved: ['https://a.example.com', 'https://b.example.com'] }],
     ['adds a missing active server to the list', '{"active":"http://192.168.1.20:3001","saved":[]}', { active: 'http://192.168.1.20:3001', saved: ['http://192.168.1.20:3001'] }],
     ['drops invalid and duplicate entries', '{"active":null,"saved":["https://a.example.com/",1,"not a url","https://a.example.com"]}', { active: null, saved: ['https://a.example.com'] }],
+    ['merges IPv6 spellings of the same server', '{"active":null,"saved":["http://[2001:0db8:0:0:0:0:0:1]:3001","http://[2001:db8::1]:3001"]}', { active: null, saved: ['http://[2001:db8::1]:3001'] }],
     ['merges spellings of the same server', '{"active":"HTTP://Laptop.local:3001","saved":["http://laptop.local:3001","https://a.example.com:443","HTTPS://A.example.com"]}', { active: 'http://laptop.local:3001', saved: ['http://laptop.local:3001', 'https://a.example.com'] }],
     ['keeps a /connect address with a path', '{"active":null,"saved":["https://example.com/transit/"]}', { active: null, saved: ['https://example.com/transit'] }],
     ['broken JSON', '{oops', { active: null, saved: [] }],
@@ -94,9 +101,13 @@ const disk = new Map<string, string>();
 const failing = { get: new Set<string>(), set: new Set<string>() };
 let slowKey: { key: string; release: Promise<void> } | undefined;
 
+let initialLink: string | null = null;
+
 vi.mock('react-native', () => ({
-  Linking: { getInitialURL: async () => null, addEventListener: () => ({ remove: () => undefined }) }
+  Linking: { getInitialURL: async () => initialLink, addEventListener: () => ({ remove: () => undefined }) },
+  Platform: { OS: 'android' }
 }));
+vi.mock('expo-constants', () => ({ default: { expoConfig: { hostUri: null } } }));
 vi.mock('expo-secure-store', () => ({
   getItemAsync: async (key: string) => {
     if (failing.get.has(key)) throw new Error('read failed');
@@ -129,6 +140,8 @@ function onDisk(): { active: string | null; saved: string[] } | undefined {
 
 async function restart(): Promise<{ active: string | null | undefined; saved: string[] | undefined }> {
   const app = await launch();
+  // Twice: a launch link is applied once loading finishes, queued behind the first change.
+  await app.removeServer('https://never-saved.example.com');
   await app.removeServer('https://never-saved.example.com');
   return { active: onDisk()?.active, saved: onDisk()?.saved };
 }
@@ -139,6 +152,30 @@ describe('saved servers on the phone', () => {
     failing.get.clear();
     failing.set.clear();
     slowKey = undefined;
+    initialLink = null;
+    vi.unstubAllEnvs();
+  });
+
+  it('a /connect link to the default server selects Default instead of saving a copy', async () => {
+    vi.stubEnv('EXPO_PUBLIC_API_MODE', 'server');
+    vi.stubEnv('EXPO_PUBLIC_API_URL', 'https://example.com');
+    disk.set(STATE, '{"active":"https://a.example.com","saved":["https://a.example.com"]}');
+    initialLink = 'transit-agent://connect?url=HTTPS%3A%2F%2FEXAMPLE.COM%3A443%2F';
+    expect(await restart()).toEqual({ active: null, saved: ['https://a.example.com'] });
+  });
+
+  it('a /connect link to the default address is saved in sample-data builds', async () => {
+    vi.stubEnv('EXPO_PUBLIC_API_MODE', 'mock');
+    vi.stubEnv('EXPO_PUBLIC_API_URL', 'https://example.com');
+    initialLink = 'transit-agent://connect?url=https%3A%2F%2Fexample.com';
+    expect(await restart()).toEqual({ active: 'https://example.com', saved: ['https://example.com'] });
+  });
+
+  it('IPv6 links to the same server are saved once', async () => {
+    initialLink = 'transit-agent://connect?url=http%3A%2F%2F%5B2001%3A0db8%3A0%3A0%3A0%3A0%3A0%3A1%5D%3A3001';
+    await restart();
+    initialLink = 'transit-agent://connect?url=http%3A%2F%2F%5B2001%3Adb8%3A%3A1%5D%3A3001';
+    expect(await restart()).toEqual({ active: 'http://[2001:db8::1]:3001', saved: ['http://[2001:db8::1]:3001'] });
   });
 
   it('keeps an upgraded server after switching to Default and restarting', async () => {

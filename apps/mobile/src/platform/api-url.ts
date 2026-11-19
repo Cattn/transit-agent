@@ -68,11 +68,41 @@ function canonicalServerUrl(url: string): string {
   const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]*)(.*)$/i.exec(url);
   if (!match) return url;
   const scheme = match[1]!.toLowerCase();
-  const authority = match[2]!.toLowerCase().replace(/:(\d+)$/, (_all, port: string) => {
+  const authority = match[2]!.toLowerCase().replace(/^\[([^\]]+)\]/, (all, host: string) => {
+    const ipv6 = canonicalIpv6(host);
+    return ipv6 ? `[${ipv6}]` : all;
+  }).replace(/:(\d+)$/, (_all, port: string) => {
     const number = port.replace(/^0+(?=\d)/, '');
     return number === DEFAULT_PORTS[scheme] ? '' : `:${number}`;
   });
   return `${scheme}://${authority}${match[3]}`;
+}
+
+/** RFC 5952 text for an IPv6 address: no leading zeros, the longest run of zero groups as "::". Undefined if it isn't one. */
+function canonicalIpv6(host: string): string | undefined {
+  let text = host;
+  const ipv4 = /^(.*:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(text);
+  if (ipv4) {
+    const bytes = ipv4.slice(2).map(Number);
+    if (bytes.some((byte) => byte > 255)) return undefined;
+    text = `${ipv4[1]}${((bytes[0]! << 8) | bytes[1]!).toString(16)}:${((bytes[2]! << 8) | bytes[3]!).toString(16)}`;
+  }
+  const halves = text.split('::');
+  if (halves.length > 2) return undefined;
+  const parts = halves.map((half) => (half ? half.split(':') : []));
+  if (parts.some((list) => list.some((group) => !/^[0-9a-f]{1,4}$/.test(group)))) return undefined;
+  const [head = [], tail = []] = parts;
+  const missing = 8 - head.length - tail.length;
+  if (halves.length === 2 ? missing < 1 : missing !== 0) return undefined;
+  const groups = [...head, ...Array<string>(halves.length === 2 ? missing : 0).fill('0'), ...tail].map((group) => parseInt(group, 16).toString(16));
+  let best = { start: -1, length: 1 };
+  for (let start = 0; start < 8; start++) {
+    let length = 0;
+    while (groups[start + length] === '0') length++;
+    if (length > best.length) best = { start, length };
+  }
+  if (best.start < 0) return groups.join(':');
+  return `${groups.slice(0, best.start).join(':')}::${groups.slice(best.start + best.length).join(':')}`;
 }
 
 export function normalizeServerUrl(input: string): string | undefined {
@@ -90,7 +120,8 @@ export interface ServerState {
   saved: string[];
 }
 
-function savedServerUrl(value: unknown): string | undefined {
+/** A stored or configured server address in its canonical form, or undefined if it isn't an http(s) server address. */
+export function savedServerUrl(value: unknown): string | undefined {
   return typeof value === 'string' ? normalizeServerUrl(value) ?? linkedServerUrl(value.trim()) : undefined;
 }
 
