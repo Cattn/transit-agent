@@ -39,11 +39,12 @@ const streetAbbreviations: Record<string, string> = {
   ter: 'terrace', sq: 'square', hwy: 'highway', pkwy: 'parkway', cir: 'circle', n: 'north', s: 'south', e: 'east', w: 'west'
 };
 const streetTypes = new Set(['street', 'avenue', 'road', 'drive', 'lane', 'boulevard', 'place', 'court', 'terrace', 'square', 'highway', 'parkway', 'circle', 'way']);
-const unitWords = new Set(['apt', 'apartment', 'unit', 'suite', 'ste', 'floor', 'fl', 'room', 'rm']);
+const directions = new Set(['north', 'south', 'east', 'west']);
+const unitWords = new Set(['apt', 'apartment', 'unit', 'suite', 'ste', 'floor', 'fl', 'room', 'rm', '#']);
 const houseNumberPattern = /^\d+[a-z]?(?:[-/]\d+[a-z]?)?$/;
 
 function words(value: string) {
-  return value.toLowerCase().split(/[\s.;#]+/).filter(Boolean).map((word) => streetAbbreviations[word] ?? word);
+  return value.toLowerCase().replace(/([#,])/g, ' $1 ').split(/[\s.;]+/).filter(Boolean).map((word) => streetAbbreviations[word] ?? word);
 }
 
 interface AddressCandidate {
@@ -52,29 +53,47 @@ interface AddressCandidate {
   after: string[];
 }
 
-export function addressQuery(q: string): AddressCandidate[] | undefined {
-  const segments: string[][] = [];
-  for (const segment of q.split(',').map(words)) {
-    const previous = segments.at(-1);
-    if (previous?.length === 1 && houseNumberPattern.test(previous[0]!)) previous.push(...segment);
-    else segments.push(segment);
-  }
-  const candidates = segments.flatMap((segment) => segment.flatMap((word, index) =>
-    houseNumberPattern.test(word) && !unitWords.has(segment[index - 1] ?? '') ? [{ number: word, before: segment.slice(0, index), after: segment.slice(index + 1) }] : []));
-  return candidates.length ? candidates : undefined;
+interface AddressQuery {
+  candidates: AddressCandidate[];
+  words: Set<string>;
+}
+
+export function addressQuery(q: string): AddressQuery | undefined {
+  const tokens = words(q);
+  const candidates = tokens.flatMap((token, index) => {
+    if (!houseNumberPattern.test(token) || unitWords.has(tokens[index - 1] ?? '')) return [];
+    const after = tokens.slice(tokens[index + 1] === ',' ? index + 2 : index + 1);
+    const end = tokens[index - 1] === ',' ? index - 1 : index;
+    const start = tokens.lastIndexOf(',', end - 1) + 1;
+    return [{ number: token, before: tokens.slice(start, end), after }];
+  });
+  return candidates.length ? { candidates, words: new Set(tokens) } : undefined;
 }
 
 function startsWith(list: string[], prefix: string[]) {
   return prefix.length > 0 && prefix.every((word, index) => list[index] === word);
 }
 
-function matchesAddress(query: AddressCandidate[] | undefined, housenumber: string | undefined, street: string | undefined) {
-  if (!query || !housenumber || !street) return false;
+function restFits(rest: string[], area: Set<string>) {
+  const next = rest[0];
+  return next === undefined || next === ',' || unitWords.has(next) || (!streetTypes.has(next) && !directions.has(next) && area.has(next));
+}
+
+function addressScore(query: AddressQuery | undefined, props: Record<string, unknown>): number {
+  const housenumber = text(props.housenumber);
+  const street = text(props.street);
+  if (!query || !housenumber || !street) return 0;
   const number = housenumber.toLowerCase().replace(/\s+/g, '');
   const full = words(street);
   const core = streetTypes.has(full.at(-1) ?? '') ? full.slice(0, -1) : full;
-  return query.some(({ number: n, before, after }) => n === number && (
-    startsWith(after, full) || (after.length === core.length && startsWith(after, core)) || startsWith(before.slice(-full.length), full)));
+  const areaNames = ['city', 'district', 'locality', 'county', 'state', 'postcode', 'country'].flatMap((field) => text(props[field]) ?? []);
+  const area = new Set(areaNames.flatMap(words));
+  const matched = query.candidates.some(({ number: n, before, after }) => n === number && (
+    [full, core].some((street) => startsWith(after, street) && restFits(after.slice(street.length), area)) ||
+    (startsWith(before.slice(-full.length), full) && !before.slice(0, -full.length).some((word) => houseNumberPattern.test(word)))));
+  if (!matched) return 0;
+  const city = text(props.city);
+  return city && words(city).every((word) => query.words.has(word) && !full.includes(word)) ? 2 : 1;
 }
 
 function text(value: unknown) {
@@ -91,18 +110,18 @@ function kindOf(props: Record<string, unknown>): Place['kind'] {
   return 'poi';
 }
 
-function toPlace(feature: PhotonFeature, query?: AddressCandidate[]): { place: Place; matched: boolean } | undefined {
+function toPlace(feature: PhotonFeature, query?: AddressQuery): { place: Place; score: number } | undefined {
   const props = feature.properties ?? {};
   const street = text(props.street);
   const housenumber = text(props.housenumber);
   const unit = text(props.unit);
   const address = street ? [housenumber, street].filter(Boolean).join(' ') + (unit ? ` #${unit}` : '') : undefined;
-  const matched = matchesAddress(query, housenumber, street);
-  const base = matched ? address : text(props.name) ?? address;
+  const score = addressScore(query, props);
+  const base = score ? address : text(props.name) ?? address;
   const area = text(props.city) ?? text(props.state);
   const name = base && area && area !== base ? `${base}, ${area}` : base;
   const result = PlaceSchema.safeParse({ name, coordinates: feature.geometry?.coordinates, kind: kindOf(props) });
-  return result.success ? { place: result.data, matched } : undefined;
+  return result.success ? { place: result.data, score } : undefined;
 }
 
 export function photonFeatureToPlace(feature: PhotonFeature, q?: string): Place | undefined {
@@ -132,11 +151,11 @@ export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.f
     const body = (await res.json()) as { features?: PhotonFeature[] };
     if (!Array.isArray(body.features)) throw new Error('Photon response has no features');
     const mapped = body.features.flatMap((feature) => toPlace(feature, address) ?? []);
-    let rows = mapped.filter((row, index) => !row.matched || !mapped.slice(0, index).some((earlier) => earlier.matched && earlier.place.name === row.place.name && distanceMeters(earlier.place.coordinates, row.place.coordinates) < dedupeMeters));
-    if (near && rows.some((row) => row.matched && distanceMeters(row.place.coordinates, near) < addressNearbyMeters)) {
-      rows = rows.filter((row) => row.matched || distanceMeters(row.place.coordinates, near) < addressNearbyMeters);
+    let rows = mapped.filter((row, index) => !row.score || !mapped.slice(0, index).some((earlier) => earlier.score && earlier.place.name === row.place.name && distanceMeters(earlier.place.coordinates, row.place.coordinates) < dedupeMeters));
+    if (near && rows.some((row) => row.score && distanceMeters(row.place.coordinates, near) < addressNearbyMeters)) {
+      rows = rows.filter((row) => row.score || distanceMeters(row.place.coordinates, near) < addressNearbyMeters);
     }
-    const places = [...rows.filter((row) => row.matched), ...rows.filter((row) => !row.matched)].map((row) => row.place);
+    const places = rows.map((row, index) => ({ row, index })).sort((x, y) => y.row.score - x.row.score || x.index - y.index).map(({ row }) => row.place);
     cache.set(key, { at: Date.now(), places });
     while (cache.size > cacheMax) cache.delete(cache.keys().next().value!);
     return places;

@@ -202,7 +202,7 @@ describe('Photon place search', () => {
     expect(station.json().places[0]).toEqual({ name: '300 Main Street, Cambridge', coordinates: [-71.1036, 42.3655], kind: 'station' });
   });
 
-  it.each([['12, rue de Rivoli'], ['Rue de Rivoli 12']])('recognises the address in %s', async (q) => {
+  it.each([['12, rue de Rivoli'], ['Rue de Rivoli 12'], ['Rue de Rivoli, 12'], ['Rue de Rivoli 12, Paris']])('recognises the address in %s', async (q) => {
     const { fn } = fakeFetch(ok([feature('Café', [2.35, 48.86], { osm_key: 'amenity', osm_value: 'cafe', housenumber: '12', street: 'Rue de Rivoli', city: 'Paris' })]));
     const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
     expect(res.json().places[0]?.name).toBe('12 Rue de Rivoli, Paris');
@@ -214,7 +214,14 @@ describe('Photon place search', () => {
     ['5 Market Cafe', 'Market Cafe', '5', 'Market Street', 'Market Cafe, Boston'],
     ['550 Huntington', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
     ['550 N Main St', 'Shop', '550', 'North Main Street', '550 North Main Street, Boston'],
-    ['Apt 4, 550 Main St', 'Shop', '4', 'Main Street', 'Shop, Boston']
+    ['Apt 4, 550 Main St', 'Shop', '4', 'Main Street', 'Shop, Boston'],
+    ['550 Main St #4', 'Shop', '4', 'Main Street', 'Shop, Boston'],
+    ['550 Main St #4', 'Shop', '550', 'Main Street', '550 Main Street, Boston'],
+    ['100 Main St W', 'Shop', '100', 'Main Street', 'Shop, Boston'],
+    ['100 Main St W', 'Shop', '100', 'Main Street West', '100 Main Street West, Boston'],
+    ['10 Downing Street Cafe', 'Downing Cafe', '10', 'Downing Street', 'Downing Cafe, Boston'],
+    ['550 Huntington Boston', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
+    ['1 Beacon St Boston MA', 'Shop', '1', 'Beacon Street', '1 Beacon Street, Boston']
   ])('for %s, names %s at %s %s as %s', async (q, name, housenumber, street, expected) => {
     const { fn } = fakeFetch(ok([feature(name, [-71.06, 42.36], { osm_key: 'amenity', osm_value: 'cafe', housenumber, street, city: 'Boston' })]));
     const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
@@ -229,6 +236,15 @@ describe('Photon place search', () => {
     const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh');
     expect(res.json().places[0]?.name).toBe('550 Main Street, Pittsburgh');
     expect(res.json().places).toHaveLength(5);
+  });
+
+  it('puts a matching address in the requested city ahead of other matching addresses', async () => {
+    const { fn } = fakeFetch(ok([
+      ...['Medford', 'Malden', 'Stoneham', 'Watertown', 'Winchester'].map((city, i) => feature('', [-71.1 + i * 0.01, 42.4], { housenumber: '550', street: 'Main Street', city })),
+      feature('', [-79.99, 40.44], { housenumber: '550', street: 'Main Street', city: 'Pittsburgh' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh&near=-71.06,42.36');
+    expect(res.json().places[0]?.name).toBe('550 Main Street, Pittsburgh');
   });
 
   it('keeps units at one address apart', async () => {
