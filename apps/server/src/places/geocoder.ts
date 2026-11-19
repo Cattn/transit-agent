@@ -39,7 +39,6 @@ const streetAbbreviations: Record<string, string> = {
   ter: 'terrace', sq: 'square', hwy: 'highway', pkwy: 'parkway', cir: 'circle', n: 'north', s: 'south', e: 'east', w: 'west'
 };
 const streetTypes = new Set(['street', 'avenue', 'road', 'drive', 'lane', 'boulevard', 'place', 'court', 'terrace', 'square', 'highway', 'parkway', 'circle', 'way']);
-const directions = new Set(['north', 'south', 'east', 'west']);
 const unitWords = new Set(['apt', 'apartment', 'unit', 'suite', 'ste', 'floor', 'fl', 'room', 'rm', '#']);
 const houseNumberPattern = /^\d+[a-z]?(?:[-/]\d+[a-z]?)?$/;
 
@@ -55,7 +54,6 @@ interface AddressCandidate {
 
 interface AddressQuery {
   candidates: AddressCandidate[];
-  words: Set<string>;
 }
 
 export function addressQuery(q: string): AddressQuery | undefined {
@@ -67,16 +65,38 @@ export function addressQuery(q: string): AddressQuery | undefined {
     const start = tokens.lastIndexOf(',', end - 1) + 1;
     return [{ number: token, before: tokens.slice(start, end), after }];
   });
-  return candidates.length ? { candidates, words: new Set(tokens) } : undefined;
+  return candidates.length ? { candidates } : undefined;
 }
 
 function startsWith(list: string[], prefix: string[]) {
   return prefix.length > 0 && prefix.every((word, index) => list[index] === word);
 }
 
-function restFits(rest: string[], area: Set<string>) {
-  const next = rest[0];
-  return next === undefined || next === ',' || unitWords.has(next) || (!streetTypes.has(next) && !directions.has(next) && area.has(next));
+const countryWords = new Set(['us', 'usa']);
+
+function localityFit(rest: string[], props: Record<string, unknown>): number {
+  const city = words(text(props.city) ?? '');
+  const phrases = ['city', 'district', 'locality', 'county', 'state', 'postcode', 'country']
+    .flatMap((field) => { const name = text(props[field]); return name ? [{ words: words(name), city: field === 'city' }] : []; })
+    .sort((x, y) => y.words.length - x.words.length);
+  let cityHit = false;
+  let afterComma = false;
+  for (let i = 0; i < rest.length;) {
+    const token = rest[i]!;
+    if (token === ',') { afterComma = true; i += 1; continue; }
+    if (unitWords.has(token)) { i += 2; continue; }
+    const phrase = phrases.find((candidate) => startsWith(rest.slice(i), candidate.words));
+    if (phrase) {
+      cityHit ||= phrase.city && city.length > 0;
+      i += phrase.words.length;
+      continue;
+    }
+    if (countryWords.has(token) || /^[a-z]{2}$/.test(token)) { i += 1; continue; }
+    if (!afterComma) return 0;
+    const comma = rest.indexOf(',', i);
+    i = comma < 0 ? rest.length : comma;
+  }
+  return cityHit ? 2 : 1;
 }
 
 function addressScore(query: AddressQuery | undefined, props: Record<string, unknown>): number {
@@ -86,14 +106,10 @@ function addressScore(query: AddressQuery | undefined, props: Record<string, unk
   const number = housenumber.toLowerCase().replace(/\s+/g, '');
   const full = words(street);
   const core = streetTypes.has(full.at(-1) ?? '') ? full.slice(0, -1) : full;
-  const areaNames = ['city', 'district', 'locality', 'county', 'state', 'postcode', 'country'].flatMap((field) => text(props[field]) ?? []);
-  const area = new Set(areaNames.flatMap(words));
-  const matched = query.candidates.some(({ number: n, before, after }) => n === number && (
-    [full, core].some((street) => startsWith(after, street) && restFits(after.slice(street.length), area)) ||
-    (startsWith(before.slice(-full.length), full) && !before.slice(0, -full.length).some((word) => houseNumberPattern.test(word)))));
-  if (!matched) return 0;
-  const city = text(props.city);
-  return city && words(city).every((word) => query.words.has(word) && !full.includes(word)) ? 2 : 1;
+  return Math.max(0, ...query.candidates.filter((candidate) => candidate.number === number).flatMap(({ before, after }) => [
+    ...[full, core].map((street) => startsWith(after, street) ? localityFit(after.slice(street.length), props) : 0),
+    startsWith(before.slice(-full.length), full) && !before.slice(0, -full.length).some((word) => houseNumberPattern.test(word)) ? localityFit(after, props) : 0
+  ]));
 }
 
 function text(value: unknown) {

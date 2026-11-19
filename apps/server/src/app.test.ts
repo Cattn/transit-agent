@@ -212,6 +212,8 @@ describe('Photon place search', () => {
     ['9 West St', 'Brattle Book Shop', '9', 'West Street', '9 West Street, Boston'],
     ['550 Main St, Pittsburgh', 'Diner', '550', 'Main Road', 'Diner, Boston'],
     ['5 Market Cafe', 'Market Cafe', '5', 'Market Street', 'Market Cafe, Boston'],
+    ['5 Market Boston Pizza', '5 Market Boston Pizza', '5', 'Market Street', '5 Market Boston Pizza, Boston'],
+    ['550 Main St, Boston, MA 02118', 'Shop', '550', 'Main Street', '550 Main Street, Boston'],
     ['550 Huntington', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
     ['550 N Main St', 'Shop', '550', 'North Main Street', '550 North Main Street, Boston'],
     ['Apt 4, 550 Main St', 'Shop', '4', 'Main Street', 'Shop, Boston'],
@@ -245,6 +247,15 @@ describe('Photon place search', () => {
     ]));
     const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh&near=-71.06,42.36');
     expect(res.json().places[0]?.name).toBe('550 Main Street, Pittsburgh');
+  });
+
+  it('prefers the whole requested city over a shorter name inside it', async () => {
+    const { fn } = fakeFetch(ok([
+      ...[0, 1, 2, 3, 4].map((i) => feature('', [-72.59 + i * 0.01, 42.1], { housenumber: '550', street: 'Main Street', city: 'Springfield' })),
+      feature('', [-72.62, 42.11], { housenumber: '550', street: 'Main Street', city: 'West Springfield' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20West%20Springfield');
+    expect(res.json().places[0]?.name).toBe('550 Main Street, West Springfield');
   });
 
   it('keeps units at one address apart', async () => {
