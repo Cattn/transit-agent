@@ -29,22 +29,27 @@ function publishList(servers: string[]) {
   for (const listener of listListeners) listener(servers);
 }
 
-async function readState(): Promise<ServerState | undefined> {
-  try {
-    const raw = await SecureStore.getItemAsync(SERVER_STATE_KEY);
-    if (raw !== null) return parseServerState(raw);
-    const [active, savedList] = await Promise.all([SecureStore.getItemAsync(SERVER_URL_KEY), SecureStore.getItemAsync(EARLY_SAVED_SERVERS_KEY)]);
-    return serverStateFromLegacy(active, savedList);
-  } catch {
-    return undefined;
-  }
+const unreadable = Symbol('unreadable');
+
+function read(key: string): Promise<string | null | typeof unreadable> {
+  return SecureStore.getItemAsync(key).catch(() => unreadable);
+}
+
+async function readState(): Promise<{ stored?: ServerState; fallback?: ServerState }> {
+  const raw = await read(SERVER_STATE_KEY);
+  if (raw === unreadable) return {};
+  if (raw !== null) return { stored: parseServerState(raw) };
+  const [active, savedList] = await Promise.all([read(SERVER_URL_KEY), read(EARLY_SAVED_SERVERS_KEY)]);
+  if (active === unreadable) return {};
+  if (savedList === unreadable) return { fallback: serverStateFromLegacy(active) };
+  return { stored: serverStateFromLegacy(active, savedList) };
 }
 
 function change(update: (state: ServerState) => ServerState): Promise<void> {
   const run = queue.then(async () => {
     await load();
     if (!known) {
-      const stored = await readState();
+      const { stored } = await readState();
       if (stored) {
         state = unsaved.reduce((next, replay) => replay(next), stored);
         unsaved = [];
@@ -77,10 +82,12 @@ function applyLink(link: string | null): boolean {
 }
 
 function load(): Promise<void> {
-  loading ??= Promise.all([Linking.getInitialURL().catch(() => null), readState()]).then(([initial, stored]) => {
+  loading ??= Promise.all([Linking.getInitialURL().catch(() => null), readState()]).then(([initial, { stored, fallback }]) => {
     if (stored) {
       state = stored;
       known = true;
+    } else if (fallback) {
+      state = fallback;
     }
     publishList(state.saved);
     Linking.addEventListener('url', ({ url }) => applyLink(url));

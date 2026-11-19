@@ -145,6 +145,22 @@ describe('saved servers on the phone', () => {
     expect(await restart()).toEqual({ active: null, saved: ['https://a.example.com', 'https://b.example.com'] });
   });
 
+  it('keeps the legacy server active when only the early list is unreadable', async () => {
+    disk.set(LEGACY, 'https://a.example.com');
+    disk.set('transit.savedServers', '["https://b.example.com"]');
+    failing.get.add('transit.savedServers');
+    const app = await launch();
+    let active: string | null | undefined;
+    const off = app.onServerUrl((url) => { active = url; });
+    await app.removeServer('https://never-saved.example.com');
+    off();
+    expect(active).toBe('https://a.example.com');
+    expect(disk.has(STATE)).toBe(false);
+    failing.get.clear();
+    await app.setServerUrl(null);
+    expect(await restart()).toEqual({ active: null, saved: ['https://b.example.com', 'https://a.example.com'] });
+  });
+
   it('replays a removal made while storage was unreadable', async () => {
     disk.set(STATE, '{"active":"https://a.example.com","saved":["https://a.example.com","https://b.example.com"]}');
     failing.get.add(STATE);
