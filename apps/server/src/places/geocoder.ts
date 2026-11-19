@@ -79,11 +79,27 @@ function startsWith(list: string[], prefix: string[], normalize: (word: string) 
 }
 
 const countryWords = new Set(['us', 'usa']);
+const stateCodes: Record<string, string> = {
+  alabama: 'al', alaska: 'ak', arizona: 'az', arkansas: 'ar', california: 'ca', colorado: 'co', connecticut: 'ct',
+  delaware: 'de', 'district of columbia': 'dc', florida: 'fl', georgia: 'ga', hawaii: 'hi', idaho: 'id', illinois: 'il',
+  indiana: 'in', iowa: 'ia', kansas: 'ks', kentucky: 'ky', louisiana: 'la', maine: 'me', maryland: 'md', massachusetts: 'ma',
+  michigan: 'mi', minnesota: 'mn', mississippi: 'ms', missouri: 'mo', montana: 'mt', nebraska: 'ne', nevada: 'nv',
+  'new hampshire': 'nh', 'new jersey': 'nj', 'new mexico': 'nm', 'new york': 'ny', 'north carolina': 'nc', 'north dakota': 'nd',
+  ohio: 'oh', oklahoma: 'ok', oregon: 'or', pennsylvania: 'pa', 'rhode island': 'ri', 'south carolina': 'sc',
+  'south dakota': 'sd', tennessee: 'tn', texas: 'tx', utah: 'ut', vermont: 'vt', virginia: 'va', washington: 'wa',
+  'west virginia': 'wv', wisconsin: 'wi', wyoming: 'wy'
+};
+
+function directionWord(word: string) {
+  const expanded = streetWord(word);
+  return directions.has(expanded) ? expanded : word;
+}
 
 function localityFit(rest: string[], props: Record<string, unknown>): number {
   const phrases = ['city', 'district', 'locality', 'county', 'state', 'postcode', 'country']
-    .flatMap((field) => { const name = text(props[field]); return name ? [{ words: words(name), city: field === 'city' }] : []; })
+    .flatMap((field) => { const name = text(props[field]); return name ? [{ words: words(name).map(directionWord), city: field === 'city' }] : []; })
     .sort((x, y) => y.words.length - x.words.length);
+  const stateCode = stateCodes[(text(props.state) ?? '').toLowerCase()];
   let cityHit = false;
   let afterComma = false;
   let consumed = false;
@@ -91,7 +107,7 @@ function localityFit(rest: string[], props: Record<string, unknown>): number {
     const token = rest[i]!;
     if (token === ',') { afterComma = true; consumed = true; i += 1; continue; }
     if (unitWords.has(token)) { consumed = true; i += 2; continue; }
-    const phrase = phrases.find((candidate) => startsWith(rest.slice(i), candidate.words));
+    const phrase = phrases.find((candidate) => startsWith(rest.slice(i), candidate.words, directionWord));
     if (phrase) {
       cityHit ||= phrase.city;
       consumed = true;
@@ -99,7 +115,7 @@ function localityFit(rest: string[], props: Record<string, unknown>): number {
       continue;
     }
     const looksLikeStreet = streetTypes.has(streetWord(token)) || directions.has(streetWord(token));
-    if (countryWords.has(token) || (/^[a-z]{2}$/.test(token) && (consumed || !looksLikeStreet))) { consumed = true; i += 1; continue; }
+    if (countryWords.has(token) || token === stateCode || (/^[a-z]{2}$/.test(token) && (consumed || !looksLikeStreet))) { consumed = true; i += 1; continue; }
     if (!afterComma) return 0;
     const comma = rest.indexOf(',', i);
     i = comma < 0 ? rest.length : comma;
@@ -118,7 +134,9 @@ function addressScore(query: AddressQuery | undefined, props: Record<string, unk
     const cityFirst = before.length > 0 && localityFit(before, props) === 2;
     return [
       ...[full, core].map((street) => {
-        const fit = startsWith(after, street, streetWord) ? localityFit(after.slice(street.length), props) : 0;
+        const rest = after.slice(street.length);
+        const otherType = street !== full && rest[0] !== undefined && streetTypes.has(streetWord(rest[0]));
+        const fit = startsWith(after, street, streetWord) && !otherType ? localityFit(rest, props) : 0;
         return fit && cityFirst ? 2 : fit;
       }),
       startsWith(before.slice(-full.length), full, streetWord) && !before.slice(0, -full.length).some((word) => houseNumberPattern.test(word)) ? localityFit(after, props) : 0

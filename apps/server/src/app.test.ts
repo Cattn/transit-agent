@@ -269,6 +269,36 @@ describe('Photon place search', () => {
     expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['1 Union Place, Hartford']);
   });
 
+  it.each([['1 Union Pl CT'], ['1 Union Pl Hartford CT']])('keeps the address for %s', async (q) => {
+    const { fn } = fakeFetch(ok([
+      feature('Hartford Union Station', [-72.6815, 41.7678], { osm_key: 'building', osm_value: 'train_station', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' }),
+      feature('Subway', [-72.6816, 41.7679], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' })
+    ]));
+    const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['1 Union Place, Hartford']);
+  });
+
+  it('reads an abbreviated direction in the city (381 Main St W Springfield)', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('West Springfield Police Dept - Subst.', [-72.62, 42.107], { osm_key: 'amenity', osm_value: 'police', housenumber: '381', street: 'Main Street', city: 'West Springfield', state: 'Massachusetts' }),
+      feature('', [-70.25, 43.66], { housenumber: '381', street: 'Main Street', city: 'Westbrook', state: 'Maine' })
+    ]));
+    const res = await serve(fn)('/api/places?q=381%20Main%20St%20W%20Springfield&near=-72.6,42.1');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['381 Main Street, West Springfield']);
+  });
+
+  it('does not read a street-type abbreviation as a state code', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-72.6, 41.7], { housenumber: '10', street: 'Summer Avenue', city: 'Hartford', state: 'Connecticut' })]));
+    const res = await serve(fn)('/api/places?q=10%20Summer%20St');
+    expect(res.json().places[0]?.name).toBe('Shop, Hartford');
+  });
+
+  it('does not read a court abbreviation as a state code on another street type', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-72.6, 41.7], { housenumber: '10', street: 'Summer Street', city: 'Hartford', state: 'Connecticut' })]));
+    const res = await serve(fn)('/api/places?q=10%20Summer%20Ct');
+    expect(res.json().places[0]?.name).toBe('Shop, Hartford');
+  });
+
   it('gives priority to a city typed before the address', async () => {
     const { fn } = fakeFetch(ok([
       ...['Arlington', 'Lexington', 'Walpole', 'Boston', 'Worcester'].map((city, i) => feature('', [-71.2 + i * 0.01, 42.4], { housenumber: '77', street: 'Massachusetts Avenue', city })),
