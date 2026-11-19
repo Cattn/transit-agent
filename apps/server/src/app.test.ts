@@ -173,6 +173,41 @@ describe('Photon place search', () => {
     expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['12 Main Street, Lakeville']);
   });
 
+  it('keeps a distant address that matches when a nearby result only shares the street', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Main Street', [-71.07, 42.37], { osm_key: 'highway', osm_value: 'residential', city: 'Boston' }),
+      feature('Shop', [-79.99, 40.44], { housenumber: '550', street: 'Main Street', city: 'Pittsburgh' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh&near=-71.06,42.36');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['Main Street, Boston', '550 Main Street, Pittsburgh']);
+  });
+
+  it('keeps same-name stops apart in a name search', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Central Square', [-71.1036, 42.3655], { osm_key: 'highway', osm_value: 'bus_stop' }),
+      feature('Central Square', [-71.1027, 42.3651], { osm_key: 'highway', osm_value: 'bus_stop' })
+    ]));
+    const res = await serve(fn)('/api/places?q=Central%20Square');
+    expect(res.json().places).toHaveLength(2);
+  });
+
+  it('keeps the name and kind of a place whose address the query does not ask for', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('200 Degrees Coffee', [-1.15, 52.95], { osm_key: 'amenity', osm_value: 'cafe', housenumber: '9', street: 'Market Street', city: 'Nottingham' }),
+      feature('Central', [-71.1036, 42.3655], { osm_key: 'railway', osm_value: 'station', housenumber: '300', street: 'Main Street' })
+    ]));
+    const coffee = await serve(fn)('/api/places?q=200%20Degrees%20Coffee');
+    expect(coffee.json().places[0]).toMatchObject({ name: '200 Degrees Coffee, Nottingham' });
+    const station = await serve(fn)('/api/places?q=300%20Main%20St');
+    expect(station.json().places[1]).toEqual({ name: '300 Main Street, Cambridge', coordinates: [-71.1036, 42.3655], kind: 'station' });
+  });
+
+  it.each([['12, rue de Rivoli'], ['Rue de Rivoli 12']])('recognises the address in %s', async (q) => {
+    const { fn } = fakeFetch(ok([feature('Café', [2.35, 48.86], { osm_key: 'amenity', osm_value: 'cafe', housenumber: '12', street: 'Rue de Rivoli', city: 'Paris' })]));
+    const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.json().places[0]?.name).toBe('12 Rue de Rivoli, Paris');
+  });
+
   it('passes near to Photon as lat and lon', async () => {
     const { calls, fn } = fakeFetch(ok(kendallSample));
     await serve(fn)('/api/places?q=Brookline%20Village&near=-71.06,42.36');

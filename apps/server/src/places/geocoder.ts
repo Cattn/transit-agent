@@ -34,11 +34,27 @@ export function coordinatePlace(q: string): Place | undefined {
   return result.success ? result.data : undefined;
 }
 
-const addressPattern = /^\s*\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+\S/i;
+const streetTypeWords = new Set(['street', 'st', 'avenue', 'ave', 'road', 'rd', 'drive', 'dr', 'lane', 'ln', 'boulevard', 'blvd', 'place', 'pl', 'court', 'ct', 'way', 'terrace', 'ter', 'square', 'sq', 'highway', 'hwy', 'north', 'south', 'east', 'west', 'n', 's', 'e', 'w', 'the', 'rue', 'de', 'la', 'du']);
 
-/** A query that starts with a house number, such as "550 Huntington Ave". */
-export function isAddressQuery(q: string) {
-  return addressPattern.test(q);
+function words(value: string) {
+  return value.toLowerCase().split(/[\s,.;#]+/).filter(Boolean);
+}
+
+interface AddressQuery {
+  numbers: Set<string>;
+  words: Set<string>;
+}
+
+export function addressQuery(q: string): AddressQuery | undefined {
+  const tokens = words(q);
+  const numbers = new Set(tokens.filter((token) => /^\d+[a-z]?(?:[-/]\d+[a-z]?)?$/.test(token)));
+  return numbers.size ? { numbers, words: new Set(tokens) } : undefined;
+}
+
+function matchesAddress(query: AddressQuery | undefined, housenumber: string | undefined, street: string | undefined) {
+  if (!query || !housenumber || !street) return false;
+  if (!query.numbers.has(housenumber.toLowerCase().replace(/\s+/g, ''))) return false;
+  return words(street).some((word) => word.length > 1 && !streetTypeWords.has(word) && query.words.has(word));
 }
 
 function text(value: unknown) {
@@ -55,21 +71,21 @@ function kindOf(props: Record<string, unknown>): Place['kind'] {
   return 'poi';
 }
 
-/**
- * With `preferAddress`, a feature that has a house number is named by its street address, not by
- * the business or building at it, so an address search lists the address the user typed.
- */
-export function photonFeatureToPlace(feature: PhotonFeature, { preferAddress = false }: { preferAddress?: boolean } = {}): Place | undefined {
+function toPlace(feature: PhotonFeature, query?: AddressQuery): { place: Place; matched: boolean } | undefined {
   const props = feature.properties ?? {};
   const street = text(props.street);
   const housenumber = text(props.housenumber);
   const address = street ? [housenumber, street].filter(Boolean).join(' ') : undefined;
-  const asAddress = preferAddress && Boolean(housenumber && street);
-  const base = asAddress ? address : text(props.name) ?? address;
+  const matched = matchesAddress(query, housenumber, street);
+  const base = matched ? address : text(props.name) ?? address;
   const area = text(props.city) ?? text(props.state);
   const name = base && area && area !== base ? `${base}, ${area}` : base;
-  const result = PlaceSchema.safeParse({ name, coordinates: feature.geometry?.coordinates, kind: asAddress ? 'address' : kindOf(props) });
-  return result.success ? result.data : undefined;
+  const result = PlaceSchema.safeParse({ name, coordinates: feature.geometry?.coordinates, kind: kindOf(props) });
+  return result.success ? { place: result.data, matched } : undefined;
+}
+
+export function photonFeatureToPlace(feature: PhotonFeature, q?: string): Place | undefined {
+  return toPlace(feature, q === undefined ? undefined : addressQuery(q))?.place;
 }
 
 export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.fetch }: { photonUrl?: string; fetch?: typeof globalThis.fetch } = {}): PlaceSearcher {
@@ -83,8 +99,8 @@ export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.f
     cache.delete(key);
     const url = new URL(`${baseUrl}/api/`);
     url.searchParams.set('q', q);
-    const addressMode = isAddressQuery(q);
-    url.searchParams.set('limit', String(addressMode ? addressFetchLimit : maxResults));
+    const address = addressQuery(q);
+    url.searchParams.set('limit', String(address ? addressFetchLimit : maxResults));
     url.searchParams.set('lang', 'en');
     if (near) {
       url.searchParams.set('lat', String(near[1]));
@@ -94,15 +110,12 @@ export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.f
     if (!res.ok) throw new Error(`Photon returned ${res.status}`);
     const body = (await res.json()) as { features?: PhotonFeature[] };
     if (!Array.isArray(body.features)) throw new Error('Photon response has no features');
-    const mapped = body.features
-      .map((feature) => photonFeatureToPlace(feature, { preferAddress: addressMode }))
-      .filter((place): place is Place => Boolean(place));
-    // Several businesses at one address collapse into a single result.
-    let places = mapped.filter((place, index) => !mapped.slice(0, index).some((earlier) => earlier.name === place.name && distanceMeters(earlier.coordinates, place.coordinates) < dedupeMeters));
-    // The same street number exists in many towns: once one is nearby, drop the distant ones.
-    if (addressMode && near && places.some((place) => distanceMeters(place.coordinates, near) < addressNearbyMeters)) {
-      places = places.filter((place) => distanceMeters(place.coordinates, near) < addressNearbyMeters);
+    const mapped = body.features.flatMap((feature) => toPlace(feature, address) ?? []);
+    let rows = mapped.filter((row, index) => !row.matched || !mapped.slice(0, index).some((earlier) => earlier.matched && earlier.place.name === row.place.name && distanceMeters(earlier.place.coordinates, row.place.coordinates) < dedupeMeters));
+    if (near && rows.some((row) => row.matched && distanceMeters(row.place.coordinates, near) < addressNearbyMeters)) {
+      rows = rows.filter((row) => row.matched || distanceMeters(row.place.coordinates, near) < addressNearbyMeters);
     }
+    const places = rows.map((row) => row.place);
     cache.set(key, { at: Date.now(), places });
     while (cache.size > cacheMax) cache.delete(cache.keys().next().value!);
     return places;
