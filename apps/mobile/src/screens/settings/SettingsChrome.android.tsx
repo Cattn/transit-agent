@@ -23,7 +23,7 @@ import {
   useNativeState,
   type MaterialColors
 } from '@expo/ui/jetpack-compose';
-import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, weight } from '@expo/ui/jetpack-compose/modifiers';
+import { alpha, background, clickable, clip, fillMaxWidth, padding, paddingAll, Shapes, size, verticalScroll, weight } from '@expo/ui/jetpack-compose/modifiers';
 import Accessible from '../../../assets/icons/accessible_fill.xml';
 import Add from '../../../assets/icons/add_fill.xml';
 import ArrowBack from '../../../assets/icons/arrow_back_fill.xml';
@@ -267,7 +267,7 @@ function ServerDialog({ saved, servers, defaultLabel, m, onCheck, onSelect, onRe
         <Text style={m3Text('headlineSmall')}>Server</Text>
       </AlertDialog.Title>
       <AlertDialog.Text>
-        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
+        <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth(), verticalScroll()]}>
           <Column modifiers={[fillMaxWidth()]}>
             {option('default', defaultLabel, null)}
             {servers.map((server) => option(server.url, server.label, server.url, () => onRemove(server.url)))}

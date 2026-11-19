@@ -30,10 +30,10 @@ function storeList(servers: string[]): Promise<void> {
 }
 
 export async function setServerUrl(url: string | null): Promise<void> {
-  publish(url);
-  await (url ? SecureStore.setItemAsync(SERVER_URL_KEY, url) : SecureStore.deleteItemAsync(SERVER_URL_KEY)).catch(() => undefined);
   await load();
+  publish(url);
   if (url && saved && !saved.includes(url)) await storeList(withServer(saved, url));
+  await (url ? SecureStore.setItemAsync(SERVER_URL_KEY, url) : SecureStore.deleteItemAsync(SERVER_URL_KEY)).catch(() => undefined);
 }
 
 export async function removeServer(url: string): Promise<void> {
@@ -53,8 +53,10 @@ function load(): Promise<void> {
     Linking.getInitialURL().catch(() => null),
     SecureStore.getItemAsync(SERVER_URL_KEY).catch(() => null),
     SecureStore.getItemAsync(SAVED_SERVERS_KEY).catch(() => null)
-  ]).then(([initial, stored, list]) => {
-    publishList(parseSavedServers(list, stored));
+  ]).then(async ([initial, stored, list]) => {
+    const servers = parseSavedServers(list, stored);
+    if (JSON.stringify(servers) !== list) await storeList(servers);
+    else publishList(servers);
     Linking.addEventListener('url', ({ url }) => applyLink(url));
     if (!applyLink(initial ?? null)) publish(stored ?? null);
   });
