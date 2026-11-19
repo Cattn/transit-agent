@@ -5,7 +5,10 @@ import {
   formatTimeRange,
   itineraryFreshness,
   legFreshness,
+  legDirection,
   legLabel,
+  legStopCount,
+  legStopNames,
   riskBadge,
   scheduledModes,
   type Badge,
@@ -28,6 +31,9 @@ export interface LegDetail {
   label: string;
   times: string;
   freshness: Badge;
+  direction?: string;
+  stopCount?: string;
+  stops?: string;
 }
 
 export interface ItineraryCardText {
@@ -83,7 +89,16 @@ export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): 
     detail: freshnessDetail(it, now),
     cost: formatCost(it.cost),
     risk: riskBadge(it.risk),
-    details: it.legs.map((leg) => ({ id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: outdated && leg.timeSource === 'realtime' ? { label: 'Outdated', tone: 'warn' } : legFreshness(leg) }))
+    details: it.legs.map((leg) => {
+      const detail: LegDetail = { id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: outdated && leg.timeSource === 'realtime' ? { label: 'Outdated', tone: 'warn' } : legFreshness(leg) };
+      const direction = legDirection(leg);
+      const stopCount = legStopCount(leg);
+      const stops = legStopNames(leg);
+      if (direction) detail.direction = direction;
+      if (stopCount) detail.stopCount = stopCount;
+      if (stops) detail.stops = stops;
+      return detail;
+    })
   };
 }
 
@@ -165,8 +180,10 @@ export function ItineraryCard({ text, selected, saved, canSave, colors, onPress,
         <View style={[styles.details, { borderTopColor: colors.surfaceVariant }]}>
           {text.details.map((leg) => (
             <View key={leg.id} style={styles.detail}>
-              <Text style={[styles.detailLabel, { color: colors.onSurface }]}>{leg.label}</Text>
+              <Text style={[styles.detailLabel, { color: colors.onSurface }]}>{leg.direction ? `${leg.label} ${leg.direction}` : leg.label}</Text>
               <Text style={[styles.detailMeta, { color: colors.onSurfaceVariant }]}>{leg.times} · {leg.freshness.label}</Text>
+              {leg.stopCount ? <Text style={[styles.detailMeta, { color: colors.onSurface }]}>{leg.stopCount}</Text> : null}
+              {leg.stops ? <Text style={[styles.detailMeta, { color: colors.onSurfaceVariant }]}>{leg.stops}</Text> : null}
             </View>
           ))}
           <Pressable accessibilityRole="button" disabled={!canSave || saved} onPress={onSave} style={styles.save}>

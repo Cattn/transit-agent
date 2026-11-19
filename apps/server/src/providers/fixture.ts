@@ -178,6 +178,15 @@ function buildItinerary(req: TripRequest, option: Option, distanceMeters: number
     const routeName = ROUTE_NAMES[segment.mode];
     if (routeName) leg.routeName = routeName;
     if (segment.bufferMinutes !== undefined) leg.transferBufferMinutes = segment.bufferMinutes;
+    if (segment.mode === 'rail') {
+      leg.headsign = 'Fixture terminal';
+      leg.intermediateStops = [1, 2, 3].map((n) => ({
+        name: `Fixture station ${index + 1}.${n}`,
+        coordinates: interpolate(req.origin.coordinates, req.destination.coordinates, segment.start + (segment.end - segment.start) * n / 4),
+        kind: 'station',
+        code: `fx-${option.key}-station-${index + 1}-${n}`
+      }));
+    }
     return leg;
   });
 

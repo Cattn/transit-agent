@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { ItinerarySchema, legLabel, type Itinerary, type Leg, type Place, type TravelMode, type TripRef, type TripRequest, type WatchStatus } from '@transit/shared';
+import { ItinerarySchema, legLabel, PlaceSchema, type Itinerary, type Leg, type Place, type TravelMode, type TripRef, type TripRequest, type WatchStatus } from '@transit/shared';
 import { DEFAULT_GAS_USD_PER_GALLON, driveCost, type CostLine } from '../flights/ground-cost.js';
 import { decodePolyline } from '../planning/geo.js';
 import type { RouteProvider } from './types.js';
@@ -50,7 +50,9 @@ export interface TransitousLeg {
   displayName?: string;
   routeShortName?: string;
   routeLongName?: string;
+  headsign?: string;
   cancelled?: boolean;
+  intermediateStops?: unknown;
 }
 
 export interface TransitousItinerary {
@@ -108,6 +110,22 @@ function place(raw: TransitousPlace, mode: TravelMode, feed: string | undefined,
   return result;
 }
 
+function intermediateStops(raw: unknown, mode: TravelMode, feed: string | undefined): Place[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const stops: Place[] = [];
+  for (const stop of raw) {
+    if (!stop || typeof stop !== 'object') return undefined;
+    const { name, stopId, lat, lon } = stop as Record<string, unknown>;
+    if (typeof lat !== 'number' || typeof lon !== 'number') return undefined;
+    if (name !== undefined && typeof name !== 'string') return undefined;
+    if (stopId !== undefined && typeof stopId !== 'string') return undefined;
+    const parsed = PlaceSchema.safeParse(place({ name, stopId, lat, lon }, mode, feed));
+    if (!parsed.success) return undefined;
+    stops.push(parsed.data);
+  }
+  return stops;
+}
+
 function costLines(legs: Leg[], req: TripRequest, gasUsdPerGallon: number): CostLine[] {
   const lines: CostLine[] = [];
   for (const leg of legs) {
@@ -159,10 +177,14 @@ export function mapTransitousItinerary(raw: TransitousItinerary, req: TripReques
       timeSource: STREET_MODES.includes(mode) || rawLeg.realTime ? 'estimated' : 'scheduled'
     };
     if (rawLeg.distance !== undefined) leg.distanceMeters = Math.round(rawLeg.distance);
-    const routeName = rawLeg.displayName || rawLeg.routeShortName || rawLeg.routeLongName;
+    const mbtaSubway = mode === 'rail' && Boolean(trip?.feed?.includes('MBTA'));
+    const routeName = (mbtaSubway && rawLeg.routeLongName) || rawLeg.displayName || rawLeg.routeShortName || rawLeg.routeLongName;
     if (routeName && !STREET_MODES.includes(mode)) leg.routeName = routeName;
     if (rawLeg.agencyName) leg.agency = rawLeg.agencyName;
     if (trip) leg.trip = trip;
+    if (mbtaSubway && rawLeg.headsign) leg.headsign = rawLeg.headsign;
+    const stops = mbtaSubway ? intermediateStops(rawLeg.intermediateStops, mode, trip?.feed) : undefined;
+    if (stops) leg.intermediateStops = stops;
     legs.push(leg);
   }
   if (legs.length === 0) return 'no legs';

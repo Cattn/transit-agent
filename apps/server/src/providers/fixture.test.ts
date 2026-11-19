@@ -126,6 +126,49 @@ describe('Transitous mapping (recorded /api/v6/plan responses)', () => {
     expect(first?.cost.lines).toEqual([{ label: 'Red Line fare', usd: 2.4, estimated: true }]);
   });
 
+  it('lists the stops an MBTA subway leg rides through', () => {
+    const [first] = mapTransitousPlan(sample('007-transitous.json'), liveRequest(), { fetchedAt });
+    const rail = first!.legs[1]!;
+    expect(rail.intermediateStops?.map((stop) => [stop.name, stop.kind, stop.code])).toEqual([
+      ['Charles/MGH', 'station', '70073'], ['Park Street', 'station', '70075'], ['Downtown Crossing', 'station', '70077']
+    ]);
+    expect(rail.to.name).toBe('South Station');
+    expect(first!.legs[0]!.intermediateStops).toBeUndefined();
+  });
+
+  it('drops a malformed stop list but keeps every route', () => {
+    const response = sample('007-transitous.json');
+    const broken = (bad: unknown) => ({ ...response, itineraries: response.itineraries!.map((it, index) => (index === 0
+      ? { ...it, legs: it.legs.map((leg) => (leg.tripId ? { ...leg, intermediateStops: [bad, ...(leg.intermediateStops as unknown[]).slice(1)] } : leg)) }
+      : it)) });
+    const stop = (sample('007-transitous.json').itineraries![0]!.legs[1]!.intermediateStops as object[])[0]!;
+    for (const bad of [null, { ...stop, lon: null }, { ...stop, name: 7 }]) {
+      const results = mapTransitousPlan(broken(bad) as typeof response, liveRequest(), { fetchedAt });
+      expect(results).toHaveLength(mapTransitousPlan(response, liveRequest(), { fetchedAt }).length);
+      expect(results[0]!.legs[1]).toMatchObject({ mode: 'rail', to: { name: 'South Station' } });
+      expect(results[0]!.legs[1]!.intermediateStops).toBeUndefined();
+    }
+  });
+
+  it('names Green Line branches in full and keeps the headsign', () => {
+    const raw = sample('007-transitous.json').itineraries![0]!;
+    const green = { ...raw, legs: raw.legs.map((leg) => (leg.tripId ? { ...leg, mode: 'TRAM', displayName: 'E', routeShortName: 'E', routeLongName: 'Green Line E', headsign: 'Heath Street' } : leg)) };
+    const mapped = mapTransitousItinerary(green, liveRequest(), { fetchedAt });
+    if (typeof mapped === 'string') throw new Error(mapped);
+    expect(mapped.legs[1]).toMatchObject({ mode: 'rail', routeName: 'Green Line E', headsign: 'Heath Street' });
+    expect(mapped.summary).toContain('Green Line E');
+  });
+
+  it('leaves stops off non-MBTA and bus legs', () => {
+    const response = sample('007-transitous.json');
+    const raw = response.itineraries![0]!;
+    const rerouted = { ...raw, legs: raw.legs.map((leg) => (leg.tripId ? { ...leg, tripId: leg.tripId.replace('us-ma-MBTA', 'xx-OTHER') } : leg)) };
+    const mapped = mapTransitousItinerary(rerouted, liveRequest(), { fetchedAt });
+    expect(typeof mapped).not.toBe('string');
+    expect((mapped as { legs: { intermediateStops?: unknown; headsign?: unknown }[] }).legs[1]!.intermediateStops).toBeUndefined();
+    expect((mapped as { legs: { headsign?: unknown }[] }).legs[1]!.headsign).toBeUndefined();
+  });
+
   it('never labels the router realTime flag as live and omits delay', () => {
     const results = mapTransitousPlan(sample('007-transitous-early.json'), liveRequest(), { fetchedAt });
     const bus = results[0]?.legs.find((leg) => leg.mode === 'bus');
