@@ -28,6 +28,7 @@ describe('parseConnectLink', () => {
     ['empty url forgets the server', 'transit-agent://connect?url=', ''],
     ['not http(s)', 'transit-agent://connect?url=javascript%3Aalert(1)', undefined],
     ['no url param', 'transit-agent://connect?x=1', undefined],
+    ['lower-cases the host and drops the default port, keeping the path', 'transit-agent://connect?url=HTTPS%3A%2F%2FExample.com%3A443%2FTransit%2F', 'https://example.com/Transit'],
     ['other app link', 'transit-agent://trip/123', undefined],
     ['Expo Go launch URL', 'exp://127.0.0.1:8082', undefined],
     ['bad encoding', 'transit-agent://connect?url=%E0%A4%A', undefined]
@@ -43,6 +44,12 @@ describe('normalizeServerUrl', () => {
     ['https tunnel', 'https://laptop.tail1234.ts.net/', 'https://laptop.tail1234.ts.net'],
     ['hostname without a scheme', 'localhost:3001', 'http://localhost:3001'],
     ['IPv6 with port', 'http://[fe80::1]:3001', 'http://[fe80::1]:3001'],
+    ['lower-cases the scheme and host', 'HTTPS://Laptop.Tail1234.TS.net', 'https://laptop.tail1234.ts.net'],
+    ['lower-cases an IPv6 host', 'http://[FE80::1]:3001', 'http://[fe80::1]:3001'],
+    ['drops the default http port', 'http://192.168.1.20:80', 'http://192.168.1.20'],
+    ['keeps port 443 on http', 'laptop.example.com:443', 'http://laptop.example.com:443'],
+    ['drops the default https port', 'https://laptop.example.com:443/', 'https://laptop.example.com'],
+    ['drops leading zeros in the port', '192.168.1.20:03001', 'http://192.168.1.20:3001'],
     ['empty', '   ', undefined],
     ['other scheme', 'ftp://192.168.1.20', undefined],
     ['path', 'http://192.168.1.20:3001/api', undefined],
@@ -61,6 +68,7 @@ describe('parseServerState', () => {
     ['active and saved', '{"active":"https://b.example.com","saved":["https://a.example.com","https://b.example.com"]}', { active: 'https://b.example.com', saved: ['https://a.example.com', 'https://b.example.com'] }],
     ['adds a missing active server to the list', '{"active":"http://192.168.1.20:3001","saved":[]}', { active: 'http://192.168.1.20:3001', saved: ['http://192.168.1.20:3001'] }],
     ['drops invalid and duplicate entries', '{"active":null,"saved":["https://a.example.com/",1,"not a url","https://a.example.com"]}', { active: null, saved: ['https://a.example.com'] }],
+    ['merges spellings of the same server', '{"active":"HTTP://Laptop.local:3001","saved":["http://laptop.local:3001","https://a.example.com:443","HTTPS://A.example.com"]}', { active: 'http://laptop.local:3001', saved: ['http://laptop.local:3001', 'https://a.example.com'] }],
     ['keeps a /connect address with a path', '{"active":null,"saved":["https://example.com/transit/"]}', { active: null, saved: ['https://example.com/transit'] }],
     ['broken JSON', '{oops', { active: null, saved: [] }],
     ['not an object', '"https://a.example.com"', { active: null, saved: [] }]

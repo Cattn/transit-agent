@@ -58,7 +58,21 @@ export function parseConnectLink(link: string): string | undefined {
 }
 
 function linkedServerUrl(url: string): string | undefined {
-  return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
+  return /^https?:\/\/[^\s/?#]+/i.test(url) ? canonicalServerUrl(url.replace(/\/+$/, '')) : undefined;
+}
+
+const DEFAULT_PORTS: Record<string, string> = { http: '80', https: '443' };
+
+/** One spelling per server: lower-case scheme and host, no leading zeros or default port. The path keeps its case. */
+function canonicalServerUrl(url: string): string {
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]*)(.*)$/i.exec(url);
+  if (!match) return url;
+  const scheme = match[1]!.toLowerCase();
+  const authority = match[2]!.toLowerCase().replace(/:(\d+)$/, (_all, port: string) => {
+    const number = port.replace(/^0+(?=\d)/, '');
+    return number === DEFAULT_PORTS[scheme] ? '' : `:${number}`;
+  });
+  return `${scheme}://${authority}${match[3]}`;
 }
 
 export function normalizeServerUrl(input: string): string | undefined {
@@ -68,7 +82,7 @@ export function normalizeServerUrl(input: string): string | undefined {
   const match = /^https?:\/\/(?:\[[0-9a-f:.]+\]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\d{1,5}))?$/i.exec(url);
   if (!match) return undefined;
   const port = match[1] === undefined ? undefined : Number(match[1]);
-  return port === undefined || (port > 0 && port <= 65535) ? url : undefined;
+  return port === undefined || (port > 0 && port <= 65535) ? canonicalServerUrl(url) : undefined;
 }
 
 export interface ServerState {

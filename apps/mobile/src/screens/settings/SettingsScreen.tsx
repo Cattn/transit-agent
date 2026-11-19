@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { MAX_CUSTOM_PLACES, PRESET_ICONS, initialDraftState, type Place, type PresetIcon, type PutProfileRequest, type TravelMode, type TravelProfile, type TripDraftPatch } from '@transit/shared';
 import { PALETTE, nextPlaceColor, presetColor, presetIcon, profilePlaces, removeCustomPlace, upsertCustomPlace, type PlaceKey as ProfilePlaceKey } from '@transit/maps';
 import { useApi, useDeviceId } from '@transit/client-react';
-import { getApiUrl, getCurrentPlace, removeServer, secureStoreDeviceIdStorage, setServerUrl, useSavedServers, useServerUrl } from '../../platform';
+import { getApiUrl, getCurrentPlace, normalizeServerUrl, removeServer, secureStoreDeviceIdStorage, setServerUrl, useSavedServers, useServerUrl } from '../../platform';
 import { apiMode, buildMode } from '../../data/client';
 import { useAppColors, useAppearance, type AppearancePreference } from '../../theme/appearance';
 import packageJson from '../../../package.json';
@@ -78,7 +78,7 @@ export interface SettingsChromeProps {
   onTimeZone: (value: string | null) => void;
   theme: { label: string; options: Choice<AppearancePreference>[] };
   onTheme: (value: AppearancePreference) => void;
-  server: { label: string; saved: string | null; loading: boolean; servers: { url: string; label: string }[]; defaultLabel: string };
+  server: { label: string; saved: string | null; loading: boolean; servers: { url: string; label: string }[]; defaultLabel: string; defaultUrl: string | null };
   onCheckServer: (url: string) => Promise<boolean>;
   onSaveServer: (url: string | null) => void;
   onRemoveServer: (url: string) => void;
@@ -152,6 +152,13 @@ function serverLabel(saved: string | null | undefined): string {
 
 function defaultServerLabel(): string {
   return buildMode === 'mock' ? 'Sample data (no server)' : `${withoutScheme(getApiUrl(null))} (default)`;
+}
+
+/** The default server's address in the form the Server dialog compares against, or null when the default is sample data. */
+function defaultServerUrl(): string | null {
+  if (buildMode === 'mock') return null;
+  const url = getApiUrl(null);
+  return normalizeServerUrl(url) ?? url;
 }
 
 async function reachServer(url: string): Promise<boolean> {
@@ -412,7 +419,8 @@ export function SettingsScreen() {
       saved: serverUrl ?? null,
       loading: serverUrl === undefined || savedServers === undefined,
       servers: (savedServers ?? []).map((url) => ({ url, label: withoutScheme(url) })),
-      defaultLabel: defaultServerLabel()
+      defaultLabel: defaultServerLabel(),
+      defaultUrl: defaultServerUrl()
     },
     onCheckServer: reachServer,
     onSaveServer: (url) => {
