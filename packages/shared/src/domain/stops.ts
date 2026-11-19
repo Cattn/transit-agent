@@ -46,13 +46,12 @@ export function vehiclesOf(it: Itinerary): string {
 const isRide = (leg: Leg) => scheduledModes.includes(leg.mode);
 const streetMinutes = (legs: readonly Leg[]) => legs.reduce((sum, leg) => sum + leg.durationMinutes, 0);
 
-export function stopBuffer(before: Itinerary, after: Itinerary): number | undefined {
-  const rides = before.legs.filter(isRide);
-  const lastRide = rides.at(-1);
-  const firstRide = after.legs.findIndex(isRide);
-  if (!lastRide || firstRide < 0) return undefined;
-  const movement = streetMinutes(before.legs.slice(before.legs.lastIndexOf(lastRide) + 1)) + streetMinutes(after.legs.slice(0, firstRide));
-  return Math.floor((Date.parse(after.legs[firstRide]!.departAt) - Date.parse(lastRide.arriveAt)) / MINUTE_MS - movement);
+export function stopBuffer(before: readonly Leg[], after: readonly Leg[]): number | undefined {
+  const lastRide = before.map(isRide).lastIndexOf(true);
+  const firstRide = after.findIndex(isRide);
+  if (lastRide < 0 || firstRide < 0) return undefined;
+  const movement = streetMinutes(before.slice(lastRide + 1)) + streetMinutes(after.slice(0, firstRide));
+  return Math.floor((Date.parse(after[firstRide]!.departAt) - Date.parse(before[lastRide]!.arriveAt)) / MINUTE_MS - movement);
 }
 
 export function pickHop(
@@ -193,15 +192,20 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
       return found;
     };
     const shared = await searchAt(forward ? Math.min(...times) : Math.max(...times));
+    let failure: { error: unknown } | undefined;
     const next = await Promise.all(chains.map(async (chain) => {
       const bound = forward ? { after: edge(chain) } : { before: edge(chain) };
       const vehicles = vehiclesOf(chain[0]!);
       const fits = (it: Itinerary) => {
         if (minBuffer === undefined) return true;
-        const buffer = forward ? stopBuffer(chain.at(-1)!, it) : stopBuffer(it, chain[0]!);
+        const legs = chain.flatMap((part) => part.legs);
+        const buffer = forward ? stopBuffer(legs, it.legs) : stopBuffer(it.legs, legs);
         return buffer === undefined || buffer >= minBuffer;
       };
-      const own = () => searchAt(Date.parse(edge(chain)));
+      const own = () => searchAt(Date.parse(edge(chain))).catch((error: unknown) => {
+        failure ??= { error };
+        return [];
+      });
       const pick = pickHop(shared, bound, vehicles, fits)
         ?? pickHop(await own(), bound, vehicles, fits)
         ?? pickHop(shared, bound, vehicles)
@@ -210,6 +214,7 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
       return forward ? [...chain, pick] : [pick, ...chain];
     }));
     chains = next.filter((chain): chain is Itinerary[] => chain !== undefined);
+    if (chains.length === 0 && failure) throw failure.error;
   }
 
   const stitched: Itinerary[] = [];

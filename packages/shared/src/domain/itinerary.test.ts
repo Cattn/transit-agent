@@ -152,6 +152,38 @@ describe('searchWithStops', () => {
     expect(picked!.legs[1]!.transferBufferMinutes).toBe(6);
   });
 
+  it('measures the minimum transfer time across a walk between stops', async () => {
+    const strict = request({ stops: [shop, gym], constraints: { minTransferBufferMinutes: 5 } });
+    const search = async (req: TripRequest) => {
+      if (req.origin.name === 'Home') return [trip('in', home, shop, 0, 10)];
+      if (req.origin.name === 'Shop') return [trip('walk', shop, gym, 10, 14, 'walk')];
+      return [trip('tight', gym, work, 16, 30), trip('roomy', gym, work, 21, 35)];
+    };
+    const [picked] = await searchWithStops(strict, search);
+    expect(picked!.id).toBe('in~walk~roomy');
+    expect(picked!.legs[2]!.transferBufferMinutes).toBe(7);
+  });
+
+  it('keeps the shared results when an extra search for a roomier connection fails', async () => {
+    const strict = request({ constraints: { minTransferBufferMinutes: 5 } });
+    const search = async (req: TripRequest) => {
+      if (req.origin.name === 'Home') return [trip('early', home, shop, 0, 10), trip('late', home, shop, 5, 15)];
+      if (minuteOf(req.time.at) !== 10) throw new Error('provider down');
+      return [trip('bus', shop, work, 17, 35)];
+    };
+    const trips = await searchWithStops(strict, search);
+    expect(trips.map((it) => [it.id, it.legs[1]!.transferBufferMinutes])).toEqual([['early~bus', 7], ['late~bus', 2]]);
+  });
+
+  it('still fails when no chain survives a failed extra search', async () => {
+    const search = async (req: TripRequest) => {
+      if (req.origin.name === 'Home') return [trip('early', home, shop, 0, 10), trip('late', home, shop, 5, 40)];
+      if (minuteOf(req.time.at) !== 10) throw new Error('provider down');
+      return [trip('bus', shop, work, 5, 9)];
+    };
+    await expect(searchWithStops(request(), search)).rejects.toThrow('provider down');
+  });
+
   it('drops chains that cannot reach the next stop', async () => {
     const search = async (req: TripRequest) => (req.origin.name === 'Home' ? [trip('late', home, shop, 0, 50)] : [trip('early', shop, work, 10, 20)]);
     expect(await searchWithStops(request(), search)).toEqual([]);
