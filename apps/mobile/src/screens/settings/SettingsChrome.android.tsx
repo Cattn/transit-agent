@@ -198,6 +198,7 @@ interface ServerDialogProps {
   saved: string | null;
   servers: { url: string; label: string }[];
   defaultLabel: string;
+  defaultUrl: string | null;
   m: MaterialColors;
   onCheck: (url: string) => Promise<boolean>;
   onSelect: (url: string | null) => void;
@@ -205,7 +206,7 @@ interface ServerDialogProps {
   onDismiss: () => void;
 }
 
-function ServerDialog({ saved, servers, defaultLabel, m, onCheck, onSelect, onRemove, onDismiss }: ServerDialogProps) {
+function ServerDialog({ saved, servers, defaultLabel, defaultUrl, m, onCheck, onSelect, onRemove, onDismiss }: ServerDialogProps) {
   const value = useNativeState('');
   const [text, setText] = useState('');
   const [error, setError] = useState<string>();
@@ -227,6 +228,10 @@ function ServerDialog({ saved, servers, defaultLabel, m, onCheck, onSelect, onRe
     const url = normalizeServerUrl(text);
     if (!url) {
       setError('Enter an address like 192.168.1.20:3001 or https://name.example.com');
+      return;
+    }
+    if (url === defaultUrl) {
+      onSelect(null);
       return;
     }
     if (force || servers.some((server) => server.url === url)) {
@@ -367,6 +372,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
       saved={props.server.saved}
       servers={props.server.servers}
       defaultLabel={props.server.defaultLabel}
+      defaultUrl={props.server.defaultUrl}
       m={m}
       onCheck={props.onCheckServer}
       onDismiss={close}
