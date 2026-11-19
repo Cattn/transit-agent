@@ -51,7 +51,6 @@ import type { ChipMode, FilterFocus, FiltersChromeProps, PlaceRowItem } from './
 import { parseCustomLimit } from './limits';
 import { PlaceField, type PlaceFieldColors } from './PlaceField';
 import { PlaceList } from './PlaceList';
-import { pickerDay } from './when';
 
 const MODE_ICONS: Record<ChipMode, number> = {
   walk: DirectionsWalk,
@@ -267,7 +266,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const scroll = useRef<ScrollViewInstance>(null);
   const scrollY = useRef(0);
   const scrolled = useRef(false);
-  const [picking, setPicking] = useState<{ kind: 'date' | 'time'; at: string; opened: Date }>();
+  const [picking, setPicking] = useState<{ kind: 'date' | 'time'; initial: string; earliest: string }>();
   const [pickingLimit, setPickingLimit] = useState<LimitItem['key']>();
   const editing = props.limits.find((item) => item.key === pickingLimit);
   const placeColors: PlaceFieldColors = {
@@ -365,13 +364,13 @@ export function FiltersChrome(props: FiltersChromeProps) {
                 ))}
               </SingleChoiceSegmentedButtonRow>
               <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth()]}>
-                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'date', at: props.time.at, opened: new Date() })}>
+                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'date', initial: props.time.pickerDay, earliest: props.time.earliestDay })}>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
                     <Icon source={CalendarToday} size={18} />
                     <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.day}</Text>
                   </Row>
                 </FilledTonalButton>
-                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'time', at: props.time.at, opened: new Date() })}>
+                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'time', initial: props.time.pickerClock, earliest: props.time.earliestDay })}>
                   <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
                     <Icon source={Schedule} size={18} />
                     <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.agent ? `✦ ${props.time.clock}` : props.time.clock}</Text>
@@ -380,8 +379,8 @@ export function FiltersChrome(props: FiltersChromeProps) {
               </Row>
               {picking?.kind === 'date' ? (
                 <DatePickerDialog
-                  initialDate={pickerDay(new Date(picking.at))}
-                  selectableDates={{ start: picking.opened }}
+                  initialDate={picking.initial}
+                  selectableDates={{ start: new Date(picking.earliest) }}
                   confirmButtonLabel="Set date"
                   onDateSelected={(day) => {
                     setPicking(undefined);
@@ -392,7 +391,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
               ) : null}
               {picking?.kind === 'time' ? (
                 <TimePickerDialog
-                  initialDate={picking.at}
+                  initialDate={picking.initial}
                   is24Hour={false}
                   confirmButtonLabel="Set time"
                   onDateSelected={(at) => {

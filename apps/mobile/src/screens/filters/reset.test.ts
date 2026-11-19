@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyDraftPatch, initialDraftState, TripDraftSchema, type Place } from '@transit/shared';
 import { canAddStop, movePatch, pickPatch, placeSlots, removeStopPatch } from './places';
 import { filtersResetPatch } from './reset';
+import { earliestDay, pickerClock, pickerDay, withClock, withDay } from './when';
 
 const place = { name: 'Office', coordinates: [-71.07, 42.35] as [number, number] };
 const now = new Date('2026-11-15T13:40:00.000Z');
@@ -82,5 +83,52 @@ describe('place rows', () => {
   it('ignores a drop in place and clamps past the ends', () => {
     expect(movePatch({ origin: home, destination: work }, 1, 1)).toBeUndefined();
     expect(movePatch({ origin: home, stops: [shop], destination: work }, 0, 9)).toEqual({ origin: shop, destination: home, stops: [work] });
+  });
+});
+
+describe('trip date and time pickers (#128)', () => {
+  const NY = 'America/New_York';
+  const iso = (value: string) => new Date(value).toISOString();
+  const localParts = (value: string) => {
+    const at = new Date(value);
+    return [at.getFullYear(), at.getMonth(), at.getDate(), at.getHours(), at.getMinutes()];
+  };
+
+  it('opens the pickers on the trip zone day and clock', () => {
+    const at = '2026-11-21T02:30:00Z';
+    expect(pickerDay(at, NY)).toBe('2026-11-20T00:00:00.000Z');
+    expect(localParts(pickerClock(at, NY))).toEqual([2026, 10, 20, 21, 30]);
+    expect(localParts(earliestDay(new Date('2026-11-21T05:30:00Z'), NY))).toEqual([2026, 10, 21, 0, 0]);
+  });
+
+  it('moves the trip to the picked day and keeps its clock in the trip zone', () => {
+    const now = new Date('2026-11-18T12:00:00Z');
+    expect(withDay(new Date('2026-11-25T00:00:00Z'), '2026-11-21T04:30:00Z', now, NY)).toBe(iso('2026-11-25T23:30:00-05:00'));
+  });
+
+  it('keeps the picked day when the new clock time is earlier', () => {
+    const now = new Date('2026-11-18T17:00:20-05:00');
+    expect(withClock(new Date(2026, 10, 18, 20, 0), iso('2026-11-18T18:00:00-05:00'), now, NY)).toBe(iso('2026-11-18T20:00:00-05:00'));
+    expect(withClock(new Date(2026, 10, 18, 9, 0), iso('2026-11-18T18:00:00-05:00'), now, NY)).toBe(iso('2026-11-18T17:01:00-05:00'));
+  });
+
+  it('moves a past day up to the next minute, not below now', () => {
+    const now = new Date('2026-11-18T23:18:30-05:00');
+    expect(withDay(new Date('2026-11-18T00:00:00Z'), iso('2026-11-18T08:00:00-05:00'), now, NY)).toBe(iso('2026-11-18T23:19:00-05:00'));
+  });
+
+  it('keeps the second 1:30 AM when its own day is confirmed at fall-back', () => {
+    const second = iso('2026-11-01T01:30:00-05:00');
+    expect(withDay(new Date('2026-11-01T00:00:00Z'), second, new Date('2026-10-30T12:00:00Z'), NY)).toBe(second);
+    expect(withClock(new Date(2026, 10, 1, 1, 30), second, new Date('2026-10-30T12:00:00Z'), NY)).toBe(second);
+    expect(withDay(new Date('2026-11-01T00:00:00Z'), second, new Date('2026-11-01T01:40:00-05:00'), NY)).toBe(iso('2026-11-01T01:40:00-05:00'));
+  });
+
+  it('uses the first 1:30 AM when moving onto the fall-back day', () => {
+    expect(withDay(new Date('2026-11-01T00:00:00Z'), iso('2026-10-31T01:30:00-04:00'), new Date('2026-10-30T12:00:00Z'), NY)).toBe(iso('2026-11-01T01:30:00-04:00'));
+  });
+
+  it('moves a time in the spring-forward gap to the end of the gap', () => {
+    expect(withDay(new Date('2027-03-14T00:00:00Z'), iso('2027-03-07T02:30:00-05:00'), new Date('2027-03-01T12:00:00Z'), NY)).toBe(iso('2027-03-14T03:00:00-04:00'));
   });
 });
