@@ -131,4 +131,22 @@ describe('trip date and time pickers (#128)', () => {
   it('moves a time in the spring-forward gap to the end of the gap', () => {
     expect(withDay(new Date('2027-03-14T00:00:00Z'), iso('2027-03-07T02:30:00-05:00'), new Date('2027-03-01T12:00:00Z'), NY)).toBe(iso('2027-03-14T03:00:00-04:00'));
   });
+
+  it('finds Auckland transitions when moving the trip day', () => {
+    const AKL = 'Pacific/Auckland';
+    const now = new Date('2026-09-01T00:00:00Z');
+    expect(withDay(new Date('2026-09-27T00:00:00Z'), iso('2026-09-20T02:30:00+12:00'), now, AKL)).toBe(iso('2026-09-27T03:00:00+13:00'));
+    expect(withDay(new Date('2027-04-04T00:00:00Z'), iso('2027-03-28T02:30:00+13:00'), now, AKL)).toBe(iso('2027-04-04T02:30:00+13:00'));
+  });
+
+  it('carries the trip clock on a device day where it exists', () => {
+    const clock = new Date(pickerClock('2027-03-14T02:30:00Z', 'UTC'));
+    expect([clock.getHours(), clock.getMinutes()]).toEqual([2, 30]);
+  });
+
+  it('keeps a future trip and a past-time correction on the chosen day', () => {
+    expect(withClock(new Date(2026, 10, 18, 9, 0), iso('2026-11-18T18:00:00-05:00'), new Date('2026-11-18T23:59:30-05:00'), NY)).toBe(iso('2026-11-18T23:59:30-05:00'));
+    const soon = iso('2026-11-19T00:00:25-05:00');
+    expect(withDay(new Date('2026-11-19T00:00:00Z'), soon, new Date('2026-11-19T00:00:10-05:00'), NY)).toBe(soon);
+  });
 });

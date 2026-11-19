@@ -1,5 +1,5 @@
 const MINUTE = 60_000;
-const HOUR = 3_600_000;
+const DAY = 86_400_000;
 
 interface Wall { year: number; month: number; day: number; hour: number; minute: number }
 
@@ -30,8 +30,8 @@ function sameDay(a: Wall, b: Wall): boolean {
 
 export function instantOf(wall: Wall, timeZone: string | undefined): number {
   const local = Date.UTC(wall.year, wall.month, wall.day, wall.hour, wall.minute);
-  const before = local - offsetAt(local - 12 * HOUR, timeZone);
-  const after = local - offsetAt(local + 12 * HOUR, timeZone);
+  const before = local - offsetAt(local - 2 * DAY, timeZone);
+  const after = local - offsetAt(local + 2 * DAY, timeZone);
   const valid = [before, after].filter((ms) => sameWall(wallOf(ms, timeZone), wall)).sort((a, b) => a - b);
   if (valid.length) return valid[0]!;
   let low = Math.min(before, after);
@@ -56,23 +56,28 @@ export function earliestDay(now: Date, timeZone: string | undefined): string {
 
 export function pickerClock(at: string, timeZone: string | undefined): string {
   const wall = wallOf(Date.parse(at), timeZone);
-  return new Date(wall.year, wall.month, wall.day, wall.hour, wall.minute).toISOString();
+  let day = wall.day;
+  while (new Date(wall.year, wall.month, day - 1, 12).getTimezoneOffset() !== new Date(wall.year, wall.month, day + 1, 12).getTimezoneOffset()) day -= 1;
+  return new Date(wall.year, wall.month, day, wall.hour, wall.minute).toISOString();
 }
 
-function notBefore(ms: number, now: Date): string {
-  const floor = Math.ceil(now.getTime() / MINUTE) * MINUTE;
-  return new Date(Math.max(ms, floor)).toISOString();
+function notBefore(ms: number, now: Date, timeZone: string | undefined): string {
+  if (ms >= now.getTime()) return new Date(ms).toISOString();
+  const next = Math.ceil(now.getTime() / MINUTE) * MINUTE;
+  const chosen = wallOf(ms, timeZone);
+  const today = sameDay(wallOf(now.getTime(), timeZone), chosen) && !sameDay(wallOf(next, timeZone), chosen);
+  return new Date(today ? now.getTime() : next).toISOString();
 }
 
 export function withDay(picked: Date, at: string, now: Date, timeZone: string | undefined): string {
   const current = wallOf(Date.parse(at), timeZone);
   const day = { year: picked.getUTCFullYear(), month: picked.getUTCMonth(), day: picked.getUTCDate() };
-  if (sameDay(current, { ...day, hour: 0, minute: 0 })) return notBefore(Date.parse(at), now);
-  return notBefore(instantOf({ ...day, hour: current.hour, minute: current.minute }, timeZone), now);
+  if (sameDay(current, { ...day, hour: 0, minute: 0 })) return notBefore(Date.parse(at), now, timeZone);
+  return notBefore(instantOf({ ...day, hour: current.hour, minute: current.minute }, timeZone), now, timeZone);
 }
 
 export function withClock(picked: Date, at: string, now: Date, timeZone: string | undefined): string {
   const current = wallOf(Date.parse(at), timeZone);
-  if (picked.getHours() === current.hour && picked.getMinutes() === current.minute) return notBefore(Date.parse(at), now);
-  return notBefore(instantOf({ ...current, hour: picked.getHours(), minute: picked.getMinutes() }, timeZone), now);
+  if (picked.getHours() === current.hour && picked.getMinutes() === current.minute) return notBefore(Date.parse(at), now, timeZone);
+  return notBefore(instantOf({ ...current, hour: picked.getHours(), minute: picked.getMinutes() }, timeZone), now, timeZone);
 }

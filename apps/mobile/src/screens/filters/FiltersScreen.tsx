@@ -166,7 +166,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       if (result.ok) {
         apply({ origin: result.place }, 'user');
         setSearching(undefined);
-        if (startSearch && draft.destination && draft.time) onShowRoutes();
+        if (startSearch && draft.destination) onShowRoutes();
         return;
       }
       setNotice(result.reason === 'denied'
@@ -198,10 +198,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       setNotice(undefined);
       apply(filtersResetPatch(draft, defaults, new Date()), 'user');
     },
-    onShowRoutes: () => {
-      if (!draft.time) apply({ time: { type: 'departAt', at: new Date().toISOString() } }, 'user');
-      onShowRoutes();
-    },
+    onShowRoutes,
     places,
     onSearch: (which) => {
       setNotice(undefined);
@@ -230,7 +227,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
         const destination = searching === 'destination' ? place : draft.destination;
         if (startSearch && !origin) { setSearching('origin'); return; }
         setSearching(undefined);
-        if (startSearch && destination && draft.time) onShowRoutes();
+        if (startSearch && destination) onShowRoutes();
       },
       onUseLocation
     } : undefined,

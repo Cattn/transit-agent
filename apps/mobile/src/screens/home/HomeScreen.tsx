@@ -254,6 +254,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [closeSaved]);
 
+  const filtersToRoutes = useCallback(() => {
+    if (!state.draft.time) editDraft({ time: { type: 'departAt', at: new Date().toISOString() } });
+    showRoutes();
+  }, [state.draft.time, editDraft, showRoutes]);
+
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
     apply(patch, source);
@@ -603,8 +608,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           plan={plan}
           startSearch={filterSearch}
           defaults={profile?.defaults}
-          onClose={!chatBehind && (resultsOpen || state.draft.destination) ? showRoutes : closeSheet}
-          onShowRoutes={showRoutes}
+          onClose={!chatBehind && (resultsOpen || state.draft.destination) ? filtersToRoutes : closeSheet}
+          onShowRoutes={filtersToRoutes}
         />
       ) : null}
       <Modal visible={sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
