@@ -11,7 +11,7 @@ Input: a PR number. One review = one PR head. A re-check after fixes is a new re
 - `gh pr view <n> --json title,body,headRefName,headRefOid,author,files,statusCheckRollup`
 - Note the **head SHA**; everything you report is about that SHA.
 - Read the plan the PR names (`plans/NNN-*.md`) and its issue. The plan is the spec.
-- For a re-check, read your previous review comment and only confirm those findings plus anything new in the diff since.
+- For a re-check, read your previous review comment and only confirm those findings plus anything new in the diff since. Don't open new lines of attack on code you already reviewed.
 
 ## 2. Validate in an isolated worktree
 Never check out the PR in the main working tree.
@@ -31,6 +31,10 @@ Look for, in order:
 5. **UI evidence**: a PR that changes any screen must show each primary feature working (screenshots or video, ideally about 4; more is fine) in "Screenshots / video". A primary feature with no proof = P2.
 
 Each finding needs a `file:line`, a concrete failure scenario, and a severity (P1 blocks merge, P2 fix before merge, P3 optional). Skip style nits that aren't rule violations. Verify a suspected bug (run it, or read the code path end to end) before reporting it.
+
+**Report what actually affects people.** A P1/P2 must be something a real user would plausibly hit in normal use (a common query, a normal tap sequence, typical data) and notice: wrong results, lost or corrupted data, crashes, broken flows, security problems. Contrived inputs, rare timing races, cosmetic quirks, and "could in theory" cases are at most P3, or leave them out. Don't hunt for edge cases just to have findings, and don't pass a PR through round after round on new corner cases. If what's left is minor, pass it and list the minor items as P3.
+
+**The app isn't released yet.** There are no real users with old installs or old stored data, so upgrade paths, leftover data from earlier builds, and backward compatibility are at most P3, unless the PR's plan explicitly asks for them. Stored-data changes still raise risk when they could break main or a teammate's dev setup.
 
 ## 4. Post once
 - One review: verdict (**pass** / **fix needed**), risk (**Low** / **Med** / **High**), head SHA, findings, what was validated, what's unverified.
