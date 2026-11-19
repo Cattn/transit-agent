@@ -44,7 +44,9 @@ export const LegSchema = z.object({
   delayMinutes: z.number().optional(),
   /** Minutes between previous leg's arrival and this leg's departure (transfers only). */
   transferBufferMinutes: z.number().optional(),
-  trip: TripRefSchema.optional()
+  trip: TripRefSchema.optional(),
+  headsign: z.string().optional(),
+  intermediateStops: z.array(PlaceSchema).optional()
 });
 export type Leg = z.infer<typeof LegSchema>;
 

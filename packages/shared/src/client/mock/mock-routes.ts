@@ -53,6 +53,7 @@ export function mockItineraries(request: TripRequest, now: () => Date = () => ne
         geometry: { type: 'LineString', coordinates: Array.from({ length: 6 }, (_, j) => point(start + (end - start) * j / 5)) },
         timeSource: mode === 'bus' && suffix === 'fast' ? 'realtime' : mode === 'bus' || mode === 'rail' ? 'scheduled' : 'estimated',
         ...(mode === 'bus' ? { routeName: 'Bus 1', agency: 'MBTA' } : mode === 'rail' ? { routeName: 'Red Line', agency: 'MBTA' } : {}),
+        ...(mode === 'rail' ? { headsign: 'Ashmont', intermediateStops: [1, 2, 3].map((n) => ({ ...place(start + (end - start) * n / 4), kind: 'station' as const })) } : {}),
         ...(mode === 'bus' && suffix === 'fast' ? { delayMinutes: 4 } : {}),
         ...(transferBufferMinutes === undefined ? {} : { transferBufferMinutes })
       };

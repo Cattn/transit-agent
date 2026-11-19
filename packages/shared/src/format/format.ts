@@ -119,6 +119,23 @@ export function legLabel(leg: Leg): string {
   return `${modeLabel(leg.mode)} ${formatDuration(leg.durationMinutes)}`;
 }
 
+export function legDirection(leg: Leg): string | undefined {
+  return leg.headsign ? `toward ${leg.headsign}` : undefined;
+}
+
+export function legStopCount(leg: Leg): string | undefined {
+  if (!leg.intermediateStops) return undefined;
+  const count = leg.intermediateStops.length + 1;
+  const to = leg.to.name ? ` to ${leg.to.name}` : '';
+  return `${count} ${count === 1 ? 'stop' : 'stops'}${to}`;
+}
+
+export function legStopNames(leg: Leg): string | undefined {
+  if (!leg.intermediateStops) return undefined;
+  const names = [...leg.intermediateStops, leg.to].flatMap((stop) => (stop.name ? [stop.name] : []));
+  return names.length > 0 ? names.join(' · ') : undefined;
+}
+
 /** Where a leg's times come from. Schedule-only times are never presented as live. */
 export function legFreshness(leg: Leg): Badge {
   if (leg.timeSource === 'realtime') {
