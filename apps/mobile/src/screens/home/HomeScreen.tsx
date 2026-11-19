@@ -133,7 +133,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const appForeground = useAppForeground();
   const foreground = appForeground && focused;
   const now = useNow(15_000);
-  const { state, apply, reset, restore, request } = useTripDraft();
+  const { state, apply, fill, reset, restore, request } = useTripDraft();
   const [rerouting, setRerouting] = useState<{ client: typeof api; id: string; checkedAt?: string }>();
   const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save, update, remove } = useSavedItineraries({ pollMs: rerouting?.client === api ? 2000 : 30_000, enabled: foreground });
   const reroutingTrip = items.find((item) => item.id === rerouting?.id);
@@ -254,12 +254,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [closeSaved]);
 
-  const draftTime = useRef(state.draft.time);
-  useEffect(() => { draftTime.current = state.draft.time; }, [state.draft.time]);
   const filtersToRoutes = useCallback(() => {
-    if (!draftTime.current) editDraft({ time: { type: 'departAt', at: new Date().toISOString() } });
+    edited.current = true;
+    fill({ time: { type: 'departAt', at: new Date().toISOString() } }, 'user');
     showRoutes();
-  }, [editDraft, showRoutes]);
+  }, [fill, showRoutes]);
 
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
