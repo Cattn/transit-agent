@@ -156,6 +156,167 @@ describe('Photon place search', () => {
     ]);
   });
 
+  it('names address-search results by their address, merges duplicates and drops distant towns (#127)', async () => {
+    const { calls, fn } = fakeFetch(ok([
+      feature("Dunkin'", [-71.0957524, 42.3357476], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '550', street: 'Huntington Avenue', city: 'Boston' }),
+      feature('Alumni Library', [-71.0955638, 42.3356047], { osm_key: 'amenity', osm_value: 'library', housenumber: '550', street: 'Huntington Avenue', city: 'Boston' }),
+      feature('Huntington Avenue', [-93.2438987, 44.6722642], { osm_key: 'highway', osm_value: 'residential', city: 'Lakeville' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Huntington%20Ave&near=-71.06,42.36');
+    expect(res.json().places).toEqual([{ name: '550 Huntington Avenue, Boston', coordinates: [-71.0957524, 42.3357476], kind: 'address' }]);
+    expect(calls[0]?.searchParams.get('limit')).toBe('10');
+  });
+
+  it('keeps distant address matches when none is nearby', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-93.2, 44.6], { housenumber: '12', street: 'Main Street', city: 'Lakeville' })]));
+    const res = await serve(fn)('/api/places?q=12%20Main%20St&near=-71.06,42.36');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['12 Main Street, Lakeville']);
+  });
+
+  it('keeps a distant address that matches when a nearby result only shares the street', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Main Street', [-71.07, 42.37], { osm_key: 'highway', osm_value: 'residential', city: 'Boston' }),
+      feature('Shop', [-79.99, 40.44], { housenumber: '550', street: 'Main Street', city: 'Pittsburgh' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh&near=-71.06,42.36');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['550 Main Street, Pittsburgh', 'Main Street, Boston']);
+  });
+
+  it('keeps same-name stops apart in a name search', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Central Square', [-71.1036, 42.3655], { osm_key: 'highway', osm_value: 'bus_stop' }),
+      feature('Central Square', [-71.1027, 42.3651], { osm_key: 'highway', osm_value: 'bus_stop' })
+    ]));
+    const res = await serve(fn)('/api/places?q=Central%20Square');
+    expect(res.json().places).toHaveLength(2);
+  });
+
+  it('keeps the name and kind of a place whose address the query does not ask for', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('200 Degrees Coffee', [-1.15, 52.95], { osm_key: 'amenity', osm_value: 'cafe', housenumber: '9', street: 'Market Street', city: 'Nottingham' }),
+      feature('Central', [-71.1036, 42.3655], { osm_key: 'railway', osm_value: 'station', housenumber: '300', street: 'Main Street' })
+    ]));
+    const coffee = await serve(fn)('/api/places?q=200%20Degrees%20Coffee');
+    expect(coffee.json().places[0]).toMatchObject({ name: '200 Degrees Coffee, Nottingham' });
+    const station = await serve(fn)('/api/places?q=300%20Main%20St');
+    expect(station.json().places[0]).toEqual({ name: '300 Main Street, Cambridge', coordinates: [-71.1036, 42.3655], kind: 'station' });
+  });
+
+  it.each([['12, rue de Rivoli'], ['Rue de Rivoli 12'], ['Rue de Rivoli, 12'], ['Rue de Rivoli 12, Paris']])('recognises the address in %s', async (q) => {
+    const { fn } = fakeFetch(ok([feature('Café', [2.35, 48.86], { osm_key: 'amenity', osm_value: 'cafe', housenumber: '12', street: 'Rue de Rivoli', city: 'Paris' })]));
+    const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.json().places[0]?.name).toBe('12 Rue de Rivoli, Paris');
+  });
+
+  it.each([
+    ['9 West St', 'Brattle Book Shop', '9', 'West Street', '9 West Street, Boston'],
+    ['550 Main St, Pittsburgh', 'Diner', '550', 'Main Road', 'Diner, Boston'],
+    ['5 Market Cafe', 'Market Cafe', '5', 'Market Street', 'Market Cafe, Boston'],
+    ['5 Market Boston Pizza', '5 Market Boston Pizza', '5', 'Market Street', '5 Market Boston Pizza, Boston'],
+    ['550 Main St, Boston, MA 02118', 'Shop', '550', 'Main Street', '550 Main Street, Boston'],
+    ['1 Union Pl Boston CT', 'Subway', '1', 'Union Place', '1 Union Place, Boston'],
+    ['10 Summer St', 'Shop', '10', 'Summer Avenue', 'Shop, Boston'],
+    ['550 Huntington', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
+    ['550 N Main St', 'Shop', '550', 'North Main Street', '550 North Main Street, Boston'],
+    ['Apt 4, 550 Main St', 'Shop', '4', 'Main Street', 'Shop, Boston'],
+    ['550 Main St #4', 'Shop', '4', 'Main Street', 'Shop, Boston'],
+    ['550 Main St #4', 'Shop', '550', 'Main Street', '550 Main Street, Boston'],
+    ['100 Main St W', 'Shop', '100', 'Main Street', 'Shop, Boston'],
+    ['100 Main St W', 'Shop', '100', 'Main Street West', '100 Main Street West, Boston'],
+    ['10 Downing Street Cafe', 'Downing Cafe', '10', 'Downing Street', 'Downing Cafe, Boston'],
+    ['550 Huntington Boston', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
+    ['1 Beacon St Boston MA', 'Shop', '1', 'Beacon Street', '1 Beacon Street, Boston']
+  ])('for %s, names %s at %s %s as %s', async (q, name, housenumber, street, expected) => {
+    const { fn } = fakeFetch(ok([feature(name, [-71.06, 42.36], { osm_key: 'amenity', osm_value: 'cafe', housenumber, street, city: 'Boston' })]));
+    const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.json().places[0]?.name).toBe(expected);
+  });
+
+  it('puts matching addresses ahead of other results before the cap', async () => {
+    const { fn } = fakeFetch(ok([
+      ...[0, 1, 2, 3, 4].map((i) => feature('Main Street', [-71.06 + i * 0.01, 42.36], { osm_key: 'highway', osm_value: 'residential', city: 'Boston' })),
+      feature('Shop', [-79.99, 40.44], { housenumber: '550', street: 'Main Street', city: 'Pittsburgh' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh');
+    expect(res.json().places[0]?.name).toBe('550 Main Street, Pittsburgh');
+    expect(res.json().places).toHaveLength(5);
+  });
+
+  it('puts a matching address in the requested city ahead of other matching addresses', async () => {
+    const { fn } = fakeFetch(ok([
+      ...['Medford', 'Malden', 'Stoneham', 'Watertown', 'Winchester'].map((city, i) => feature('', [-71.1 + i * 0.01, 42.4], { housenumber: '550', street: 'Main Street', city })),
+      feature('', [-79.99, 40.44], { housenumber: '550', street: 'Main Street', city: 'Pittsburgh' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20Pittsburgh&near=-71.06,42.36');
+    expect(res.json().places[0]?.name).toBe('550 Main Street, Pittsburgh');
+  });
+
+  it('prefers the whole requested city over a shorter name inside it', async () => {
+    const { fn } = fakeFetch(ok([
+      ...[0, 1, 2, 3, 4].map((i) => feature('', [-72.59 + i * 0.01, 42.1], { housenumber: '550', street: 'Main Street', city: 'Springfield' })),
+      feature('', [-72.62, 42.11], { housenumber: '550', street: 'Main Street', city: 'West Springfield' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20West%20Springfield');
+    expect(res.json().places[0]?.name).toBe('550 Main Street, West Springfield');
+  });
+
+  it('keeps a state code after the city (1 Union Pl Hartford CT)', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Hartford Union Station', [-72.6815, 41.7678], { osm_key: 'building', osm_value: 'train_station', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' }),
+      feature('Subway', [-72.6816, 41.7679], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' })
+    ]));
+    const res = await serve(fn)('/api/places?q=1%20Union%20Pl%20Hartford%20CT');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['1 Union Place, Hartford']);
+  });
+
+  it.each([['1 Union Pl CT'], ['1 Union Pl Hartford CT']])('keeps the address for %s', async (q) => {
+    const { fn } = fakeFetch(ok([
+      feature('Hartford Union Station', [-72.6815, 41.7678], { osm_key: 'building', osm_value: 'train_station', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' }),
+      feature('Subway', [-72.6816, 41.7679], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' })
+    ]));
+    const res = await serve(fn)(`/api/places?q=${encodeURIComponent(q)}`);
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['1 Union Place, Hartford']);
+  });
+
+  it('reads an abbreviated direction in the city (381 Main St W Springfield)', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('West Springfield Police Dept - Subst.', [-72.62, 42.107], { osm_key: 'amenity', osm_value: 'police', housenumber: '381', street: 'Main Street', city: 'West Springfield', state: 'Massachusetts' }),
+      feature('', [-70.25, 43.66], { housenumber: '381', street: 'Main Street', city: 'Westbrook', state: 'Maine' })
+    ]));
+    const res = await serve(fn)('/api/places?q=381%20Main%20St%20W%20Springfield&near=-72.6,42.1');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['381 Main Street, West Springfield']);
+  });
+
+  it('does not read a street-type abbreviation as a state code', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-72.6, 41.7], { housenumber: '10', street: 'Summer Avenue', city: 'Hartford', state: 'Connecticut' })]));
+    const res = await serve(fn)('/api/places?q=10%20Summer%20St');
+    expect(res.json().places[0]?.name).toBe('Shop, Hartford');
+  });
+
+  it('does not read a court abbreviation as a state code on another street type', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-72.6, 41.7], { housenumber: '10', street: 'Summer Street', city: 'Hartford', state: 'Connecticut' })]));
+    const res = await serve(fn)('/api/places?q=10%20Summer%20Ct');
+    expect(res.json().places[0]?.name).toBe('Shop, Hartford');
+  });
+
+  it('gives priority to a city typed before the address', async () => {
+    const { fn } = fakeFetch(ok([
+      ...['Arlington', 'Lexington', 'Walpole', 'Boston', 'Worcester'].map((city, i) => feature('', [-71.2 + i * 0.01, 42.4], { housenumber: '77', street: 'Massachusetts Avenue', city })),
+      feature('', [-71.0937, 42.3594], { housenumber: '77', street: 'Massachusetts Avenue', city: 'Cambridge' })
+    ]));
+    const res = await serve(fn)('/api/places?q=Cambridge%2077%20Massachusetts%20Ave');
+    expect(res.json().places[0]?.name).toBe('77 Massachusetts Avenue, Cambridge');
+  });
+
+  it('keeps units at one address apart', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('A', [-71.06, 42.36], { housenumber: '550', street: 'Main Street', unit: '3' }),
+      feature('B', [-71.06, 42.36], { housenumber: '550', street: 'Main Street', unit: '4' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Main%20St');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['550 Main Street #3, Cambridge', '550 Main Street #4, Cambridge']);
+  });
+
   it('passes near to Photon as lat and lon', async () => {
     const { calls, fn } = fakeFetch(ok(kendallSample));
     await serve(fn)('/api/places?q=Brookline%20Village&near=-71.06,42.36');
