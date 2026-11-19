@@ -127,6 +127,31 @@ describe('searchWithStops', () => {
     expect(trips.map((it) => it.id)).toEqual(['bus-1~bus-2', 'car-1~car-2']);
   });
 
+  it('skips a connection at a stop that is tighter than the minimum transfer time', async () => {
+    const strict = request({ constraints: { minTransferBufferMinutes: 5 } });
+    const both = async (req: TripRequest) => req.origin.name === 'Home'
+      ? [trip('in', home, shop, 0, 10)]
+      : [trip('tight', shop, work, 12, 30), trip('roomy', shop, work, 17, 35)];
+    const [picked] = await searchWithStops(strict, both);
+    expect(picked!.id).toBe('in~roomy');
+    expect(picked!.legs[1]!.transferBufferMinutes).toBe(7);
+    const onlyTight = async (req: TripRequest) => (await both(req)).filter((it) => it.id !== 'roomy');
+    const [nearMiss] = await searchWithStops(strict, onlyTight);
+    expect(nearMiss!.legs[1]!.transferBufferMinutes).toBe(2);
+    const [fastest] = await searchWithStops(request(), both);
+    expect(fastest!.id).toBe('in~tight');
+  });
+
+  it('applies the minimum transfer time when running arrive-by trips backward', async () => {
+    const strict = request({ time: { type: 'arriveBy', at: at(40) }, constraints: { minTransferBufferMinutes: 5 } });
+    const search = async (req: TripRequest) => req.origin.name === 'Shop'
+      ? [trip('out', shop, work, 20, 40)]
+      : [trip('tight', home, shop, 0, 18), trip('roomy', home, shop, 0, 14)];
+    const [picked] = await searchWithStops(strict, search);
+    expect(picked!.id).toBe('roomy~out');
+    expect(picked!.legs[1]!.transferBufferMinutes).toBe(6);
+  });
+
   it('drops chains that cannot reach the next stop', async () => {
     const search = async (req: TripRequest) => (req.origin.name === 'Home' ? [trip('late', home, shop, 0, 50)] : [trip('early', shop, work, 10, 20)]);
     expect(await searchWithStops(request(), search)).toEqual([]);

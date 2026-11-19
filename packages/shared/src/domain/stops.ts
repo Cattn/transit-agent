@@ -43,7 +43,24 @@ export function vehiclesOf(it: Itinerary): string {
   return [...new Set(it.legs.map((leg) => leg.mode).filter((mode) => mode === 'car' || mode === 'bike'))].sort().join(',');
 }
 
-export function pickHop(candidates: readonly Itinerary[], bound: { after: string } | { before: string }, vehicles: string): Itinerary | undefined {
+const isRide = (leg: Leg) => scheduledModes.includes(leg.mode);
+const streetMinutes = (legs: readonly Leg[]) => legs.reduce((sum, leg) => sum + leg.durationMinutes, 0);
+
+export function stopBuffer(before: Itinerary, after: Itinerary): number | undefined {
+  const rides = before.legs.filter(isRide);
+  const lastRide = rides.at(-1);
+  const firstRide = after.legs.findIndex(isRide);
+  if (!lastRide || firstRide < 0) return undefined;
+  const movement = streetMinutes(before.legs.slice(before.legs.lastIndexOf(lastRide) + 1)) + streetMinutes(after.legs.slice(0, firstRide));
+  return Math.floor((Date.parse(after.legs[firstRide]!.departAt) - Date.parse(lastRide.arriveAt)) / MINUTE_MS - movement);
+}
+
+export function pickHop(
+  candidates: readonly Itinerary[],
+  bound: { after: string } | { before: string },
+  vehicles: string,
+  fits: (it: Itinerary) => boolean = () => true
+): Itinerary | undefined {
   let best: Itinerary | undefined;
   for (const raw of candidates) {
     if (vehiclesOf(raw) !== vehicles) continue;
@@ -51,12 +68,12 @@ export function pickHop(candidates: readonly Itinerary[], bound: { after: string
     if ('after' in bound) {
       const gap = Date.parse(bound.after) - Date.parse(it.departAt);
       if (gap > 0 && shiftable(it)) it = shift(it, gap);
-      if (Date.parse(it.departAt) < Date.parse(bound.after)) continue;
+      if (Date.parse(it.departAt) < Date.parse(bound.after) || !fits(it)) continue;
       if (!best || Date.parse(it.arriveAt) < Date.parse(best.arriveAt) || (it.arriveAt === best.arriveAt && it.transfers < best.transfers)) best = it;
     } else {
       const gap = Date.parse(bound.before) - Date.parse(it.arriveAt);
       if (gap < 0 && shiftable(it)) it = shift(it, gap);
-      if (Date.parse(it.arriveAt) > Date.parse(bound.before)) continue;
+      if (Date.parse(it.arriveAt) > Date.parse(bound.before) || !fits(it)) continue;
       if (!best || Date.parse(it.departAt) > Date.parse(best.departAt) || (it.departAt === best.departAt && it.transfers < best.transfers)) best = it;
     }
   }
@@ -157,6 +174,7 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
   const stops = request.stops ?? [];
   if (stops.length === 0) return search(request);
   const forward = request.time.type === 'departAt';
+  const minBuffer = request.constraints.minTransferBufferMinutes;
   const hops = hopRequests(request, request.time);
   const order = forward ? hops : [...hops].reverse();
 
@@ -178,7 +196,16 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
     const next = await Promise.all(chains.map(async (chain) => {
       const bound = forward ? { after: edge(chain) } : { before: edge(chain) };
       const vehicles = vehiclesOf(chain[0]!);
-      const pick = pickHop(shared, bound, vehicles) ?? pickHop(await searchAt(Date.parse(edge(chain))), bound, vehicles);
+      const fits = (it: Itinerary) => {
+        if (minBuffer === undefined) return true;
+        const buffer = forward ? stopBuffer(chain.at(-1)!, it) : stopBuffer(it, chain[0]!);
+        return buffer === undefined || buffer >= minBuffer;
+      };
+      const own = () => searchAt(Date.parse(edge(chain)));
+      const pick = pickHop(shared, bound, vehicles, fits)
+        ?? pickHop(await own(), bound, vehicles, fits)
+        ?? pickHop(shared, bound, vehicles)
+        ?? pickHop(await own(), bound, vehicles);
       if (!pick) return undefined;
       return forward ? [...chain, pick] : [pick, ...chain];
     }));
