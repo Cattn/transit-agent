@@ -177,6 +177,7 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
   const hops = hopRequests(request, request.time);
   const order = forward ? hops : [...hops].reverse();
 
+  let failure: { error: unknown } | undefined;
   let chains: Itinerary[][] = (await search(order[0]!)).slice(0, MAX_STOP_CHAINS).map((it) => [it]);
   for (const hop of order.slice(1)) {
     if (chains.length === 0) break;
@@ -192,7 +193,6 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
       return found;
     };
     const shared = await searchAt(forward ? Math.min(...times) : Math.max(...times));
-    let failure: { error: unknown } | undefined;
     const next = await Promise.all(chains.map(async (chain) => {
       const bound = forward ? { after: edge(chain) } : { before: edge(chain) };
       const vehicles = vehiclesOf(chain[0]!);
@@ -214,7 +214,6 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
       return forward ? [...chain, pick] : [pick, ...chain];
     }));
     chains = next.filter((chain): chain is Itinerary[] => chain !== undefined);
-    if (chains.length === 0 && failure) throw failure.error;
   }
 
   const stitched: Itinerary[] = [];
@@ -223,5 +222,6 @@ export async function searchWithStops(request: TripRequest, search: Search): Pro
     const it = stitchHops(chain, stops);
     if (!stitched.some((other) => other.id === it.id)) stitched.push(it);
   }
+  if (stitched.length === 0 && failure) throw failure.error;
   return stitched;
 }

@@ -184,6 +184,16 @@ describe('searchWithStops', () => {
     await expect(searchWithStops(request(), search)).rejects.toThrow('provider down');
   });
 
+  it('still fails when the routes left after a failed extra search die at a later stop', async () => {
+    const search = async (req: TripRequest) => {
+      if (req.origin.name === 'Home') return [trip('bus-1', home, shop, 0, 10), trip('bike-1', home, shop, 0, 20, 'bike')];
+      if (req.origin.name === 'Gym') return [trip('bike-3', gym, work, 40, 50, 'bike')];
+      if (minuteOf(req.time.at) !== 10) throw new Error('provider down');
+      return [trip('bus-2', shop, gym, 12, 20)];
+    };
+    await expect(searchWithStops(request({ stops: [shop, gym] }), search)).rejects.toThrow('provider down');
+  });
+
   it('drops chains that cannot reach the next stop', async () => {
     const search = async (req: TripRequest) => (req.origin.name === 'Home' ? [trip('late', home, shop, 0, 50)] : [trip('early', shop, work, 10, 20)]);
     expect(await searchWithStops(request(), search)).toEqual([]);
