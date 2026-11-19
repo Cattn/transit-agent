@@ -71,6 +71,8 @@ describe('parseServerState', () => {
   it('migrates the legacy server', () => {
     expect(serverStateFromLegacy('https://example.com/transit')).toEqual({ active: 'https://example.com/transit', saved: ['https://example.com/transit'] });
     expect(serverStateFromLegacy(null)).toEqual({ active: null, saved: [] });
+    expect(serverStateFromLegacy('https://b.example.com', '["https://a.example.com","https://b.example.com"]')).toEqual({ active: 'https://b.example.com', saved: ['https://a.example.com', 'https://b.example.com'] });
+    expect(serverStateFromLegacy(null, '[oops')).toEqual({ active: null, saved: [] });
   });
 });
 
@@ -135,6 +137,33 @@ describe('saved servers on the phone', () => {
     disk.set(LEGACY, 'http://100.64.0.1:3001');
     await (await launch()).setServerUrl(null);
     expect(await restart()).toEqual({ active: null, saved: ['http://100.64.0.1:3001'] });
+  });
+
+  it('keeps servers saved by earlier builds', async () => {
+    disk.set('transit.savedServers', '["https://a.example.com","https://b.example.com"]');
+    await (await launch()).setServerUrl(null);
+    expect(await restart()).toEqual({ active: null, saved: ['https://a.example.com', 'https://b.example.com'] });
+  });
+
+  it('replays a removal made while storage was unreadable', async () => {
+    disk.set(STATE, '{"active":"https://a.example.com","saved":["https://a.example.com","https://b.example.com"]}');
+    failing.get.add(STATE);
+    const app = await launch();
+    await app.setServerUrl('https://b.example.com');
+    failing.get.clear();
+    await app.removeServer('https://b.example.com');
+    expect(await restart()).toEqual({ active: null, saved: ['https://a.example.com'] });
+  });
+
+  it('replays every change made while storage was unreadable, in order', async () => {
+    disk.set(STATE, '{"active":"https://a.example.com","saved":["https://a.example.com","https://b.example.com"]}');
+    failing.get.add(STATE);
+    const app = await launch();
+    await app.setServerUrl('https://b.example.com');
+    await app.removeServer('https://b.example.com');
+    failing.get.clear();
+    await app.setServerUrl('https://c.example.com');
+    expect(await restart()).toEqual({ active: 'https://c.example.com', saved: ['https://a.example.com', 'https://c.example.com'] });
   });
 
   it('keeps a /connect address with a path across restarts', async () => {

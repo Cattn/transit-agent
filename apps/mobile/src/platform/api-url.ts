@@ -80,22 +80,28 @@ function savedServerUrl(value: unknown): string | undefined {
   return typeof value === 'string' ? normalizeServerUrl(value) ?? linkedServerUrl(value.trim()) : undefined;
 }
 
-export function serverStateFromLegacy(active: string | null): ServerState {
-  const url = active ? savedServerUrl(active) ?? null : null;
-  return { active: url, saved: withServer([], url) };
+function parseJson(raw: string | null): unknown {
+  try {
+    return raw === null ? undefined : JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function serverState(active: unknown, saved: unknown): ServerState {
+  const url = savedServerUrl(active) ?? null;
+  const urls = Array.isArray(saved) ? saved.map(savedServerUrl).filter((item): item is string => item !== undefined) : [];
+  return { active: url, saved: withServer(urls, url) };
+}
+
+export function serverStateFromLegacy(active: string | null, savedList: string | null = null): ServerState {
+  return serverState(active, parseJson(savedList));
 }
 
 export function parseServerState(raw: string): ServerState {
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    value = undefined;
-  }
+  const value = parseJson(raw);
   const record = value && typeof value === 'object' ? (value as { active?: unknown; saved?: unknown }) : {};
-  const active = savedServerUrl(record.active) ?? null;
-  const saved = Array.isArray(record.saved) ? record.saved.map(savedServerUrl).filter((url): url is string => url !== undefined) : [];
-  return { active, saved: withServer(saved, active) };
+  return serverState(record.active, record.saved);
 }
 
 export function withServer(servers: readonly string[], url?: string | null): string[] {

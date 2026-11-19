@@ -5,6 +5,7 @@ import { parseConnectLink, parseServerState, serverStateFromLegacy, withServer, 
 
 export const SERVER_URL_KEY = 'transit.serverUrl';
 export const SERVER_STATE_KEY = 'transit.servers';
+const EARLY_SAVED_SERVERS_KEY = 'transit.savedServers';
 
 type Listener = (url: string | null) => void;
 type ListListener = (servers: string[]) => void;
@@ -14,6 +15,7 @@ let current: string | null | undefined;
 let saved: string[] | undefined;
 let state: ServerState = { active: null, saved: [] };
 let known = false;
+let unsaved: ((state: ServerState) => ServerState)[] = [];
 let loading: Promise<void> | undefined;
 let queue: Promise<void> = Promise.resolve();
 
@@ -31,7 +33,8 @@ async function readState(): Promise<ServerState | undefined> {
   try {
     const raw = await SecureStore.getItemAsync(SERVER_STATE_KEY);
     if (raw !== null) return parseServerState(raw);
-    return serverStateFromLegacy(await SecureStore.getItemAsync(SERVER_URL_KEY));
+    const [active, savedList] = await Promise.all([SecureStore.getItemAsync(SERVER_URL_KEY), SecureStore.getItemAsync(EARLY_SAVED_SERVERS_KEY)]);
+    return serverStateFromLegacy(active, savedList);
   } catch {
     return undefined;
   }
@@ -43,10 +46,12 @@ function change(update: (state: ServerState) => ServerState): Promise<void> {
     if (!known) {
       const stored = await readState();
       if (stored) {
-        state = { active: stored.active, saved: state.saved.reduce(withServer, stored.saved) };
+        state = unsaved.reduce((next, replay) => replay(next), stored);
+        unsaved = [];
         known = true;
       }
     }
+    if (!known) unsaved.push(update);
     state = update(state);
     publishList(state.saved);
     publish(state.active);
