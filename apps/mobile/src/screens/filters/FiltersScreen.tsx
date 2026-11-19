@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
-import { formatClockOnDay, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
+import { formatClock, formatClockOnDay, formatDayFromNow, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
 import type { LimitCustom } from './limits';
 import { canAddStop, movePatch, pickPatch, placeSlots, removeStopPatch, type PlaceTarget } from './places';
 import { filtersResetPatch } from './reset';
+import { earliestDay, pickerClock, pickerDay, withClock, withDay } from './when';
 
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
@@ -52,10 +53,11 @@ export interface FiltersChromeProps {
     onPick: (place: Place) => void;
     onUseLocation: () => void;
   };
-  time: { label: string; set: boolean; agent: boolean; at?: string };
+  time: { label: string; day: string; clock: string; set: boolean; agent: boolean; pickerDay: string; pickerClock: string; earliestDay: string };
   timeOptions: { value: TimeType; label: string; selected: boolean }[];
   onTimeType: (type: TimeType) => void;
   onSetTime: (at: Date) => void;
+  onSetDate: (day: Date) => void;
   modes: { mode: ChipMode; label: string; selected: boolean }[];
   modesAgent: boolean;
   onToggleMode: (mode: ChipMode) => void;
@@ -123,13 +125,6 @@ function limitOptions(current: number | undefined, steps: readonly number[], lab
   ];
 }
 
-function upcoming(picked: Date, now: Date): Date {
-  const at = new Date(picked);
-  at.setSeconds(0, 0);
-  while (at.getTime() < now.getTime() - 60_000) at.setDate(at.getDate() + 1);
-  return at;
-}
-
 function countCopy(routes: number, almost: number): { routes: string; almost: string } {
   return {
     routes: `${routes} ${routes === 1 ? 'route matches' : 'routes match'}`,
@@ -159,6 +154,8 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
 
   const agent = (key: string) => provenance[key] === 'agent';
   const timeType: TimeType = draft.time?.type ?? 'departAt';
+  const now = new Date();
+  const timeAt = draft.time?.at ?? now.toISOString();
 
   const onUseLocation = () => {
     setLocating(true);
@@ -169,7 +166,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       if (result.ok) {
         apply({ origin: result.place }, 'user');
         setSearching(undefined);
-        if (startSearch && draft.destination && draft.time) onShowRoutes();
+        if (startSearch && draft.destination) onShowRoutes();
         return;
       }
       setNotice(result.reason === 'denied'
@@ -230,15 +227,19 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
         const destination = searching === 'destination' ? place : draft.destination;
         if (startSearch && !origin) { setSearching('origin'); return; }
         setSearching(undefined);
-        if (startSearch && destination && draft.time) onShowRoutes();
+        if (startSearch && destination) onShowRoutes();
       },
       onUseLocation
     } : undefined,
     time: {
-      label: draft.time ? formatClockOnDay(draft.time.at, new Date(), draft.timeZone) : 'Set a time',
+      label: formatClockOnDay(timeAt, now, draft.timeZone),
+      day: formatDayFromNow(timeAt, now, draft.timeZone),
+      clock: formatClock(timeAt, draft.timeZone),
       set: draft.time !== undefined,
       agent: agent('time'),
-      at: draft.time?.at
+      pickerDay: pickerDay(timeAt, draft.timeZone),
+      pickerClock: pickerClock(timeAt, draft.timeZone),
+      earliestDay: earliestDay(now, draft.timeZone)
     },
     timeOptions: TIME_OPTIONS.map((option) => ({ ...option, selected: option.value === timeType })),
     onTimeType: (type) => {
@@ -247,7 +248,12 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       apply({ time: { type, at } }, 'user');
     },
     onSetTime: (picked) => {
-      const at = upcoming(picked, new Date()).toISOString();
+      const at = withClock(picked, timeAt, new Date(), draft.timeZone);
+      if (draft.time?.at === at && draft.time.type === timeType) return;
+      apply({ time: { type: timeType, at } }, 'user');
+    },
+    onSetDate: (day) => {
+      const at = withDay(day, timeAt, new Date(), draft.timeZone);
       if (draft.time?.at === at && draft.time.type === timeType) return;
       apply({ time: { type: timeType, at } }, 'user');
     },

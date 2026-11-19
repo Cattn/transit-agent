@@ -9,6 +9,7 @@ import {
   formatClock,
   formatClockOnDay,
   formatDay,
+  formatDayFromNow,
   formatCost,
   formatDuration,
   formatTimeRange,
@@ -64,6 +65,23 @@ describe('formatClockOnDay (#89)', () => {
   it('compares days in the display zone, not UTC', () => {
     expect(formatClockOnDay('2026-11-15T03:00:00Z', now, NY)).toBe('10:00 PM');
     expect(formatClockOnDay('2026-11-15T05:30:00Z', now, NY)).toBe('12:30 AM tomorrow');
+  });
+});
+
+describe('formatDayFromNow (#128)', () => {
+  const now = new Date('2026-11-14T23:21:00-05:00');
+
+  it.each([
+    ['2026-11-14T23:40:00-05:00', 'Today'],
+    ['2026-11-15T09:24:00-05:00', 'Tomorrow'],
+    ['2026-11-17T09:24:00-05:00', 'Tue, Nov 17'],
+    ['2026-11-13T09:24:00-05:00', 'Fri, Nov 13']
+  ])('%s → %s', (iso, expected) => {
+    expect(formatDayFromNow(iso, now, NY)).toBe(expected);
+  });
+
+  it('compares days in the display zone, not UTC', () => {
+    expect(formatDayFromNow('2026-11-15T03:00:00Z', now, NY)).toBe('Today');
   });
 });
 

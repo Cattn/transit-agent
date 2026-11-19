@@ -48,6 +48,13 @@ export function formatClockOnDay(iso: string, now: Date, timeZone?: string): str
   return `${clock} on ${formatDay(iso, timeZone)}`;
 }
 
+export function formatDayFromNow(iso: string, now: Date, timeZone?: string): string {
+  const days = dayNumber(Date.parse(iso), timeZone) - dayNumber(now.getTime(), timeZone);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  return formatDay(iso, timeZone);
+}
+
 export function formatDay(iso: string, timeZone?: string): string {
   const opts: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
   if (timeZone !== undefined) opts.timeZone = timeZone;

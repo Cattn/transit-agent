@@ -133,7 +133,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
   const appForeground = useAppForeground();
   const foreground = appForeground && focused;
   const now = useNow(15_000);
-  const { state, apply, reset, restore, request } = useTripDraft();
+  const { state, apply, fill, reset, restore, request } = useTripDraft();
   const [rerouting, setRerouting] = useState<{ client: typeof api; id: string; checkedAt?: string }>();
   const { items, loading: tripsLoading, error: tripsError, refresh: refreshTrips, save, update, remove } = useSavedItineraries({ pollMs: rerouting?.client === api ? 2000 : 30_000, enabled: foreground });
   const reroutingTrip = items.find((item) => item.id === rerouting?.id);
@@ -253,6 +253,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setSheet(undefined);
     setResultsOpen(true);
   }, [closeSaved]);
+
+  const filtersToRoutes = useCallback(() => {
+    edited.current = true;
+    fill({ time: { type: 'departAt', at: new Date().toISOString() } }, 'user');
+    showRoutes();
+  }, [fill, showRoutes]);
 
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
@@ -603,8 +609,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
           plan={plan}
           startSearch={filterSearch}
           defaults={profile?.defaults}
-          onClose={!chatBehind && (resultsOpen || state.draft.destination) ? showRoutes : closeSheet}
-          onShowRoutes={showRoutes}
+          onClose={!chatBehind && (resultsOpen || state.draft.destination) ? filtersToRoutes : closeSheet}
+          onShowRoutes={filtersToRoutes}
         />
       ) : null}
       <Modal visible={sheet === 'fly'} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeSheet}>
