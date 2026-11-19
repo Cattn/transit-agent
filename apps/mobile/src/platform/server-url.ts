@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { parseConnectLink, parseSavedServers, withServer } from './api-url';
+import { parseConnectLink, parseServerState, serverStateFromLegacy, withServer, type ServerState } from './api-url';
 
 export const SERVER_URL_KEY = 'transit.serverUrl';
-export const SAVED_SERVERS_KEY = 'transit.savedServers';
+export const SERVER_STATE_KEY = 'transit.servers';
 
 type Listener = (url: string | null) => void;
 type ListListener = (servers: string[]) => void;
@@ -12,8 +12,8 @@ const listeners = new Set<Listener>();
 const listListeners = new Set<ListListener>();
 let current: string | null | undefined;
 let saved: string[] | undefined;
-let storedActive: string | null | undefined;
-let storedList: string[] | undefined;
+let state: ServerState = { active: null, saved: [] };
+let known = false;
 let loading: Promise<void> | undefined;
 let queue: Promise<void> = Promise.resolve();
 
@@ -27,84 +27,41 @@ function publishList(servers: string[]) {
   for (const listener of listListeners) listener(servers);
 }
 
-function serialized(task: () => Promise<void>): Promise<void> {
-  const run = queue.then(task);
-  queue = run.catch(() => undefined);
-  return run;
-}
-
-async function writeList(servers: string[]): Promise<boolean> {
-  if (storedList && JSON.stringify(storedList) === JSON.stringify(servers)) return true;
+async function readState(): Promise<ServerState | undefined> {
   try {
-    await SecureStore.setItemAsync(SAVED_SERVERS_KEY, JSON.stringify(servers));
-    storedList = servers;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function syncList(): Promise<void> {
-  if (storedList) return;
-  let raw: string | null;
-  try {
-    raw = await SecureStore.getItemAsync(SAVED_SERVERS_KEY);
-  } catch {
-    return;
-  }
-  const servers = (saved ?? []).reduce(withServer, parseSavedServers(raw, storedActive));
-  if (raw !== null && JSON.stringify(servers) === raw) storedList = servers;
-  else await writeList(servers);
-  publishList(servers);
-}
-
-async function readActive(): Promise<string | null | undefined> {
-  try {
-    return await SecureStore.getItemAsync(SERVER_URL_KEY);
+    const raw = await SecureStore.getItemAsync(SERVER_STATE_KEY);
+    if (raw !== null) return parseServerState(raw);
+    return serverStateFromLegacy(await SecureStore.getItemAsync(SERVER_URL_KEY));
   } catch {
     return undefined;
   }
 }
 
-async function writeActive(url: string | null): Promise<void> {
-  storedActive ??= await readActive();
-  if (storedActive === undefined || url === storedActive) return;
-  if (storedActive && !storedList?.includes(storedActive)) return;
-  try {
-    await (url ? SecureStore.setItemAsync(SERVER_URL_KEY, url) : SecureStore.deleteItemAsync(SERVER_URL_KEY));
-    storedActive = url;
-  } catch {
-    return;
-  }
-}
-
-async function select(url: string | null): Promise<void> {
-  publish(url);
-  await syncList();
-  if (url && saved && !saved.includes(url)) {
-    const servers = withServer(saved, url);
-    publishList(servers);
-    if (storedList) await writeList(servers);
-  }
-  await writeActive(url);
+function change(update: (state: ServerState) => ServerState): Promise<void> {
+  const run = queue.then(async () => {
+    await load();
+    if (!known) {
+      const stored = await readState();
+      if (stored) {
+        state = { active: stored.active, saved: state.saved.reduce(withServer, stored.saved) };
+        known = true;
+      }
+    }
+    state = update(state);
+    publishList(state.saved);
+    publish(state.active);
+    if (known) await SecureStore.setItemAsync(SERVER_STATE_KEY, JSON.stringify(state)).catch(() => undefined);
+  });
+  queue = run.catch(() => undefined);
+  return run;
 }
 
 export function setServerUrl(url: string | null): Promise<void> {
-  return serialized(async () => {
-    await load();
-    await select(url);
-  });
+  return change((state) => ({ active: url, saved: withServer(state.saved, url) }));
 }
 
 export function removeServer(url: string): Promise<void> {
-  return serialized(async () => {
-    await load();
-    if (current === url) await select(null);
-    await syncList();
-    const servers = (saved ?? []).filter((item) => item !== url);
-    publishList(servers);
-    if (storedList) await writeList(servers);
-  });
+  return change((state) => ({ active: state.active === url ? null : state.active, saved: state.saved.filter((item) => item !== url) }));
 }
 
 function applyLink(link: string | null): boolean {
@@ -115,15 +72,14 @@ function applyLink(link: string | null): boolean {
 }
 
 function load(): Promise<void> {
-  loading ??= Promise.all([
-    Linking.getInitialURL().catch(() => null),
-    readActive()
-  ]).then(async ([initial, stored]) => {
-    storedActive = stored;
-    publishList(withServer([], stored));
-    await syncList();
+  loading ??= Promise.all([Linking.getInitialURL().catch(() => null), readState()]).then(([initial, stored]) => {
+    if (stored) {
+      state = stored;
+      known = true;
+    }
+    publishList(state.saved);
     Linking.addEventListener('url', ({ url }) => applyLink(url));
-    if (!applyLink(initial ?? null)) publish(stored ?? null);
+    if (!applyLink(initial ?? null)) publish(state.active);
   });
   return loading;
 }

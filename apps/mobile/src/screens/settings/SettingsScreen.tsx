@@ -416,7 +416,6 @@ export function SettingsScreen() {
     },
     onCheckServer: reachServer,
     onSaveServer: (url) => {
-      if (url === serverUrl) return;
       retryLoad();
       void setServerUrl(url);
     },

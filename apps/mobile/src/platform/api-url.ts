@@ -71,16 +71,31 @@ export function normalizeServerUrl(input: string): string | undefined {
   return port === undefined || (port > 0 && port <= 65535) ? url : undefined;
 }
 
-export function parseSavedServers(raw: string | null | undefined, active?: string | null): string[] {
-  let stored: unknown = [];
+export interface ServerState {
+  active: string | null;
+  saved: string[];
+}
+
+function savedServerUrl(value: unknown): string | undefined {
+  return typeof value === 'string' ? normalizeServerUrl(value) ?? linkedServerUrl(value.trim()) : undefined;
+}
+
+export function serverStateFromLegacy(active: string | null): ServerState {
+  const url = active ? savedServerUrl(active) ?? null : null;
+  return { active: url, saved: withServer([], url) };
+}
+
+export function parseServerState(raw: string): ServerState {
+  let value: unknown;
   try {
-    stored = raw ? JSON.parse(raw) : [];
+    value = JSON.parse(raw);
   } catch {
-    stored = [];
+    value = undefined;
   }
-  const urls = Array.isArray(stored) ? stored.filter((item): item is string => typeof item === 'string') : [];
-  const valid = urls.map((url) => normalizeServerUrl(url) ?? linkedServerUrl(url.trim())).filter((url): url is string => url !== undefined);
-  return withServer(valid, active);
+  const record = value && typeof value === 'object' ? (value as { active?: unknown; saved?: unknown }) : {};
+  const active = savedServerUrl(record.active) ?? null;
+  const saved = Array.isArray(record.saved) ? record.saved.map(savedServerUrl).filter((url): url is string => url !== undefined) : [];
+  return { active, saved: withServer(saved, active) };
 }
 
 export function withServer(servers: readonly string[], url?: string | null): string[] {

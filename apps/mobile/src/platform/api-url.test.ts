@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { normalizeServerUrl, parseConnectLink, parseSavedServers, resolveApiUrl, withServer } from './api-url';
+import { normalizeServerUrl, parseConnectLink, parseServerState, resolveApiUrl, serverStateFromLegacy, withServer } from './api-url';
 
 describe('resolveApiUrl', () => {
   it.each([
@@ -56,18 +56,21 @@ describe('normalizeServerUrl', () => {
   });
 });
 
-describe('parseSavedServers', () => {
+describe('parseServerState', () => {
   it.each([
-    ['nothing stored', null, null, []],
-    ['keeps the stored order', '["https://a.example.com","http://192.168.1.20:3001"]', null, ['https://a.example.com', 'http://192.168.1.20:3001']],
-    ['adds the active server (first run after the update)', null, 'http://192.168.1.20:3001', ['http://192.168.1.20:3001']],
-    ['does not repeat the active server', '["http://192.168.1.20:3001"]', 'http://192.168.1.20:3001', ['http://192.168.1.20:3001']],
-    ['drops invalid and duplicate entries', '["https://a.example.com/",1,"not a url","https://a.example.com"]', null, ['https://a.example.com']],
-    ['broken JSON', '[oops', 'https://a.example.com', ['https://a.example.com']],
-    ['not an array', '{"url":"https://a.example.com"}', null, []],
-    ['keeps a /connect address with a path', '["https://example.com/transit/"]', null, ['https://example.com/transit']]
-  ])('%s', (_name, raw, active, expected) => {
-    expect(parseSavedServers(raw, active)).toEqual(expected);
+    ['active and saved', '{"active":"https://b.example.com","saved":["https://a.example.com","https://b.example.com"]}', { active: 'https://b.example.com', saved: ['https://a.example.com', 'https://b.example.com'] }],
+    ['adds a missing active server to the list', '{"active":"http://192.168.1.20:3001","saved":[]}', { active: 'http://192.168.1.20:3001', saved: ['http://192.168.1.20:3001'] }],
+    ['drops invalid and duplicate entries', '{"active":null,"saved":["https://a.example.com/",1,"not a url","https://a.example.com"]}', { active: null, saved: ['https://a.example.com'] }],
+    ['keeps a /connect address with a path', '{"active":null,"saved":["https://example.com/transit/"]}', { active: null, saved: ['https://example.com/transit'] }],
+    ['broken JSON', '{oops', { active: null, saved: [] }],
+    ['not an object', '"https://a.example.com"', { active: null, saved: [] }]
+  ])('%s', (_name, raw, expected) => {
+    expect(parseServerState(raw)).toEqual(expected);
+  });
+
+  it('migrates the legacy server', () => {
+    expect(serverStateFromLegacy('https://example.com/transit')).toEqual({ active: 'https://example.com/transit', saved: ['https://example.com/transit'] });
+    expect(serverStateFromLegacy(null)).toEqual({ active: null, saved: [] });
   });
 });
 
@@ -101,16 +104,23 @@ vi.mock('expo-secure-store', () => ({
   deleteItemAsync: async (key: string) => void disk.delete(key)
 }));
 
-const ACTIVE = 'transit.serverUrl';
-const LIST = 'transit.savedServers';
+const LEGACY = 'transit.serverUrl';
+const STATE = 'transit.servers';
 
 async function launch() {
   vi.resetModules();
   return import('./server-url');
 }
 
-function savedOnDisk(): string[] {
-  return JSON.parse(disk.get(LIST) ?? '[]') as string[];
+function onDisk(): { active: string | null; saved: string[] } | undefined {
+  const raw = disk.get(STATE);
+  return raw === undefined ? undefined : (JSON.parse(raw) as { active: string | null; saved: string[] });
+}
+
+async function restart(): Promise<{ active: string | null | undefined; saved: string[] | undefined }> {
+  const app = await launch();
+  await app.removeServer('https://never-saved.example.com');
+  return { active: onDisk()?.active, saved: onDisk()?.saved };
 }
 
 describe('saved servers on the phone', () => {
@@ -122,55 +132,66 @@ describe('saved servers on the phone', () => {
   });
 
   it('keeps an upgraded server after switching to Default and restarting', async () => {
-    disk.set(ACTIVE, 'http://100.64.0.1:3001');
+    disk.set(LEGACY, 'http://100.64.0.1:3001');
     await (await launch()).setServerUrl(null);
-    expect(disk.has(ACTIVE)).toBe(false);
-    await launch().then((app) => app.setServerUrl(null));
-    expect(savedOnDisk()).toEqual(['http://100.64.0.1:3001']);
+    expect(await restart()).toEqual({ active: null, saved: ['http://100.64.0.1:3001'] });
   });
 
   it('keeps a /connect address with a path across restarts', async () => {
-    disk.set(ACTIVE, 'https://example.com/transit');
+    disk.set(LEGACY, 'https://example.com/transit');
     await (await launch()).setServerUrl(null);
-    await (await launch()).setServerUrl(null);
-    expect(savedOnDisk()).toEqual(['https://example.com/transit']);
+    expect(await restart()).toEqual({ active: null, saved: ['https://example.com/transit'] });
   });
 
-  it('does not overwrite the list when it cannot be read', async () => {
-    disk.set(ACTIVE, 'https://b.example.com');
-    disk.set(LIST, '["https://a.example.com","https://b.example.com"]');
-    failing.get.add(LIST);
+  it('does not overwrite saved servers it could not read', async () => {
+    const before = '{"active":"https://b.example.com","saved":["https://a.example.com","https://b.example.com"]}';
+    disk.set(STATE, before);
+    failing.get.add(STATE);
     await (await launch()).setServerUrl(null);
-    expect(disk.get(LIST)).toBe('["https://a.example.com","https://b.example.com"]');
-    expect(disk.get(ACTIVE)).toBe('https://b.example.com');
+    expect(disk.get(STATE)).toBe(before);
   });
 
-  it('keeps the legacy server when the migrated list cannot be written', async () => {
-    disk.set(ACTIVE, 'https://a.example.com');
-    failing.set.add(LIST);
-    await (await launch()).setServerUrl('https://b.example.com');
-    await (await launch()).setServerUrl(null);
-    expect(disk.get(ACTIVE)).toBe('https://a.example.com');
+  it('does not migrate over a legacy server it could not read', async () => {
+    disk.set(LEGACY, 'https://a.example.com');
+    failing.get.add(LEGACY);
+    const app = await launch();
+    await app.setServerUrl('https://b.example.com');
+    failing.get.clear();
+    await app.setServerUrl(null);
+    expect(onDisk()).toEqual({ active: null, saved: ['https://a.example.com', 'https://b.example.com'] });
+  });
+
+  it('a failed write is repaired by the next one', async () => {
+    disk.set(STATE, '{"active":"https://a.example.com","saved":["https://a.example.com"]}');
+    const app = await launch();
+    failing.set.add(STATE);
+    await app.setServerUrl('https://b.example.com');
+    expect(onDisk()?.active).toBe('https://a.example.com');
+    failing.set.clear();
+    await app.setServerUrl('https://a.example.com');
+    expect(await restart()).toEqual({ active: 'https://a.example.com', saved: ['https://a.example.com', 'https://b.example.com'] });
+  });
+
+  it('removing the active server falls back to Default, even after a failed write', async () => {
+    const app = await launch();
+    await app.setServerUrl('https://a.example.com');
+    await app.setServerUrl('https://b.example.com');
+    failing.set.add(STATE);
+    await app.removeServer('https://b.example.com');
+    failing.set.clear();
+    await app.setServerUrl('https://a.example.com');
+    expect(await restart()).toEqual({ active: 'https://a.example.com', saved: ['https://a.example.com'] });
   });
 
   it('keeps the last selection when an earlier write is slow', async () => {
     let release = () => undefined as void;
-    slowKey = { key: LIST, release: new Promise<void>((resolve) => { release = resolve; }) };
+    slowKey = { key: STATE, release: new Promise<void>((resolve) => { release = resolve; }) };
     const app = await launch();
-    const adding = app.setServerUrl('https://a.example.com');
-    const toDefault = app.setServerUrl(null);
+    const first = app.setServerUrl('https://a.example.com');
+    const second = app.setServerUrl('https://c.example.com');
+    const third = app.setServerUrl('https://a.example.com');
     release();
-    await Promise.all([adding, toDefault]);
-    expect(disk.has(ACTIVE)).toBe(false);
-    expect(savedOnDisk()).toEqual(['https://a.example.com']);
-  });
-
-  it('removing the active server falls back to Default', async () => {
-    const app = await launch();
-    await app.setServerUrl('https://a.example.com');
-    await app.setServerUrl('https://b.example.com');
-    await app.removeServer('https://b.example.com');
-    expect(savedOnDisk()).toEqual(['https://a.example.com']);
-    expect(disk.has(ACTIVE)).toBe(false);
+    await Promise.all([first, second, third]);
+    expect(await restart()).toEqual({ active: 'https://a.example.com', saved: ['https://a.example.com', 'https://c.example.com'] });
   });
 });
