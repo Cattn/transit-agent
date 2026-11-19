@@ -254,10 +254,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParam
     setResultsOpen(true);
   }, [closeSaved]);
 
+  const draftTime = useRef(state.draft.time);
+  useEffect(() => { draftTime.current = state.draft.time; }, [state.draft.time]);
   const filtersToRoutes = useCallback(() => {
-    if (!state.draft.time) editDraft({ time: { type: 'departAt', at: new Date().toISOString() } });
+    if (!draftTime.current) editDraft({ time: { type: 'departAt', at: new Date().toISOString() } });
     showRoutes();
-  }, [state.draft.time, editDraft, showRoutes]);
+  }, [editDraft, showRoutes]);
 
   const applyAgent = useCallback((patch: TripDraftPatch, source: DraftChangeSource) => {
     edited.current = true;
