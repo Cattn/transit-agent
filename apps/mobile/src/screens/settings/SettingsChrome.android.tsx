@@ -36,14 +36,12 @@ import DirectionsBus from '../../../assets/icons/directions_bus_fill.xml';
 import DirectionsCar from '../../../assets/icons/directions_car_fill.xml';
 import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
 import Dns from '../../../assets/icons/dns_fill.xml';
-import Home from '../../../assets/icons/home_fill.xml';
 import Info from '../../../assets/icons/info_fill.xml';
 import Language from '../../../assets/icons/language_fill.xml';
 import Smartphone from '../../../assets/icons/smartphone.xml';
 import Notifications from '../../../assets/icons/notifications_fill.xml';
 import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
-import Work from '../../../assets/icons/work_fill.xml';
 import { normalizeServerUrl } from '../../platform';
 import { useAppColors } from '../../theme/appearance';
 import { PRESET_ICON_SOURCES } from '../home/PresetSheet.android';
@@ -406,7 +404,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
               </Column>
             </Row>
             <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[fillMaxWidth()]}>
-              <GroupLabel m={m}>Places</GroupLabel>
+              <GroupLabel m={m}>Favorite Places</GroupLabel>
             </Column>
           </Column>
         </Block>
@@ -416,7 +414,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
             {props.places.map((place) => (
               <View key={place.key}>
                 <Block scheme={scheme}>
-                  <SettingRow m={m} icon={place.key === 'home' ? Home : Work} title={place.title} subtitle={place.value} chevron onClick={() => props.onEditPlace(place.key)} />
+                  <SettingRow m={m} icon={PRESET_ICON_SOURCES[place.icon]} iconTint={place.color} title={place.title} subtitle={place.value} chevron onClick={() => props.onEditPlace(place.key)} />
                 </Block>
                 {props.editingPlace === place.key ? (
                   <View style={{ backgroundColor: m.surfaceContainerLow }}>

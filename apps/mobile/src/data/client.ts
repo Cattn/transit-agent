@@ -20,8 +20,8 @@ function getMockClient(): ApiClient {
   if (mockClient) return mockClient;
   mockClient = createMockApiClient({ latencyMs: 0 });
   void mockClient.putProfile({
-    home: { name: 'Home · 25 Joy St', coordinates: [-71.0652, 42.3592], kind: 'address' },
-    work: { name: 'Office · 200 Clarendon St', coordinates: [-71.0752, 42.3496], kind: 'address' }
+    home: { name: '25 Joy St', coordinates: [-71.0652, 42.3592], kind: 'address' },
+    work: { name: '200 Clarendon St', coordinates: [-71.0752, 42.3496], kind: 'address' }
   });
   return mockClient;
 }

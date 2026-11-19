@@ -7,7 +7,7 @@ export const PRESET_MATCH_METERS = 150;
 export const DEFAULT_PRESET_COLORS: Readonly<Record<PresetKey, string>> = { home: PALETTE[3]!, office: PALETTE[0]!, gym: PALETTE[2]! };
 export const DEFAULT_PRESET_ICONS: Readonly<Record<PresetKey, PresetIcon>> = { home: 'home', office: 'work', gym: 'fitness' };
 
-export const PRESET_NAMES: Readonly<Record<PresetKey, string>> = { home: 'Home', office: 'Office', gym: 'Gym' };
+export const PRESET_NAMES: Readonly<Record<PresetKey, string>> = { home: 'Home', office: 'Work', gym: 'Gym' };
 
 type PresetProfile = Pick<TravelProfile, 'home' | 'work' | 'presets' | 'places'> | undefined;
 
@@ -49,7 +49,8 @@ export function profilePlaces(profile: PresetProfile): ProfilePlace[] {
 
 export function placeFor(place: Place, profile: PresetProfile): ProfilePlace | undefined {
   let best: { match: ProfilePlace; meters: number } | undefined;
-  for (const candidate of profilePlaces(profile)) {
+  const candidates = profilePlaces(profile).sort((a, b) => Number(a.key === 'gym') - Number(b.key === 'gym'));
+  for (const candidate of candidates) {
     if (!candidate.place) continue;
     const meters = metersBetween(place.coordinates, candidate.place.coordinates);
     if (meters <= PRESET_MATCH_METERS && (!best || meters < best.meters)) best = { match: candidate, meters };

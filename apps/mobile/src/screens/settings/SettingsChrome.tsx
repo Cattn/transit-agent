@@ -69,7 +69,7 @@ export function SettingsChrome(props: SettingsChromeProps) {
   return (
     <ScrollView keyboardShouldPersistTaps="handled" style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       {props.saveError ? <Text style={[styles.error, { color: colors.onErrorContainer, backgroundColor: colors.errorContainer }]}>{props.saveError}</Text> : null}
-      <Label colors={colors}>Places</Label>
+      <Label colors={colors}>Favorite Places</Label>
       {props.places.map((place) => (
         <View key={place.key}>
           <Row colors={colors} title={place.title} value={place.value} onPress={() => props.onEditPlace(place.key)} />
