@@ -156,6 +156,23 @@ describe('Photon place search', () => {
     ]);
   });
 
+  it('names address-search results by their address, merges duplicates and drops distant towns (#127)', async () => {
+    const { calls, fn } = fakeFetch(ok([
+      feature("Dunkin'", [-71.0957524, 42.3357476], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '550', street: 'Huntington Avenue', city: 'Boston' }),
+      feature('Alumni Library', [-71.0955638, 42.3356047], { osm_key: 'amenity', osm_value: 'library', housenumber: '550', street: 'Huntington Avenue', city: 'Boston' }),
+      feature('Huntington Avenue', [-93.2438987, 44.6722642], { osm_key: 'highway', osm_value: 'residential', city: 'Lakeville' })
+    ]));
+    const res = await serve(fn)('/api/places?q=550%20Huntington%20Ave&near=-71.06,42.36');
+    expect(res.json().places).toEqual([{ name: '550 Huntington Avenue, Boston', coordinates: [-71.0957524, 42.3357476], kind: 'address' }]);
+    expect(calls[0]?.searchParams.get('limit')).toBe('10');
+  });
+
+  it('keeps distant address matches when none is nearby', async () => {
+    const { fn } = fakeFetch(ok([feature('Shop', [-93.2, 44.6], { housenumber: '12', street: 'Main Street', city: 'Lakeville' })]));
+    const res = await serve(fn)('/api/places?q=12%20Main%20St&near=-71.06,42.36');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['12 Main Street, Lakeville']);
+  });
+
   it('passes near to Photon as lat and lon', async () => {
     const { calls, fn } = fakeFetch(ok(kendallSample));
     await serve(fn)('/api/places?q=Brookline%20Village&near=-71.06,42.36');
