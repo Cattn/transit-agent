@@ -15,6 +15,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
         </Pressable>
         <View style={styles.places}>
           <Text numberOfLines={1} style={{ color: colors.onSurface }}>{props.origin}</Text>
+          {props.stops.length > 0 ? <Text numberOfLines={1} style={{ color: colors.onSurfaceVariant }}>{`via ${props.stops.join(', ')}`}</Text> : null}
           <Text numberOfLines={1} style={{ color: colors.onSurface }}>{props.destination}</Text>
         </View>
         {props.onSwap ? (

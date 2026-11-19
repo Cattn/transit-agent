@@ -53,6 +53,13 @@ export const CostLineSchema = z.object({
   usd: z.number(),
   estimated: z.boolean()
 });
+export type CostLine = z.infer<typeof CostLineSchema>;
+
+export const ItineraryStopSchema = z.object({
+  place: PlaceSchema,
+  legIndex: z.number().int().positive()
+});
+export type ItineraryStop = z.infer<typeof ItineraryStopSchema>;
 
 export const ItinerarySchema = z.object({
   id: z.string().min(1),
@@ -72,7 +79,8 @@ export const ItinerarySchema = z.object({
   violations: z.array(z.string()),
   /** Short one-liner for list rows, e.g. "Bike 6 min → Red Line → walk 4 min". */
   summary: z.string(),
-  source: z.object({ provider: z.string(), fetchedAt: IsoDateTime })
+  source: z.object({ provider: z.string(), fetchedAt: IsoDateTime }),
+  stops: z.array(ItineraryStopSchema).optional()
 });
 export type Itinerary = z.infer<typeof ItinerarySchema>;
 

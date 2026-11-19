@@ -62,6 +62,21 @@ describe('applyDraftPatch', () => {
     expect(() => applyDraftPatch(initialDraftState(), { preferences: { comfortVsCost: 2 } }, 'agent')).toThrow(ZodError);
   });
 
+  it('replaces stops wholesale and treats an empty list as no stops', () => {
+    const gym = { name: 'Gym', coordinates: [-71.08, 42.35] as [number, number] };
+    const two = applyDraftPatch(initialDraftState(), { stops: [home, work] }, 'agent');
+    expect(two.draft.stops).toEqual([home, work]);
+    expect(two.provenance.stops).toBe('agent');
+    const one = applyDraftPatch(two, { stops: [gym] }, 'user');
+    expect(one.draft.stops).toEqual([gym]);
+    expect(one.provenance.stops).toBe('user');
+    expect('stops' in applyDraftPatch(one, { stops: [] }, 'user').draft).toBe(false);
+    expect('stops' in applyDraftPatch(one, { stops: null }, 'user').draft).toBe(false);
+    expect(() => applyDraftPatch(one, { stops: [gym, gym, gym, gym] }, 'user')).toThrow(ZodError);
+    expect(describePatch({ stops: [gym, work] })).toEqual(['Stops: Gym, Work']);
+    expect(describePatch({ stops: null })).toEqual(['Stops: none']);
+  });
+
   it('applies initial defaults with profile provenance', () => {
     const state = initialDraftState({ vehicles: { ownsBike: true } });
     expect(state.draft.vehicles.ownsBike).toBe(true);

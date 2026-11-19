@@ -8,7 +8,7 @@ import { TravelProfileSchema, type TravelProfile } from '../../domain/profile.js
 import { sections } from '../../index.js';
 import { TripRequestSchema, type TripRequest } from '../../domain/trip-draft.js';
 import { applyWatchAction } from '../../domain/watch.js';
-import { mockItineraries } from './mock-routes.js';
+import { mockItineraries, mockTripsWithStops } from './mock-routes.js';
 import { mockAgentReply } from './mock-agent.js';
 import { mockSearchPlaces } from './mock-places.js';
 import { applyDraftPatch, toTripRequest } from '../trip-draft-state.js';
@@ -50,7 +50,7 @@ export function createMockApiClient(options: MockApiClientOptions = {}): ApiClie
     if (!parsed.success) throw new ApiClientError(400, 'invalid_request', 'Request validation failed');
     const request = parsed.data;
     if (scenario === 'empty') return PlanResponseSchema.parse({ itineraries: [], nearMisses: [], warnings: ['No routes found for this trip'] });
-    const routes = mockItineraries(request, now).map((route) => {
+    const routes = mockTripsWithStops(request, now).map((route) => {
       const violations: string[] = [];
       const c = request.constraints;
       if (c.maxWalkMinutes !== undefined && route.walkMinutes > c.maxWalkMinutes) violations.push(`Walks ${route.walkMinutes} min, over the ${c.maxWalkMinutes} min limit`);

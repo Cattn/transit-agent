@@ -1,4 +1,4 @@
-import { formatClock, formatDay, formatDuration, LONG_RETURN_WAIT_MINUTES, type Itinerary, type PlanResponse, type ReturnPlan, type TripRequest } from '@transit/shared';
+import { formatClock, formatDay, formatDuration, LONG_RETURN_WAIT_MINUTES, searchWithStops, type Itinerary, type PlanResponse, type ReturnPlan, type TripRequest } from '@transit/shared';
 import type { RouteProvider } from '../providers/types.js';
 import { checkConstraints } from './constraints.js';
 import { rankItineraries } from './rank.js';
@@ -27,7 +27,7 @@ async function searchProviders(req: TripRequest, active: RouteProvider[], signal
   const warnings: string[] = [];
   const candidates: Itinerary[] = [];
   let failed = 0;
-  const settled = await Promise.allSettled(active.map((provider) => provider.search(req, signal)));
+  const settled = await Promise.allSettled(active.map((provider) => searchWithStops(req, (hop) => provider.search(hop, signal))));
   settled.forEach((result, index) => {
     const provider = active[index];
     if (!provider) return;
@@ -71,6 +71,7 @@ export function nextMorning(afterMs: number, timeZone: string): number {
 
 export function returnRequestFor(req: TripRequest, returnTime: string): TripRequest {
   const reversed: TripRequest = { ...req, origin: req.destination, destination: req.origin, time: { type: 'departAt', at: returnTime }, constraints: { ...req.constraints } };
+  delete reversed.stops;
   delete reversed.returnTime;
   delete reversed.constraints.arriveBy;
   return reversed;

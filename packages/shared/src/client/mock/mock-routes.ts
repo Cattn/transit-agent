@@ -1,6 +1,7 @@
 import { ItinerarySchema, type Itinerary, type Leg } from '../../domain/itinerary.js';
 import type { TravelMode } from '../../domain/modes.js';
 import type { LngLat, Place } from '../../domain/places.js';
+import { hopRequests, stitchHops } from '../../domain/stops.js';
 import type { TripRequest } from '../../domain/trip-draft.js';
 
 function distance(a: LngLat, b: LngLat): number {
@@ -72,5 +73,26 @@ export function mockItineraries(request: TripRequest, now: () => Date = () => ne
       violations: [], summary: legs.map((leg) => leg.routeName ?? `${leg.mode === 'walk' ? 'Walk' : leg.mode === 'car' ? 'Drive' : 'Bike'} ${leg.durationMinutes} min`).join(' → '),
       source: { provider: 'mock', fetchedAt: now().toISOString() }
     });
+  });
+}
+
+export function mockTripsWithStops(request: TripRequest, now: () => Date = () => new Date()): Itinerary[] {
+  const stops = request.stops ?? [];
+  if (stops.length === 0) return mockItineraries(request, now);
+  const hops = hopRequests(request, request.time);
+  const chain = (option: number, at: string): Itinerary | undefined => {
+    const parts: Itinerary[] = [];
+    for (const hop of hops) {
+      const next = mockItineraries({ ...hop, time: { type: 'departAt', at: parts.at(-1)?.arriveAt ?? at } }, now)[option];
+      if (!next) return undefined;
+      parts.push(next);
+    }
+    return stitchHops(parts, stops);
+  };
+  return mockItineraries({ ...hops[0]!, time: { type: 'departAt', at: request.time.at } }, now).flatMap((_, option) => {
+    const trip = chain(option, request.time.at);
+    if (!trip || request.time.type === 'departAt') return trip ? [trip] : [];
+    const early = chain(option, new Date(Date.parse(request.time.at) * 2 - Date.parse(trip.arriveAt)).toISOString());
+    return early ? [early] : [];
   });
 }

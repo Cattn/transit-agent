@@ -1,7 +1,8 @@
-import { computeWatchStatus, formatClock, scheduledModes, type Itinerary, type Place, type SavedItinerary, type TripRequest, type WatchStatus } from '@transit/shared';
+import { computeWatchStatus, formatClock, scheduledModes, stopsAfter, type Itinerary, type Place, type SavedItinerary, type TripRequest, type WatchStatus } from '@transit/shared';
 import { assessRisk } from '../planning/risk.js';
 import { checkConstraints } from '../planning/constraints.js';
 import { planTrip } from '../planning/plan-trip.js';
+import { refreshItinerary } from '../planning/refresh.js';
 import type { RouteProvider } from '../providers/types.js';
 import type { WatchStore } from '../store/types.js';
 import { minutesUntil, type WatchAdvisor } from './advisor.js';
@@ -54,10 +55,13 @@ async function advise(deps: WatchDeps, saved: SavedItinerary, current: Itinerary
   }
 }
 
-async function replace(deps: WatchDeps, saved: SavedItinerary, current: Itinerary, missed: WatchStatus, now: Date, origin: Place, reason: string) {
+async function replace(deps: WatchDeps, saved: SavedItinerary, current: Itinerary, missed: WatchStatus, now: Date, origin: Place, reason: string, boarded: number | undefined) {
   const deadline = saved.request.constraints.arriveBy ?? (saved.request.time.type === 'arriveBy' ? saved.request.time.at : undefined);
   const request: TripRequest = { ...saved.request, origin, constraints: { ...saved.request.constraints, ...(deadline ? { arriveBy: deadline } : {}) }, time: { type: 'departAt', at: now.toISOString() } };
   delete request.returnTime;
+  const stops = stopsAfter(current, boarded === undefined ? 0 : boarded + 1);
+  if (stops.length > 0) request.stops = stops;
+  else delete request.stops;
   const plan = await planTrip(request, deps.providers, undefined, deps.log);
   const replacements = plan.itineraries.filter((it) => Date.parse(it.departAt) >= Math.floor(now.getTime() / 1000) * 1000).slice(0, MAX_REPLACEMENTS);
   if (replacements.length === 0) {
@@ -91,7 +95,7 @@ async function check(deps: WatchDeps, deviceId: string, saved: SavedItinerary, n
   let current: Itinerary = saved;
   let refreshState: WatchStatus['refreshState'] = provider?.refresh ? 'notFound' : 'unsupported';
   try {
-    const refreshed = await provider?.refresh?.(saved, saved.request);
+    const refreshed = provider ? await refreshItinerary(provider, saved, saved.request) : undefined;
     if (refreshed) {
       current = refreshed;
       refreshState = 'fresh';
@@ -166,7 +170,7 @@ async function check(deps: WatchDeps, deviceId: string, saved: SavedItinerary, n
     status.missedLegIndex = active;
     const origin = recentPosition(deps, deviceId, saved.id, now) ?? (boarded === undefined ? saved.request.origin : current.legs[boarded]!.to);
     const reason = impossibleTransfer ? `Missed connection to ${nameOf(current, active)}.` : `Missed ${nameOf(current, active)}.`;
-    return replace(deps, saved, current, status, now, origin, reason);
+    return replace(deps, saved, current, status, now, origin, reason, boarded);
   }
   if (now.getTime() > Date.parse(leg.departAt)) {
     status.state = 'missed';

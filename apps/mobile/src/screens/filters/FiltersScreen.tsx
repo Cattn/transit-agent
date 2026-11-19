@@ -4,6 +4,7 @@ import { formatClockOnDay, type DraftChangeSource, type Place, type PlanResponse
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
 import type { LimitCustom } from './limits';
+import { canAddStop, movePatch, pickPatch, placeSlots, removeStopPatch, type PlaceTarget } from './places';
 import { filtersResetPatch } from './reset';
 
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
@@ -38,11 +39,13 @@ export interface FiltersChromeProps {
   onClose: () => void;
   onReset: () => void;
   onShowRoutes: () => void;
-  origin: { label: string; agent: boolean };
-  destination: { label: string; agent: boolean };
-  onSearch: (which: 'origin' | 'destination') => void;
+  places: PlaceRowItem[];
+  onSearch: (target: PlaceTarget) => void;
+  canAddStop: boolean;
+  onRemoveStop: (index: number) => void;
+  onMovePlace: (from: number, to: number) => void;
   search?: {
-    which: 'origin' | 'destination';
+    which: PlaceTarget;
     near?: Place['coordinates'];
     locating: boolean;
     notice?: string;
@@ -68,6 +71,14 @@ export interface FiltersChromeProps {
   counts?: { routes: string; almost: string };
 }
 
+export interface PlaceRowItem {
+  role: 'origin' | 'stop' | 'destination';
+  target: PlaceTarget;
+  title: string;
+  label: string;
+  agent: boolean;
+}
+
 export interface FiltersScreenProps {
   draft: TripDraft;
   provenance: Record<string, DraftChangeSource>;
@@ -82,7 +93,7 @@ export interface FiltersScreenProps {
 
 function focusFor(field?: string): FilterFocus | undefined {
   if (!field) return undefined;
-  if (field === 'origin' || field === 'destination' || field === 'time') return 'where';
+  if (field === 'origin' || field === 'destination' || field === 'stops' || field === 'time') return 'where';
   if (field === 'modes') return 'modes';
   if (field === 'preferences.lateTolerance') return 'strict';
   if (field.startsWith('preferences.')) return 'prefs';
@@ -130,7 +141,7 @@ const MODE_LABELS: Record<ChipMode, string> = { walk: 'Walk', bus: 'Bus', rail: 
 
 export function FiltersScreen({ draft, provenance, apply, field, plan, startSearch, defaults, onClose, onShowRoutes }: FiltersScreenProps) {
   const [limitsOpen, setLimitsOpen] = useState(true);
-  const [searching, setSearching] = useState<'origin' | 'destination' | undefined>(startSearch);
+  const [searching, setSearching] = useState<PlaceTarget | undefined>(startSearch);
   const [locating, setLocating] = useState(false);
   const [notice, setNotice] = useState<string>();
   const live = useRef(true);
@@ -139,7 +150,7 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (searching) { setSearching(undefined); return true; }
+      if (searching !== undefined) { setSearching(undefined); return true; }
       onClose();
       return true;
     });
@@ -171,7 +182,14 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
   const transferLabel = (value: number) => (value === 0 ? 'No transfers' : String(value));
 
   const data = plan && !plan.loading ? plan.data : undefined;
-  const near = searching === 'destination' ? draft.origin?.coordinates : draft.destination?.coordinates;
+  const near = searching === 'origin' ? draft.destination?.coordinates : draft.origin?.coordinates;
+  const slots = placeSlots(draft);
+  const places: PlaceRowItem[] = slots.map((place, index) => {
+    const last = index === slots.length - 1;
+    if (index === 0) return { role: 'origin', target: 'origin', title: 'From', label: placeLabel(place), agent: agent('origin') };
+    if (last) return { role: 'destination', target: 'destination', title: 'To', label: placeLabel(place), agent: agent('destination') };
+    return { role: 'stop', target: index - 1, title: slots.length > 3 ? `Stop ${index}` : 'Stop', label: placeLabel(place), agent: agent('stops') };
+  });
 
   const props: FiltersChromeProps = {
     focus: focusFor(field),
@@ -184,19 +202,29 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       apply(filtersResetPatch(draft, defaults, new Date()), 'user');
     },
     onShowRoutes,
-    origin: { label: placeLabel(draft.origin), agent: agent('origin') },
-    destination: { label: placeLabel(draft.destination), agent: agent('destination') },
+    places,
     onSearch: (which) => {
       setNotice(undefined);
       setSearching((current) => current === which ? undefined : which);
     },
-    search: searching ? {
+    canAddStop: canAddStop(draft),
+    onRemoveStop: (index) => {
+      setSearching(undefined);
+      apply(removeStopPatch(draft, index), 'user');
+    },
+    onMovePlace: (from, to) => {
+      const patch = movePatch(draft, from, to);
+      if (!patch) return;
+      setSearching(undefined);
+      apply(patch, 'user');
+    },
+    search: searching !== undefined ? {
       which: searching,
       near,
       locating,
       notice,
       onPick: (place) => {
-        apply(searching === 'origin' ? { origin: place } : { destination: place }, 'user');
+        apply(pickPatch(draft, searching, place), 'user');
         setNotice(undefined);
         const origin = searching === 'origin' ? place : draft.origin;
         const destination = searching === 'destination' ? place : draft.destination;

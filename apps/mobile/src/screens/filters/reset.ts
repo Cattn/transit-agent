@@ -35,6 +35,7 @@ export function filtersResetPatch(draft: TripDraft, defaults: TripDraftPatch | u
   return {
     origin: null,
     destination: null,
+    stops: null,
     time: { type: 'departAt', at: now.toISOString() },
     returnTime: null,
     modes,

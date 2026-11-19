@@ -22,6 +22,7 @@ export * from './domain/modes.js';
 export * from './domain/places.js';
 export * from './domain/trip-draft.js';
 export * from './domain/itinerary.js';
+export * from './domain/stops.js';
 export * from './domain/watch.js';
 export * from './domain/api.js';
 export * from './domain/fixtures.js';

@@ -86,6 +86,6 @@ export function createPlannerTools(turn: TurnContext) {
       report({ type: 'question', question });
       return { status: 'queued' };
     } }),
-    new PlannerTool({ name: 'list_saved_trips', description: 'Read up to twenty saved trips for this device. Use only when the user refers to a saved trip, home, or work.', parameters: z.object({}), execute: async () => (await turn.itineraries.list(turn.deviceId)).slice(0, 20).map(({ id, label, summary, departAt, arriveAt, request, watch }) => ({ id, label, summary, departAt, arriveAt, watch, request: { origin: request.origin, destination: request.destination, time: request.time, modes: request.modes } })) })
+    new PlannerTool({ name: 'list_saved_trips', description: 'Read up to twenty saved trips for this device. Use only when the user refers to a saved trip, home, or work.', parameters: z.object({}), execute: async () => (await turn.itineraries.list(turn.deviceId)).slice(0, 20).map(({ id, label, summary, departAt, arriveAt, request, watch }) => ({ id, label, summary, departAt, arriveAt, watch, request: { origin: request.origin, stops: request.stops, destination: request.destination, time: request.time, modes: request.modes } })) })
   ];
 }
