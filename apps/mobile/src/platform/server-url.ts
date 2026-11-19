@@ -12,7 +12,10 @@ const listeners = new Set<Listener>();
 const listListeners = new Set<ListListener>();
 let current: string | null | undefined;
 let saved: string[] | undefined;
+let storedActive: string | null | undefined;
+let storedList: string[] | undefined;
 let loading: Promise<void> | undefined;
+let queue: Promise<void> = Promise.resolve();
 
 function publish(url: string | null) {
   current = url;
@@ -24,21 +27,84 @@ function publishList(servers: string[]) {
   for (const listener of listListeners) listener(servers);
 }
 
-function storeList(servers: string[]): Promise<void> {
+function serialized(task: () => Promise<void>): Promise<void> {
+  const run = queue.then(task);
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+async function writeList(servers: string[]): Promise<boolean> {
+  if (storedList && JSON.stringify(storedList) === JSON.stringify(servers)) return true;
+  try {
+    await SecureStore.setItemAsync(SAVED_SERVERS_KEY, JSON.stringify(servers));
+    storedList = servers;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function syncList(): Promise<void> {
+  if (storedList) return;
+  let raw: string | null;
+  try {
+    raw = await SecureStore.getItemAsync(SAVED_SERVERS_KEY);
+  } catch {
+    return;
+  }
+  const servers = (saved ?? []).reduce(withServer, parseSavedServers(raw, storedActive));
+  if (raw !== null && JSON.stringify(servers) === raw) storedList = servers;
+  else await writeList(servers);
   publishList(servers);
-  return SecureStore.setItemAsync(SAVED_SERVERS_KEY, JSON.stringify(servers)).catch(() => undefined);
 }
 
-export async function setServerUrl(url: string | null): Promise<void> {
-  await load();
+async function readActive(): Promise<string | null | undefined> {
+  try {
+    return await SecureStore.getItemAsync(SERVER_URL_KEY);
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeActive(url: string | null): Promise<void> {
+  storedActive ??= await readActive();
+  if (storedActive === undefined || url === storedActive) return;
+  if (storedActive && !storedList?.includes(storedActive)) return;
+  try {
+    await (url ? SecureStore.setItemAsync(SERVER_URL_KEY, url) : SecureStore.deleteItemAsync(SERVER_URL_KEY));
+    storedActive = url;
+  } catch {
+    return;
+  }
+}
+
+async function select(url: string | null): Promise<void> {
   publish(url);
-  if (url && saved && !saved.includes(url)) await storeList(withServer(saved, url));
-  await (url ? SecureStore.setItemAsync(SERVER_URL_KEY, url) : SecureStore.deleteItemAsync(SERVER_URL_KEY)).catch(() => undefined);
+  await syncList();
+  if (url && saved && !saved.includes(url)) {
+    const servers = withServer(saved, url);
+    publishList(servers);
+    if (storedList) await writeList(servers);
+  }
+  await writeActive(url);
 }
 
-export async function removeServer(url: string): Promise<void> {
-  await load();
-  await Promise.all([storeList((saved ?? []).filter((item) => item !== url)), current === url ? setServerUrl(null) : undefined]);
+export function setServerUrl(url: string | null): Promise<void> {
+  return serialized(async () => {
+    await load();
+    await select(url);
+  });
+}
+
+export function removeServer(url: string): Promise<void> {
+  return serialized(async () => {
+    await load();
+    if (current === url) await select(null);
+    await syncList();
+    const servers = (saved ?? []).filter((item) => item !== url);
+    publishList(servers);
+    if (storedList) await writeList(servers);
+  });
 }
 
 function applyLink(link: string | null): boolean {
@@ -51,12 +117,11 @@ function applyLink(link: string | null): boolean {
 function load(): Promise<void> {
   loading ??= Promise.all([
     Linking.getInitialURL().catch(() => null),
-    SecureStore.getItemAsync(SERVER_URL_KEY).catch(() => null),
-    SecureStore.getItemAsync(SAVED_SERVERS_KEY).catch(() => null)
-  ]).then(async ([initial, stored, list]) => {
-    const servers = parseSavedServers(list, stored);
-    if (JSON.stringify(servers) !== list) await storeList(servers);
-    else publishList(servers);
+    readActive()
+  ]).then(async ([initial, stored]) => {
+    storedActive = stored;
+    publishList(withServer([], stored));
+    await syncList();
     Linking.addEventListener('url', ({ url }) => applyLink(url));
     if (!applyLink(initial ?? null)) publish(stored ?? null);
   });

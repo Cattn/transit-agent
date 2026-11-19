@@ -52,9 +52,13 @@ export function parseConnectLink(link: string): string | undefined {
       return undefined;
     }
     if (!url) return '';
-    return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
+    return linkedServerUrl(url);
   }
   return undefined;
+}
+
+function linkedServerUrl(url: string): string | undefined {
+  return /^https?:\/\/[^\s/?#]+/i.test(url) ? url.replace(/\/+$/, '') : undefined;
 }
 
 export function normalizeServerUrl(input: string): string | undefined {
@@ -75,7 +79,8 @@ export function parseSavedServers(raw: string | null | undefined, active?: strin
     stored = [];
   }
   const urls = Array.isArray(stored) ? stored.filter((item): item is string => typeof item === 'string') : [];
-  return withServer(urls.map(normalizeServerUrl).filter((url): url is string => url !== undefined), active);
+  const valid = urls.map((url) => normalizeServerUrl(url) ?? linkedServerUrl(url.trim())).filter((url): url is string => url !== undefined);
+  return withServer(valid, active);
 }
 
 export function withServer(servers: readonly string[], url?: string | null): string[] {

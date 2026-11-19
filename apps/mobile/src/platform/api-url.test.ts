@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { normalizeServerUrl, parseConnectLink, parseSavedServers, resolveApiUrl, withServer } from './api-url';
 
 describe('resolveApiUrl', () => {
@@ -64,7 +64,8 @@ describe('parseSavedServers', () => {
     ['does not repeat the active server', '["http://192.168.1.20:3001"]', 'http://192.168.1.20:3001', ['http://192.168.1.20:3001']],
     ['drops invalid and duplicate entries', '["https://a.example.com/",1,"not a url","https://a.example.com"]', null, ['https://a.example.com']],
     ['broken JSON', '[oops', 'https://a.example.com', ['https://a.example.com']],
-    ['not an array', '{"url":"https://a.example.com"}', null, []]
+    ['not an array', '{"url":"https://a.example.com"}', null, []],
+    ['keeps a /connect address with a path', '["https://example.com/transit/"]', null, ['https://example.com/transit']]
   ])('%s', (_name, raw, active, expected) => {
     expect(parseSavedServers(raw, active)).toEqual(expected);
   });
@@ -74,4 +75,102 @@ describe('withServer', () => {
   it('appends a new server', () => expect(withServer(['https://a.example.com'], 'https://b.example.com')).toEqual(['https://a.example.com', 'https://b.example.com']));
   it('keeps an existing server in place', () => expect(withServer(['https://a.example.com', 'https://b.example.com'], 'https://a.example.com')).toEqual(['https://a.example.com', 'https://b.example.com']));
   it('ignores null', () => expect(withServer(['https://a.example.com'], null)).toEqual(['https://a.example.com']));
+});
+
+const disk = new Map<string, string>();
+const failing = { get: new Set<string>(), set: new Set<string>() };
+let slowKey: { key: string; release: Promise<void> } | undefined;
+
+vi.mock('react-native', () => ({
+  Linking: { getInitialURL: async () => null, addEventListener: () => ({ remove: () => undefined }) }
+}));
+vi.mock('expo-secure-store', () => ({
+  getItemAsync: async (key: string) => {
+    if (failing.get.has(key)) throw new Error('read failed');
+    return disk.get(key) ?? null;
+  },
+  setItemAsync: async (key: string, value: string) => {
+    if (failing.set.has(key)) throw new Error('write failed');
+    if (slowKey?.key === key) {
+      const { release } = slowKey;
+      slowKey = undefined;
+      await release;
+    }
+    disk.set(key, value);
+  },
+  deleteItemAsync: async (key: string) => void disk.delete(key)
+}));
+
+const ACTIVE = 'transit.serverUrl';
+const LIST = 'transit.savedServers';
+
+async function launch() {
+  vi.resetModules();
+  return import('./server-url');
+}
+
+function savedOnDisk(): string[] {
+  return JSON.parse(disk.get(LIST) ?? '[]') as string[];
+}
+
+describe('saved servers on the phone', () => {
+  beforeEach(() => {
+    disk.clear();
+    failing.get.clear();
+    failing.set.clear();
+    slowKey = undefined;
+  });
+
+  it('keeps an upgraded server after switching to Default and restarting', async () => {
+    disk.set(ACTIVE, 'http://100.64.0.1:3001');
+    await (await launch()).setServerUrl(null);
+    expect(disk.has(ACTIVE)).toBe(false);
+    await launch().then((app) => app.setServerUrl(null));
+    expect(savedOnDisk()).toEqual(['http://100.64.0.1:3001']);
+  });
+
+  it('keeps a /connect address with a path across restarts', async () => {
+    disk.set(ACTIVE, 'https://example.com/transit');
+    await (await launch()).setServerUrl(null);
+    await (await launch()).setServerUrl(null);
+    expect(savedOnDisk()).toEqual(['https://example.com/transit']);
+  });
+
+  it('does not overwrite the list when it cannot be read', async () => {
+    disk.set(ACTIVE, 'https://b.example.com');
+    disk.set(LIST, '["https://a.example.com","https://b.example.com"]');
+    failing.get.add(LIST);
+    await (await launch()).setServerUrl(null);
+    expect(disk.get(LIST)).toBe('["https://a.example.com","https://b.example.com"]');
+    expect(disk.get(ACTIVE)).toBe('https://b.example.com');
+  });
+
+  it('keeps the legacy server when the migrated list cannot be written', async () => {
+    disk.set(ACTIVE, 'https://a.example.com');
+    failing.set.add(LIST);
+    await (await launch()).setServerUrl('https://b.example.com');
+    await (await launch()).setServerUrl(null);
+    expect(disk.get(ACTIVE)).toBe('https://a.example.com');
+  });
+
+  it('keeps the last selection when an earlier write is slow', async () => {
+    let release = () => undefined as void;
+    slowKey = { key: LIST, release: new Promise<void>((resolve) => { release = resolve; }) };
+    const app = await launch();
+    const adding = app.setServerUrl('https://a.example.com');
+    const toDefault = app.setServerUrl(null);
+    release();
+    await Promise.all([adding, toDefault]);
+    expect(disk.has(ACTIVE)).toBe(false);
+    expect(savedOnDisk()).toEqual(['https://a.example.com']);
+  });
+
+  it('removing the active server falls back to Default', async () => {
+    const app = await launch();
+    await app.setServerUrl('https://a.example.com');
+    await app.setServerUrl('https://b.example.com');
+    await app.removeServer('https://b.example.com');
+    expect(savedOnDisk()).toEqual(['https://a.example.com']);
+    expect(disk.has(ACTIVE)).toBe(false);
+  });
 });

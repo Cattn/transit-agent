@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
-// Unit tests run in plain Node; tests that touch react-native / expo modules mock them
-// (see server-url.test.ts).
+// Unit tests cover only the pure helpers in src/platform (no react-native / expo imports),
+// so they run in plain Node.
 export default defineConfig({
   test: {
     environment: 'node',
