@@ -214,6 +214,8 @@ describe('Photon place search', () => {
     ['5 Market Cafe', 'Market Cafe', '5', 'Market Street', 'Market Cafe, Boston'],
     ['5 Market Boston Pizza', '5 Market Boston Pizza', '5', 'Market Street', '5 Market Boston Pizza, Boston'],
     ['550 Main St, Boston, MA 02118', 'Shop', '550', 'Main Street', '550 Main Street, Boston'],
+    ['1 Union Pl Boston CT', 'Subway', '1', 'Union Place', '1 Union Place, Boston'],
+    ['10 Summer St', 'Shop', '10', 'Summer Avenue', 'Shop, Boston'],
     ['550 Huntington', 'Dunkin', '550', 'Huntington Avenue', '550 Huntington Avenue, Boston'],
     ['550 N Main St', 'Shop', '550', 'North Main Street', '550 North Main Street, Boston'],
     ['Apt 4, 550 Main St', 'Shop', '4', 'Main Street', 'Shop, Boston'],
@@ -256,6 +258,24 @@ describe('Photon place search', () => {
     ]));
     const res = await serve(fn)('/api/places?q=550%20Main%20St%2C%20West%20Springfield');
     expect(res.json().places[0]?.name).toBe('550 Main Street, West Springfield');
+  });
+
+  it('keeps a state code after the city (1 Union Pl Hartford CT)', async () => {
+    const { fn } = fakeFetch(ok([
+      feature('Hartford Union Station', [-72.6815, 41.7678], { osm_key: 'building', osm_value: 'train_station', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' }),
+      feature('Subway', [-72.6816, 41.7679], { osm_key: 'amenity', osm_value: 'fast_food', housenumber: '1', street: 'Union Place', city: 'Hartford', state: 'Connecticut' })
+    ]));
+    const res = await serve(fn)('/api/places?q=1%20Union%20Pl%20Hartford%20CT');
+    expect(res.json().places.map((place: { name?: string }) => place.name)).toEqual(['1 Union Place, Hartford']);
+  });
+
+  it('gives priority to a city typed before the address', async () => {
+    const { fn } = fakeFetch(ok([
+      ...['Arlington', 'Lexington', 'Walpole', 'Boston', 'Worcester'].map((city, i) => feature('', [-71.2 + i * 0.01, 42.4], { housenumber: '77', street: 'Massachusetts Avenue', city })),
+      feature('', [-71.0937, 42.3594], { housenumber: '77', street: 'Massachusetts Avenue', city: 'Cambridge' })
+    ]));
+    const res = await serve(fn)('/api/places?q=Cambridge%2077%20Massachusetts%20Ave');
+    expect(res.json().places[0]?.name).toBe('77 Massachusetts Avenue, Cambridge');
   });
 
   it('keeps units at one address apart', async () => {
