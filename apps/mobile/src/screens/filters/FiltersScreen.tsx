@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
-import { formatClockOnDay, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
+import { formatClock, formatClockOnDay, formatDayFromNow, type DraftChangeSource, type Place, type PlanResponse, type TravelMode, type TripDraft, type TripDraftPatch } from '@transit/shared';
 import { getCurrentPlace } from '../../platform';
 import { FiltersChrome } from './FiltersChrome';
 import type { LimitCustom } from './limits';
 import { canAddStop, movePatch, pickPatch, placeSlots, removeStopPatch, type PlaceTarget } from './places';
 import { filtersResetPatch } from './reset';
+import { onPickedDay } from './when';
 
 const CHIP_MODES = ['walk', 'bus', 'rail', 'bike', 'car'] as const;
 const WALK_STEPS = [5, 10, 15, 20, 30, 45, 60];
@@ -52,10 +53,11 @@ export interface FiltersChromeProps {
     onPick: (place: Place) => void;
     onUseLocation: () => void;
   };
-  time: { label: string; set: boolean; agent: boolean; at?: string };
+  time: { label: string; day: string; clock: string; set: boolean; agent: boolean; at: string };
   timeOptions: { value: TimeType; label: string; selected: boolean }[];
   onTimeType: (type: TimeType) => void;
   onSetTime: (at: Date) => void;
+  onSetDate: (day: Date) => void;
   modes: { mode: ChipMode; label: string; selected: boolean }[];
   modesAgent: boolean;
   onToggleMode: (mode: ChipMode) => void;
@@ -157,8 +159,14 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
     return () => subscription.remove();
   }, [searching, onClose]);
 
+  useEffect(() => {
+    if (!draft.time) apply({ time: { type: 'departAt', at: new Date().toISOString() } }, 'user');
+  }, [draft.time, apply]);
+
   const agent = (key: string) => provenance[key] === 'agent';
   const timeType: TimeType = draft.time?.type ?? 'departAt';
+  const now = new Date();
+  const timeAt = draft.time?.at ?? now.toISOString();
 
   const onUseLocation = () => {
     setLocating(true);
@@ -235,10 +243,12 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
       onUseLocation
     } : undefined,
     time: {
-      label: draft.time ? formatClockOnDay(draft.time.at, new Date(), draft.timeZone) : 'Set a time',
+      label: formatClockOnDay(timeAt, now, draft.timeZone),
+      day: formatDayFromNow(timeAt, now, draft.timeZone),
+      clock: formatClock(timeAt, draft.timeZone),
       set: draft.time !== undefined,
       agent: agent('time'),
-      at: draft.time?.at
+      at: timeAt
     },
     timeOptions: TIME_OPTIONS.map((option) => ({ ...option, selected: option.value === timeType })),
     onTimeType: (type) => {
@@ -248,6 +258,13 @@ export function FiltersScreen({ draft, provenance, apply, field, plan, startSear
     },
     onSetTime: (picked) => {
       const at = upcoming(picked, new Date()).toISOString();
+      if (draft.time?.at === at && draft.time.type === timeType) return;
+      apply({ time: { type: timeType, at } }, 'user');
+    },
+    onSetDate: (day) => {
+      const current = new Date();
+      const moved = onPickedDay(day, new Date(timeAt));
+      const at = (moved.getTime() < current.getTime() ? upcoming(current, current) : moved).toISOString();
       if (draft.time?.at === at && draft.time.type === timeType) return;
       apply({ time: { type: timeType, at } }, 'user');
     },

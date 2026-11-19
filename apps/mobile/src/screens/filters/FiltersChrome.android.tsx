@@ -5,6 +5,7 @@ import { Host } from '@expo/ui';
 import {
   AlertDialog,
   Column,
+  DatePickerDialog,
   FilledTonalButton,
   FilterChip,
   FlowRow,
@@ -29,6 +30,7 @@ import { background, clickable, clip, fillMaxWidth, padding, Shapes, weight } fr
 import Add from '../../../assets/icons/add_fill.xml';
 import ArrowDown from '../../../assets/icons/keyboard_arrow_down_fill.xml';
 import ArrowUp from '../../../assets/icons/keyboard_arrow_up_fill.xml';
+import CalendarToday from '../../../assets/icons/calendar_today_fill.xml';
 import Check from '../../../assets/icons/check_fill.xml';
 import Close from '../../../assets/icons/close_fill.xml';
 import DirectionsBike from '../../../assets/icons/directions_bike_fill.xml';
@@ -38,6 +40,7 @@ import DirectionsWalk from '../../../assets/icons/directions_walk_fill.xml';
 import DragIndicator from '../../../assets/icons/drag_indicator_fill.xml';
 import LocationOn from '../../../assets/icons/location_on_fill.xml';
 import MyLocation from '../../../assets/icons/my_location_fill.xml';
+import Schedule from '../../../assets/icons/schedule_fill.xml';
 import Train from '../../../assets/icons/train_fill.xml';
 import TripOrigin from '../../../assets/icons/trip_origin_fill.xml';
 import { useAppColors } from '../../theme/appearance';
@@ -48,6 +51,7 @@ import type { ChipMode, FilterFocus, FiltersChromeProps, PlaceRowItem } from './
 import { parseCustomLimit } from './limits';
 import { PlaceField, type PlaceFieldColors } from './PlaceField';
 import { PlaceList } from './PlaceList';
+import { pickerDay } from './when';
 
 const MODE_ICONS: Record<ChipMode, number> = {
   walk: DirectionsWalk,
@@ -263,7 +267,7 @@ export function FiltersChrome(props: FiltersChromeProps) {
   const scroll = useRef<ScrollViewInstance>(null);
   const scrollY = useRef(0);
   const scrolled = useRef(false);
-  const [pickingTime, setPickingTime] = useState<string>();
+  const [picking, setPicking] = useState<{ kind: 'date' | 'time'; at: string; opened: Date }>();
   const [pickingLimit, setPickingLimit] = useState<LimitItem['key']>();
   const editing = props.limits.find((item) => item.key === pickingLimit);
   const placeColors: PlaceFieldColors = {
@@ -350,8 +354,8 @@ export function FiltersChrome(props: FiltersChromeProps) {
           ) : null}
           {props.search?.which === 'add' ? searchField(false) : null}
           <Block scheme={scheme}>
-            <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 4)]}>
-              <SingleChoiceSegmentedButtonRow modifiers={[weight(1)]}>
+            <Column verticalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth(), padding(16, 12, 16, 4)]}>
+              <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
                 {props.timeOptions.map((option) => (
                   <SegmentedButton key={option.value} selected={option.selected} onClick={() => props.onTimeType(option.value)}>
                     <SegmentedButton.Label>
@@ -360,22 +364,45 @@ export function FiltersChrome(props: FiltersChromeProps) {
                   </SegmentedButton>
                 ))}
               </SingleChoiceSegmentedButtonRow>
-              <FilledTonalButton onClick={() => setPickingTime(props.time.at ?? new Date().toISOString())}>
-                <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.agent ? `✦ ${props.time.label}` : props.time.label}</Text>
-              </FilledTonalButton>
-              {pickingTime ? (
+              <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 12 }} modifiers={[fillMaxWidth()]}>
+                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'date', at: props.time.at, opened: new Date() })}>
+                  <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+                    <Icon source={CalendarToday} size={18} />
+                    <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.day}</Text>
+                  </Row>
+                </FilledTonalButton>
+                <FilledTonalButton modifiers={[weight(1)]} onClick={() => setPicking({ kind: 'time', at: props.time.at, opened: new Date() })}>
+                  <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+                    <Icon source={Schedule} size={18} />
+                    <Text maxLines={1} style={m3Text('labelLarge')}>{props.time.agent ? `✦ ${props.time.clock}` : props.time.clock}</Text>
+                  </Row>
+                </FilledTonalButton>
+              </Row>
+              {picking?.kind === 'date' ? (
+                <DatePickerDialog
+                  initialDate={pickerDay(new Date(picking.at))}
+                  selectableDates={{ start: picking.opened }}
+                  confirmButtonLabel="Set date"
+                  onDateSelected={(day) => {
+                    setPicking(undefined);
+                    props.onSetDate(day);
+                  }}
+                  onDismissRequest={() => setPicking(undefined)}
+                />
+              ) : null}
+              {picking?.kind === 'time' ? (
                 <TimePickerDialog
-                  initialDate={pickingTime}
+                  initialDate={picking.at}
                   is24Hour={false}
                   confirmButtonLabel="Set time"
                   onDateSelected={(at) => {
-                    setPickingTime(undefined);
+                    setPicking(undefined);
                     props.onSetTime(at);
                   }}
-                  onDismissRequest={() => setPickingTime(undefined)}
+                  onDismissRequest={() => setPicking(undefined)}
                 />
               ) : null}
-            </Row>
+            </Column>
           </Block>
         </View>
 
