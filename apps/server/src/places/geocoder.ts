@@ -34,27 +34,47 @@ export function coordinatePlace(q: string): Place | undefined {
   return result.success ? result.data : undefined;
 }
 
-const streetTypeWords = new Set(['street', 'st', 'avenue', 'ave', 'road', 'rd', 'drive', 'dr', 'lane', 'ln', 'boulevard', 'blvd', 'place', 'pl', 'court', 'ct', 'way', 'terrace', 'ter', 'square', 'sq', 'highway', 'hwy', 'north', 'south', 'east', 'west', 'n', 's', 'e', 'w', 'the', 'rue', 'de', 'la', 'du']);
+const streetAbbreviations: Record<string, string> = {
+  st: 'street', ave: 'avenue', av: 'avenue', rd: 'road', dr: 'drive', ln: 'lane', blvd: 'boulevard', pl: 'place', ct: 'court',
+  ter: 'terrace', sq: 'square', hwy: 'highway', pkwy: 'parkway', cir: 'circle', n: 'north', s: 'south', e: 'east', w: 'west'
+};
+const streetTypes = new Set(['street', 'avenue', 'road', 'drive', 'lane', 'boulevard', 'place', 'court', 'terrace', 'square', 'highway', 'parkway', 'circle', 'way']);
+const unitWords = new Set(['apt', 'apartment', 'unit', 'suite', 'ste', 'floor', 'fl', 'room', 'rm']);
+const houseNumberPattern = /^\d+[a-z]?(?:[-/]\d+[a-z]?)?$/;
 
 function words(value: string) {
-  return value.toLowerCase().split(/[\s,.;#]+/).filter(Boolean);
+  return value.toLowerCase().split(/[\s.;#]+/).filter(Boolean).map((word) => streetAbbreviations[word] ?? word);
 }
 
-interface AddressQuery {
-  numbers: Set<string>;
-  words: Set<string>;
+interface AddressCandidate {
+  number: string;
+  before: string[];
+  after: string[];
 }
 
-export function addressQuery(q: string): AddressQuery | undefined {
-  const tokens = words(q);
-  const numbers = new Set(tokens.filter((token) => /^\d+[a-z]?(?:[-/]\d+[a-z]?)?$/.test(token)));
-  return numbers.size ? { numbers, words: new Set(tokens) } : undefined;
+export function addressQuery(q: string): AddressCandidate[] | undefined {
+  const segments: string[][] = [];
+  for (const segment of q.split(',').map(words)) {
+    const previous = segments.at(-1);
+    if (previous?.length === 1 && houseNumberPattern.test(previous[0]!)) previous.push(...segment);
+    else segments.push(segment);
+  }
+  const candidates = segments.flatMap((segment) => segment.flatMap((word, index) =>
+    houseNumberPattern.test(word) && !unitWords.has(segment[index - 1] ?? '') ? [{ number: word, before: segment.slice(0, index), after: segment.slice(index + 1) }] : []));
+  return candidates.length ? candidates : undefined;
 }
 
-function matchesAddress(query: AddressQuery | undefined, housenumber: string | undefined, street: string | undefined) {
+function startsWith(list: string[], prefix: string[]) {
+  return prefix.length > 0 && prefix.every((word, index) => list[index] === word);
+}
+
+function matchesAddress(query: AddressCandidate[] | undefined, housenumber: string | undefined, street: string | undefined) {
   if (!query || !housenumber || !street) return false;
-  if (!query.numbers.has(housenumber.toLowerCase().replace(/\s+/g, ''))) return false;
-  return words(street).some((word) => word.length > 1 && !streetTypeWords.has(word) && query.words.has(word));
+  const number = housenumber.toLowerCase().replace(/\s+/g, '');
+  const full = words(street);
+  const core = streetTypes.has(full.at(-1) ?? '') ? full.slice(0, -1) : full;
+  return query.some(({ number: n, before, after }) => n === number && (
+    startsWith(after, full) || (after.length === core.length && startsWith(after, core)) || startsWith(before.slice(-full.length), full)));
 }
 
 function text(value: unknown) {
@@ -71,11 +91,12 @@ function kindOf(props: Record<string, unknown>): Place['kind'] {
   return 'poi';
 }
 
-function toPlace(feature: PhotonFeature, query?: AddressQuery): { place: Place; matched: boolean } | undefined {
+function toPlace(feature: PhotonFeature, query?: AddressCandidate[]): { place: Place; matched: boolean } | undefined {
   const props = feature.properties ?? {};
   const street = text(props.street);
   const housenumber = text(props.housenumber);
-  const address = street ? [housenumber, street].filter(Boolean).join(' ') : undefined;
+  const unit = text(props.unit);
+  const address = street ? [housenumber, street].filter(Boolean).join(' ') + (unit ? ` #${unit}` : '') : undefined;
   const matched = matchesAddress(query, housenumber, street);
   const base = matched ? address : text(props.name) ?? address;
   const area = text(props.city) ?? text(props.state);
@@ -115,7 +136,7 @@ export function createPlaceSearcher({ photonUrl, fetch: fetchImpl = globalThis.f
     if (near && rows.some((row) => row.matched && distanceMeters(row.place.coordinates, near) < addressNearbyMeters)) {
       rows = rows.filter((row) => row.matched || distanceMeters(row.place.coordinates, near) < addressNearbyMeters);
     }
-    const places = rows.map((row) => row.place);
+    const places = [...rows.filter((row) => row.matched), ...rows.filter((row) => !row.matched)].map((row) => row.place);
     cache.set(key, { at: Date.now(), places });
     while (cache.size > cacheMax) cache.delete(cache.keys().next().value!);
     return places;
