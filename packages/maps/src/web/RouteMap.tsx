@@ -248,7 +248,11 @@ export function RouteMap({
   const panToUser = useEffectEvent(() => {
     const map = mapRef.current;
     if (!map || !userLocation) return;
-    map.easeTo({ center: userLocation, zoom: Math.max(map.getZoom(), LOCATE_MIN_ZOOM), padding, duration: 600 });
+    // Centre the user in the area left between the padding with an offset, not `padding`: easeTo's
+    // padding sticks to the map, and fitBounds adds the map's padding to its own, so every later route
+    // fit would leave room for the sheet and top bar twice (#119).
+    const offset: [number, number] = [(padding.left - padding.right) / 2, (padding.top - padding.bottom) / 2];
+    map.easeTo({ center: userLocation, zoom: Math.max(map.getZoom(), LOCATE_MIN_ZOOM), offset, duration: 600 });
   });
 
   useEffect(() => {
