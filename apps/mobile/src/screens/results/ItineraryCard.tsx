@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  formatClock,
   formatCost,
   formatDuration,
   formatTimeRange,
@@ -28,23 +29,43 @@ export interface LegChip {
 
 export interface LegDetail {
   id: string;
+  mode: Leg['mode'];
+  transit: boolean;
   label: string;
   times: string;
+  departTime: string;
+  arriveTime: string;
+  duration: string;
+  distance?: string;
+  fromName?: string;
+  toName?: string;
+  agency?: string;
   freshness: Badge;
+  live: boolean;
+  transferBufferMinutes?: number;
   direction?: string;
   stopCount?: string;
+  stopCountShort?: string;
   stops?: string;
+  intermediateStopNames?: string[];
 }
 
 export interface ItineraryCardText {
   times: string;
+  departTime: string;
+  arriveTime: string;
   duration: string;
   chips: LegChip[];
   freshness: Badge;
   live: boolean;
   detail: string;
   cost: string;
+  costBreakdown?: string;
+  transfers: number;
   risk: Badge;
+  riskReasons: string[];
+  originName?: string;
+  destinationName?: string;
   details: LegDetail[];
 }
 
@@ -53,6 +74,17 @@ export interface NearMissText {
   reason: string;
   mode: Leg['mode'];
   cost: string;
+}
+
+function formatDistance(meters: number | undefined): string | undefined {
+  if (meters === undefined || meters <= 0) return undefined;
+  if (meters < 161) return `${Math.max(10, Math.round((meters * 3.28084) / 10) * 10)} ft`;
+  return `${(meters / 1609.344).toFixed(1)} mi`;
+}
+
+function formatCostBreakdown(cost: Itinerary['cost']): string | undefined {
+  if (cost.totalUsd === 0 || cost.lines.length === 0) return undefined;
+  return cost.lines.map((line) => `${line.label} $${line.usd.toFixed(2)}`).join(' · ');
 }
 
 function freshnessDetail(it: Itinerary, now: Date): string {
@@ -77,8 +109,13 @@ function cardFreshness(it: Itinerary, now: Date): Badge {
 export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): ItineraryCardText {
   const freshness = cardFreshness(it, now);
   const outdated = freshness.label === 'Outdated' || freshness.label === 'Updates unavailable';
+  const costBreakdown = formatCostBreakdown(it.cost);
+  const originName = it.legs[0]?.from.name;
+  const destinationName = it.legs[it.legs.length - 1]?.to.name;
   return {
     times: formatTimeRange(it.departAt, it.arriveAt, timeZone),
+    departTime: formatClock(it.departAt, timeZone),
+    arriveTime: formatClock(it.arriveAt, timeZone),
     duration: formatDuration(it.durationMinutes),
     chips: it.legs.map((leg) => {
       const transit = scheduledModes.includes(leg.mode);
@@ -88,14 +125,42 @@ export function itineraryCardText(it: Itinerary, now: Date, timeZone?: string): 
     live: itineraryFreshness(it, now).label === 'Live',
     detail: freshnessDetail(it, now),
     cost: formatCost(it.cost),
+    ...(costBreakdown ? { costBreakdown } : {}),
+    transfers: it.transfers,
     risk: riskBadge(it.risk),
+    riskReasons: it.risk.reasons,
+    ...(originName ? { originName } : {}),
+    ...(destinationName ? { destinationName } : {}),
     details: it.legs.map((leg) => {
-      const detail: LegDetail = { id: leg.id, label: legLabel(leg), times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone), freshness: outdated && leg.timeSource === 'realtime' ? { label: 'Outdated', tone: 'warn' } : legFreshness(leg) };
+      const transit = scheduledModes.includes(leg.mode);
+      const detail: LegDetail = {
+        id: leg.id,
+        mode: leg.mode,
+        transit,
+        label: legLabel(leg),
+        times: formatTimeRange(leg.departAt, leg.arriveAt, timeZone),
+        departTime: formatClock(leg.departAt, timeZone),
+        arriveTime: formatClock(leg.arriveAt, timeZone),
+        duration: formatDuration(leg.durationMinutes),
+        freshness: outdated && leg.timeSource === 'realtime' ? { label: 'Outdated', tone: 'warn' } : legFreshness(leg),
+        live: !outdated && leg.timeSource === 'realtime'
+      };
+      const distance = formatDistance(leg.distanceMeters);
       const direction = legDirection(leg);
       const stopCount = legStopCount(leg);
       const stops = legStopNames(leg);
+      if (distance && !transit) detail.distance = distance;
+      if (leg.from.name) detail.fromName = leg.from.name;
+      if (leg.to.name) detail.toName = leg.to.name;
+      if (leg.agency) detail.agency = leg.agency;
+      if (leg.transferBufferMinutes !== undefined && leg.transferBufferMinutes > 0) detail.transferBufferMinutes = leg.transferBufferMinutes;
       if (direction) detail.direction = direction;
       if (stopCount) detail.stopCount = stopCount;
+      if (leg.intermediateStops) {
+        const count = leg.intermediateStops.length + 1;
+        detail.stopCountShort = `${count} ${count === 1 ? 'stop' : 'stops'}`;
+        detail.intermediateStopNames = leg.intermediateStops.flatMap((stop) => (stop.name ? [stop.name] : []));
+      }
       if (stops) detail.stops = stops;
       return detail;
     })

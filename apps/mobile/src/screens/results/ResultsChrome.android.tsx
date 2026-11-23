@@ -1,7 +1,8 @@
-import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import Animated, { runOnJS, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { Host } from '@expo/ui';
 import {
   AlertDialog,
@@ -39,12 +40,27 @@ import type { ResultsChromeProps } from './ResultsScreen';
 import { WatchPanel } from './WatchPanel.android';
 
 // The sheet's header is its drag handle: content panning is off so the route list never moves the sheet (#81).
-const SheetHeaderContext = createContext<{ header: ReactNode; indicator: string; onHeight: (height: number) => void }>({ header: null, indicator: 'transparent', onHeight: () => undefined });
+const SheetHeaderContext = createContext<{
+  header: ReactNode;
+  indicator: string;
+  surface: string;
+  divider: string;
+  onHeight: (height: number) => void;
+}>({
+  header: null,
+  indicator: 'transparent',
+  surface: 'transparent',
+  divider: 'transparent',
+  onHeight: () => undefined
+});
 
 function SheetHeader() {
-  const { header, indicator, onHeight } = useContext(SheetHeaderContext);
+  const { header, indicator, surface, divider, onHeight } = useContext(SheetHeaderContext);
   return (
-    <View onLayout={(event) => onHeight(event.nativeEvent.layout.height)}>
+    <View
+      onLayout={(event) => onHeight(event.nativeEvent.layout.height)}
+      style={[styles.stickyHeader, { backgroundColor: surface, borderBottomColor: divider }]}
+    >
       <View style={styles.handleRow}>
         <View style={[styles.handle, { backgroundColor: indicator }]} />
       </View>
@@ -69,7 +85,22 @@ export function ResultsChrome(props: ResultsChromeProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sheetIndex, setSheetIndex] = useState(COLLAPSED);
   const [headerHeight, setHeaderHeight] = useState(HEADER_ESTIMATE);
-  const sheet = useRef<BottomSheet>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [pillInteractive, setPillInteractive] = useState(true);
+  const animatedIndex = useSharedValue(COLLAPSED);
+
+  useAnimatedReaction(
+    () => Math.abs(animatedIndex.value) < 0.01 || Math.abs(animatedIndex.value - 1) < 0.01,
+    (resting, previous) => {
+      if (resting !== previous) runOnJS(setPillInteractive)(resting);
+    }
+  );
+
+  const watchPillStyle = useAnimatedStyle(() => {
+    const idx = animatedIndex.value;
+    const resting = Math.abs(idx) < 0.01 || Math.abs(idx - 1) < 0.01;
+    return { opacity: withTiming(resting ? 1 : 0, { duration: resting ? 140 : 80 }) };
+  });
 
   const expanded = Math.max(3, Math.round(containerHeight - (insets.top + 4 + topHeight + TOP_GAP)));
   const travel = Math.max(1, Math.min(MIN_TRAVEL, Math.floor(expanded / 3)));
@@ -131,9 +162,6 @@ export function ResultsChrome(props: ResultsChromeProps) {
               <Icon source={Delete} size={24} tint={m.error} contentDescription="Delete saved trip" />
             </IconButton>
           </Row>
-        ) : null}
-        {props.savedTrip && sheetIndex === 2 ? (
-          <TextButton onClick={() => sheet.current?.snapToIndex(COLLAPSED)}><Text style={m3Text('labelLarge')}>Trip updates</Text></TextButton>
         ) : null}
         {props.savedTrip?.error && sheetIndex === 2 ? (
           <Row
@@ -290,11 +318,19 @@ export function ResultsChrome(props: ResultsChromeProps) {
       </Host>
       </View>
 
-      <SheetHeaderContext.Provider value={{ header, indicator: m.onSurfaceVariant, onHeight: setHeaderHeight }}>
+      <SheetHeaderContext.Provider
+        value={{
+          header,
+          indicator: m.onSurfaceVariant,
+          surface: scrolled ? m.surfaceContainer : m.surfaceContainerLow,
+          divider: m.primary,
+          onHeight: setHeaderHeight
+        }}
+      >
         <BottomSheet
-          ref={sheet}
           index={COLLAPSED}
           snapPoints={snapPoints}
+          animatedIndex={animatedIndex}
           enableDynamicSizing={false}
           enablePanDownToClose={false}
           enableContentPanningGesture={false}
@@ -304,7 +340,16 @@ export function ResultsChrome(props: ResultsChromeProps) {
           handleComponent={SheetHeader}
         >
           <View style={styles.sheetContent}>
-            <BottomSheetScrollView style={styles.list} contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + (sheetIndex === COLLAPSED ? expanded - collapsed : 0) }]}>
+            <ScrollView
+              style={styles.list}
+              nestedScrollEnabled
+              scrollEventThrottle={16}
+              contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + (sheetIndex === COLLAPSED ? expanded - collapsed : 0) }]}
+              onScroll={(event) => {
+                const next = event.nativeEvent.contentOffset.y > 4;
+                setScrolled((prev) => (prev === next ? prev : next));
+              }}
+            >
               {props.message ? (
                 <Host matchContents={{ vertical: true }} colorScheme={scheme} seedColor={materialSeedColor} style={styles.fullWidth}>
                   <Text color={m.onSurfaceVariant} style={m3Text('bodyLarge')} modifiers={[padding(4, 12, 4, 12)]}>{props.message}</Text>
@@ -316,6 +361,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
                     card={card}
                     canSave={props.canSave}
                     m={m}
+                    standalone={Boolean(props.savedTrip)}
                     onSelect={() => props.onSelect(card.id)}
                     onSave={() => props.onSave(card.id)}
                   />
@@ -348,7 +394,7 @@ export function ResultsChrome(props: ResultsChromeProps) {
                     {props.nearMisses.map((miss) => (
                       <Surface
                         key={miss.id}
-                        color={m.surfaceContainerLowest}
+                        color={m.surfaceContainer}
                         contentColor={m.onSurface}
                         shape={corners(CARD_RADIUS)}
                         border={{ width: 1, color: m.outlineVariant }}
@@ -367,14 +413,20 @@ export function ResultsChrome(props: ResultsChromeProps) {
                   </Column>
                 </Host>
               ) : null}
-            </BottomSheetScrollView>
+            </ScrollView>
           </View>
         </BottomSheet>
       </SheetHeaderContext.Provider>
       {props.savedTrip && sheetIndex !== 2 ? (
-        <View pointerEvents="box-none" style={{ position: 'absolute', left: 24, right: 24, bottom: (snapPoints[sheetIndex] ?? collapsed) + 16, alignItems: 'center' }}>
+        <Animated.View
+          pointerEvents={pillInteractive ? 'box-none' : 'none'}
+          style={[
+            { position: 'absolute', left: 24, right: 24, bottom: (snapPoints[sheetIndex] ?? collapsed) + 16, alignItems: 'center' },
+            watchPillStyle
+          ]}
+        >
           <WatchPanel key={props.title} trip={props.savedTrip} m={m} scheme={scheme} />
-        </View>
+        </Animated.View>
       ) : null}
       <View pointerEvents="none" style={[styles.navStrip, { height: insets.bottom, backgroundColor: m.surfaceContainerLow }]} />
     </View>
@@ -387,10 +439,11 @@ const styles = StyleSheet.create({
   stopsCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 24, overflow: 'hidden', elevation: 3, paddingTop: 6, paddingBottom: 6, paddingStart: 4, marginBottom: 10 },
   stopsList: { flex: 1, paddingStart: 4 },
   sheetBackground: { borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  stickyHeader: { borderTopLeftRadius: 28, borderTopRightRadius: 28, borderBottomWidth: 2 },
   handleRow: { alignItems: 'center', paddingVertical: 10 },
   handle: { width: 32, height: 4, borderRadius: 2, opacity: 0.4 },
   sheetContent: { flex: 1 },
   list: { flex: 1 },
-  listContent: { gap: 12, paddingHorizontal: 16, paddingTop: 2 },
+  listContent: { gap: 12, paddingHorizontal: 16, paddingTop: 12 },
   navStrip: { position: 'absolute', left: 0, right: 0, bottom: 0 }
 });
