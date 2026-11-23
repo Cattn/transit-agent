@@ -248,7 +248,10 @@ export function RouteMap({
   const panToUser = useEffectEvent(() => {
     const map = mapRef.current;
     if (!map || !userLocation) return;
-    map.easeTo({ center: userLocation, zoom: Math.max(map.getZoom(), LOCATE_MIN_ZOOM), padding, duration: 600 });
+    // Center the marker in the exposed map area without persisting padding on the camera.
+    // MapLibre adds persistent padding to the padding passed to fitBounds.
+    const offset: [number, number] = [(padding.left - padding.right) / 2, (padding.top - padding.bottom) / 2];
+    map.easeTo({ center: userLocation, zoom: Math.max(map.getZoom(), LOCATE_MIN_ZOOM), offset, duration: 600 });
   });
 
   useEffect(() => {
@@ -293,6 +296,7 @@ export function RouteMap({
       mapStyle={styleUrl} // basemap chosen by the app (decision D8)
       initialViewState={INITIAL_VIEW}
       style={{ width: '100%', height: '100%' }}
+      scrollZoom
       onLoad={handleLoad} // first fit, once the map is ready (the effect above may run before that)
       onError={(event: ErrorEvent) => {
         console.error(event.error);
